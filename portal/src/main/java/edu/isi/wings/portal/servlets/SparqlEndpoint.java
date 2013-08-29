@@ -15,6 +15,7 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
+import com.hp.hpl.jena.sparql.resultset.ResultsFormat;
 import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.TDBFactory;
 
@@ -56,11 +57,16 @@ public class SparqlEndpoint extends HttpServlet {
 			Query query = QueryFactory.create(queryString);
 			if(query.isSelectType()) {
 				Config config = new Config(request);
+				ResultsFormat fmt = this.getResultsFormat(request.getParameter("format"));
+				
 				Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
 				QueryExecution qexec = QueryExecutionFactory.create(query, tdbstore);
 				qexec.getContext().set(TDB.symUnionDefaultGraph, true);
 				ResultSet results = qexec.execSelect();
-				ResultSetFormatter.out(response.getOutputStream(), results, query);
+				if(fmt == null)
+					ResultSetFormatter.out(response.getOutputStream(), results, query);
+				else
+					ResultSetFormatter.output(response.getOutputStream(), results, fmt);
 			}
 			else {
 				response.getOutputStream().print("Only select queries allowed");
@@ -70,6 +76,10 @@ public class SparqlEndpoint extends HttpServlet {
 			response.getOutputStream().print(e.getMessage());
 		}
 		response.getOutputStream().flush();
+	}
+	
+	private ResultsFormat getResultsFormat(String format) {
+		return ResultsFormat.lookup(format);
 	}
 
 	/**
