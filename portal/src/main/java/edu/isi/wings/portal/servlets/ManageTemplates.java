@@ -101,6 +101,7 @@ public class ManageTemplates extends HttpServlet {
 		
 		// Get all options
 		HashMap<String , Boolean> options = new HashMap<String, Boolean>();
+		@SuppressWarnings("unchecked")
 		Enumeration<String> pnames = request.getParameterNames();
 		while(pnames.hasMoreElements()) {
 			String pname = pnames.nextElement();
