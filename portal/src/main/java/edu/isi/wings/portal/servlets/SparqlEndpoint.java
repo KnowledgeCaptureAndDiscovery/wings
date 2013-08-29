@@ -18,6 +18,9 @@ import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.sparql.resultset.ResultsFormat;
 import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.TDBFactory;
+import com.hp.hpl.jena.update.UpdateAction;
+import com.hp.hpl.jena.update.UpdateFactory;
+import com.hp.hpl.jena.update.UpdateRequest;
 
 import edu.isi.wings.portal.classes.Config;
 
@@ -27,6 +30,7 @@ import edu.isi.wings.portal.classes.Config;
 public class SparqlEndpoint extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
+	private ServletOutputStream out;
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -39,14 +43,17 @@ public class SparqlEndpoint extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		ServletOutputStream out = response.getOutputStream();
+		this.out = response.getOutputStream();
 		String queryString = request.getParameter("query");
-		if (queryString == null) {
+		String updateString = request.getParameter("update");
+		if (queryString == null && updateString == null) {
 			response.setContentType("text/html");
 			out.print("<form>"
 					+ "<h1>Wings Portal Sparql endpoint</h1>"
 					+ "<h4>Enter select query below</h4>"
 					+ "<textarea name='query' rows='20' cols='100'></textarea>"
+					+ "<h4>Enter update query below</h4>"
+					+ "<textarea name='update' rows='20' cols='100'></textarea>"
 					+ "<br/>"
 					+ "<input type='submit'/>"
 					+ "</form>");
@@ -54,32 +61,47 @@ public class SparqlEndpoint extends HttpServlet {
 		}
 		
 		try {
-			Query query = QueryFactory.create(queryString);
-			if(query.isSelectType()) {
-				Config config = new Config(request);
-				ResultsFormat fmt = this.getResultsFormat(request.getParameter("format"));
-				
-				Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
-				QueryExecution qexec = QueryExecutionFactory.create(query, tdbstore);
-				qexec.getContext().set(TDB.symUnionDefaultGraph, true);
-				ResultSet results = qexec.execSelect();
-				if(fmt == null)
-					ResultSetFormatter.out(response.getOutputStream(), results, query);
-				else
-					ResultSetFormatter.output(response.getOutputStream(), results, fmt);
-			}
-			else {
-				response.getOutputStream().print("Only select queries allowed");
-			}
+			if(queryString != null && !queryString.equals(""))
+				this.showQueryResults(queryString, request);
+			else if(updateString != null && !updateString.equals(""))
+				this.updateDataset(updateString, request);
 		}
 		catch (Exception e) {
 			response.getOutputStream().print(e.getMessage());
 		}
 		response.getOutputStream().flush();
 	}
+
+	private void showQueryResults(String queryString, HttpServletRequest request) 
+			throws IOException {
+		Query query = QueryFactory.create(queryString);
+		if(query.isSelectType()) {
+			Config config = new Config(request);
+			ResultsFormat fmt = ResultsFormat.lookup(request.getParameter("format"));
+			
+			Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
+			QueryExecution qexec = QueryExecutionFactory.create(query, tdbstore);
+			qexec.getContext().set(TDB.symUnionDefaultGraph, true);
+			ResultSet results = qexec.execSelect();
+			if(fmt == null) {
+				out.print(queryString+"\n");
+				ResultSetFormatter.out(out, results, query);
+			}
+			else
+				ResultSetFormatter.output(out, results, fmt);
+		}
+		else {
+			out.print("Only select queries allowed");
+		}
+	}
 	
-	private ResultsFormat getResultsFormat(String format) {
-		return ResultsFormat.lookup(format);
+	private void updateDataset(String updateString, HttpServletRequest request) throws IOException {
+		Config config = new Config(request);
+		Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
+		UpdateRequest update = UpdateFactory.create(updateString);
+		UpdateAction.execute(update, tdbstore);
+		out.print("Updated");
+		TDB.sync(tdbstore);
 	}
 
 	/**
