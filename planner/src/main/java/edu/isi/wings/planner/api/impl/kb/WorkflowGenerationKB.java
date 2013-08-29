@@ -1303,7 +1303,10 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										continue;
 									}
 									
-									Variable newVariable = newVariables.get(cb.toString());
+									String varkey = cb.isValueBinding() ? variable.getName() : "";
+									varkey += cb.toString();
+									
+									Variable newVariable = newVariables.get(varkey);
 									if(newVariable != null) {
 										// Variable exists. Get it's links and modify them
 										Link[] curlinks = curt.getLinks(newVariable);
@@ -1326,7 +1329,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										// Input Variable doesn't exist. Create a new variable and link
 										newVariable = curt.addVariable(ns + variable.getName(), variable.getVariableType());
 										newVariable.setBinding(cb);
-										newVariables.put(cb.toString(), newVariable);
+										newVariables.put(varkey, newVariable);
 										
 										// Add new input link
 										curt.addLink(null, newNode, null, newPort, newVariable);
@@ -1374,12 +1377,15 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 									}
 
 									// Check for existing variable
-									Variable newVariable = newVariables.get(cb.toString());
+									String varkey = cb.isValueBinding() ? variable.getName() : "";
+									varkey += cb.toString();
+									
+									Variable newVariable = newVariables.get(varkey);
 									if (newVariable == null) {
 										// Create a new variable
 										newVariable = curt.addVariable(ns + variable.getName(), variable.getVariableType());
 										newVariable.setBinding(cb);
-										newVariables.put(cb.toString(), newVariable);
+										newVariables.put(varkey, newVariable);
 									}
 									// Add new output link
 									curt.addLink(newNode, null, newPort, null, newVariable);
