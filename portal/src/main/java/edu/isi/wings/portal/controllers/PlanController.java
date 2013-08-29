@@ -139,11 +139,6 @@ public class PlanController {
 			printParameterBindingsJSON(cts);
 			return;
 		}
-		
-		if(op.equals("getExpansions")) {
-			printTemplatesJSON(cts);
-			return;
-		}
 
 		ArrayList<Template> ets = new ArrayList<Template>();
 		for(Template ct : cts)
