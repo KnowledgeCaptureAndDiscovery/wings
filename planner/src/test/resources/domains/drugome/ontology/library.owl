@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rdf:RDF
+   xml:base="http://www.isi.edu/drugome/library.owl"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+   xmlns:owl="http://www.w3.org/2002/07/owl#"
+   xmlns="http://www.isi.edu/drugome/library.owl#"
+   xmlns:wflow="http://www.isi.edu/2007/08/workflow.owl#">
+
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstracctSubWFFATCAT.owl#AbstracctSubWFFATCAT"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstractGlobalWorkflow.owl#AbstractGlobalWorkflow"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstractGlobalWorkflow2.owl#AbstractGlobalWorkflow2"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstractMakeGraphNetworkTest.owl#AbstractMakeGraphNetworkTest"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstractShortWorkflow.owl#AbstractShortWorkflow"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstractSubWfDocking.owl#AbstractSubWfDocking"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/AbstractSubWFLigandBindingSitesComparison.owl#AbstractSubWFLigandBindingSitesComparison"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/DockingWorkflow.owl#DockingWorkflow"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/fatcatTest.owl#fatcatTest"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/GetTanimotosTest.owl#GetTanimotosTest"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/TestFatCatHModels.owl#TestFatCatHModels"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/TestMakeGraph.owl#TestMakeGraph"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/TestMakeGraphNetwork.owl#TestMakeGraphNetwork"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/TestParallel.owl#TestParallel"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/TestRemoveSigPairsFatCatHModels.owl#TestRemoveSigPairsFatCatHModels"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/TestSigResultsHModels.owl#TestSigResultsHModels"/>
+<wflow:WorkflowTemplate rdf:about="http://www.isi.edu/drugome/UploadHModelsTest.owl#UploadHModelsTest"/>
+</rdf:RDF>

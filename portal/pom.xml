@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>edu.isi.wings</groupId>
+	<artifactId>wings-portal</artifactId>
+	<name>Wings Portal</name>
+	<packaging>war</packaging>
+	<description>Wings portal web application</description>
+
+	<parent>
+		<groupId>edu.isi.wings</groupId>
+		<artifactId>wings-core</artifactId>
+		<version>3.0-SNAPSHOT</version>
+		<relativePath>../core/pom.xml</relativePath>
+	</parent>
+
+	<properties>
+		<servlet-api.version>2.5</servlet-api.version>
+        <commons-fileupload.version>1.3</commons-fileupload.version>
+	</properties>
+
+	<dependencies>
+		<!-- Wings Planner -->
+		<dependency>
+			<groupId>edu.isi.wings</groupId>
+			<artifactId>wings-planner</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+		<!-- Wings OPM Mapper -->
+		<dependency>
+			<groupId>edu.isi.wings</groupId>
+			<artifactId>wings-opmm</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+    
+        <!-- Apache Commons FileUpload -->
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>${commons-fileupload.version}</version>
+        </dependency>
+            
+		<!-- Servlet (only for compilation, not in WAR file) -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${servlet-api.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+	</dependencies>
+
+	<!-- tomcat:run-war configuration -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<port>8080</port>
+					<path>/wings</path>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

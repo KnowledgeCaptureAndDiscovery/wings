@@ -1,0 +1,1021 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:dclib="http://www.isi.edu/dc/drugome/library.owl#"
+    xmlns:dc="http://www.isi.edu/dc/ontology.owl#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:dcdom="http://www.isi.edu/dc/drugome/ontology.owl#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns="http://www.isi.edu/ac/drugome/library.owl#"
+    xmlns:ac="http://www.isi.edu/ac/ontology.owl#"
+      xml:base="http://www.isi.edu/ac/drugome/abstract.owl">
+      <owl:Class rdf:about="library.owl#SigResultMergerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#CountDrugsClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#AlignementResultMergerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#SplitDissimilarProteinListClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#MakeGraphNetworkClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#ResultSorterV2Class">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#RemoveSignificantPairsClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#CreateClipFilesClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#CompareLigandBindingSitesClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#ListMergerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#CompareLigandBindingSitesV2Class">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#ComparisonResultsMergerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#GetAlignementFolderClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#FormatStepToCompareDissimilarProteinStructuresClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#SplitDrugFileClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#URLCheckerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#CompareDissimilarProteinStructuresClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#MergeDissimilarProteinComparisonsClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#CreateIdealLigandsClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#RawInteractionNetworkMergerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#ResultSorterClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#FormatPDBToCompareProteinStructuresClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#DockingClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:about="library.owl#IdealLigandCheckerClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <ComparisonResultsMergerClass rdf:about="library.owl#ComparisonResultsMerger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesComparisons rdf:about="library.owl#ComparisonResultsMerger_OutputComparisonResult">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >OutputComparisonResult</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:LigandBindingSitesComparisons rdf:about="library.owl#ComparisonResultsMerger_InputComparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >InputComparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasInput>
+      </ComparisonResultsMergerClass>
+      <CompareLigandBindingSitesClass rdf:about="library.owl#CompareLigandBindingSites">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesComparisons rdf:about="library.owl#CompareLigandBindingSites_comparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:about="library.owl#CompareLigandBindingSites_pvalue">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.00001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >pvalue</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:about="library.owl#CompareLigandBindingSites_structureForComparison">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureForComparison</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#CompareLigandBindingSites_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </CompareLigandBindingSitesClass>
+      <FormatPDBToCompareProteinStructuresClass rdf:about="library.owl#FormatPDBToCompareProteinStructures">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SignificantResults rdf:about="library.owl#FormatPDBToCompareProteinStructures_significantResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#FormatPDBToCompareProteinStructures_list">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:TemplatePDBsFile rdf:about="library.owl#FormatPDBToCompareProteinStructures_template_pdbs">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >template_pdbs</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:TemplatePDBsFile>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:ModelInfoFile rdf:about="library.owl#FormatPDBToCompareProteinStructures_model_info">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >model_info</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ModelInfoFile>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#FormatPDBToCompareProteinStructures_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+      </FormatPDBToCompareProteinStructuresClass>
+      <AlignementResultMergerClass rdf:about="library.owl#AlignementResultMerger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:AlignementResults rdf:about="library.owl#AlignementResultMerger_alignementResultMerged">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResultMerged</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:AlignementResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:AlignementResults rdf:about="library.owl#AlignementResultMerger_alignementResult2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResult2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:AlignementResults>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:AlignementResults rdf:about="library.owl#AlignementResultMerger_alignementResult1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResult1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:AlignementResults>
+            </ac:hasInput>
+      </AlignementResultMergerClass>
+      <MergeDissimilarProteinComparisonsClass rdf:about="library.owl#MergeDissimilarProteinComparisons">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructureComparisonOutput rdf:about="library.owl#MergeDissimilarProteinComparisons_outputProteinList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outputProteinList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructureComparisonOutput>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructureComparisonOutput rdf:about="library.owl#MergeDissimilarProteinComparisons_inputProteinComparisons">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >inputProteinComparisons</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructureComparisonOutput>
+            </ac:hasInput>
+      </MergeDissimilarProteinComparisonsClass>
+      <FormatStepToCompareDissimilarProteinStructuresClass rdf:about="library.owl#FormatStepToCompareDissimilarProteinStructures">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#FormatStepToCompareDissimilarProteinStructures_list">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:SignificantResults rdf:about="library.owl#FormatStepToCompareDissimilarProteinStructures_significantResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#FormatStepToCompareDissimilarProteinStructures_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:TBProteinInfo rdf:about="library.owl#FormatStepToCompareDissimilarProteinStructures_tbProteinInfo">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >tbProteinInfo</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:TBProteinInfo>
+            </ac:hasInput>
+      </FormatStepToCompareDissimilarProteinStructuresClass>
+      <CompareLigandBindingSitesV2Class rdf:about="library.owl#CompareLigandBindingSitesV2">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesComparisons rdf:about="library.owl#CompareLigandBindingSitesV2_comparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:ConfigurationFile rdf:about="library.owl#CompareLigandBindingSitesV2_configurationFile">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >configurationFile</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ConfigurationFile>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#CompareLigandBindingSitesV2_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:about="library.owl#CompareLigandBindingSitesV2_structureForComparison">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureForComparison</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+      </CompareLigandBindingSitesV2Class>
+      <SigResultMergerClass rdf:about="library.owl#SigResultMerger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SignificantResults rdf:about="library.owl#SigResultMerger_outSigResult">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outSigResult</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SignificantResults rdf:about="library.owl#SigResultMerger_sigResult2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResult2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SignificantResults rdf:about="library.owl#SigResultMerger_sigResult1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResult1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasInput>
+      </SigResultMergerClass>
+      <ListMergerClass rdf:about="library.owl#ListMerger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#ListMerger_outlist">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outlist</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#ListMerger_list2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#ListMerger_list1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+      </ListMergerClass>
+      <CreateIdealLigandsClass rdf:about="library.owl#CreateIdealLigands">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:IdealLigands rdf:about="library.owl#CreateIdealLigands_idealLigandFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigandFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:ClipFiles rdf:about="library.owl#CreateIdealLigands_clipFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >clipFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ClipFiles>
+            </ac:hasInput>
+      </CreateIdealLigandsClass>
+      <GetAlignementFolderClass rdf:about="library.owl#GetAlignementFolder">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:AlignementResults rdf:about="library.owl#GetAlignementFolder_alignementFolder">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementFolder</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:AlignementResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#GetAlignementFolder_irrelevantInput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >irrelevantInput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </GetAlignementFolderClass>
+      <CompareDissimilarProteinStructuresClass rdf:about="library.owl#CompareDissimilarProteinStructures">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructureComparisonOutput rdf:about="library.owl#CompareDissimilarProteinStructures_comparisonOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructureComparisonOutput>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#CompareDissimilarProteinStructures_inputList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >inputList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+      </CompareDissimilarProteinStructuresClass>
+      <ResultSorterClass rdf:about="library.owl#ResultSorter">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#ResultSorter_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:about="library.owl#ResultSorter_pvalue">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.00001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >pvalue</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:about="library.owl#ResultSorter_structureToCompare">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureToCompare</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#ResultSorter_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:LigandBindingSitesComparisons rdf:about="library.owl#ResultSorter_ligandBindingSitesComparisons">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >ligandBindingSitesComparisons</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasInput>
+      </ResultSorterClass>
+      <IdealLigandCheckerClass rdf:about="library.owl#IdealLigandChecker">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:IdealLigands rdf:about="library.owl#IdealLigandChecker_idealLigChecked">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigChecked</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:IdealLigands rdf:about="library.owl#IdealLigandChecker_idealLigInput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigInput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasInput>
+      </IdealLigandCheckerClass>
+      <URLCheckerClass rdf:about="library.owl#URLChecker">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#URLChecker_checkedList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >checkedList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#URLChecker_listToCheck">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >listToCheck</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+      </URLCheckerClass>
+      <CountDrugsClass rdf:about="library.owl#CountDrugs">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DrugCounts rdf:about="library.owl#CountDrugs_drugCount">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugCount</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugCounts>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugKey rdf:about="library.owl#CountDrugs_drugKeys">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugKeys</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugKey>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#CountDrugs_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </CountDrugsClass>
+      <CreateClipFilesClass rdf:about="library.owl#CreateClipFiles">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:ClipFiles rdf:about="library.owl#CreateClipFiles_clipFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >clipFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ClipFiles>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SignificantResultsFiltered rdf:about="library.owl#CreateClipFiles_sigResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasInput>
+      </CreateClipFilesClass>
+      <RawInteractionNetworkMergerClass rdf:about="library.owl#RawInteractionNetworkMerger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#RawInteractionNetworkMerger_mergedOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >mergedOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#RawInteractionNetworkMerger_rawInterNetwork1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInterNetwork1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#RawInteractionNetworkMerger_rawInterNetwork2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInterNetwork2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+      </RawInteractionNetworkMergerClass>
+      <ResultSorterV2Class rdf:about="library.owl#ResultSorterV2">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:RawInteractionNetwork rdf:about="library.owl#ResultSorterV2_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:about="library.owl#ResultSorterV2_pvalue">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.00001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >pvalue</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:LigandBindingSitesComparisons rdf:about="library.owl#ResultSorterV2_ligandBindingSitesComparisons">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >ligandBindingSitesComparisons</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:about="library.owl#ResultSorterV2_structureToCompare">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureToCompare</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+      </ResultSorterV2Class>
+      <SplitDissimilarProteinListClass rdf:about="library.owl#SplitDissimilarProteinList">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#SplitDissimilarProteinList_outputCheckedList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outputCheckedList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:about="library.owl#SplitDissimilarProteinList_numParallel">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >10</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >numParallel</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:about="library.owl#SplitDissimilarProteinList_inputCheckedList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >inputCheckedList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+      </SplitDissimilarProteinListClass>
+      <MakeGraphNetworkClass rdf:about="library.owl#MakeGraphNetwork">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:GraphRepresentation rdf:about="library.owl#MakeGraphNetwork_networkVisualization">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >networkVisualization</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:GraphRepresentation>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:HighlyConnectedDrugs rdf:about="library.owl#MakeGraphNetwork_highlyConnectedDrugs">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >highlyConnectedDrugs</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:HighlyConnectedDrugs>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugCounts rdf:about="library.owl#MakeGraphNetwork_drugCounts">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugCounts</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugCounts>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugKey rdf:about="library.owl#MakeGraphNetwork_drugKey">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugKey</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugKey>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SignificantResultsFiltered rdf:about="library.owl#MakeGraphNetwork_sigResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:TBProteinInfo rdf:about="library.owl#MakeGraphNetwork_tbProteinInfo">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >tbProteinInfo</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i4</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:TBProteinInfo>
+            </ac:hasInput>
+      </MakeGraphNetworkClass>
+      <DockingClass rdf:about="library.owl#Docking">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DockingResults rdf:about="library.owl#Docking_dockingResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >dockingResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DockingResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SignificantResultsFiltered rdf:about="library.owl#Docking_significantResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:IdealLigands rdf:about="library.owl#Docking_idealLigands">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigands</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SolvedStructuresFiles rdf:about="library.owl#Docking_solvedStructuresFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >solvedStructuresFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SolvedStructuresFiles>
+            </ac:hasInput>
+      </DockingClass>
+      <RemoveSignificantPairsClass rdf:about="library.owl#RemoveSignificantPairs">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:InsignificantResults rdf:about="library.owl#RemoveSignificantPairs_insignificantresults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >insignificantresults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:InsignificantResults>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:SignificantResultsFiltered rdf:about="library.owl#RemoveSignificantPairs_significantResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructureComparisonOutput rdf:about="library.owl#RemoveSignificantPairs_comparisonOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructureComparisonOutput>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SignificantResults rdf:about="library.owl#RemoveSignificantPairs_significantResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasInput>
+      </RemoveSignificantPairsClass>
+      <SplitDrugFileClass rdf:about="library.owl#SplitDrugFile">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >false</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#SplitDrugFile_OutputDrugBindingColl">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >OutputDrugBindingColl</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:about="library.owl#SplitDrugFile_InputDrugBinding">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >InputDrugBinding</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </SplitDrugFileClass>
+</rdf:RDF>

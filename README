@@ -1,0 +1,26 @@
+Requirements
+------------
+1. Java JDK 1.7+ (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+2. Maven 2/3 (http://maven.apache.org/)
+3. Tomcat 7+ (http://tomcat.apache.org/)
+4. Graphviz (http://www.graphviz.org/)
+
+Installation
+-------------
+1. $ mvn clean install
+	- This will create a wings-portal-<version>.war file in portal/target
+
+2. Move the war file to a Servlet container (Tomcat)
+	- $ mv /path/to/wings-portal-<version>.war /path/to/tomcat/webapps
+
+3. Setup users in /path/to/tomcat/conf/tomcat-users.xml
+	- Wings users need to have the "WingsUser" role
+
+4. Start tomcat
+	- $ /path/to/tomcat/bin/startup.sh
+
+5. Login to http://<your-server-name>:8080/wings/template
+
+6. After first Login, go to $HOME/.wings directory and open portal.properties
+	- Change path to graphviz
+	- Change any other settings if needed

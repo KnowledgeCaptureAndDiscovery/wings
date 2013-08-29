@@ -1,0 +1,620 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY wflow "http://www.isi.edu/2007/08/workflow.owl#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.isi.edu/2007/08/workflow.owl#"
+     xml:base="http://www.isi.edu/2007/08/workflow.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:wflow="http://www.isi.edu/2007/08/workflow.owl#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about=""/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#createSetsOn -->
+
+    <owl:ObjectProperty rdf:about="#createSetsOn">
+        <rdfs:domain rdf:resource="#SetCreationRule"/>
+        <rdfs:range>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#ComponentVariable"/>
+                    <rdf:Description rdf:about="#SetCreationExpression"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:range>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasComponent -->
+
+    <owl:ObjectProperty rdf:about="#hasComponent">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="#ComponentVariable"/>
+        <rdfs:domain rdf:resource="#Node"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasComponentBinding -->
+
+    <owl:ObjectProperty rdf:about="#hasComponentBinding">
+        <rdfs:domain rdf:resource="#ComponentVariable"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasComponentSetCreationRule -->
+
+    <owl:ObjectProperty rdf:about="#hasComponentSetCreationRule">
+        <rdfs:domain rdf:resource="#Node"/>
+        <rdfs:range rdf:resource="#SetCreationRule"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasDataBinding -->
+
+    <owl:ObjectProperty rdf:about="#hasDataBinding">
+        <rdfs:domain rdf:resource="#DataVariable"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasDestinationNode -->
+
+    <owl:ObjectProperty rdf:about="#hasDestinationNode">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Link"/>
+        <rdfs:range rdf:resource="#Node"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasDestinationPort -->
+
+    <owl:ObjectProperty rdf:about="#hasDestinationPort">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Link"/>
+        <rdfs:range rdf:resource="#Port"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasExpressionArgument -->
+
+    <owl:ObjectProperty rdf:about="#hasExpressionArgument">
+        <rdfs:domain rdf:resource="#SetCreationExpression"/>
+        <rdfs:range>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Port"/>
+                    <rdf:Description rdf:about="#SetCreationExpression"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:range>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasInputPort -->
+
+    <owl:ObjectProperty rdf:about="#hasInputPort">
+        <rdfs:domain rdf:resource="#Node"/>
+        <rdfs:range rdf:resource="#Port"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasInputRole -->
+
+    <owl:ObjectProperty rdf:about="#hasInputRole">
+        <rdfs:range rdf:resource="#Role"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasLink -->
+
+    <owl:ObjectProperty rdf:about="#hasLink">
+        <rdfs:range rdf:resource="#Link"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasNode -->
+
+    <owl:ObjectProperty rdf:about="#hasNode">
+        <rdfs:range rdf:resource="#Node"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasOriginNode -->
+
+    <owl:ObjectProperty rdf:about="#hasOriginNode">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Link"/>
+        <rdfs:range rdf:resource="#Node"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasOriginPort -->
+
+    <owl:ObjectProperty rdf:about="#hasOriginPort">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Link"/>
+        <rdfs:range rdf:resource="#Port"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasOutputPort -->
+
+    <owl:ObjectProperty rdf:about="#hasOutputPort">
+        <rdfs:domain rdf:resource="#Node"/>
+        <rdfs:range rdf:resource="#Port"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasOutputRole -->
+
+    <owl:ObjectProperty rdf:about="#hasOutputRole">
+        <rdfs:range rdf:resource="#Role"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasPortSetCreationRule -->
+
+    <owl:ObjectProperty rdf:about="#hasPortSetCreationRule">
+        <rdfs:domain rdf:resource="#Node"/>
+        <rdfs:range rdf:resource="#SetCreationRule"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasVariable -->
+
+    <owl:ObjectProperty rdf:about="#hasVariable">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Link"/>
+        <rdfs:range rdf:resource="#Variable"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasWorkflow -->
+
+    <owl:ObjectProperty rdf:about="#hasWorkflow">
+        <rdfs:domain rdf:resource="#Node"/>
+        <rdfs:range rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#mapsToVariable -->
+
+    <owl:ObjectProperty rdf:about="#mapsToVariable">
+        <rdfs:domain rdf:resource="#Role"/>
+        <rdfs:range rdf:resource="#Variable"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#satisfiesRole -->
+
+    <owl:ObjectProperty rdf:about="#satisfiesRole">
+        <rdfs:domain rdf:resource="#Port"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#createComponentSets -->
+
+    <owl:DatatypeProperty rdf:about="#createComponentSets">
+        <rdfs:domain rdf:resource="#SetCreationRule"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#createWorkflowSets -->
+
+    <owl:DatatypeProperty rdf:about="#createWorkflowSets">
+        <rdfs:domain rdf:resource="#SetCreationRule"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#createdFrom -->
+
+    <owl:DatatypeProperty rdf:about="#createdFrom">
+        <rdfs:domain rdf:resource="#Metadata"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasContributor -->
+
+    <owl:DatatypeProperty rdf:about="#hasContributor">
+        <rdfs:domain rdf:resource="#Metadata"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasDimensionality -->
+
+    <owl:DatatypeProperty rdf:about="#hasDimensionality">
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasDocumentation -->
+
+    <owl:DatatypeProperty rdf:about="#hasDocumentation">
+        <rdfs:domain rdf:resource="#Metadata"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasParameterValue -->
+
+    <owl:DatatypeProperty rdf:about="#hasParameterValue">
+        <rdfs:domain rdf:resource="#ParameterVariable"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasRules -->
+
+    <owl:DatatypeProperty rdf:about="#hasRules">
+        <rdfs:domain rdf:resource="#RuleSet"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#hasVersion -->
+
+    <owl:DatatypeProperty rdf:about="#hasVersion">
+        <rdfs:domain rdf:resource="#Workflow"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#isConcrete -->
+
+    <owl:DatatypeProperty rdf:about="#isConcrete">
+        <rdfs:domain rdf:resource="#ComponentVariable"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#lastUpdateTime -->
+
+    <owl:DatatypeProperty rdf:about="#lastUpdateTime">
+        <rdfs:domain rdf:resource="#Metadata"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#ComponentSetRule -->
+
+    <owl:Class rdf:about="#ComponentSetRule">
+        <rdfs:subClassOf rdf:resource="#SetCreationRule"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#createSetsOn"/>
+                <owl:onClass rdf:resource="#ComponentVariable"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#ComponentVariable -->
+
+    <owl:Class rdf:about="#ComponentVariable">
+        <rdfs:subClassOf rdf:resource="#Variable"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#DataVariable -->
+
+    <owl:Class rdf:about="#DataVariable">
+        <rdfs:subClassOf rdf:resource="#Variable"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#InOutLink -->
+
+    <owl:Class rdf:about="#InOutLink">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasDestinationNode"/>
+                        <owl:onClass rdf:resource="#Node"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasOriginNode"/>
+                        <owl:onClass rdf:resource="#Node"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Link"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#IncreaseDimensionality -->
+
+    <owl:Class rdf:about="#IncreaseDimensionality">
+        <rdfs:subClassOf rdf:resource="#SetCreationExpression"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#ReduceDimensionality -->
+
+    <owl:Class rdf:about="#ReduceDimensionality">
+        <rdfs:subClassOf rdf:resource="#SetCreationExpression"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Shift -->
+
+    <owl:Class rdf:about="#Shift">
+        <rdfs:subClassOf rdf:resource="#SetCreationExpression"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#InputLink -->
+
+    <owl:Class rdf:about="#InputLink">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasDestinationNode"/>
+                        <owl:onClass rdf:resource="#Node"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasOriginNode"/>
+                        <owl:onClass rdf:resource="#Node"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">0</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Link"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Link -->
+
+    <owl:Class rdf:about="#Link"/>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Metadata -->
+
+    <owl:Class rdf:about="#Metadata"/>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#NWise -->
+
+    <owl:Class rdf:about="#NWise">
+        <rdfs:subClassOf rdf:resource="#SetCreationExpression"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Node -->
+
+    <owl:Class rdf:about="#Node"/>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#OutputLink -->
+
+    <owl:Class rdf:about="#OutputLink">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasDestinationNode"/>
+                        <owl:onClass rdf:resource="#Node"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">0</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasOriginNode"/>
+                        <owl:onClass rdf:resource="#Node"/>
+                        <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#Link"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#ParameterVariable -->
+
+    <owl:Class rdf:about="#ParameterVariable">
+        <rdfs:subClassOf rdf:resource="#Variable"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Port -->
+
+    <owl:Class rdf:about="#Port">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#PortSetRule -->
+
+    <owl:Class rdf:about="#PortSetRule">
+        <rdfs:subClassOf rdf:resource="#SetCreationRule"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#createSetsOn"/>
+                <owl:onClass rdf:resource="#SetCreationExpression"/>
+                <owl:qualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:qualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Role -->
+
+    <owl:Class rdf:about="#Role">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#RuleSet -->
+
+    <owl:Class rdf:about="#RuleSet"/>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#SetCreationExpression -->
+
+    <owl:Class rdf:about="#SetCreationExpression">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#SetCreationRule -->
+
+    <owl:Class rdf:about="#SetCreationRule">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Variable -->
+
+    <owl:Class rdf:about="#Variable"/>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#Workflow -->
+
+    <owl:Class rdf:about="#Workflow"/>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#WorkflowInstance -->
+
+    <owl:Class rdf:about="#WorkflowInstance">
+        <rdfs:subClassOf rdf:resource="#Workflow"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#WorkflowTemplate -->
+
+    <owl:Class rdf:about="#WorkflowTemplate">
+        <rdfs:subClassOf rdf:resource="#Workflow"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/2007/08/workflow.owl#XProduct -->
+
+    <owl:Class rdf:about="#XProduct">
+        <rdfs:subClassOf rdf:resource="#SetCreationExpression"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#Thing -->
+
+    <owl:Class rdf:about="&owl;Thing"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1138) http://owlapi.sourceforge.net -->
+

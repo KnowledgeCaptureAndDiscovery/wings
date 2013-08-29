@@ -1,0 +1,267 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY dc "http://www.isi.edu/dc/ontology.owl#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY ontology "http://www.isi.edu/ac/ontology.owl#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.isi.edu/ac/ontology.owl#"
+     xml:base="http://www.isi.edu/ac/ontology.owl"
+     xmlns:dc="http://www.isi.edu/dc/ontology.owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:ontology="http://www.isi.edu/ac/ontology.owl#">
+    <owl:Ontology rdf:about="">
+        <owl:imports rdf:resource="http://www.isi.edu/dc/ontology.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasArgument -->
+
+    <owl:ObjectProperty rdf:about="#hasArgument">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="#ComponentArgument"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasDataBinding -->
+
+    <owl:ObjectProperty rdf:about="#hasDataBinding">
+        <rdfs:domain rdf:resource="#DataArgument"/>
+        <rdfs:range rdf:resource="&dc;DataObject"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasInput -->
+
+    <owl:ObjectProperty rdf:about="#hasInput">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="#ComponentArgument"/>
+        <rdfs:subPropertyOf rdf:resource="#hasArgument"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasOutput -->
+
+    <owl:ObjectProperty rdf:about="#hasOutput">
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="#DataArgument"/>
+        <rdfs:subPropertyOf rdf:resource="#hasArgument"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasArgumentID -->
+
+    <owl:DatatypeProperty rdf:about="#hasArgumentID">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasBindingID -->
+
+    <owl:DatatypeProperty rdf:about="#hasBindingID">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasArgumentIndex -->
+
+    <owl:DatatypeProperty rdf:about="#hasArgumentIndex">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasArgumentName -->
+
+    <owl:DatatypeProperty rdf:about="#hasArgumentName">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasDimensionIndexProperties -->
+
+    <owl:DatatypeProperty rdf:about="#hasDimensionIndexProperties">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasDimensionSizes -->
+
+    <owl:DatatypeProperty rdf:about="#hasDimensionSizes">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasDimensionality -->
+
+    <owl:DatatypeProperty rdf:about="#hasDimensionality">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ComponentArgument"/>
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#hasValue -->
+
+    <owl:DatatypeProperty rdf:about="#hasValue">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#ParameterArgument"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#isConcrete -->
+
+    <owl:DatatypeProperty rdf:about="#isConcrete">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#isInvalid -->
+
+    <owl:DatatypeProperty rdf:about="#isInvalid">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Component"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#Component -->
+
+    <owl:Class rdf:about="#Component">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >hasArgument is used for the &lt;argument&gt;...&lt;/argument&gt; tag information
+hasInput/hasOutput is used for the &lt;users&gt;.. tag information
+
+   &lt;job id=&quot;ID000012&quot; namespace=&quot;ww&quot; name=&quot;KOJAK-Wrapped&quot; version=&quot;1&quot;&gt;
+      &lt;argument&gt;&lt;filename file=&quot;hats-kojak-config.dat&quot;/&gt; &lt;filename file=&quot;hats-kojak-script.lisp&quot;/&gt; &lt;filename file=&quot;kojak-links-s1-0-1000-aids-MEETING.csv&quot;/&gt; &lt;filename file=&quot;kojak-seed-groups-s1-0-1000.csv&quot;/&gt; &lt;filename file=&quot;kojak-groups-s1-0-1000-aids-MEETING.csv&quot;/&gt;&lt;/argument&gt;
+      &lt;uses file=&quot;hats-kojak-script.lisp&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;kojak-links-s1-0-1000-aids-MEETING.csv&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;kojak-seed-groups-s1-0-1000.csv&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;hats-kojak-config.dat&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;kojak-groups-s1-0-1000-aids-MEETING.csv&quot; link=&quot;output&quot;/&gt;
+   &lt;/job</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#ComponentArgument -->
+
+    <owl:Class rdf:about="#ComponentArgument">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >This class is used to define both &lt;argument&gt;....&lt;/argument&gt; stuff, as well as the &lt;uses .. &gt; tag information in the dax.
+hasArgumentName is used for the &quot;prefix&quot; or &quot;option&quot; like &quot;-x&quot;
+
+An example:
+   &lt;job id=&quot;ID000012&quot; namespace=&quot;ww&quot; name=&quot;KOJAK-Wrapped&quot; version=&quot;1&quot;&gt;
+      &lt;argument&gt;&lt;filename file=&quot;hats-kojak-config.dat&quot;/&gt; &lt;filename file=&quot;hats-kojak-script.lisp&quot;/&gt; &lt;filename file=&quot;kojak-links-s1-0-1000-aids-MEETING.csv&quot;/&gt; &lt;filename file=&quot;kojak-seed-groups-s1-0-1000.csv&quot;/&gt; &lt;filename file=&quot;kojak-groups-s1-0-1000-aids-MEETING.csv&quot;/&gt;&lt;/argument&gt;
+      &lt;uses file=&quot;hats-kojak-script.lisp&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;kojak-links-s1-0-1000-aids-MEETING.csv&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;kojak-seed-groups-s1-0-1000.csv&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;hats-kojak-config.dat&quot; link=&quot;input&quot;/&gt;
+      &lt;uses file=&quot;kojak-groups-s1-0-1000-aids-MEETING.csv&quot; link=&quot;output&quot;/&gt;
+   &lt;/job</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#DataArgument -->
+
+    <owl:Class rdf:about="#DataArgument">
+        <rdfs:subClassOf rdf:resource="#ComponentArgument"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >hasDataObjectBinding has the range as the dc:DataObject that&#39;s passed in by SR</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/ac/ontology.owl#ParameterArgument -->
+
+    <owl:Class rdf:about="#ParameterArgument">
+        <rdfs:subClassOf rdf:resource="#ComponentArgument"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >hasValue is a constant datatype value</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#DataObject -->
+
+    <owl:Class rdf:about="&dc;DataObject"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1138) http://owlapi.sourceforge.net -->
+

@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY dc "http://purl.org/dc/elements/1.1/" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY ontology "http://www.isi.edu/dc/ontology.owl#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY daml "http://www.daml.org/2001/03/daml+oil#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.isi.edu/dc/ontology.owl#"
+     xml:base="http://www.isi.edu/dc/ontology.owl"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:daml="http://www.daml.org/2001/03/daml+oil#"
+     xmlns:ontology="http://www.isi.edu/dc/ontology.owl#">
+    <owl:Ontology rdf:about=""/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasLocation -->
+
+    <owl:ObjectProperty rdf:about="#hasLocation">
+        <rdfs:domain rdf:resource="#DataObject"/>
+        <rdfs:range rdf:resource="#Location"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasMetrics -->
+
+    <owl:ObjectProperty rdf:about="#hasMetrics">
+        <rdfs:domain rdf:resource="#DataObject"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasProtocol -->
+
+    <owl:ObjectProperty rdf:about="#hasProtocol">
+        <rdfs:domain rdf:resource="#Location"/>
+        <rdfs:range rdf:resource="#Protocol"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasSite -->
+
+    <owl:ObjectProperty rdf:about="#hasSite">
+        <rdfs:domain rdf:resource="#Location"/>
+        <rdfs:range rdf:resource="#Site"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#greaterThan -->
+
+    <owl:DatatypeProperty rdf:about="#greaterThan"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasDataMetrics -->
+
+    <owl:DatatypeProperty rdf:about="#hasDataMetrics">
+        <rdfs:domain rdf:resource="#DataObject"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasMd5sum -->
+
+    <owl:DatatypeProperty rdf:about="#hasMd5sum">
+        <rdfs:domain rdf:resource="#DataObject"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasSizeInKB -->
+
+    <owl:DatatypeProperty rdf:about="#hasSizeInKB">
+        <rdfs:domain rdf:resource="#DataObject"/>
+        <rdfs:range rdf:resource="&xsd;int"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#hasURI -->
+
+    <owl:DatatypeProperty rdf:about="#hasURI">
+        <rdfs:domain rdf:resource="#Location"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#lessThan -->
+
+    <owl:DatatypeProperty rdf:about="#lessThan"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#DataObject -->
+
+    <owl:Class rdf:about="#DataObject"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#Location -->
+
+    <owl:Class rdf:about="#Location"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#Metrics -->
+
+    <owl:Class rdf:about="#Metrics"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#Protocol -->
+
+    <owl:Class rdf:about="#Protocol"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#Site -->
+
+    <owl:Class rdf:about="#Site"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#ftp -->
+
+    <Protocol rdf:about="#ftp"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#gsiftp -->
+
+    <Protocol rdf:about="#gsiftp"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#http -->
+
+    <Protocol rdf:about="#http"/>
+    
+
+
+    <!-- http://www.isi.edu/dc/ontology.owl#https -->
+
+    <Protocol rdf:about="#https"/>
+    
+
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.1138) http://owlapi.sourceforge.net -->
+

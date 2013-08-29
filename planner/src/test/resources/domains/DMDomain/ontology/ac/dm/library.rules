@@ -1,0 +1,290 @@
+[backwardLMTModelerMissingValues:
+ print(Firing backwardLMTModelerMissingValues)
+      (?c rdf:type pcdom:LMTModelerClass) 
+     (?c pc:hasInput ?idv) 
+     (?idv pc:hasArgumentID "trainingData")  
+      -> (?idv dcdom:hasMissingValues "false"^^xsd:boolean),
+		 print(Setting hasMissingValues of LMTModeler input, ?idv, to false)
+]
+       
+[backwardID3ModelerMissingValues:
+ print(Firing backwardID3ModelerMissingValues)
+      (?c rdf:type pcdom:ID3ModelerClass) (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "trainingData")  
+      -> (?idv dcdom:hasMissingValues "false"^^xsd:boolean),
+		 print(Setting hasMissingValues of ID3Modeler input, ?idv, to false)
+]
+
+
+# this is not really true
+# what is true is that the classIndex can't refer to a non-discrete attribute
+# [modelerSpecialCase3:
+#        (?c rdf:type pcdom:DTModelerClass) (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "trainingData")  
+#        -> (?idv dcdom:isDiscrete "true"^^xsd:boolean),
+# 		 print(Setting isDiscrete of DTModeler input, ?idv, to true)
+# ]
+
+
+		
+[backwardLMTClassifierMissingValues:
+  print(Firing backwardLMTClassifierMissingValues)
+      (?c rdf:type pcdom:LMTClassifierClass) 
+      (?c pc:hasInput ?idv) 
+      (?idvdata pc:hasArgumentID "testData")  
+      -> (?idv dcdom:hasMissingValues "false"^^xsd:boolean),
+  print(Setting hasMissingValues of LMTClassifier input ?idv, to false)
+]
+
+[backwardID3ClassifierMissingValues:
+  print(Firing backwardID3ClassifierMissingValues)
+      (?c rdf:type pcdom:ID3ClassifierClass)
+      (?c pc:hasInput ?idv) 
+      (?idvdata pc:hasArgumentID "testData")  
+      -> (?idv dcdom:hasMissingValues "false"^^xsd:boolean),
+  print(Setting hasMissingValues of ID3Classifier input ?idv, to false)
+]
+
+[backwardID3ClassifierIsDiscrete:
+  print(Firing backwardID3ClassifierIsDiscrete)
+         (?c rdf:type pcdom:ID3ClassifierClass)
+         (?c pc:hasInput ?idvmodel) (?idvmodel pc:hasArgumentID "model")
+         (?c pc:hasInput ?idvdata) (?idvdata pc:hasArgumentID "testData")
+         -> (?idvdata dcdom:isDiscrete "true"^^xsd:boolean), 
+        (?idvmodel dcdom:isDiscrete "true"^^xsd:boolean)
+  print(Setting isDiscrete of ?idvdata to true)
+]
+       
+[backwardResampleMetricsTransfer:
+  print(Firing backwardResampleMetricsTransfer)
+       (?c rdf:type pcdom:ResampleClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?odv ?p ?val) (?p rdfs:subPropertyOf dc:hasMetrics) -> (?idv ?p ?val),
+  print(Transferring dc:hasMetrics backward for Resample)]
+
+[backwardResampleDataMetricsTransfer:
+ print(Firing backwardResampleDataMetricsTransfer)
+      (?c rdf:type pcdom:ResampleClass)
+      (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+      (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+      (?odv ?p ?val) (?p rdfs:subPropertyOf dc:hasDataMetrics) 
+      notEqual(?p dcdom:isSampled) -> (?idv ?p ?val),
+ print(Transferring dc:hasDataMetrics backward for Resample)]
+       
+[backwardRandomizeMetricsTransfer:
+  print(Firing backwardRandomizeMetricsTransfer)
+       (?c rdf:type pcdom:RandomizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?odv ?p ?val) (?p rdfs:subPropertyOf dc:hasMetrics) -> (?idv ?p ?val),
+  print(Transferring dc:hasMetrics backward for Randomize)]
+
+[backwardRandomizeDataMetricsTransfer:
+  print(Firing backwardRandomizeDataMetricsTransfer)
+       (?c rdf:type pcdom:RandomizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?odv ?p ?val) (?p rdfs:subPropertyOf dc:hasDataMetrics) 
+       notEqual(?p dcdom:isRandomized) -> (?idv ?p ?val),
+  print(Transferring dc:hasDataMetrics backward for Randomize)]
+
+[backwardRandomizeRDFTypeTransfer:
+  print(Firing backwardRandomizeRDFTypeTransfer)
+  (?c rdf:type pcdom:RandomizeClass)
+  (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+  (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+  (?idv rdf:type ?ot) -> (?odv rdf:type ?ot),
+  print(Setting rdf:type of ?idv to ?ot because ?odv has rdf:type ?ot)]
+
+[backwardDiscreteMetricsTransfer:
+  print(Firing backwardDiscreteMetricsTransfer)
+       (?c rdf:type pcdom:DiscretizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?odv ?p ?val) (?p rdfs:subPropertyOf dc:hasMetrics) -> (?idv ?p ?val),
+ print(Transferring dc:hasMetrics backward for Discretize)]
+
+[backwardDiscreteDataMetricsTransfer:
+  print(Firing backwardDiscreteDataMetricsTransfer)
+      (?c rdf:type pcdom:DiscretizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?odv ?p ?val) (?p rdfs:subPropertyOf dc:hasDataMetrics) 
+       notEqual(?p dcdom:isDiscrete) -> (?idv ?p ?val),
+ print(Transferring dc:hasDataMetrics backward for Discretize)]
+
+
+              
+[forwardResampleMetricsTransfer:
+  print(Firing forwardResampleMetricsTransfer)
+       (?c rdf:type pcdom:ResampleClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?idv ?p ?val) (?p rdfs:subPropertyOf dc:hasMetrics) -> (?odv ?p ?val),
+  print(Transferring dc:hasMetrics forward for ?c)]
+
+# hmm, how do the following rules relate to each other
+[forwardResampleDataMetricsTransfer:
+  print(Firing forwardResampleDataMetricsTransfer)
+       (?c rdf:type pcdom:ResampleClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?idv ?p ?val) (?p rdfs:subPropertyOf dc:hasDataMetrics) 
+       notEqual(?p dcdom:isSampled) -> (?odv ?p ?val),
+  print(Transferring dc:hadDataMetrics forward for ?c)]
+
+# how does this relate to the one above
+[forwardResampleTransferIsSampled:
+  print(Firing forwardResampleTransferIsSampled)
+       (?c rdf:type pcdom:ResampleClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       -> (?odv dcdom:isSampled "true"^^xsd:boolean),
+  print(Setting isSampled to true for ?odv)]
+  
+# Forward Metadata Propagation for Randomize
+[forwardRandomizeMetricsTransfer:
+  print(Firing forwardRandomizeMetricsTransfer)
+       (?c rdf:type pcdom:RandomizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?idv ?p ?val) (?p rdfs:subPropertyOf dc:hasMetrics) -> (?odv ?p ?val),
+  print(Transferring dc:hasMetrics forward for ?c)]
+
+[forwardRandomizeDataMetricsTransfer:
+  print(Firing forwardRandomizeDataMetricsTransfer)
+       (?c rdf:type pcdom:RandomizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?idv ?p ?val) (?p rdfs:subPropertyOf dc:hasDataMetrics) 
+       notEqual(?p dcdom:isRandomized) -> (?odv ?p ?val),
+  print(Transferring dc:hasDataMetrics forward for ?c)]
+
+[forwardRandomizeTransferIsRandomized:
+  print(Firing randomizeTransferIsRandomized)
+       (?c rdf:type pcdom:RandomizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       -> (?odv dcdom:isRandomized "true"^^xsd:boolean),
+  print(Setting isRandomized for ?odv for ?c to true)]   
+
+[forwardRandomizeRDFTypeTransfer:
+  print(Firing backwardRandomizeRDFTypeTransfer)
+  (?c rdf:type pcdom:RandomizeClass)
+  (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+  (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+  (?odv rdf:type ?ot) -> (?idv rdf:type ?ot),
+  print(Setting rdf:type of ?odv to ?ot because ?idv has rdf:type ?ot)]
+
+# Forward Metadata Propagation for Discretize
+[forwardDiscretizeMetricsTransfer:
+  print(Firing forwardDiscretizeMetricsTransfer)
+       (?c rdf:type pcdom:DiscretizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?idv ?p ?val) (?p rdfs:subPropertyOf dc:hasMetrics) -> (?odv ?p ?val),
+  print(Transferring dc:hasMetrics forward for ?c)]
+
+[forwardDiscretizeDataMetricsTransfer:
+  print(Firing forwardDiscretizeDataMetricsTransfer)
+       (?c rdf:type pcdom:DiscretizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?idv ?p ?val) (?p rdfs:subPropertyOf dc:hasDataMetrics) 
+       notEqual(?p dcdom:isDiscrete) -> (?odv ?p ?val),
+  print(Transferring dc:hasDataMetrics forward for ?c)]
+
+[forwardDiscretizeTransferIsDiscrete:
+  print(Firing forwardDiscretizeTransferIsDiscrete)
+       (?c rdf:type pcdom:DiscretizeClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?idv dcdom:isDiscrete ?x) bound(?x)
+       -> (?odv dcdom:isDiscrete "true"^^xsd:boolean),
+  print(Setting isDiscrete for ?odv for ?c to true)]
+
+[parameterResampleNumberOfInstances:
+  print(Firing parameterResampleNumberOfInstances)
+       (?c rdf:type pcdom:ResampleClass)
+       (?c pc:hasInput ?idv) (?c pc:hasInput ?ipv) 
+       (?idv pc:hasArgumentID "inputData")
+       (?ipv pc:hasArgumentID "numberToSample")
+       (?idv dcdom:hasNumberOfInstances ?x) noValue(?ipv ac:hasValue)
+       -> (?ipv ac:hasValue ?x),
+  print(Setting ?ipv of ?c to ?x because ?ipv had no value)]
+
+# hmm, does this rule make sense?
+[parameterDiscretizeNumberOfBins:
+  print(Firing parameterDiscretizeNumberOfBins)
+       (?c rdf:type pcdom:DiscretizeClass)
+       (?c pc:hasInput ?idv) (?c pc:hasInput ?ipv) 
+       (?idv pc:hasArgumentID "inputData")
+       (?ipv pc:hasArgumentID "numberOfBins")
+       (?idv dcdom:hasNumberOfBins ?x)
+       -> (?ipv ac:hasValue ?x),
+  print('Component:' ?c, ?idv has numberOfBins - setting ?ipv to ?x  not sure if this is necessary)]
+
+[parameterClassIndexDefaultForDiscretize:
+    print(firing parameterClassIndexDefaultForDiscrete)
+    (? rdf:type pcdom:DiscretizeClass)
+    (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+    (?c pc:hasInput ?ipv) (?ipv pc:hasArgumentID "classIndex")
+    (?idv dcdom:hasClassIndex ?ci) -> (?ipv ac:hasValue ?ci),
+    print(Setting classIndex of Discretize to ?ci,  because the ?idv has ?ci)]
+
+# Component Invalidity Rules
+# --------------------------
+# Shouldn't we be checking against inputData?
+[invalidityResampleIsSampled:
+  print(Firing invalidityResampleIsSampled)
+       (?c rdf:type pcdom:ResampleClass)
+       (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID "outputData")
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "inputData")
+       (?odv dcdom:isSampled "false"^^xsd:boolean) 
+       -> (?c ac:isInvalid "true"^^xsd:boolean),
+  print(WARN WARN is this rule correct???)]
+
+
+[invalidityID3ModelerCantConsumeDataWithMissingValues:
+   print(Firing invalidityID3ModelerCantConsumeDataWithMissingValues)
+       (?c rdf:type pcdom:ID3ModelerClass) (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "trainingData")  
+       (?idv dcdom:hasMissingValues "true"^^xsd:boolean)
+       -> (?c ac:isInvalid "true"^^xsd:boolean),
+  print(ERROR : Template is invalid because ?idv hasMissingValues and ID3Modeler cant consume data with missing values)]
+
+[invalidityLMTModelerCantConsumeDataWithMissingValues:
+  print(Firing invalidityLMTModelerCantConsumeDataWithMissingValues)
+       (?c rdf:type pcdom:LMTModelerClass) (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "trainingData")
+       (?idv dcdom:hasMissingValues "true"^^xsd:boolean)
+       -> (?c ac:isInvalid "true"^^xsd:boolean),
+  print(ERROR : Template is invalid because ?idv hasMissingValues and LMTModeler cant consume data with missing values)]
+
+[invalidityLMTModelerCantModelLargeFiles:
+  print(Firing rule invalidityLMTModelerCantModelLargeFiles)
+       (?c rdf:type pcdom:LMTModelerClass)
+       (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "trainingData")
+       (?idv dcdom:hasSizeInKB ?x) greaterThan(?x 30000)
+       -> (?c ac:isInvalid "true"^^xsd:boolean)
+  print(ERROR : Template is invalid because ?idv is too large ?x > 30000 for LMTModeler)]
+
+[invalidityID3ModelerConsumesOnlyDiscreteInstances:
+  print(Firing invalidityID3ModelerConsumesOnlyDiscreteInstances)
+    (?c rdf:type pcdom:ID3ModelerClass) 
+    (?c pc:hasInput ?idv)
+    (?idv pc:hasArgumentID "trainingData")
+    (?idv dcdom:isDiscrete "false"^^xsd:boolean)
+    -> (?c ac:isInvalid "true"^^xsd:boolean),
+  print(ERROR : Template is invalid because ?idv is not discrete and ID3Modeler can only consume data with non-numeric '(nominal)' values)]
+
+# [invalidityID3ClassifierConsumesOnlyDiscreteInstances:
+#   print(Firing invalidityID3ClassifierConsumesOnlyDiscreteInstances)
+#     (?c rdf:type pdcdom:ID3ClassifierClass) 
+#     (?c pc:hasInput ?idv)
+#     (?idv pc:hasArgumentID "testData")
+#     (?idv dcdom:isDiscrete "false"^^xsd:boolean)
+#     -> (?c ac:isInvalid "true"^^xsd:boolean),
+#   print(ERROR : Template is invalid because ?idv is not discrete and ID3Classifier can only consume data with non-numeric '(nomial)' values)]
+
+# [invalidityDTModelerCantConsumeDataThatIsDiscrete:
+#   print(Firing invalidityDTModelerCantConsumeDataThatIsDiscrete)
+#        (?c rdf:type pcdom:DTModelerClass) (?c pc:hasInput ?idv) (?idv pc:hasArgumentID "trainingData")
+#        (?idv dcdom:isDiscrete "false"^^xsd:boolean)
+#        -> (?c ac:isInvalid "true"^^xsd:boolean),
+#   print(ERROR : Template is invalid because ?idv isDiscrete and DTModeler cant consume non-discrete data)]
+

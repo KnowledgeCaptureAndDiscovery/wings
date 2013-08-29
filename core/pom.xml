@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.isi.wings</groupId>
+  <artifactId>wings-core</artifactId>
+  <version>3.0-SNAPSHOT</version>
+  <name>Wings Core</name>
+  <packaging>pom</packaging>
+  <description>Wings project for the IKCAP group</description>
+  <url>http://www.wings-workflows.org</url>
+  <organization>
+    <name>USC/Information Sciences Institute</name>
+    <url>http://www.isi.edu</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>varunr</id>
+      <name>Varun Ratnakar</name>
+      <email>varunr@isi.edu</email>
+      <url>http://www.isi.edu/~varunr</url>
+      <organization>ISI</organization>
+      <organizationUrl>http://www.isi.edu</organizationUrl>
+      <roles>
+        <role>Researcher</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
+    <developer>
+      <id>moody</id>
+      <name>Joshua Moody</name>
+      <email>moody@isi.edu</email>
+      <organization>ISI</organization>
+      <organizationUrl>http://www.isi.edu</organizationUrl>
+      <roles>
+        <role>Researcher</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>cfritz</id>
+      <name>Christian Fritz</name>
+      <email>cfritz@isi.edu</email>
+      <url>http://www.cs.toronto.edu/~fritz/</url>
+      <organization>ISI</organization>
+      <organizationUrl>http://www.isi.edu</organizationUrl>
+      <roles>
+        <role>Post Doc</role>
+        <role>Researcher</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>jihie</id>
+      <name>Jihie Kim</name>
+      <email>jihie@isi.edu</email>
+      <url>http://www.isi.edu/~jihie/</url>
+      <organization>ISI</organization>
+      <organizationUrl>http://www.isi.edu</organizationUrl>
+      <roles>
+        <role>Professor Computer Science</role>
+        <role>Researcher</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
+
+  <build>
+    <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.0.2</version>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+</project>

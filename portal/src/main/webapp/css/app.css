@@ -1,0 +1,420 @@
+/*div.list-ct ul li.x-boundlist-item {
+	border-bottom: 1px solid #ddd
+}
+
+.hrefTree a.x-tree-node-anchor,.nonBoldTree a.x-tree-node-anchor {
+	font-weight: normal;
+}
+
+.hrefTree a.x-tree-node-anchor:hover {
+	text-decoration: underline;
+}
+
+.hrefTree .x-tree-selected a.x-tree-node-anchor,.nonBoldTree .x-tree-selected a.x-tree-node-anchor
+	{
+	font-weight: bold;
+}
+*/
+
+div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cell div.x-grid-cell-inner {
+	color: #888
+}
+
+.transparent-panel {
+	opacity: 0.8;
+}
+
+.dtypeIcon {
+	background-image: url(../images/datatype.gif) !important
+}
+
+.dataIcon {
+	background-image: url(../images/file.png) !important
+}
+
+.addIcon {
+	background-image: url(../images/add.png) !important
+}
+
+.wflowIcon {
+	background-image: url(../images/workflow.gif) !important
+}
+
+.delIcon {
+	background-image: url(../images/delete.png) !important
+}
+
+.saveIcon {
+	background-image: url(../images/Save.png) !important
+}
+
+.saveAsIcon {
+	background-image: url(../images/SaveAs.png) !important
+}
+
+.downloadIcon {
+	background-image: url(../images/download_yellow.gif) !important
+}
+
+.uploadIcon {
+	background-image: url(../images/arrow_up.png) !important
+}
+
+.compIcon {
+	background-image: url(../images/component_blue.png) !important
+}
+
+.absCompIcon {
+	background-image: url(../images/component_yellow.png) !important
+}
+
+.noCompIcon {
+	background-image: url(../images/component_red.png) !important
+}
+
+.ctypeIcon {
+	background-image: url(../images/datatype.gif) !important
+}
+
+.zoomInIcon {
+	background-image: url(../images/zoomin.png) !important
+}
+
+.zoomOutIcon {
+	background-image: url(../images/zoomout.png) !important
+}
+
+.snapshotIcon {
+	background-image: url(../images/snapshot.gif) !important
+}
+
+.inferIcon {
+	background-image: url(../images/infer.gif) !important
+}
+
+.suggestIcon {
+	background-image: url(../images/help_icon.gif) !important
+}
+
+.runIcon {
+	background-image: url(../images/run.gif) !important
+}
+
+.docsIcon {
+	background-image: url(../images/docs.png) !important
+}
+
+.clearIcon {
+	background-image: url(../images/clean.gif) !important
+}
+
+.selectIcon {
+	background-image: url(../images/select.gif) !important
+}
+
+.inputIcon {
+	background-image: url(../images/input.png) !important
+}
+
+.outputIcon {
+	background-image: url(../images/output.png) !important
+}
+
+.paramIcon {
+	background-image: url(../images/param.png) !important
+}
+
+.reloadIcon {
+	background-image: url(../images/reload.png) !important
+}
+
+.chatIcon {
+	background-image: url(../images/chat.png) !important
+}
+
+.layoutIcon {
+	background-image: url(../images/layout.gif) !important
+}
+
+.TOPIcon {
+	background-image: url(../images/TOP.png) !important
+}
+
+.importIcon {
+	background-image: url(../images/import.png) !important
+}
+
+.setDefaultIcon {
+	background-image: url(../images/star.png) !important
+}
+
+.defIcon {
+	background-image: url(../images/radio_selected.png) !important
+}
+
+.undefIcon {
+	background-image: url(../images/radio.png) !important
+}
+
+.rundefIcon {
+	background-image:url(../images/run_default.gif) !important
+}
+
+.domain {
+	padding-left: 20px;
+	background: url(../images/domain.png) center left no-repeat !important;
+}
+
+.default_domain {
+	padding-left: 20px;
+	font-weight: bold;
+	background: url(../images/default_domain.png) center left no-repeat
+		!important
+}
+
+.user_domain {
+	padding-left: 20px;
+	background: url(../images/star_disabled.png) center left no-repeat
+		!important
+}
+
+.user_default_domain {
+	padding-left: 20px;
+	background: url(../images/star.png) center left no-repeat !important
+}
+
+.highlightIcon {
+	font-weight: bold !important;
+	/*color: maroon !important;*/
+	color: #1659ac !important;
+}
+
+.smSaveIcon {
+	background: url(../images/smsave.gif) center left no-repeat !important;
+	font-weight: normal;
+	color: #666;
+	padding-left: 12px
+}
+
+span.runtime {
+	font-size: 10px;
+	padding-left: 8px;
+	font-family: sans;
+	color: #888
+}
+
+span.running {
+	font-size: 10px;
+	font-family: sans;
+	color: #888
+}
+
+span.runtitle {
+	font-size: 13px;
+	padding: 0px;
+	padding-left: 2px;
+	font-weight: bold
+}
+
+.complibCls span.runtitle {
+	font-size: 11px;
+	padding: 0px;
+	padding-left: 2px;
+	font-weight: normal
+}
+
+div.runtime {
+	font-size: 10px;
+	padding-left: 24px;
+	font-family: sans;
+	color: #888
+}
+
+div.running {
+	font-size: 10px;
+	font-family: sans;
+	color: #888
+}
+
+div.runtitle {
+	font-size: 13px;
+	padding: 0px;
+	padding-left: 24px;
+	font-weight: bold
+}
+
+.status_QUEUED {
+	background: url(../images/queued.gif) center left no-repeat !important
+}
+
+.status_RUNNING {
+	background: url(../images/loading.gif) center left no-repeat !important
+}
+
+.status_SUCCESS {
+	background: url(../images/tick.png) center left no-repeat !important
+}
+
+.status_FAILURE {
+	background: url(../images/cross.png) center left no-repeat !important
+}
+
+div.smallPropertyGrid input.x-form-field {
+	font-size: 11px !important;
+}
+
+tr.errorCls td {
+	color: maroon;
+	font-weight: bold;
+}
+
+tr.infoCls td {
+	color: darkgreen;
+	font-style: italic;
+}
+
+tr.suggestCls td {
+	color: darkblue;
+	font-weight: bold;
+}
+
+tr.installedDomainCls td {
+	color: #999;
+}
+
+tr.myDomainCls td {
+	color: #369;
+}
+
+div.editableCanvas {
+	background-color : white;
+}
+
+div.disabledCanvas {
+	/*background-color : rgba(40,40,40,0.1) !important;*/
+	background: url(../images/square.gif)
+	/*background-color : rgba(255, 255, 255, 1);*/
+}
+
+/*div.docsDiv ul,div.docsDiv ol {
+	margin: 1em 0px 1em 0px;
+	padding-left: 40px
+}
+
+div.docsDiv ul {
+	list-style: disc
+}
+
+div.docsDiv ul ul {
+	list-style: circle
+}
+
+div.docsDiv ol {
+	list-style: decimal
+}
+
+div.docsDiv ol ol {
+	list-style: lower-roman
+}*/
+
+li.active a {
+	color: #4ca9ea
+}
+
+.multi-line-grid .x-grid-cell-inner,.multi-line-grid .x-grid-hd-inner {
+	white-space: normal !important;
+}
+
+.multi-line-grid .x-grid-cell {
+	vertical-align: middle !important;
+}
+
+.custom-highlight-grid .x-grid-row-focused .x-grid-cell {
+	background-color: rgb(255, 245, 204) !important;
+}
+
+.x-tree-panel .multi-line-grid .x-grid-row .x-grid-cell-inner {
+	height: auto;
+	white-space: normal !important;
+}
+
+.mytree-grid .x-grid-row .x-grid-cell {
+	border-right-width: 1px !important;
+}
+
+.tellmeteacher {
+	font-size: 14px;
+	font-weight: bold;
+	color: navy;
+}
+
+.tellmestudent {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.tellmestudent_ok {
+	color: green;
+}
+
+.tellmestudent_error {
+	color: red;
+}
+
+div.tellmestudent_error a span {
+	color: red;
+}
+
+div.tellmestudent_ok a span {
+	color: #333;
+	font-style: italic;
+}
+
+pre.tellmelog {
+	font-family: tahoma, arial, helvetica;
+	color: #666;
+	border: 1px dotted #ddd;
+	background: #eee;
+	padding: 5px;
+	margin-top: 5px;
+}
+
+/*.x-border-layout-ct {
+	background-color: transparent !important;
+}*/
+
+#app-header {
+	background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #1659ac),
+		color-stop(100%, #429ADE));
+	background-image: -webkit-linear-gradient(top, #1659ac, #429ADE);
+	background-image: -moz-linear-gradient(top, #1659ac, #429ADE);
+	background-image: -o-linear-gradient(top, #1659ac, #429ADE);
+	background-image: -ms-linear-gradient(top, #1659ac, #429ADE);
+	background-image: linear-gradient(top, #1659ac, #429ADE);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#1659ac', endColorstr='#429ADE');
+	border-bottom: 1px solid #429ADE
+}
+
+#app-header-title {
+	padding: 15px 10px 10px 55px;
+	background: url(../images/logo.png) no-repeat 10px 6px;
+	color: #eee;
+	font-size: 18px;
+	font-weight: bold;
+	text-shadow: 0 1px 0 #666
+}
+
+/* Show the menu */
+#app-north, #app-north .x-box-inner {
+	overflow: visible;
+}
+
+/* Prule Editor */
+.prule_selectable {
+    background-color: #ccc;
+    font-weight: normal;
+}
+.prule_highlighted {
+    background-color: yellow;
+}
+

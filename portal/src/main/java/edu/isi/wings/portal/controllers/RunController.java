@@ -1,0 +1,160 @@
+package edu.isi.wings.portal.controllers;
+
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Properties;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+import edu.isi.wings.catalog.component.ComponentFactory;
+import edu.isi.wings.catalog.data.DataFactory;
+import edu.isi.wings.common.UuidGen;
+import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
+import edu.isi.wings.execution.engine.classes.RuntimePlan;
+import edu.isi.wings.execution.engine.classes.RuntimeStep;
+import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
+import edu.isi.wings.planner.api.WorkflowGenerationAPI;
+import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
+import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.JsonHandler;
+import edu.isi.wings.portal.classes.WriteLock;
+import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.JSLoader;
+import edu.isi.wings.workflow.plan.api.ExecutionPlan;
+import edu.isi.wings.workflow.template.api.Template;
+
+public class RunController {
+	private int guid;
+	private Config config;
+	private Gson json;
+
+	Properties props;
+	String userdir;
+	String userConfigFile;
+	Object writeLock;
+	String dataScript;
+
+	public RunController(int guid, Config config) {
+		this.guid = guid;
+		this.config = config;
+		this.json = JsonHandler.createRunGson();
+		this.props = config.getProperties();
+		this.dataScript = config.getContextRootPath() + "/data";
+	}
+
+	public void show(PrintWriter out) {
+		// Get Hierarchy
+		try {
+			String list = this.getRunListJSON();
+			// System.out.println(list);
+
+			out.println("<html>");
+			out.println("<head>");
+			JSLoader.setContextRoot(out, config.getContextRootPath());
+			CSSLoader.loadRunViewer(out, config.getContextRootPath());
+			JSLoader.loadRunViewer(out, config.getContextRootPath());
+			out.println("</head>");
+
+			out.println("<script>");
+			out.println("var runViewer_" + guid + ";");
+			out.println("Ext.onReady(function() {" + "runViewer_" + guid + " = new RunBrowser("
+					+ "'" + guid + "', " + list + ", " + "'" + config.getScriptPath() + "', " + "'"
+					+ this.dataScript + "' " + ");\n" + "runViewer_" + guid + ".initialize();\n"
+					+ "});");
+			out.println("</script>");
+			out.println("</html>");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String getRunListJSON() {
+		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+		ArrayList<Object> list = new ArrayList<Object>();
+		for (RuntimePlan exe : monitor.getRunList()) {
+			HashMap<String, Object> map = new HashMap<String, Object>();
+			map.put("runtimeInfo", exe.getRuntimeInfo());
+			map.put("id", exe.getID());
+			if (exe.getQueue() != null) {
+				int numtotal = exe.getQueue().getAllSteps().size();
+				int numdone = exe.getQueue().getFinishedSteps().size();
+				ArrayList<RuntimeStep> running_steps = exe.getQueue().getRunningSteps();
+				ArrayList<RuntimeStep> failed_steps = exe.getQueue().getFailedSteps();
+				map.put("running_jobs", this.getStepIds(running_steps));
+				map.put("failed_jobs", this.getStepIds(failed_steps));
+				map.put("percent_done", numdone * 100.0 / numtotal);
+				map.put("percent_running", running_steps.size() * 100.0 / numtotal);
+				map.put("percent_failed", failed_steps.size() * 100.0 / numtotal);
+			}
+			list.add(map);
+		}
+		return json.toJson(list);
+	}
+
+	private String getStepIds(ArrayList<RuntimeStep> steps) {
+		ArrayList<String> ids = new ArrayList<String>();
+		for (RuntimeStep stepexe : steps) {
+			ids.add(stepexe.getName());
+		}
+		return ids.toString();
+	}
+
+	public String getRunJSON(String runid) {
+		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+		RuntimePlan plan = monitor.getRunDetails(runid);
+		return json.toJson(plan);
+	}
+
+	public String deleteRun(String rjson) {
+		HashMap<String, Object> ret = new HashMap<String, Object>();
+		ret.put("success", false);
+		JsonElement el = new JsonParser().parse(rjson);
+		if (el == null)
+			return json.toJson(ret);
+
+		String runid = el.getAsJsonObject().get("id").getAsString();
+		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+		if (monitor.runExists(runid) && !monitor.deleteRun(runid))
+			return json.toJson(ret);
+
+		ret.put("success", true);
+		return json.toJson(ret);
+	}
+
+	public void runExpandedTemplate(String origtplid, String templatejson, String consjson) {
+		Gson json = JsonHandler.createTemplateGson();
+		Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
+
+		String requestid = UuidGen.generateAUuid("");
+		WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
+				DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
+				requestid);
+		ExecutionPlan plan = wg.getExecutionPlan(xtpl);
+
+		if (plan != null) {
+			synchronized (WriteLock.Lock) {
+				// Save the expanded template and plan
+				if (!xtpl.save())
+					return;
+				plan.save();
+			}
+			RuntimePlan rplan = new RuntimePlan(plan);
+			rplan.setExpandedTemplateID(xtpl.getID());
+			rplan.setOriginalTemplateID(origtplid);
+			this.runExecutionPlan(rplan);
+		}
+	}
+
+	// Run the Runtime Plan
+	public void runExecutionPlan(RuntimePlan rplan) {
+		synchronized (WriteLock.Lock) {
+			PlanExecutionEngine engine = config.getDomainExecutionEngine();
+			engine.getExecutionLogger().setWriterLock(WriteLock.Lock);
+			// "execute" below is an asynchronous call
+			engine.execute(rplan);
+		}
+	}
+}

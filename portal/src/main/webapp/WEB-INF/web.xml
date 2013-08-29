@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	id="WebApp_ID" version="2.5">
+	<display-name>Wings Portal</display-name>
+	<servlet>
+		<description>Servlet to Manage Datatypes and Data</description>
+		<display-name>Manage Data</display-name>
+		<servlet-name>ManageData</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.ManageData</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ManageData</servlet-name>
+		<url-pattern>/data/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description>Servlet to Export Graph</description>
+		<display-name>Graph Exporter</display-name>
+		<servlet-name>ExportGraph</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.ExportGraph</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ExportGraph</servlet-name>
+		<url-pattern>/export/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description>Servlet to Manage Components and Component Types</description>
+		<display-name>Manage Components</display-name>
+		<servlet-name>ManageComponents</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.ManageComponents</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ManageComponents</servlet-name>
+		<url-pattern>/component/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ManageComponents</servlet-name>
+		<url-pattern>/componenttype/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description>Servlet to Manage Template Editing and Creation</description>
+		<display-name>ManageTemplates</display-name>
+		<servlet-name>ManageTemplates</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.ManageTemplates</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ManageTemplates</servlet-name>
+		<url-pattern>/template/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description>Servlet to do Template Planning and Reasoning</description>
+		<display-name>Planner</display-name>
+		<servlet-name>Planner</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.Planner</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Planner</servlet-name>
+		<url-pattern>/plan/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description></description>
+		<display-name>HandleUpload</display-name>
+		<servlet-name>HandleUpload</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.HandleUpload</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HandleUpload</servlet-name>
+		<url-pattern>/upload</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description>Servlet to Handle Domains</description>
+		<display-name>ManageDomains</display-name>
+		<servlet-name>ManageDomains</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.ManageDomains</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ManageDomains</servlet-name>
+		<url-pattern>/domain/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<description>Servlet to Handle Runs</description>
+		<display-name>ManageRuns</display-name>
+		<servlet-name>ManageRuns</servlet-name>
+		<servlet-class>edu.isi.wings.portal.servlets.ManageRuns</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ManageRuns</servlet-name>
+		<url-pattern>/run/*</url-pattern>
+	</servlet-mapping>
+	<security-role>
+		<role-name>WingsUser</role-name>
+	</security-role>
+	<security-constraint>
+		<display-name>SecurityConstraint</display-name>
+		<web-resource-collection>
+			<web-resource-name>WRCollection</web-resource-name>
+			<url-pattern>/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>WingsUser</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<login-config>
+		<auth-method>BASIC</auth-method>
+		<form-login-config>
+			<form-login-page>/login/form.html</form-login-page>
+			<form-error-page>/login/error.html</form-error-page>
+		</form-login-config>
+	</login-config>
+	<security-role>
+		<role-name>TutorialUser</role-name>
+	</security-role>
+</web-app>

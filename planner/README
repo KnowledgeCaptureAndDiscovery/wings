@@ -1,0 +1,19 @@
+Installation 
+------------
+$ mvn install
+
+This will produce:
+
+	- 1) "wings-planner-<version>.jar" file in target/ directory. 
+
+Testing
+-------
+$ mvn test
+
+This will run 2 tests. One for Template Validation, and another for Seed Generation.
+
+Cleaning Install
+----------------
+$ mvn clean && ant clean
+
+

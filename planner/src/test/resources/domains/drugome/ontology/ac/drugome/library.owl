@@ -1,0 +1,1365 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:dc="http://www.isi.edu/dc/ontology.owl#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:dcdom="http://www.isi.edu/dc/drugome/ontology.owl#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns="http://www.isi.edu/ac/drugome/library.owl#"
+    xmlns:ac="http://www.isi.edu/ac/ontology.owl#"
+      xml:base="http://www.isi.edu/ac/drugome/library.owl">
+      <owl:Ontology rdf:about="">
+            <owl:imports rdf:resource="../ontology.owl"/>
+            <owl:imports rdf:resource="/dc/drugome/ontology.owl"/>
+      </owl:Ontology>
+      <owl:Class rdf:ID="CreateClipFilesImplClass">
+            <rdfs:subClassOf rdf:resource="#CreateClipFilesClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SMAPResultSorterClass">
+            <rdfs:subClassOf rdf:resource="#ResultSorterClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="GetSMAPAlignementFolderClass">
+            <rdfs:subClassOf rdf:resource="#GetAlignementFolderClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SplitFATCATInputClass">
+            <rdfs:subClassOf rdf:resource="#SplitDissimilarProteinListClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="GetTanimotosClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SplitDrugSitesImplClass">
+            <rdfs:subClassOf rdf:resource="#SplitDrugFileClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="DrugCounterClass">
+            <rdfs:subClassOf rdf:resource="#CountDrugsClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SMAPV2Class">
+            <rdfs:subClassOf rdf:resource="#CompareLigandBindingSitesV2Class"/>
+      </owl:Class>
+      <owl:Class rdf:ID="ComparisonResultsMergerImplClass">
+            <rdfs:subClassOf rdf:resource="#ComparisonResultsMergerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="MakeGraphNetworkGMLClass">
+            <rdfs:subClassOf rdf:resource="#MakeGraphNetworkClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SigResultMergerImplClass">
+            <rdfs:subClassOf rdf:resource="#SigResultMergerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="RemoveSigPairsFATCATClass">
+            <rdfs:subClassOf rdf:resource="#RemoveSignificantPairsClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SMAPAlignementResultMergerClass">
+            <rdfs:subClassOf rdf:resource="#AlignementResultMergerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="ListMergerImplClass">
+            <rdfs:subClassOf rdf:resource="#ListMergerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="IdealLigandCheckerImplClass">
+            <rdfs:subClassOf rdf:resource="#IdealLigandCheckerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SMAPV1Class">
+            <rdfs:subClassOf rdf:resource="#CompareLigandBindingSitesV1Class"/>
+      </owl:Class>
+      <owl:Class rdf:ID="UploadHModelsClass">
+            <rdfs:subClassOf rdf:resource="../ontology.owl#Component"/>
+      </owl:Class>
+      <owl:Class rdf:ID="MergeFATCATOutputClass">
+            <rdfs:subClassOf rdf:resource="#MergeDissimilarProteinComparisonsClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="FATCATURLCheckerClass">
+            <rdfs:subClassOf rdf:resource="#URLCheckerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SMAPClass">
+            <rdfs:subClassOf rdf:resource="#CompareLigandBindingSitesClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="GetSignificantResultsClass">
+            <rdfs:subClassOf rdf:resource="#FormatStepToCompareDissimilarProteinStructuresClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="AutodockVinaClass">
+            <rdfs:subClassOf rdf:resource="#DockingClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="CreateIdealLigandsImplClass">
+            <rdfs:subClassOf rdf:resource="#CreateIdealLigandsClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="SMAPResultSorterV2Class">
+            <rdfs:subClassOf rdf:resource="#ResultSorterV2Class"/>
+      </owl:Class>
+      <owl:Class rdf:ID="MergerClass">
+            <rdfs:subClassOf rdf:resource="#RawInteractionNetworkMergerClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="GetSignificantResultsHModelClass">
+            <rdfs:subClassOf rdf:resource="#FormatPDBToCompareProteinStructuresClass"/>
+      </owl:Class>
+      <owl:Class rdf:ID="FATCATClass">
+            <rdfs:subClassOf rdf:resource="#CompareDissimilarProteinStructuresClass"/>
+      </owl:Class>
+      <SMAPV1Class rdf:ID="SMAPV1">
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_LIGAND_CONTACT_DISTANCE_CUTOFF">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >10.0</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >LIGAND_CONTACT_DISTANCE_CUTOFF</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p13</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_PVALUE_CUTOFF">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >PVALUE_CUTOFF</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p17</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_PRINT_PDB">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >true</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >PRINT_PDB</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p14</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MAX_CA_SPHERE_RADIUS">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >7.5</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MAX_CA_SPHERE_RADIUS</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p9</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesComparisons rdf:ID="SMAPV1_comparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MAX_ATOM_SPHERE_RADIUS">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >5.0</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MAX_ATOM_SPHERE_RADIUS</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p2</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:ID="SMAPV1_structureForComparison">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureForComparison</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_SCORE_MATRIX">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >McLACHLAN</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >SCORE_MATRIX</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p12</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MAX_NUM_PL">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >5</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MAX_NUM_PL</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p10</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MIN_PL_CA_SPHERE_SIZE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >5</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MIN_PL_CA_SPHERE_SIZE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p8</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_QUERY_LIGAND_SITE_ONLY">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >true</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >QUERY_LIGAND_SITE_ONLY</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p19</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="SMAPV1_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MIN_CA_SPHERE_DISTANCE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >5.0</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MIN_CA_SPHERE_DISTANCE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p5</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MATCH_SECONDARY_STRUCTURE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >true</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MATCH_SECONDARY_STRUCTURE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_PRINT_QUERY_LIGAND">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >true</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >PRINT_QUERY_LIGAND</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p16</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesAlignementResults rdf:ID="SMAPV1_alignementResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesAlignementResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_ASSOCIATE_GRAPH_NODE_FILTER">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.5</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >ASSOCIATE_GRAPH_NODE_FILTER</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p7</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_LOCAL_SCORE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >true</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >LOCAL_SCORE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p4</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MIN_ATOM_SPHERE_DISTANCE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >3.0</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MIN_ATOM_SPHERE_DISTANCE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p6</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_PRINT_TEMPLATE_LIGAND">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >false</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >PRINT_TEMPLATE_LIGAND</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p15</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_TEMPLATE_LIGAND_SITE_ONLY">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+                        >false</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >TEMPLATE_LIGAND_SITE_ONLY</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p18</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_TIMES_RANDOM_SHUFFLE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >TIMES_RANDOM_SHUFFLE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p11</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPV1_MIN_PL_ATOM_SPHERE_SIZE">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >20</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >MIN_PL_ATOM_SPHERE_SIZE</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p3</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+      </SMAPV1Class>
+      <ComparisonResultsMergerImplClass rdf:ID="ComparisonResultsMergerImpl">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesComparisons rdf:ID="ComparisonResultsMergerImpl_OutputComparisonResult">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >OutputComparisonResult</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:LigandBindingSitesComparisons rdf:ID="ComparisonResultsMergerImpl_InputComparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >InputComparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasInput>
+      </ComparisonResultsMergerImplClass>
+      <GetSMAPAlignementFolderClass rdf:ID="GetSMAPAlignementFolder">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SMAPAlignementResults rdf:ID="GetSMAPAlignementFolder_alignementFolder">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementFolder</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPAlignementResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="GetSMAPAlignementFolder_irrelevantInput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >irrelevantInput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </GetSMAPAlignementFolderClass>
+      <FATCATURLCheckerClass rdf:ID="FATCATURLChecker">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:FATCATList rdf:ID="FATCATURLChecker_checkedList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >checkedList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:FATCATList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:FATCATList rdf:ID="FATCATURLChecker_listToCheck">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >listToCheck</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:FATCATList>
+            </ac:hasInput>
+      </FATCATURLCheckerClass>
+      <ListMergerImplClass rdf:ID="ListMergerImpl">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:ID="ListMergerImpl_outlist">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outlist</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:ID="ListMergerImpl_list2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:ID="ListMergerImpl_list1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+      </ListMergerImplClass>
+      <SMAPResultSorterV2Class rdf:ID="SMAPResultSorterV2">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SMAPRawInteractionNetwork rdf:ID="SMAPResultSorterV2_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPRawInteractionNetwork>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPResultSorterV2_pvalue">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.00001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >pvalue</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SMAPComparisonResults rdf:ID="SMAPResultSorterV2_ligandBindingSitesComparisons">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >ligandBindingSitesComparisons</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPComparisonResults>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:ID="SMAPResultSorterV2_structureToCompare">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureToCompare</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+      </SMAPResultSorterV2Class>
+      <UploadHModelsClass rdf:ID="UploadHModels">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:Insignificantresults rdf:ID="UploadHModels_irrelevantOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >irrelevantOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:Insignificantresults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:HomologyModelsFiles rdf:ID="UploadHModels_hModelsCompressedFile">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >hModelsCompressedFile</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:HomologyModelsFiles>
+            </ac:hasInput>
+      </UploadHModelsClass>
+      <GetTanimotosClass rdf:ID="GetTanimotos">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:Tanimotos rdf:ID="GetTanimotos_tanimotos">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >tanimotos</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:Tanimotos>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:LigansSmiles rdf:ID="GetTanimotos_ligandSmiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >ligandSmiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigansSmiles>
+            </ac:hasInput>
+      </GetTanimotosClass>
+      <SplitFATCATInputClass rdf:ID="SplitFATCATInput">
+            <ac:hasRule rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >[ SplitFATCATInputDimension: (?c rdf:type pcdom:SplitFATCATInputClass) (?c pc:hasInput ?ipv) (?ipv pc:hasArgumentID 'numParallel') (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID 'outputCheckedList') (?ipv pc:hasValue ?np) -&gt; (?odv pc:hasDimensionSizes ?np) ]</ac:hasRule>
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:ID="SplitFATCATInput_outputCheckedList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outputCheckedList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SplitFATCATInput_numParallel">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >10</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >numParallel</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:ID="SplitFATCATInput_inputCheckedList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >inputCheckedList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasInput>
+      </SplitFATCATInputClass>
+      <CreateIdealLigandsImplClass rdf:ID="CreateIdealLigandsImpl">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:IdealLigands rdf:ID="CreateIdealLigandsImpl_idealLigandFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigandFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:ClipFiles rdf:ID="CreateIdealLigandsImpl_clipFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >clipFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ClipFiles>
+            </ac:hasInput>
+      </CreateIdealLigandsImplClass>
+      <SMAPV2Class rdf:ID="SMAPV2">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:LigandBindingSitesComparisons rdf:ID="SMAPV2_comparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:LigandBindingSitesComparisons>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SMAPConfigurationFile rdf:ID="SMAPV2_configurationFile">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >configurationFile</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPConfigurationFile>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="SMAPV2_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:ID="SMAPV2_structureForComparison">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureForComparison</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+      </SMAPV2Class>
+      <SigResultMergerImplClass rdf:ID="SigResultMergerImpl">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SignificantResults rdf:ID="SigResultMergerImpl_outSigResult">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outSigResult</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SignificantResults rdf:ID="SigResultMergerImpl_sigResult2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResult2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SignificantResults rdf:ID="SigResultMergerImpl_sigResult1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResult1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasInput>
+      </SigResultMergerImplClass>
+      <CreateClipFilesImplClass rdf:ID="CreateClipFilesImpl">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:ClipFiles rdf:ID="CreateClipFilesImpl_clipFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >clipFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ClipFiles>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SignificantResultsFiltered rdf:ID="CreateClipFilesImpl_sigResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasInput>
+      </CreateClipFilesImplClass>
+      <FATCATClass rdf:ID="FATCAT">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:FATCATOutput rdf:ID="FATCAT_comparisonOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:FATCATOutput>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:FATCATList rdf:ID="FATCAT_inputList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >inputList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:FATCATList>
+            </ac:hasInput>
+      </FATCATClass>
+      <SMAPResultSorterClass rdf:ID="SMAPResultSorter">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SMAPRawInteractionNetwork rdf:ID="SMAPResultSorter_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPRawInteractionNetwork>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAPResultSorter_pvalue">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.00001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >pvalue</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:ID="SMAPResultSorter_structureToCompare">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureToCompare</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="SMAPResultSorter_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SMAPComparisonResults rdf:ID="SMAPResultSorter_ligandBindingSitesComparisons">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >ligandBindingSitesComparisons</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPComparisonResults>
+            </ac:hasInput>
+      </SMAPResultSorterClass>
+      <DrugCounterClass rdf:ID="DrugCounter">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DrugCounts rdf:ID="DrugCounter_drugCount">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugCount</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugCounts>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugKey rdf:ID="DrugCounter_drugKeys">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugKeys</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugKey>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="DrugCounter_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </DrugCounterClass>
+      <MergerClass rdf:ID="Merger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:RawInteractionNetwork rdf:ID="Merger_mergedOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >mergedOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:ID="Merger_rawInterNetwork1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInterNetwork1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:ID="Merger_rawInterNetwork2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInterNetwork2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+      </MergerClass>
+      <SplitDrugSitesImplClass rdf:ID="SplitDrugSitesImpl">
+            <ac:hasRule rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >[ SplitDrugSitesDimension: (?c rdf:type pcdom:SplitDrugSitesImplClass) (?c pc:hasInput ?idv) (?idv pc:hasArgumentID 'InputDrugBinding') (?c pc:hasOutput ?odv) (?odv pc:hasArgumentID 'OutputDrugBindingColl') (?idv dcdom:numlines ?nl) -&gt; (?odv pc:hasDimensionSizes ?nl) ]</ac:hasRule>
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DrugBindingSites rdf:ID="SplitDrugSitesImpl_OutputDrugBindingColl">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >OutputDrugBindingColl</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="SplitDrugSitesImpl_InputDrugBinding">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >InputDrugBinding</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </SplitDrugSitesImplClass>
+      <MakeGraphNetworkGMLClass rdf:ID="MakeGraphNetworkGML">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:GMLGraphRepresentation rdf:ID="MakeGraphNetworkGML_networkVisualization">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >networkVisualization</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:GMLGraphRepresentation>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:HighlyConnectedDrugs rdf:ID="MakeGraphNetworkGML_highlyConnectedDrugs">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >highlyConnectedDrugs</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:HighlyConnectedDrugs>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DrugCounts rdf:ID="MakeGraphNetworkGML_drugCounts">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugCounts</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugCounts>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugKey rdf:ID="MakeGraphNetworkGML_drugKey">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugKey</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugKey>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SignificantResultsFiltered rdf:ID="MakeGraphNetworkGML_sigResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >sigResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:TBProteinInfo rdf:ID="MakeGraphNetworkGML_tbProteinInfo">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >tbProteinInfo</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i4</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:TBProteinInfo>
+            </ac:hasInput>
+      </MakeGraphNetworkGMLClass>
+      <SMAPAlignementResultMergerClass rdf:ID="SMAPAlignementResultMerger">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SMAPAlignementResults rdf:ID="SMAPAlignementResultMerger_alignementResultMerged">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResultMerged</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPAlignementResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SMAPAlignementResults rdf:ID="SMAPAlignementResultMerger_alignementResult2">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResult2</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPAlignementResults>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SMAPAlignementResults rdf:ID="SMAPAlignementResultMerger_alignementResult1">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >alignementResult1</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPAlignementResults>
+            </ac:hasInput>
+      </SMAPAlignementResultMergerClass>
+      <AutodockVinaClass rdf:ID="AutodockVina">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:AutodockVinaResults rdf:ID="AutodockVina_dockingResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >dockingResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:AutodockVinaResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:SignificantResultsFiltered rdf:ID="AutodockVina_significantResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:IdealLigands rdf:ID="AutodockVina_idealLigands">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigands</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SolvedStructuresFiles rdf:ID="AutodockVina_solvedStructuresFiles">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >solvedStructuresFiles</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SolvedStructuresFiles>
+            </ac:hasInput>
+      </AutodockVinaClass>
+      <IdealLigandCheckerImplClass rdf:ID="IdealLigandCheckerImpl">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:IdealLigands rdf:ID="IdealLigandCheckerImpl_idealLigChecked">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigChecked</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:IdealLigands rdf:ID="IdealLigandCheckerImpl_idealLigInput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >idealLigInput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:IdealLigands>
+            </ac:hasInput>
+      </IdealLigandCheckerImplClass>
+      <MergeFATCATOutputClass rdf:ID="MergeFATCATOutput">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructureComparisonOutput rdf:ID="MergeFATCATOutput_outputProteinList">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >outputProteinList</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructureComparisonOutput>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:DissimilarProteinStructureComparisonOutput rdf:ID="MergeFATCATOutput_inputProteinComparisons">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >1</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >inputProteinComparisons</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructureComparisonOutput>
+            </ac:hasInput>
+      </MergeFATCATOutputClass>
+      <RemoveSigPairsFATCATClass rdf:ID="RemoveSigPairsFATCAT">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:InsignificantResults rdf:ID="RemoveSigPairsFATCAT_insignificantresults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >insignificantresults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:InsignificantResults>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:SignificantResultsFiltered rdf:ID="RemoveSigPairsFATCAT_significantResultsFiltered">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResultsFiltered</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResultsFiltered>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:FATCATOutput rdf:ID="RemoveSigPairsFATCAT_comparisonOutput">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonOutput</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:FATCATOutput>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:SignificantResults rdf:ID="RemoveSigPairsFATCAT_significantResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasInput>
+      </RemoveSigPairsFATCATClass>
+      <GetSignificantResultsHModelClass rdf:ID="GetSignificantResultsHModel">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SignificantResults rdf:ID="GetSignificantResultsHModel_significantResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:DissimilarProteinStructuresComparisonList rdf:ID="GetSignificantResultsHModel_list">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DissimilarProteinStructuresComparisonList>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:TemplatePDBsFile rdf:ID="GetSignificantResultsHModel_template_pdbs">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >template_pdbs</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i3</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:TemplatePDBsFile>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:ModelInfoFile rdf:ID="GetSignificantResultsHModel_model_info">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >model_info</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:ModelInfoFile>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:ID="GetSignificantResultsHModel_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+      </GetSignificantResultsHModelClass>
+      <GetSignificantResultsClass rdf:ID="GetSignificantResults">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:FATCATList rdf:ID="GetSignificantResults_list">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >list</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:FATCATList>
+            </ac:hasOutput>
+            <ac:hasOutput>
+                  <dcdom:SignificantResults rdf:ID="GetSignificantResults_significantResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >significantResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SignificantResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <dcdom:RawInteractionNetwork rdf:ID="GetSignificantResults_rawInteractionNetwork">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >rawInteractionNetwork</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:RawInteractionNetwork>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:TBProteinInfo rdf:ID="GetSignificantResults_tbProteinInfo">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >tbProteinInfo</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:TBProteinInfo>
+            </ac:hasInput>
+      </GetSignificantResultsClass>
+      <SMAPClass rdf:ID="SMAP">
+            <ac:isConcrete rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</ac:isConcrete>
+            <ac:hasOutput>
+                  <dcdom:SMAPComparisonResults rdf:ID="SMAP_comparisonResults">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >comparisonResults</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-o1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:SMAPComparisonResults>
+            </ac:hasOutput>
+            <ac:hasInput>
+                  <ac:ParameterArgument rdf:ID="SMAP_pvalue">
+                        <ac:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#float"
+                        >0.00001</ac:hasValue>
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >pvalue</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-p1</ac:hasArgumentName>
+                  </ac:ParameterArgument>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:StructureForComparison rdf:ID="SMAP_structureForComparison">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >structureForComparison</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i1</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:StructureForComparison>
+            </ac:hasInput>
+            <ac:hasInput>
+                  <dcdom:DrugBindingSites rdf:ID="SMAP_drugBindingSites">
+                        <ac:hasDimensionality rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+                        >0</ac:hasDimensionality>
+                        <ac:hasArgumentID rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >drugBindingSites</ac:hasArgumentID>
+                        <ac:hasArgumentName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                        >-i2</ac:hasArgumentName>
+                        <rdf:type rdf:resource="../ontology.owl#DataArgument"/>
+                  </dcdom:DrugBindingSites>
+            </ac:hasInput>
+      </SMAPClass>
+</rdf:RDF>
