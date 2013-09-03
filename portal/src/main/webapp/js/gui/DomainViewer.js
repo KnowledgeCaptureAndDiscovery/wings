@@ -152,7 +152,7 @@ DomainViewer.prototype.openDomain = function(name) {
 DomainViewer.prototype.importDomain = function(domname, loc) {
 	var This = this;
     var domname = getRDFID(domname);
-    var rec = This.domainsGrid.getStore().find('id', domname);
+    var rec = This.domainsGrid.getStore().find('name', domname);
     if (rec != -1) {
     	console.log(rec);
         showError(domname + ' already exists ! Choose a different name.');
@@ -205,6 +205,38 @@ DomainViewer.prototype.selectDomain = function(domname) {
         		 if(response.responseText == "OK") {
         			 This.store.selected = domname; 
             		 This.domainsGrid.reconfigure();
+        		 }
+        		 else {
+        			 _console(response.responseText);
+        		 }
+        	 }
+        	 catch (e) {
+        		 _console(e.message);
+        	 }
+        },
+        failure: function(response) {
+        	Ext.get(This.tabPanel.getId()).unmask();
+        	_console(response.responseText);
+        }
+        
+    });
+};
+
+DomainViewer.prototype.deleteDomain = function(domname) {
+	var This = this;
+    var url = This.op_url + '/deleteDomain';
+    Ext.get(This.domainsGrid.getId()).mask("Deleting Domain..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+        	domain: domname
+        },
+        success: function(response) {
+        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 try {
+        		 if(response.responseText == "OK") {
+        			 var rec = This.domainsGrid.getStore().find('name', domname);
+        			 This.domainsGrid.getStore().removeAt(rec);
         		 }
         		 else {
         			 _console(response.responseText);

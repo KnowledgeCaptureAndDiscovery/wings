@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintWriter;
-import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -21,14 +20,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-
-import java.nio.file.*;
-
-import static java.nio.file.StandardCopyOption.*;
-
-import java.nio.file.attribute.*;
-
-import static java.nio.file.FileVisitResult.*;
 
 public class StorageHandler {
 	
@@ -121,13 +112,13 @@ public class StorageHandler {
 		return null;
 	}
 	
-	public static void copyDirectory(File src, File dest) throws IOException {
+	/*public static void copyDirectory(File src, File dest) throws IOException {
 		if(!dest.exists())
 			dest.mkdirs();
 		EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 		Copy.TreeCopier tc = new Copy.TreeCopier(src.toPath(), dest.toPath());
 		Files.walkFileTree(src.toPath(), opts, Integer.MAX_VALUE, tc);
-	}
+	}*/
     
 	private static void streamFile(File f, HttpServletResponse response, 
 			ServletContext context) {
@@ -209,7 +200,7 @@ class ZipStreamer extends Thread {
 }
 
 
-class Copy { 
+/*class Copy { 
     static void copyFile(Path source, Path target) {
         CopyOption[] options = new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING };
         try {
@@ -273,4 +264,4 @@ class Copy {
             return CONTINUE;
         }
     }
-}
+}*/

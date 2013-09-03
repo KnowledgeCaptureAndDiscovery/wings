@@ -292,6 +292,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		this.initializeAPI(true, true);
 	}
 
+
+	@Override
+	public void delete() {
+		this.writerkb.delete();
+	}
+	
 	/*
 	 * Private helper functions
 	 */

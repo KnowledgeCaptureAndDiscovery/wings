@@ -33,6 +33,8 @@ public interface ComponentCreationAPI {
 
 	void end();
 	
+	void delete();
+	
 	// Copy from another API (Advisable to give the same implementation of the API here)
 	void copyFrom(ComponentCreationAPI dc);
 }

@@ -117,6 +117,19 @@ public class DomainController {
 		return false;
 	}
 	
+	public boolean deleteDomain(String domain) {
+		DomainInfo dominfo = this.user_domains.get(domain);
+		if(dominfo != null) {
+			this.user_domains.remove(domain);
+			Domain dom = new Domain(dominfo);
+			if(!Domain.deleteDomain(dom, config, true))
+				return false;
+		}
+		if(this.saveUserConfig(this.userConfigFile))
+			return true;
+		return false;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private void initializeDomainList() {
 		PropertyListConfiguration config = this.getUserConfiguration();

@@ -69,16 +69,22 @@ public class ManageDomains extends HttpServlet {
 		if (op == null || op.equals("")) {
 			response.setContentType("text/html");
 			dc.show(out);
+			return;
 		}
-		else if(op.equals("getDomainDetails")) {
+		
+		if(op.equals("getDomainDetails")) {
 			out.println(dc.getDomainJSON(domain));
 		}
 		else if(op.equals("selectDomain")) {
 			if(dc.selectDomain(domain))
 				out.print("OK");
 		}
-		else if(op.equals("importDomain")) {
-			synchronized(WriteLock.Lock) {
+		
+		synchronized (WriteLock.Lock) {
+			if (op.equals("deleteDomain")) {
+				if (dc.deleteDomain(domain))
+					out.print("OK");
+			} else if (op.equals("importDomain")) {
 				String location = request.getParameter("location");
 				out.println(dc.importDomain(domain, location));
 			}

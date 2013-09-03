@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
+import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
@@ -230,5 +231,18 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 		
 		this.initializeAPI(true);
 
+	}
+
+	@Override
+	public void delete() {
+		for(String tplid : this.getTemplateList()) {
+			try {
+				this.ontologyFactory.getKB(new URIEntity(tplid).getURL(), OntSpec.PLAIN).delete();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		this.writerkb.delete();
 	}
 }

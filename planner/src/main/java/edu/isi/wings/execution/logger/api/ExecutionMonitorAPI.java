@@ -13,4 +13,6 @@ public interface ExecutionMonitorAPI {
 	boolean runExists(String runid);
 	
 	boolean deleteRun(String runid);
+	
+	void delete();
 }

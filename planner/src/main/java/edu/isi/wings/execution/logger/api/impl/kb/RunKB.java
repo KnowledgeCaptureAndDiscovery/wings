@@ -167,6 +167,15 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			return true;
 		return false;
 	}
+	
+
+	@Override
+	public void delete() {
+		for(RuntimePlan rplan : this.getRunList()) {
+			this.deleteRun(rplan.getID());
+		}
+		this.kb.delete();
+	}
 
 	@Override
 	public void setWriterLock(Object lock) {

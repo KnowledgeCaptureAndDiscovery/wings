@@ -362,6 +362,13 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		this.initializeAPI(true, true);
 	}
 	
+
+	@Override
+	public void delete() {
+		this.libkb.delete();
+		this.ontkb.delete();
+	}
+	
 	/*
 	 * Private Helper functions below
 	 */

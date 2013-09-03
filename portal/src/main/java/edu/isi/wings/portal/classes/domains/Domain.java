@@ -9,14 +9,16 @@ import java.util.Properties;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
+import org.apache.commons.io.FileUtils;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.common.kb.PropertiesHelper;
+import edu.isi.wings.execution.logger.LoggerFactory;
+import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 
@@ -126,9 +128,14 @@ public class Domain {
 				+ domain.getConcreteComponentLibrary().getStorageDirectory());
 		try {
 			if(srcDataDir.isDirectory())
-				StorageHandler.copyDirectory(srcDataDir, destDataDir);
-			if(srcCodeDir.isDirectory())
-				StorageHandler.copyDirectory(srcCodeDir, destCodeDir);
+				FileUtils.copyDirectory(srcDataDir, destDataDir);
+			if(srcCodeDir.isDirectory()) {
+				FileUtils.copyDirectory(srcCodeDir, destCodeDir);
+				// FIXME: Setting executable permissions on all files for now
+				for(File f : FileUtils.listFiles(destCodeDir, null, true)) {
+					f.setExecutable(true);
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -144,6 +151,32 @@ public class Domain {
 		// -- set new domain prefix
 		domain.saveDomain();
 		return domain;
+	}
+	
+	public static boolean deleteDomain(Domain domain, Config config, boolean deleteStorage) {
+		// Get new apis
+		Properties props = config.getProperties(domain);
+		DataCreationAPI dc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+		ExecutionMonitorAPI em = LoggerFactory.createMonitor(props);
+		dc.delete();
+		acc.delete();
+		ccc.delete();
+		tc.delete();
+		em.delete();
+		
+		// Remove domain directory
+		if(deleteStorage) {
+			try {
+				FileUtils.deleteDirectory(new File(domain.getDomainDirectory()));
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/*
