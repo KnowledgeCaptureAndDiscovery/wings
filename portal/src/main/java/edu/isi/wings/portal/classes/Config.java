@@ -157,8 +157,8 @@ public class Config {
 	}
 
 	private void createDefaultPortalConfig(HttpServletRequest request) {
-		String server = request.getScheme() + "://" + request.getLocalName() + ":"
-				+ request.getLocalPort();
+		String server = request.getScheme() + "://" + request.getServerName() + ":"
+				+ request.getServerPort();
 		String storageDir = null;
 		String home = System.getProperty("user.home");
 		if (home != null && !home.equals(""))
@@ -172,7 +172,10 @@ public class Config {
 		config.addProperty("storage.local", storageDir);
 		config.addProperty("storage.tdb", storageDir + File.separator + "TDB");
 		config.addProperty("server", server);
-		config.addProperty("graphviz", "/usr/bin/dot");
+		
+		File loc1 = new File("/usr/bin/dot");
+		File loc2 = new File("/usr/local/bin/dot");
+		config.addProperty("graphviz", loc2.exists() ? loc2.getAbsolutePath() : loc1.getAbsolutePath());
 		config.addProperty("ontology.data", ontdirurl + "/data.owl");
 		config.addProperty("ontology.component", ontdirurl + "/component.owl");
 		config.addProperty("ontology.workflow", ontdirurl + "/workflow.owl");
