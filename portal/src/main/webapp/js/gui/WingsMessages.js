@@ -104,7 +104,7 @@ function showWingsError(msg, title, result) {
     win.show();
 }
 
-function formatDataBindings(value, meta, record, rowind, colind, store, view) {
+function formatDataBindings(value) {
 	var s = "";
     if (value.type == "uri") {
     	s = "<div>" + getLocalName(value.id) + "</div>";
@@ -116,7 +116,7 @@ function formatDataBindings(value, meta, record, rowind, colind, store, view) {
     return s;
 }
 
-function formatParameterBindings(value, meta, record, rowind, colind, store, view) {
+function formatParameterBindings(value) {
     var s = "";
     if(value.type == "literal") {
     	s = "<div>" + value.value + "</div>";
@@ -184,6 +184,24 @@ function showWingsBindings(data, title, formItems, type) {
         }
     }
     
+    // Remove duplicate entries
+    var bstrs = {};
+    var nbindings = [];
+    for(var i=0; i<bindings.length; i++) {
+       var nbinding = {};
+       var bstr = "";
+       for(var j=0; j<fields.length; j++) {
+          var field = fields[j];
+          var val = bindings[i][field];
+          nbinding[field] = val;
+          bstr += (type == 'data' ? formatDataBindings(val) : formatParameterBindings(val))+"|";
+       }
+       if(!bstrs[bstr]) {
+          nbindings.push(nbinding);
+          bstrs[bstr] = true;
+       }
+    }
+    
     var myStore = new Ext.data.Store({
     	proxy: {
     		type: 'memory',
@@ -194,7 +212,7 @@ function showWingsBindings(data, title, formItems, type) {
     	},
         fields: fields,
         autoLoad: true,
-        data: bindings
+        data: nbindings
     });
 
     var win = new Ext.Window({
@@ -222,7 +240,7 @@ function showWingsBindings(data, title, formItems, type) {
             singleSelect: true
         }),
         tbar: [{
-            text: 'Use Selected ' + type,
+            text: 'Use Selected ' + (type == 'param' ? 'Parameters' : 'Data'),
             iconCls: 'selectIcon',
             handler: function() {
                 var recs = bindingsGrid.getSelectionModel().getSelection();
@@ -409,13 +427,13 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
             singleSelect: true
         }),
         tbar: [{
-            text: 'Run Selected Executable Template',
+            text: 'Run Selected Workflow',
             iconCls: 'runIcon',
             handler: function() {
                 var recs = alternativesGrid.getSelectionModel().getSelection();
                 if (!recs || !recs.length) {
                     Ext.Msg.show({
-                        msg: 'Select a Template from below and then press Run',
+                        msg: 'Select a Workflow from below and then press Run',
                         modal: false,
                         buttons: Ext.Msg.OK
                     });

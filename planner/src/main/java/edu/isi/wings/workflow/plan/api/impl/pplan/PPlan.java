@@ -101,12 +101,12 @@ public class PPlan extends URIEntity implements ExecutionPlan {
 		HashMap<String, ExecutionFile> varmaps = new HashMap<String, ExecutionFile>(); 
 		for(KBObject vobj : kb.getInstancesOfClass(varcls, true)) {
 		    KBObject pobj = kb.getPropertyValue(vobj, isvarofplanprop);
-		    if(pobj.getID().equals(this.getID())) {
-			ExecutionFile file = new ExecutionFile(vobj.getID());
-			KBObject bobj = kb.getPropertyValue(vobj, dbindingprop);
-			file.setLocation((String)bobj.getValue());
-			varmaps.put(vobj.getID(), file);
-		    }
+			if (pobj.getID().equals(this.getID())) {
+				ExecutionFile file = new ExecutionFile(vobj.getID());
+				KBObject bobj = kb.getPropertyValue(vobj, dbindingprop);
+				file.setLocation((String) bobj.getValue());
+				varmaps.put(vobj.getID(), file);
+			}
 		}
 		for(KBObject sobj : kb.getInstancesOfClass(stepcls, true)) {
 		    KBObject pobj = kb.getPropertyValue(sobj, isstepofplanprop);
@@ -119,7 +119,8 @@ public class PPlan extends URIEntity implements ExecutionPlan {
 			
 			ExecutionCode code = new ExecutionCode(sobj.getID());
 			KBObject cobj = kb.getPropertyValue(sobj, cbindingprop);
-			code.setLocation((String)cobj.getValue());
+			if(cobj != null)
+				code.setLocation((String)cobj.getValue());
 			step.setCodeBinding(code);
 			
 			KBObject invline = kb.getPropertyValue(sobj, invlineprop);
