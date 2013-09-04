@@ -37,7 +37,7 @@ ComponentViewer.prototype.getComponentTreePanel = function(root, title, iconCls,
         border: false,
         autoScroll: true,
         hideHeaders: true,
-        // rootVisible: false,
+        rootVisible: false,
         viewConfig: {
             plugins: {
                 ptype: 'treeviewdragdrop',

@@ -61,15 +61,15 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 }
 
 .compIcon {
-	background-image: url(../images/component_blue.png) !important
+	background-image: url(../images/component_concrete.png) !important
 }
 
 .absCompIcon {
-	background-image: url(../images/component_yellow.png) !important
+	background-image: url(../images/component_abstract.png) !important
 }
 
 .noCompIcon {
-	background-image: url(../images/component_red.png) !important
+	background-image: url(../images/component_missing.png) !important
 }
 
 .ctypeIcon {
