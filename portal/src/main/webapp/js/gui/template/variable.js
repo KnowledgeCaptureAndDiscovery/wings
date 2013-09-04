@@ -54,13 +54,13 @@ Variable.prototype.setDefaultColors = function() {
 		this.setTextColor("rgba(255,230,230," + alpha + ")");
 	}
 	else if (this.type == 'PARAM') {
-		this.color = "rgba(232,164,23," + alpha + ")";
-		this.setTextColor("rgba(52,14,3," + alpha + ")");
+		this.color = "rgba(102,153,51," + alpha + ")";
+		this.setTextColor("rgba(230,255,230," + alpha + ")");
 	}
 	else {
 		if (this.isInput) {
-			this.color = "rgba(51,102,51," + alpha + ")";
-			this.setTextColor("rgba(220,255,220," + alpha + ")");
+			this.color = "rgba(51,102,153," + alpha + ")";
+			this.setTextColor("rgba(230,230,255," + alpha + ")");
 		}
 		else {
 			this.color = "rgba(0,51,102," + alpha + ")";

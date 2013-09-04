@@ -357,6 +357,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 		header : false,
 		border : false,
 		autoScroll : true,
+		rootVisible : false,
 		bodyCls : !This.editor_mode ? 'x-docked-noborder-top' : '',
 		iconCls : 'wflowIcon',
 		containerScroll : true,
@@ -1400,7 +1401,9 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 									: 'getViewerJSON';
 							var url = This.op_url + '/' + fetchOp
 									+ '?template_id=' + escape(tid);
-							this.up('panel').getLoader().load({
+							var tpanel = this.up('panel');
+							if(!This.opts.hide_documentation) tpanel = tpanel.down('panel');
+							tpanel.getLoader().load({
 								url : url
 							});
 							if (This.tellMePanel)
