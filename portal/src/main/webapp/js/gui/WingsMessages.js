@@ -9,6 +9,7 @@ function getWingsExplanation(data) {
     for (var i = 0; i < data.explanations.length; i++) {
         // Replace urls with local names
         data.explanations[i] = data.explanations[i].replace(/http.*?#/g, '');
+        data.explanations[i] = data.explanations[i].replace(/\^\^\w+/g, '');
     }
 
     var exps = Ext.Array.map(data.explanations, function(a) {

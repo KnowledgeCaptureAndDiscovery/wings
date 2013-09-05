@@ -180,11 +180,11 @@ TemplateBrowser.prototype.deleteTemplate = function(tid, tname) {
 	});
 };
 
-TemplateBrowser.prototype.openTemplateUI = function(tab, tstore, tid, tname) {
+TemplateBrowser.prototype.renderTemplate = function(tab, tstore, tid, tname) {
 	if (!this.editor_mode)
-		this.openFormTemplateInPanel(tab, tstore, tid, tname);
+		this.renderTemplateViewer(tab, tstore, tid, tname);
 	else
-		this.openTemplateEditorInPanel(tab, tstore, tid, tname);
+		this.renderTemplateEditor(tab, tstore, tid, tname);
 };
 
 /**
@@ -207,8 +207,7 @@ TemplateBrowser.prototype.setupTemplateRenderer = function(tab, tid, tname) {
 				if (tstore) {
 					tab.removeAll();
 					This.guessUnknownNamespaces(tstore.template);
-					This.openTemplateUI(tab, tstore, tid, tname);
-					// tab.doLayout(false, true);
+					This.renderTemplate(tab, tstore, tid, tname);
 				}
 			}
 		}
@@ -400,7 +399,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 	});
 };
 
-TemplateBrowser.prototype.openFormTemplateInPanel = function(templatePanel,
+TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 		tstore, tid, tname) {
 	var This = this;
 
@@ -1036,7 +1035,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
 	return gridPanel;
 };
 
-TemplateBrowser.prototype.openTemplateEditorInPanel = function(templatePanel,
+TemplateBrowser.prototype.renderTemplateEditor = function(templatePanel,
 		tstore, tid, tname) {
 	var This = this;
 	templatePanel.removeAll();
@@ -1563,7 +1562,6 @@ TemplateBrowser.prototype.initialize = function(tid) {
 		if (tnode) {
 			var path = getTreePath(tnode, 'text');
 			This.openTemplate(tid, getLocalName(tid), path);
-			This.mainPanel.doLayout();
 		}
 	}
 };

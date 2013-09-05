@@ -914,12 +914,12 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										// variable.
 										// - Then replace all occurences of the
 										// variable with the value
-										this.addExplanation("Setting ?"
+										/*this.addExplanation("Setting ?"
 												+ cons.getObject().getName() + " " + " to "
 												+ ncons.getObject().getValue() + " because "
 												+ cons.getPredicate().getName() + " of "
 												+ var.getBinding().getName() + " is "
-												+ ncons.getObject().getValue());
+												+ ncons.getObject().getValue());*/
 										engine.replaceObjectInConstraints(cons.getObject(),
 												ncons.getObject());
 									} else if (!cons.getObject().getValue()
