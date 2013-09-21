@@ -2,39 +2,34 @@ package edu.isi.wings.portal.controllers;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonWriter;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
+import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.common.UuidGen;
-import edu.isi.wings.common.kb.PropertiesHelper;
-import edu.isi.wings.execution.engine.classes.RuntimePlan;
-import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
-import edu.isi.wings.workflow.template.api.impl.kb.TemplateKB;
-import edu.isi.wings.workflow.template.classes.Link;
 import edu.isi.wings.workflow.template.classes.Node;
 import edu.isi.wings.workflow.template.classes.sets.Binding;
-import edu.isi.wings.workflow.template.classes.sets.SetExpression;
 import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.sets.WingsSet;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
@@ -148,14 +143,14 @@ public class PlanController {
 			return;
 		}
 		if(op.equals("getExpansions")) {
-			printTemplatesJSON(ets);
+			printTemplatesJSON(ets, tplid);
 			return;
 		}
 		
 		printError();
 	}
 		
-	private void printTemplatesJSON(ArrayList<Template> ts) {
+	private void printTemplatesJSON(ArrayList<Template> ts, String tplid) {
 		ArrayList<Object> template_stores = new ArrayList<Object>();
 		for(Template t : ts) {
 			ArrayList<String> varids = new ArrayList<String>();
@@ -163,6 +158,7 @@ public class PlanController {
 			HashMap<String, Object> tstore = new HashMap<String, Object>();
 			tstore.put("template",  t);
 			tstore.put("constraints",  t.getConstraintEngine().getConstraints(varids));
+			//tstore.put("time", this.getEstimatedExecutionTime(t, tplid));
 			template_stores.add(tstore);
 		}
 		HashMap<String, Object> map = new HashMap<String, Object>(); 
@@ -349,7 +345,6 @@ public class PlanController {
 		}
 	}
 	
-	
 	private Template createTemporaryTemplate(Template tpl) {
 		// Create a temporary template
 		String name = tpl.getName() + UuidGen.generateAUuid("");
@@ -358,5 +353,88 @@ public class PlanController {
 		tc.saveTemplate(tpl);
 		// Now re-read the temporary template
 		return tc.getTemplate(newid);
+	}
+	
+	
+	private Double getEstimatedExecutionTime(Template t, String tplid) {
+		// FIXME: Hardcoding this for now
+		ArrayList<String> userparams = new ArrayList<String>();
+		ArrayList<String> usermetrics = new ArrayList<String>();
+		String it = t.getNamespace() + "Iterations";
+		String nl = this.dcdomns + "numberOfLines";
+		userparams.add(it);
+		usermetrics.add(nl);
+		
+		//FIXME: Hardcoding the coefficients as well for now
+		HashMap<String, HashMap<String, Double>> tcoeffs = 
+				new HashMap<String, HashMap<String, Double>>();
+		HashMap<String, Double> onlineLDA = new HashMap<String, Double>();
+		HashMap<String, Double> parallelLDA = new HashMap<String, Double>();
+		HashMap<String, Double> malletLDA = new HashMap<String, Double>();
+		onlineLDA.put(it, 0.17353792269248);
+		onlineLDA.put(nl, 0.004892162061446);
+		parallelLDA.put(it, 0.69177335591743);
+		parallelLDA.put(nl, 0.025435229162505);
+		malletLDA.put(it, 0.099795864183221);
+		malletLDA.put(nl, 0.0073234367875418);
+		tcoeffs.put("1d90bfab2801010b0566a46d30320318", onlineLDA);
+		tcoeffs.put("0e0e1dfc9cf00a6108915a49cdd6e7c9", parallelLDA);
+		tcoeffs.put("110535af4146092c9fec1e6952aa9bb2", malletLDA);
+		
+		HashMap<String, Integer> rvals = 
+				getRegressionVariableValues(t, usermetrics, userparams); 
+		String tsig = this.getTemplateSignature(t, tplid);
+		
+		double time = 0.0;
+		if(tcoeffs.containsKey(tsig)) {
+			HashMap<String, Double> coeffs = tcoeffs.get(tsig);
+			for(String var : rvals.keySet()) {
+				if(coeffs.containsKey(var)) {
+					time += 1.0 * rvals.get(var) * coeffs.get(var);
+				}
+			}
+		}
+		return time;
+	}
+	
+	private HashMap<String, Integer> getRegressionVariableValues(Template t, 
+			ArrayList<String> usermetrics, ArrayList<String> userparams) {
+		// FIXME: Assuming value is Integer
+		HashMap<String, Integer> regressionVariables = new HashMap<String, Integer>(); 
+		for(Variable v : t.getInputVariables()) {
+			if(v.isDataVariable() && v.getBinding() != null) {
+				Metrics metrics = v.getBinding().getMetrics();
+				for(String key : metrics.getMetrics().keySet()) {
+					if(usermetrics.contains(key)) {
+						// FIXME: Assuming value is Integer
+						Integer val = 
+								Integer.valueOf(metrics.getMetrics().get(key).getValue().toString());
+						regressionVariables.put(key, val);
+					}
+				}
+			}
+			else if(v.isParameterVariable() && v.getBinding() != null) {
+				if(userparams.contains(v.getID())) {
+					// FIXME: Assuming value is Integer
+					regressionVariables.put(v.getID(), 
+							Integer.valueOf(v.getBinding().getValue().toString()));
+				}
+			}
+		}
+		return regressionVariables;
+	}
+	
+	private String getTemplateSignature(Template t, String tplid) {
+		ArrayList<String> compBindings = new ArrayList<String>();
+		for(Node n : t.getNodes()) {
+			if(n.getComponentVariable() != null) {
+				String cbinding = n.getComponentVariable().getBinding().toString();
+				compBindings.add(cbinding);
+			}
+		}
+		Collections.sort(compBindings);
+		
+		String sigstring = tplid+"_"+compBindings;
+		return DigestUtils.md5Hex(sigstring);
 	}
 }

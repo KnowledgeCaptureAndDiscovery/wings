@@ -17,9 +17,6 @@ import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.oodt.OODTExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.oodt.PGEExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.pegasus.PegasusExecutionEngine;
 import edu.isi.wings.execution.logger.LoggerFactory;
 import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
@@ -183,12 +180,12 @@ public class Config {
 
 		this.addEngineConfig(config, new ExeEngine("Local", 
 				LocalExecutionEngine.class.getCanonicalName(),ExeEngine.Type.BOTH));
-		this.addEngineConfig(config, new ExeEngine("OODT",
-				OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLANSTEP));
-		this.addEngineConfig(config, new ExeEngine("OODT_PGE", 
-				PGEExecutionEngine.class.getCanonicalName(), ExeEngine.Type.STEP));
+		
+		/*this.addEngineConfig(config, new ExeEngine("OODT",
+				OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
+
 		this.addEngineConfig(config, new ExeEngine("Pegasus", 
-				PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLANSTEP));
+				PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));*/
 		
 		try {
 			config.save(this.configFile);
@@ -227,6 +224,12 @@ public class Config {
 			props.setProperty("ont.execution.url", this.getExecutionOntologyUrl());
 			if (domain.getUseSharedTripleStore())
 				props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
+
+			ExeEngine pengine = engines.get(domain.getPlanEngine());
+			ExeEngine sengine = engines.get(domain.getStepEngine());
+			props.putAll(pengine.getProperties());
+			props.putAll(sengine.getProperties());
+			
 			return props;
 		}
 		return null;
@@ -236,10 +239,12 @@ public class Config {
 		ExeEngine pengine = engines.get(domain.getPlanEngine());
 		ExeEngine sengine = engines.get(domain.getStepEngine());
 		try {
+			pengine.getProperties().putAll(this.getProperties());
+			sengine.getProperties().putAll(this.getProperties());
 			// TODO: Check if the selected engines are compatible
 			// and can be used as plan and step engines respectively
 			PlanExecutionEngine pee = ExecutionFactory.createPlanExecutionEngine(
-					pengine.getImplementation(), sengine.getProperties());
+					pengine.getImplementation(), pengine.getProperties());
 			StepExecutionEngine see = ExecutionFactory.createStepExecutionEngine(
 					sengine.getImplementation(), sengine.getProperties());
 			ExecutionLoggerAPI logger = LoggerFactory.createLogger(this.getProperties()); 
@@ -415,10 +420,7 @@ public class Config {
 }
 
 class ExeEngine {
-	// PLANSTEP = Plan Execution Engine that *requires* itself to be the
-	// Step Execution engine as well (i.e. no plug & play)
-	// BOTH = Execution Engine that can be both a Plan Engine and a Step Engine
-	public static enum Type { PLANSTEP, PLAN, STEP, BOTH };
+	public static enum Type { PLAN, STEP, BOTH };
 	Type type;
 	String name;
 	String implementation;

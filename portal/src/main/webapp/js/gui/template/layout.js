@@ -40,8 +40,8 @@ Layout.prototype.layoutDot = function(msgTarget, callbackfn, scope, op_url, temp
 		var ops = n.getOutputPorts();
 		var fsize = parseInt(n.font.replace(/^bold /,'')) + 4;
 		
-		ips.sort(function(a, b){return a.name > b.name;});
-		ops.sort(function(a, b){return a.name > b.name;});
+		ips.sort(function(a, b){return a.id.localeCompare(b.id);});
+		ops.sort(function(a, b){return a.id.localeCompare(b.id);});
 		
 		dotstr += nl + tab + nid + "[label=\"{{";
 		for ( var i = 0; i < ips.length; i++)

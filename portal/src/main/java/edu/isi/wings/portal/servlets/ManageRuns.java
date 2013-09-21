@@ -66,7 +66,7 @@ public class ManageRuns extends HttpServlet {
 		String runid = request.getParameter("run_id");
 		if (op == null || op.equals("")) {
 			response.setContentType("text/html");
-			rc.show(out);
+			rc.show(out, runid);
 			return;
 		}
 		synchronized(WriteLock.Lock) {
@@ -80,7 +80,7 @@ public class ManageRuns extends HttpServlet {
         			String origtplid = request.getParameter("template_id");
         			String tpljson = request.getParameter("json");
         			String consjson = request.getParameter("constraints_json");
-        			rc.runExpandedTemplate(origtplid, tpljson, consjson);
+        			out.print(rc.runExpandedTemplate(origtplid, tpljson, consjson));
         		}
         		else if(op.equals("deleteRun")) {
     				out.println(rc.deleteRun(request.getParameter("json")));

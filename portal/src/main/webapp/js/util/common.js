@@ -1,6 +1,8 @@
 function _console(msg) {
-	if (window.console)
+	if (window.console) {
 		window.console.log(msg);
+		window.console.trace();
+	}	
 }
 
 function getRDFID(id) {
@@ -12,13 +14,17 @@ function getRDFID(id) {
 
 function getLocalName(url) {
 	if (!url)
-		return url;
+		return url;	
+	if (url.indexOf('urn:') == 0)
+		return url.replace(/^.*:/, '');
 	return url.replace(/^.*#/, '');
 }
 
 function getNamespace(url) {
 	if (!url)
 		return url;
+	if (url.indexOf('urn:') == 0)
+		return url.replace(/:.*$/, ':');
 	return url.replace(/#.*$/, '#');
 }
 

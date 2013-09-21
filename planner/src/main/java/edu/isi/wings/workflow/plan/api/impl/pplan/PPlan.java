@@ -172,7 +172,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
 			kb.setPropertyValue(stepobj, isstepofplanprop, planobj);
 			if(step.getCodeBinding().getLocation() != null)
 				kb.setPropertyValue(stepobj, cbindingprop, fac.getDataObject(step.getCodeBinding().getLocation()));
-			String invocationLine = this.createInvocationLine(step.getInvocationArguments());
+			String invocationLine = step.getInvocationArgumentString();
 			kb.setPropertyValue(stepobj, invlineprop, fac.getDataObject(invocationLine));
 
 			for (ExecutionFile f : step.getInputFiles()) {
@@ -197,14 +197,6 @@ public class PPlan extends URIEntity implements ExecutionPlan {
 			}
 		}
 		return kb;
-	}
-
-	private String createInvocationLine(HashMap<String, ArrayList<String>> argMaps) {
-		String invocationLine = "";
-		for(String argName : argMaps.keySet()) {
-			invocationLine += argName + " " + argMaps.get(argName) + " ";
-		}
-		return invocationLine;
 	}
 
 	@Override

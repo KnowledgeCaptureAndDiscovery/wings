@@ -41,8 +41,28 @@ public class ManageData extends HttpServlet {
 		String[] args = path.split("\\/");
 		String op = args.length > 1 ? args[1] : null;
 
+		boolean loadExternal = false;
+		if(op != null && op.equals("external")) {
+			loadExternal = true;
+			config.setScriptPath(config.getScriptPath()+"/"+op);
+			op = args.length > 2 ? args[2] : null;
+		}
+		
 		if (op != null && op.equals("intro")) {
 			PrintWriter out = response.getWriter();
+			if(loadExternal) {
+				out.println("<div class='x-toolbar x-toolbar-default highlightIcon' "
+						+ "style='padding:10px;font-size:1.5em;border-width:0px 0px 1px 0px'>Manage Data</div>\n"
+						+ "<div style='padding:5px; line-height:1.5em'>\n"
+						+ "With this interface, you can:\n"
+						+ "<ul>\n"
+						+ "   <li>View Data types (folders) and Data files in the External Catalog by clicking on items in the tree on the left</li>\n"
+						+ "   <li>After opening a Data File you may:\n"
+						+ "   <ul>\n"
+						+ "      <li>Import the file into your local data catalog</li>\n"
+						+ "   </li>\n" + "</ul>\n" + "</div>\n");
+				return;
+			}
 			out.println("<div class='x-toolbar x-toolbar-default highlightIcon' "
 					+ "style='padding:10px;font-size:1.5em;border-width:0px 0px 1px 0px'>Manage Data</div>\n"
 					+ "<div style='padding:5px; line-height:1.5em'>\n"
@@ -68,12 +88,12 @@ public class ManageData extends HttpServlet {
 					+ "   </li>\n" + "</ul>\n" + "</div>\n");
 			return;
 		}
-
+		
 		int guid = 1;
 
 		DataController dv;
 		synchronized (WriteLock.Lock) {
-			dv = new DataController(guid, config);
+			dv = new DataController(guid, config, loadExternal);
 		}
 
 		String dtype = request.getParameter("data_type");
@@ -96,7 +116,7 @@ public class ManageData extends HttpServlet {
 		} else if (op.equals("getDataHierarchyJSON")) {
 			out.println(dv.getDataHierarchyJSON());
 		}
-
+		
 		// Writer functions
 		synchronized (WriteLock.Lock) {
 			if (op.equals("saveDataJSON")) {
@@ -148,6 +168,11 @@ public class ManageData extends HttpServlet {
 				String[] locs = gson.fromJson(request.getParameter("data_locations"),
 						String[].class);
 				if (dv.addBatchData(dtype, dids, locs))
+					out.print("OK");
+			} else if (op.equals("importFromExternalCatalog")) {
+				String propvals_json = request.getParameter("propvals_json");
+				String location = request.getParameter("location");
+				if(dv.importFromExternalCatalog(dataid, dtype, propvals_json, location))
 					out.print("OK");
 			}
 		}

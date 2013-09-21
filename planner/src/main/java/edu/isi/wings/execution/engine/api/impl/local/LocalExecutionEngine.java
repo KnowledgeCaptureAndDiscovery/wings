@@ -18,6 +18,7 @@ import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
+import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionEngine {
 	
@@ -131,17 +132,21 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 
     			PrintWriter fout = null;
     			for(String argname : exe.getStep().getInvocationArguments().keySet()) {
-    				ArrayList<String> values = exe.getStep().getInvocationArguments().get(argname);
+    				ArrayList<Object> values = exe.getStep().getInvocationArguments().get(argname);
     				if(argname.equals(">")) {
-    					String outfile = values.get(0);
-    					File f = new File(outfile);
+    					ExecutionFile outfile = (ExecutionFile) values.get(0);
+    					File f = new File(outfile.getLocation());
     					f.getParentFile().mkdirs();
     					fout = new PrintWriter(f);
     				}
     				else {
     					args.add(argname);
-    					for(String value: values)
-    						args.add(value);
+    					for(Object value: values) {
+    						if(value instanceof String)
+    							args.add((String)value);
+    						else if(value instanceof ExecutionFile)
+    							args.add(((ExecutionFile)value).getLocation());
+    					}
     				}
     			}
     			exe.onUpdate(this.logger, StringUtils.join(args, " "));

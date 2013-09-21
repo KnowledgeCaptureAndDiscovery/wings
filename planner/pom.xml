@@ -17,7 +17,6 @@
 	</parent>
 
 	<properties>
-		<oodt.version>0.6</oodt.version>
 		<gson.version>2.2.4</gson.version>
 		<junit.version>4.5</junit.version>
 		<log4j.version>1.2.14</log4j.version>
@@ -92,23 +91,6 @@
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
         </dependency>
-            
-        <!-- Apache OODT Dependencies -->
-        <!--dependency>
-            <groupId>org.apache.oodt</groupId>
-            <artifactId>cas-workflow</artifactId>
-            <version>${oodt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.oodt</groupId>
-            <artifactId>cas-pge</artifactId>
-            <version>${oodt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.oodt</groupId>
-            <artifactId>cas-filemgr</artifactId>
-            <version>${oodt.version}</version>
-        </dependency-->
-            
+
 	</dependencies>
 </project>

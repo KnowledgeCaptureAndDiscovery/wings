@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +24,10 @@ import com.google.gson.JsonParser;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
+import edu.isi.wings.catalog.data.classes.DataTree;
 import edu.isi.wings.catalog.data.classes.MetadataProperty;
 import edu.isi.wings.catalog.data.classes.MetadataValue;
+import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
@@ -32,6 +36,7 @@ import edu.isi.wings.portal.classes.html.JSLoader;
 public class DataController {
 	private int guid;
 
+	private String dcns;
 	private String domns;
 	private String libns;
 	
@@ -39,20 +44,25 @@ public class DataController {
 
 	private DataCreationAPI dc;
 	private boolean isSandboxed;
+	private boolean loadExternal;
 	private Config config;
 	private Properties props;
 
 	private Gson json;
 
-	public DataController(int guid, Config config) {
+	public DataController(int guid, Config config, boolean load_external) {
 		this.guid = guid;
 		this.config = config;
 		this.isSandboxed = config.isSandboxed();
+		this.loadExternal = load_external;
 		json = JsonHandler.createPrettyGson();
 		this.props = config.getProperties();
 
 		dc = DataFactory.getCreationAPI(props);
+		if(this.loadExternal)
+			dc = dc.getExternalCatalog();
 
+		this.dcns = (String) props.get("ont.data.url") + "#";
 		this.domns = (String) props.get("ont.domain.data.url") + "#";
 		this.libns = (String) props.get("lib.domain.data.url") + "#";
 		
@@ -80,10 +90,13 @@ public class DataController {
 							+ "metrics: " + metrics 
 						+ " }, " 
 						+ "'" + config.getScriptPath() + "', "
-						+ "'" + this.uploadScript + "', " 
+						+ "'" + this.uploadScript + "', "
+						+ "'" + this.dcns + "', " 
 						+ "'" + this.domns + "', " 
 						+ "'" + this.libns + "', " 
-						+ !isSandboxed 
+						+ !this.isSandboxed + ", "
+						+ false + ", "
+						+ (this.dc != null && this.dc.getExternalCatalog() != null)
 						+ ");\n"
 						+ "dataViewer_" + guid + ".initialize();\n"
 					+ "});");
@@ -92,7 +105,8 @@ public class DataController {
 			out.println("</html>");
 		}
 		finally {
-			dc.end();
+			if(dc != null)
+				dc.end();
 		}
 	}
 
@@ -151,8 +165,13 @@ public class DataController {
 
 	public String getDataHierarchyJSON() {
 		try {
-			String tree = json.toJson(dc.getDataHierarchy().getRoot());
-			return tree;
+			if(dc == null)
+				return null;
+			DataTree tree = dc.getDataHierarchy();
+			String dtree = null;
+			if(tree != null) 
+				dtree = json.toJson(tree.getRoot());
+			return dtree;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -162,8 +181,13 @@ public class DataController {
 
 	public String getMetricsHierarchyJSON() {
 		try {
-			String tree = json.toJson(dc.getMetricsHierarchy().getRoot());
-			return tree;
+			if(dc == null)
+				return null;
+			DataTree tree = dc.getMetricsHierarchy();
+			String mtree = null;
+			if(tree != null) 
+				mtree = json.toJson(tree.getRoot());
+			return mtree;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -175,7 +199,18 @@ public class DataController {
 		try {
 			String location = dc.getDataLocation(dataid);
 			if(location != null) {
-				File f = new File(location);
+				// Check if this is a file url
+				File f = null;
+				try {
+					URL url = new URL(location);
+					f = new File(url.getPath());
+				} catch (MalformedURLException e) {
+					// Do nothing
+				}
+				// Else assume it's a file path
+				if(f == null)
+					f = new File(location);
+
 				if(f.canRead()) {
 					try {
 						String mimeType = context.getMimeType(location);
@@ -481,6 +516,46 @@ public class DataController {
 				&& dc.save();
 		}
 		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		finally {
+			dc.end();
+		}
+	}
+	
+	public synchronized boolean importFromExternalCatalog(String dataid, String dtypeid, 
+			String propvals_json, String location) {
+		if (dc == null)
+			return false;
+		try {
+			JsonParser parser = new JsonParser();
+			JsonElement propvals = parser.parse(propvals_json);
+
+			DataItem dtype = dc.getDatatypeForData(dataid);
+			if(dtype == null) {
+				dc.addData(dataid, dtypeid);
+			}
+			for (Map.Entry<String, JsonElement> entry : propvals.getAsJsonObject().entrySet()) {
+				String propid = entry.getKey();
+				String value = entry.getValue().getAsString();
+				//FIXME: Just using range as string for now
+				String range = KBUtils.XSD + "string";
+				MetadataProperty eprop = dc.getMetadataProperty(propid);
+				if (eprop == null) {
+					// Property doesn't exist
+					this.dc.addMetadataProperty(propid, dtypeid, range);
+				}
+				else if(!eprop.getDomains().contains(dtypeid)) {
+					// Property exists for another class. Add this class as domain
+					this.dc.addMetadataPropertyDomain(propid, dtypeid);
+				}
+				this.dc.addDatatypePropertyValue(dataid, propid, value, range);
+			}
+			dc.setDataLocation(dataid, location);
+			return dc.save();
+		}
+		catch(Exception e) {
 			e.printStackTrace();
 			return false;
 		}

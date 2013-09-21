@@ -87,4 +87,8 @@ public interface DataCreationAPI {
 	// Copy from another API (Advisable to give the same implementation of the API here)
 	void copyFrom(DataCreationAPI dc);
 
+	// Get/Set external data catalog to copy from
+	DataCreationAPI getExternalCatalog();
+	
+	void setExternalCatalog(DataCreationAPI dc);
 }

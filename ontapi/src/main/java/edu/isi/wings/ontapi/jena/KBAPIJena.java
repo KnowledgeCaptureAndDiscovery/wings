@@ -1005,14 +1005,14 @@ public class KBAPIJena implements KBAPI {
 	}
 
 	public boolean isObjectProperty(KBObject prop) {
-		OntProperty p = (OntProperty) prop.getInternalNode();
+		OntProperty p = ontmodel.getOntProperty(prop.getID());
 		if (p != null)
 			return p.isObjectProperty();
 		return false;
 	}
 
 	public boolean isDatatypeProperty(KBObject prop) {
-		OntProperty p = (OntProperty) prop.getInternalNode();
+		OntProperty p = ontmodel.getOntProperty(prop.getID());
 		if (p != null)
 			return p.isDatatypeProperty();
 		return false;

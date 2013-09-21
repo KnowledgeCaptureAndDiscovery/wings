@@ -28,9 +28,11 @@ public interface ExecutionStep {
 	
 	public ExecutionCode getCodeBinding();
 	
-	public HashMap<String, ArrayList<String>> getInvocationArguments();
+	public HashMap<String, ArrayList<Object>> getInvocationArguments();
 	
-	public void setInvocationArguments(HashMap<String, ArrayList<String>> argumentMap);
+	public String getInvocationArgumentString();
+	
+	public void setInvocationArguments(HashMap<String, ArrayList<Object>> argumentMap);
 	
 	// Input/Output information for staging inptus and ingesting outputs (if used)
 	public ArrayList<ExecutionFile> getInputFiles();

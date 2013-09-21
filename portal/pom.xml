@@ -29,6 +29,13 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 
+		<!-- Wings OODT Adapter -->
+		<!--dependency>
+			<groupId>edu.isi.wings</groupId>
+			<artifactId>wings-oodt-adapter</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency-->
+
 		<!-- Wings OPM Mapper -->
 		<dependency>
 			<groupId>edu.isi.wings</groupId>

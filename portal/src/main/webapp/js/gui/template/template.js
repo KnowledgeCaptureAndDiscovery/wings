@@ -220,7 +220,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			id : v.id,
 			comment : "x="+v.x+",y="+v.y,
 			type : v.type == 'DATA' ? 1 : 2,
-			binding : v.binding,
+			//binding : v.binding,
 			//FIXME: unknown, autofill aren't currently stored on server
 			unknown : v.unknown, 
 			autofill : v.autofill

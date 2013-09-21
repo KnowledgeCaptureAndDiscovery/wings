@@ -1,10 +1,18 @@
-function DataViewer(guid, store, op_url, upload_url, ontns, libns, advanced_user) {
+function DataViewer(guid, store, 
+		op_url, upload_url, 
+		dcns, ontns, libns, 
+		advanced_user, use_import_ui, has_external_catalog) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
     this.upload_url = upload_url;
     this.advanced_user = advanced_user;
+    this.use_import_ui = use_import_ui;
+    if(this.use_import_ui)
+    	this.advanced_user = false;
+    this.has_external_catalog = has_external_catalog;
 
+    this.dcns = dcns;
     this.ontns = ontns;
     this.libns = libns;
 
@@ -79,14 +87,18 @@ DataViewer.prototype.getPrefixedDataRange = function(rangeid) {
 };
 
 DataViewer.prototype.createMetricsRangeStores_1 = function(node) {
+	if(!node) return null;
     var rangevals = [];
     if (node.item.type == 2) {
         // For metric values return the value node
         rangevals.push({
             id: node.item.id,
             name: getLocalName(node.item.id)
-            });
-    } else if (node.item.type == 1 && getNamespace(node.item.id) == this.ontns) {
+        });
+    } else if (node.item.type == 1) {
+    	var ns = getNamespace(node.item.id);
+    	if(ns != this.ontns && ns != this.dcns)
+    		return;
         // For metric types, add the type to store
         this.dataPropRangesStore.add({
             id: node.item.id,
@@ -124,9 +136,9 @@ DataViewer.prototype.createMetricsRangeStores = function(metricTree) {
             type: 'xsd:float'
         }
         /*, {
-					id : this.xsd + 'date',
-					type : 'xsd:date'
-				}*/
+			id : this.xsd + 'date',
+			type : 'xsd:date'
+		}*/
         ]
         });
     // Set dataRangeTypes from User defined Metrics
@@ -145,6 +157,59 @@ DataViewer.prototype.expandPropertyRecord = function(pinfo) {
         pid: this.ontns + pname,
         range: range
     };
+};
+
+DataViewer.prototype.importFromExternalCatalog = function(win, dtypeid, xdataid, location, metadata) {
+	var This = this;
+	var tab = This.tabPanel.getActiveTab();
+	var dataname = getLocalName(xdataid);
+	var dataid = this.libns + dataname;
+	var propvals = {};
+	for(var pid in metadata) {
+		var mpropid = this.ontns + getLocalName(pid);
+		propvals[mpropid] = metadata[pid];
+	}
+	console.log(propvals);
+
+    Ext.get(win.getId()).mask("Importing..");
+    var url = this.op_url + "/importFromExternalCatalog";
+    Ext.Ajax.request({
+        url: url,
+        params: {
+        	data_id: dataid,
+        	data_type: dtypeid,
+        	location: location,
+        	propvals_json: Ext.encode(propvals)
+        },
+        success: function(response) {
+            Ext.get(win.getId()).unmask();
+            if (response.responseText == "OK") {
+                var tmp = This.getTree({
+                    item: {
+                        id: dataid,
+                        type: 2
+                    },
+                    children: []
+                });
+                
+            	var parentNode = This.dataTreePanel.getStore().getNodeById(dtypeid);
+                parentNode.data.leaf = false;
+                parentNode.data.expanded = true;
+                parentNode.appendChild(tmp);
+                This.dataTreePanel.getStore().sort('text', 'ASC');
+            	
+                var tab = This.tabPanel.getActiveTab();
+            	if(tab && tab.guifn)
+            		tab.getLoader().load();
+            	win.close();
+            } else 
+            	_console(response.responseText);
+        },
+        failure: function(response) {
+        	Ext.get(win.getId()).unmask();
+            _console(response.responseText);
+        }
+    });
 };
 
 DataViewer.prototype.openDataTypeEditor = function(args) {
@@ -223,52 +288,10 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                         }
                     }
                 });
-
-                var url = This.op_url + '/saveDataTypeJSON';
                 var nf = nameFormatField.value;
-                Ext.get(This.tabPanel.getId()).mask("Saving..");
-                Ext.Ajax.request({
-                    url: url,
-                    params: {
-                        props_json: Ext.encode({
-                            format: nf,
-                            add: addedProperties,
-                            del: deletedProperties,
-                            mod: modifiedProperties
-                        }),
-                        data_type: id
-                    },
-                    success: function(resp) {
-                        Ext.get(This.tabPanel.getId()).unmask();
-
-                        var data = Ext.decode(resp.responseText);
-                        if (data.errors.length) {
-                            Ext.MessageBox.show({
-                                icon: Ext.MessageBox.ERROR,
-                                buttons: Ext.MessageBox.OK,
-                                msg: "Could not save:<br/>" + data.errors.join('<br/>')
-                                });
-                            _console(errors);
-                            return;
-                        } else if (data.warnings.length) {
-                            Ext.MessageBox.show({
-                                icon: Ext.MessageBox.WARNING,
-                                buttons: Ext.MessageBox.OK,
-                                msg: data.warnings.join('<br/>')
-                                });
-                        }
-                        gridPanel.getStore().commitChanges();
-                        savebtn.setDisabled(true);
-                        tab.setTitle(tab.title.replace(/^\*/, ''));
-                        deletedProperties = {};
-                        This.refreshInactiveTabs();
-                        // _console(resp.responseText);
-                        },
-                    failure: function(response) {
-                        Ext.get(This.tabPanel.getId()).unmask();
-                        _console(response.responseText);
-                    }
-                });
+                This.saveDatatype(
+                		id, addedProperties, deletedProperties, modifiedProperties, nf,
+                		gridPanel, savebtn, tab);
             }
         });
     }
@@ -340,6 +363,68 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             }
     };
     
+    var tbar;
+    if(!This.use_import_ui) {
+        tbar = [uploadfilesbtn];
+		if (this.has_external_catalog)
+			tbar.push({
+				iconCls : 'importIcon',
+				text : 'Import from External Catalog',
+				handler: function() {
+	                var win = new Ext.Window({
+	                    xtype: 'panel',
+	                    layout: 'border',
+	                    border: false,
+	                    modal: true,
+	                    title: 'Import '+name+' from External Catalog',
+	                    height: '90%',
+	                    width: '90%',
+	                    listeners : {
+	                    	"import" : function(impid, location, metadata) {
+	                    		This.importFromExternalCatalog(win, id, impid, location, metadata);
+	                    	}
+	                    }
+	                });
+	                win.show();
+	                
+		            var url = This.op_url + '/external/getDataHierarchyJSON';
+		            Ext.get(win.getId()).mask("Loading..");
+		            Ext.Ajax.request({
+		                url: url,
+		                success: function(response) {
+		                    Ext.get(win.getId()).unmask();
+		                    var tree = Ext.decode(response.responseText);
+		                    var store = {tree: tree, metrics: null};
+		                    var extdv = new DataViewer(
+		                    		This.guid+"_external", store, 
+		                    		This.op_url+'/external', This.upload_url, 
+		                    		This.dcns, This.ontns, This.libns, 
+		                    		This.advanced_user, true, false);
+		                    extdv.mainPanel = win;
+		                    extdv.initialize();
+		                },
+		                failure: function(response) {
+		                	Ext.get(win.getId()).unmask();
+		                    _console(response.responseText);
+		                }
+		            });
+					//window.open(This.op_url+"/external");
+				}
+			});
+        
+        tbar.push({xtype: 'tbfill'});
+        tbar.push('-');
+		tbar.push({
+			iconCls : 'reloadIcon',
+			text : 'Reload Datatype',
+			handler : function() {
+				tab.getLoader().load();
+				savebtn.setDisabled(true);
+				tab.setTitle(tab.title.replace(/^\*/, ''));
+			}
+		});
+    }
+    
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
@@ -347,26 +432,29 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         defaults: {
             padding: 4
         },
-        tbar: [uploadfilesbtn,
-        {
-            xtype: 'tbfill'
-        }, '-', {
-            iconCls: 'reloadIcon',
-            text: 'Reload Datatype',
-            handler: function() {
-                tab.getLoader().load();
-                savebtn.setDisabled(true);
-                tab.setTitle(tab.title.replace(/^\*/, ''));
-            }
-        }]
-        });
-
-    var editorPlugin = Ext.create('Ext.grid.plugin.CellEditing', {
-        clicksToEdit: 1
+        tbar: tbar
     });
 
+
     var tbar = null;
+    var plugins = [];
+    var sm = null;
+    
     if (This.advanced_user) {
+        var editorPlugin = Ext.create('Ext.grid.plugin.CellEditing', {
+            clicksToEdit: 1
+        });
+        plugins = [editorPlugin];
+        
+        sm = Ext.create('Ext.selection.CheckboxModel', {
+            checkOnly: true,
+            listeners: {
+                selectionchange: function(sm, selections) {
+                    gridPanel.down('#delProperty' + name).setDisabled(selections.length == 0);
+                }
+            }
+        });
+
         tbar = [];
         tbar.push({
             text: 'Add Property',
@@ -407,20 +495,11 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         tbar.push(savebtn);
     }
 
-    var sm = Ext.create('Ext.selection.CheckboxModel', {
-        checkOnly: true,
-        listeners: {
-            selectionchange: function(sm, selections) {
-                gridPanel.down('#delProperty' + name).setDisabled(selections.length == 0);
-            }
-        }
-    });
-
     // Show properties
     var gridPanel = new Ext.grid.GridPanel({
         columnLines: true,
         autoHeight: true,
-        plugins: [editorPlugin],
+        plugins: plugins,
         title: 'Metadata Properties for ' + name,
         columns: [{
             dataIndex: 'prop',
@@ -475,7 +554,9 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         });
         mainPanel.add(inhGridPanel);
     }
-    mainPanel.add(nameFormatField);
+    if(!This.use_import_ui)
+    	mainPanel.add(nameFormatField);
+    
     tab.add(mainPanel);
 };
 
@@ -614,7 +695,7 @@ DataViewer.prototype.confirmAndDeleteDatatype = function(node) {
     msg += ".. This will also delete the files under this Datatype";
     Ext.MessageBox.confirm("Confirm Delete", msg, function(b) {
         if (b == "yes") {
-            This.deleteDataType(node, true);
+            This.deleteDatatype(node, true);
         }
     });
 };
@@ -690,29 +771,7 @@ DataViewer.prototype.openDataEditor = function(args) {
                     value: val
                 });
             });
-            var url = This.op_url + '/saveDataJSON';
-            Ext.get(This.tabPanel.getId()).mask("Saving..");
-            Ext.Ajax.request({
-                url: url,
-                params: {
-                    propvals_json: Ext.encode(data),
-                    data_id: id
-                },
-                success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    if (response.responseText == "OK") {
-                        savebtn.setDisabled(true);
-                        tab.setTitle(tab.title.replace(/^\*/, ''));
-                        This.refreshInactiveTabs();
-                    } else {
-                        _console(response.responseText);
-                    }
-                },
-                failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    _console(response.responseText);
-                }
-            });
+            This.saveData(id, data, savebtn, tab);
             // console.log(data),
         }
     });
@@ -742,11 +801,16 @@ DataViewer.prototype.openDataEditor = function(args) {
         source: propVals,
         propertyNames: propertyNames,
         columnLines: true,
-        nameColumnWidth: 200,
+        nameColumnWidth: '50%',
         customEditors: customEditors,
         title: 'Metadata for ' + getLocalName(id),
-        tbar: [savebtn]
-        });
+        listeners: { 'beforeedit': function (e) { return !This.use_import_ui; } },
+        tbar: This.use_import_ui ? null : [savebtn]
+    });
+    
+    if(this.use_import_ui)
+    	gridPanel.getSelectionModel().setLocked(true);
+    
     var dataStore = gridPanel.getStore();
     dataStore.on('add', function() {
         tab.setTitle("*" + tab.title.replace(/^\*/, ''));
@@ -825,27 +889,44 @@ DataViewer.prototype.openDataEditor = function(args) {
         }
     };
     
-    var tbar = [ addfilebtn, 
-	{
-	    iconCls: 'downloadIcon',
-	    itemId: 'downloadFile',
-	    text: 'Download File',
-	    disabled: !store.location,
-	    handler: function() {
-	    	window.open(This.op_url+"/fetch?data_id="+escape(id));
-	        //showWingsMessage('Location: '+ store.location, 'Location of '+ getLocalName(id), null, 400, 100);
-	    }
-    },
-	{ xtype: 'tbfill' }, 
-	'-', {
-        iconCls: 'reloadIcon',
-        text: 'Reload Metadata',
-        handler: function() {
-            tab.getLoader().load();
-            savebtn.setDisabled(true);
-            tab.setTitle(tab.title.replace(/^\*/, ''));
-        }
-    }];
+    var tbar;
+    if(!This.use_import_ui) {
+	    tbar = [ addfilebtn, 
+		{
+		    iconCls: 'downloadIcon',
+		    itemId: 'downloadFile',
+		    text: 'Download File',
+		    disabled: !store.location,
+		    handler: function() {
+		    	window.open(This.op_url+"/fetch?data_id="+escape(id));
+		        //showWingsMessage('Location: '+ store.location, 'Location of '+ getLocalName(id), null, 400, 100);
+		    }
+	    },
+		{ xtype: 'tbfill' }, 
+		'-', {
+	        iconCls: 'reloadIcon',
+	        text: 'Reload Metadata',
+	        handler: function() {
+	            tab.getLoader().load();
+	            savebtn.setDisabled(true);
+	            tab.setTitle(tab.title.replace(/^\*/, ''));
+	        }
+	    }];
+    }
+    else {
+    	tbar = [
+    	{
+    		iconCls: 'importIcon',
+    		itemId: 'importFile',
+    		text: 'Import into Local Catalog',
+    		handler: function() {
+    			This.mainPanel.fireEvent("import", id, store.location, gridPanel.getSource());
+    			/*console.log(id);
+    			console.log(store.location);
+    			console.log(gridPanel.getSource());*/
+    		}
+    	}];
+    }
     
     var mainPanel = new Ext.Panel({
         region: 'center',
@@ -1098,6 +1179,8 @@ DataViewer.prototype.createMetricsTreePanel = function(metricsHierarchy) {
         autoScroll: true,
         title: 'Metrics',
         iconCls: 'dataIcon',
+        // TEMPORARY FIXME
+        hidden: true,
         containerScroll: true,
         store: Ext.create('Ext.data.TreeStore', {
             model: 'mTreeRecord',
@@ -1112,6 +1195,8 @@ DataViewer.prototype.createMetricsTreePanel = function(metricsHierarchy) {
 };
 
 DataViewer.prototype.getTree = function(data) {
+	if(!data) return null;
+	
     var item = data.item;
     var treenode = {
         text: getLocalName(item.id),
@@ -1197,6 +1282,33 @@ DataViewer.prototype.addData = function(data_name, dtypeid, parentNode) {
         },
         failure: function(response) {
         	Ext.get(This.tabPanel.getId()).unmask();
+            _console(response.responseText);
+        }
+    });
+};
+
+DataViewer.prototype.saveData = function(dataid, propvals, savebtn, tab) {
+	var This = this;
+    var url = This.op_url + '/saveDataJSON';
+    Ext.get(This.tabPanel.getId()).mask("Saving..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+            propvals_json: Ext.encode(propvals),
+            data_id: dataid
+        },
+        success: function(response) {
+            Ext.get(This.tabPanel.getId()).unmask();
+            if (response.responseText == "OK") {
+                savebtn.setDisabled(true);
+                tab.setTitle(tab.title.replace(/^\*/, ''));
+                This.refreshInactiveTabs();
+            } else {
+                _console(response.responseText);
+            }
+        },
+        failure: function(response) {
+            Ext.get(This.tabPanel.getId()).unmask();
             _console(response.responseText);
         }
     });
@@ -1335,7 +1447,61 @@ DataViewer.prototype.addDatatype = function(parentNode) {
     }, window, false);
 };
 
-DataViewer.prototype.deleteDataType = function(treeNode, delChildren) {
+DataViewer.prototype.saveDatatype = function(
+		dtypeid, addedProperties, deletedProperties, modifiedProperties, nameFormat,
+		gridPanel, savebtn, tab) {
+	var This = this;
+    var url = This.op_url + '/saveDataTypeJSON';
+    Ext.get(This.tabPanel.getId()).mask("Saving..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+            props_json: Ext.encode({
+                format: nameFormat,
+                add: addedProperties,
+                del: deletedProperties,
+                mod: modifiedProperties
+            }),
+            data_type: dtypeid
+        },
+        success: function(resp) {
+            Ext.get(This.tabPanel.getId()).unmask();
+
+            var data = Ext.decode(resp.responseText);
+            if (data.errors.length) {
+                Ext.MessageBox.show({
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK,
+                    msg: "Could not save:<br/>" + data.errors.join('<br/>')
+                    });
+                _console(data.errors);
+                return;
+            } else if (data.warnings.length) {
+                Ext.MessageBox.show({
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: Ext.MessageBox.OK,
+                    msg: data.warnings.join('<br/>')
+                    });
+            }
+            deletedProperties = {};
+            This.refreshInactiveTabs();
+            
+            if(gridPanel)
+            	gridPanel.getStore().commitChanges();
+            if(savebtn)
+            	savebtn.setDisabled(true);
+            if(tab)
+            	tab.setTitle(tab.title.replace(/^\*/, ''));
+            // _console(resp.responseText);
+            },
+        failure: function(response) {
+            Ext.get(This.tabPanel.getId()).unmask();
+            _console(response.responseText);
+        }
+    });
+};
+
+DataViewer.prototype.deleteDatatype = function(treeNode, delChildren) {
     var node = treeNode;
     var url = this.op_url + '/delDataTypes?del_children=' + delChildren;
     // Cannot delete root node
@@ -1435,7 +1601,7 @@ DataViewer.prototype.createTabPanel = function() {
 
 DataViewer.prototype.createLeftPanel = function() {
     this.createDataTreePanel(this.store.tree);
-    //this.createMetricsTreePanel(this.store.metrics);
+    this.createMetricsTreePanel(this.store.metrics);
     this.createMetricsRangeStores(this.store.metrics);
     // Create an area on the left for the treepanel
     this.leftPanel = new Ext.TabPanel({
@@ -1447,19 +1613,32 @@ DataViewer.prototype.createLeftPanel = function() {
         split: true,
         margins: '5 0 5 5',
         cmargins: '5 5 5 5',
-        items: [this.dataTreePanel],// this.metricsTreePanel],
+        items: [this.dataTreePanel, this.metricsTreePanel],
         activeTab: 0
     });
 };
 
 DataViewer.prototype.createMainPanel = function() {
-    this.mainPanel = new Ext.Viewport({
-        layout: {
-            type: 'border'
-        },
-        items: [this.leftPanel, this.tabPanel]
-    });
-    this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
+	if(!this.mainPanel) {
+	    this.mainPanel = new Ext.Viewport({
+	        layout: {
+	            type: 'border'
+	        }
+	    });
+	}
+	this.mainPanel.add(this.leftPanel);
+	this.mainPanel.add(this.tabPanel);
+	
+    if(!this.use_import_ui) {
+    	this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
+    }
+    else {
+    	this.mainPanel.add({
+			region : 'north',
+    		bodyStyle: 'background-color:#eee; color:#06f; padding-left:5px',
+    		html: '<h2>External Data Catalog</h2>'
+    	});
+    }
 };
 
 DataViewer.prototype.initialize = function() {

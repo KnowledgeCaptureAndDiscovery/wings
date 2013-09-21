@@ -1017,12 +1017,6 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
 			iconCls : 'delIcon',
 			disabled : true,
 			handler : function() {
-				// access the Record constructor through the grid's store
-				var p = new Triple({
-					subject : '',
-					predicate : '',
-					object : ''
-				});
 				editorPlugin.cancelEdit();
 				var s = gridPanel.getSelectionModel().getSelection();
 				for ( var i = 0, r; r = s[i]; i++)

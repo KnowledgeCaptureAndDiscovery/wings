@@ -26,5 +26,7 @@
     <module>planner</module>
     <module>opmm</module>
     <module>portal</module>
+    <!--module>oodt-adapter</module-->
+    <!--module>oodt</module-->
   </modules>
 </project>

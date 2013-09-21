@@ -1153,25 +1153,27 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				code.setLocation(invocation.getComponentLocation());
 				step.setCodeBinding(code);
 				
-				HashMap<String, ArrayList<String>> argMaps = new HashMap<String, ArrayList<String>>(); 
+				HashMap<String, ArrayList<Object>> argMaps = new HashMap<String, ArrayList<Object>>(); 
 				for(ComponentInvocation.Argument arg : invocation.getArguments()) {
-					ArrayList<String> cur = argMaps.get(arg.getName());
+					ArrayList<Object> cur = argMaps.get(arg.getName());
 					if(cur == null)
-						cur = new ArrayList<String>();
+						cur = new ArrayList<Object>();
 					if(arg.getValue() instanceof Binding) {
 						Binding b = (Binding)arg.getValue();
 						String varid = arg.getVariableid();
 						ExecutionFile file = new ExecutionFile(varid);
+						
 						String location = dc.getDataLocation(b.getID());
 						if(location == null) {
 							location = dc.getDefaultDataLocation(b.getID());
 						}
 						file.setLocation(location);
+						file.setBinding(b.getName());
 						if(arg.isInput())
 							step.addInputFile(file);
 						else
 							step.addOutputFile(file);
-						cur.add(location);
+						cur.add(file);
 					}
 					else {
 						cur.add(arg.getValue().toString());

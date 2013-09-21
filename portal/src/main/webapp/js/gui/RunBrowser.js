@@ -376,7 +376,7 @@ RunBrowser.prototype.getRunDataPanel = function(tBrowser) {
 		layout : 'fit',
 		border : false,
 		iconCls : 'dataIcon',
-		tbar : [
+		/*tbar : [
 		{
 				text : 'Get HTML',
 				iconCls : 'docsIcon',
@@ -406,7 +406,7 @@ RunBrowser.prototype.getRunDataPanel = function(tBrowser) {
 				);
 			}
 		}
-		]
+		]*/
 	});
 };
 
@@ -625,8 +625,8 @@ RunBrowser.prototype.getRunList = function() {
 		run : function() {
 			wRunStore.load();
 		},
-		interval : 300000
-	// 300 seconds
+		interval : 30000
+		// 30 seconds
 	};
 	Ext.TaskManager.start(gridListRefresh);
 

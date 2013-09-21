@@ -57,7 +57,6 @@ public class TemplateController {
 	
 	private String planScript;
 	private String runScript;
-	private String resultsScript;
 	private String thisScript;
 	
 	public TemplateController(int guid, Config config) {
@@ -78,7 +77,6 @@ public class TemplateController {
 		
 		this.planScript = config.getContextRootPath() + "/plan";
 		this.runScript = config.getContextRootPath() + "/run";
-		this.resultsScript = config.getContextRootPath() + "/results";
 		this.thisScript = config.getScriptPath();
 	}
 
@@ -116,7 +114,7 @@ public class TemplateController {
 					+ "'" + this.thisScript + "', "
 					+ "'" + this.planScript + "', "
 					+ "'" + this.runScript + "', "
-					+ "'" + this.resultsScript + "', "
+					+ "'" + this.runScript + "', "
 					+ "'" + this.wliburl + "', "
 					+ "'" + this.dcdomns + "', "
 					+ "'" + this.dclibns + "', "

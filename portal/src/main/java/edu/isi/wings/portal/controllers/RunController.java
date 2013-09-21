@@ -45,12 +45,9 @@ public class RunController {
 		this.dataScript = config.getContextRootPath() + "/data";
 	}
 
-	public void show(PrintWriter out) {
+	public void show(PrintWriter out, String runid) {
 		// Get Hierarchy
 		try {
-			String list = this.getRunListJSON();
-			// System.out.println(list);
-
 			out.println("<html>");
 			out.println("<head>");
 			JSLoader.setContextRoot(out, config.getContextRootPath());
@@ -61,7 +58,7 @@ public class RunController {
 			out.println("<script>");
 			out.println("var runViewer_" + guid + ";");
 			out.println("Ext.onReady(function() {" + "runViewer_" + guid + " = new RunBrowser("
-					+ "'" + guid + "', " + list + ", " + "'" + config.getScriptPath() + "', " + "'"
+					+ "'" + guid + "', '" + runid + "', " + "'" + config.getScriptPath() + "', " + "'"
 					+ this.dataScript + "' " + ");\n" + "runViewer_" + guid + ".initialize();\n"
 					+ "});");
 			out.println("</script>");
@@ -124,7 +121,7 @@ public class RunController {
 		return json.toJson(ret);
 	}
 
-	public void runExpandedTemplate(String origtplid, String templatejson, String consjson) {
+	public String runExpandedTemplate(String origtplid, String templatejson, String consjson) {
 		Gson json = JsonHandler.createTemplateGson();
 		Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
 
@@ -138,14 +135,16 @@ public class RunController {
 			synchronized (WriteLock.Lock) {
 				// Save the expanded template and plan
 				if (!xtpl.save())
-					return;
+					return "";
 				plan.save();
 			}
 			RuntimePlan rplan = new RuntimePlan(plan);
 			rplan.setExpandedTemplateID(xtpl.getID());
 			rplan.setOriginalTemplateID(origtplid);
 			this.runExecutionPlan(rplan);
+			return rplan.getID();
 		}
+		return "";
 	}
 
 	// Run the Runtime Plan

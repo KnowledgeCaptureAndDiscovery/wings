@@ -17,7 +17,7 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 	ArrayList<ExecutionFile> inputFiles;
 	ArrayList<ExecutionFile> outputFiles;
 	
-	HashMap<String, ArrayList<String>> argumentNameValueMap;
+	HashMap<String, ArrayList<Object>> argumentNameValueMap;
 	String invocationLine;
 	String customData;
 	ExecutionCode codeBinding;
@@ -29,7 +29,7 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 		inputFiles = new ArrayList<ExecutionFile>();
 		outputFiles = new ArrayList<ExecutionFile>();
 		parentSteps = new ArrayList<ExecutionStep>();
-		argumentNameValueMap = new HashMap<String, ArrayList<String>>();
+		argumentNameValueMap = new HashMap<String, ArrayList<Object>>();
 	}
 
 	public void addInvocationLine(String s) {
@@ -68,12 +68,33 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 	}
 
 	@Override
-	public HashMap<String, ArrayList<String>> getInvocationArguments() {
+	public HashMap<String, ArrayList<Object>> getInvocationArguments() {
 		return this.argumentNameValueMap;
+	}
+	
+	@Override
+	public String getInvocationArgumentString() {
+		String str = "";
+		for(String argname : this.argumentNameValueMap.keySet()) {
+			str += argname+" ";
+			for(Object val : this.argumentNameValueMap.get(argname)) {
+				if(val instanceof String)
+					str += val;
+				else if(val instanceof ExecutionFile) {
+					ExecutionFile f = (ExecutionFile)val;
+					if(f.getLocation() != null)
+						str += f.getLocation();
+					else
+						str += f.getBinding();
+				}
+				str += " ";
+			}
+		}
+		return str;
 	}
 
 	@Override
-	public void setInvocationArguments(HashMap<String, ArrayList<String>> argumentMap) {
+	public void setInvocationArguments(HashMap<String, ArrayList<Object>> argumentMap) {
 		this.argumentNameValueMap = argumentMap;
 		
 	}

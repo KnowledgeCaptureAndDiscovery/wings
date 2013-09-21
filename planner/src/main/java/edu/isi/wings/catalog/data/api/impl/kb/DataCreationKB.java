@@ -18,11 +18,25 @@ import edu.isi.wings.ontapi.KBObject;
 public class DataCreationKB extends DataKB implements DataCreationAPI {
 	String topclass;
 	String topmetric;
+	
+	DataCreationAPI externalCatalog;
 
 	public DataCreationKB(Properties props) {
 		super(props, true);
 		this.topclass = this.dcns + "DataObject";
 		this.topmetric = this.dcns + "Metrics";
+
+		String extern = props.getProperty("extern_data_catalog");
+		if(extern != null) {
+			try {
+				Class<?> classz = Class.forName(extern);
+				DataCreationAPI externalDC = 
+						(DataCreationAPI) classz.getDeclaredConstructor(Properties.class).newInstance(props);
+				this.setExternalCatalog(externalDC);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		
 		// Legacy porting: Fix all properties that have multiple domains
 		// -- convert to disjunctive domains
@@ -152,6 +166,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	@Override
 	public boolean addDatatype(String dtypeid, String parentid) {
 		KBObject dtype = this.ontkb.createClass(dtypeid, parentid);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addDatatype(dtypeid, parentid);
 		return (dtype != null);
 	}
 
@@ -176,6 +192,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		}
 		// Finally remove the class itself
 		KBUtils.removeAllTriplesWith(this.ontkb, dtypeid, false);
+		if(this.externalCatalog != null)
+			this.externalCatalog.removeDatatype(dtypeid);
 		return true;
 	}
 
@@ -183,11 +201,15 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	public boolean renameDatatype(String newtypeid, String oldtypeid) {
 		KBUtils.renameAllTriplesWith(this.ontkb, oldtypeid, newtypeid, false);
 		KBUtils.renameAllTriplesWith(this.libkb, oldtypeid, newtypeid, false);
+		if(this.externalCatalog != null)
+			this.externalCatalog.renameDatatype(newtypeid, oldtypeid);
 		return true;
 	}
 
 	@Override
 	public boolean moveDatatypeParent(String dtypeid, String fromtypeid, String totypeid) {
+		if(this.externalCatalog != null)
+			this.externalCatalog.moveDatatypeParent(dtypeid, fromtypeid, totypeid);
 		return true;
 	}
 
@@ -195,12 +217,16 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	public boolean addData(String dataid, String dtypeid) {
 		KBObject dtypeobj = this.kb.getConcept(dtypeid);
 		this.libkb.createObjectOfClass(dataid, dtypeobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addData(dataid, dtypeid);
 		return true;
 	}
 
 	@Override
 	public boolean renameData(String newdataid, String olddataid) {
 		KBUtils.renameAllTriplesWith(this.libkb, olddataid, newdataid, false);
+		if(this.externalCatalog != null)
+			this.externalCatalog.renameData(newdataid, olddataid);
 		return true;
 	}
 
@@ -213,8 +239,9 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 			if(f.getParentFile().getAbsolutePath().equals(this.datadir))
 				f.delete();
 		}
-		
 		KBUtils.removeAllTriplesWith(this.libkb, dataid, false);
+		if(this.externalCatalog != null)
+			this.externalCatalog.removeData(dataid);
 		return true;
 	}
 
@@ -225,6 +252,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBObject dobj = this.libkb.getIndividual(dataid);
 		KBObject locobj = ontologyFactory.getDataObject(locuri);
 		this.libkb.setPropertyValue(dobj, locprop, locobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.setDataLocation(dataid, locuri);
 		return true;
 	}
 
@@ -232,6 +261,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	public boolean setTypeNameFormat(String dtypeid, String format) {
 		KBObject dtypeobj = this.ontkb.getConcept(dtypeid);
 		this.ontkb.setComment(dtypeobj, "NameFormat=" + format);
+		if(this.externalCatalog != null)
+			this.externalCatalog.setTypeNameFormat(dtypeid, format);
 		return true;
 	}
 
@@ -241,6 +272,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBObject pobj = this.kb.getProperty(propid);
 		KBObject valobj = this.ontologyFactory.getDataObject(val);
 		this.libkb.setPropertyValue(dataobj, pobj, valobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val);
 		return true;
 	}
 
@@ -250,6 +283,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBObject pobj = this.kb.getProperty(propid);
 		KBObject valobj = this.kb.createXSDLiteral(val, xsdtype);
 		this.libkb.setPropertyValue(dataobj, pobj, valobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val, xsdtype);
 		return true;
 	}
 
@@ -259,21 +294,25 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBObject pobj = this.kb.getProperty(propid);
 		KBObject valobj = this.kb.getResource(valid);
 		this.libkb.setPropertyValue(dataobj, pobj, valobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addObjectPropertyValue(dataid, propid, valid);
 		return true;
 	}
 
 	@Override
-	public boolean removePropertyValue(String dsid, String propid, Object val) {
-		KBObject dataobj = this.libkb.getIndividual(dsid);
+	public boolean removePropertyValue(String dataid, String propid, Object val) {
+		KBObject dataobj = this.libkb.getIndividual(dataid);
 		KBObject pobj = this.kb.getProperty(propid);
 		KBObject valobj = this.ontologyFactory.getDataObject(val);
 		this.libkb.removeTriple(dataobj, pobj, valobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.removePropertyValue(dataid, propid, val);
 		return true;
 	}
 
 	@Override
-	public boolean removeAllPropertyValues(String dsid, ArrayList<String> propids) {
-		KBObject dataobj = this.libkb.getIndividual(dsid);
+	public boolean removeAllPropertyValues(String dataid, ArrayList<String> propids) {
+		KBObject dataobj = this.libkb.getIndividual(dataid);
 		for (String propid : propids) {
 			KBObject pobj = this.kb.getProperty(propid);
 			ArrayList<KBObject> vals = this.kb.getPropertyValues(dataobj, pobj);
@@ -281,6 +320,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 				this.libkb.removeTriple(dataobj, pobj, val);
 			}
 		}
+		if(this.externalCatalog != null)
+			this.externalCatalog.removeAllPropertyValues(dataid, propids);
 		return true;
 	}
 
@@ -293,18 +334,24 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		}
 		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
 		this.ontkb.setPropertyRange(propid, range);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addMetadataProperty(propid, domain, range);
 		return true;
 	}
 
 	@Override
 	public boolean addMetadataPropertyDomain(String propid, String domain) {
 		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
+		if(this.externalCatalog != null)
+			this.externalCatalog.addMetadataPropertyDomain(propid, domain);
 		return true;
 	}
 	
 	@Override
 	public boolean removeMetadataPropertyDomain(String propid, String domain) {
 		this.ontkb.removePropertyDomainDisjunctive(propid, domain);
+		if(this.externalCatalog != null)
+			this.externalCatalog.removeMetadataPropertyDomain(propid, domain);
 		return true;
 	}
 	
@@ -319,6 +366,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		// Rename all triples (this skips removing domain union classes)
 		KBUtils.removeAllTriplesWith(this.ontkb, propid, true);
 		KBUtils.removeAllTriplesWith(this.libkb, propid, true);
+		if(this.externalCatalog != null)
+			this.externalCatalog.removeMetadataProperty(propid);
 		return true;
 	}
 
@@ -336,7 +385,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		
 		for(String domid : prop.getDomains())
 			this.ontkb.addPropertyDomainDisjunctive(newid, domid);
-		
+		if(this.externalCatalog != null)
+			this.externalCatalog.renameMetadataProperty(oldid, newid);
 		return true;
 	}
 	
@@ -362,11 +412,21 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		this.initializeAPI(true, true);
 	}
 	
-
 	@Override
 	public void delete() {
 		this.libkb.delete();
 		this.ontkb.delete();
+	}
+	
+	@Override
+	public DataCreationAPI getExternalCatalog() {
+		return this.externalCatalog;
+	}
+
+	@Override
+	public void setExternalCatalog(DataCreationAPI dc) {
+		this.externalCatalog = dc;
+		this.externalCatalog.copyFrom(this);
 	}
 	
 	/*

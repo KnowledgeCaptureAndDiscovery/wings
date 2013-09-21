@@ -129,8 +129,17 @@ function formatParameterBindings(value) {
     return s;
 }
 
+function formatSeconds(value) {
+	if (value == null)
+		return "No estimate";
+	var mins = Math.floor(value / 60);
+	var seconds = value - mins * 60;
+	return mins + "min, " + seconds.toFixed() + "s";
+}
+
 function formatTemplateSummary(value, meta, record, rowind, colind, store) {
     var tpl = record.data.field1.template;
+    var time = record.data.field1.time;
     var numJobs = {};
     for (var i = 0; i < tpl.Nodes.length; i++) {
         var jobname = getLocalName(tpl.Nodes[i].componentVariable.binding.id);
@@ -141,6 +150,9 @@ function formatTemplateSummary(value, meta, record, rowind, colind, store) {
     }
 
     var s = getLocalName(tpl.id);
+    if(time)
+    	s += "<br/><br/><div><b>Estimated Time: "+formatSeconds(time)+"</b></div>";
+    
     s += "<ul>";
     for (var job in numJobs) {
         var num = numJobs[job];
@@ -181,7 +193,12 @@ function showWingsBindings(data, title, formItems, type) {
                 flex: 1,
                 menuDisabled: true
             });
-            fields.push(name);
+            fields.push({
+            	name: name,
+            	sortType: function(a) {
+            		return type == 'param' ? a[0].value : a[0].id;
+            	}
+            });
         }
     }
     
@@ -193,8 +210,8 @@ function showWingsBindings(data, title, formItems, type) {
        var bstr = "";
        for(var j=0; j<fields.length; j++) {
           var field = fields[j];
-          var val = bindings[i][field];
-          nbinding[field] = val;
+          var val = bindings[i][field.name];
+          nbinding[field.name] = val;
           bstr += (type == 'data' ? formatDataBindings(val) : formatParameterBindings(val))+"|";
        }
        if(!bstrs[bstr]) {
@@ -212,6 +229,7 @@ function showWingsBindings(data, title, formItems, type) {
             }
     	},
         fields: fields,
+        sorters: fields.length > 0 ? [fields[0].name] : [],
         autoLoad: true,
         data: nbindings
     });
@@ -305,8 +323,8 @@ function showWingsBindings(data, title, formItems, type) {
     win.show();
 }
 
-function showWingsRanMessage(tid, runid, requestid, results_url) {
-    var msg = "Workflow: " + tid + " has been submitted for execution [Run id: " + runid + "]!<br/><br/>" + "You can monitor Workflow Execution from the 'Access Results' page in the Analysis Menu";
+function showWingsRanMessage(tid, runid, results_url) {
+    var msg = "Workflow has been submitted for execution !<br/><br/>" + "You can monitor Workflow Execution from the 'Access Results' page in the Analysis Menu";
 
     var win = new Ext.Window({
         layout: 'border',
@@ -324,10 +342,10 @@ function showWingsRanMessage(tid, runid, requestid, results_url) {
         }, {
             xtype: 'button',
             region: 'south',
-            text: 'CLICK HERE to Monitor Execution',
+            text: 'Or CLICK HERE to Monitor Execution',
             iconCls: 'status_SUCCESS',
             handler: function() {
-                var w = window.open(results_url + '&run_id=' + runid, '_accessResults');
+                var w = window.open(results_url + '?run_id=' + escape(runid), '_accessResults');
                 win.close();
             }
         }]
@@ -455,15 +473,12 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
                     },
                     success: function(response) {
                         msgTarget.unmask();
-                        try {
-                            var ret = Ext.decode(response.responseText);
-                            if (ret.success) {
-                                win.close();
-                                showWingsRanMessage(tid, ret.data.run_id, ret.data.request_id, results_url);
-                            } else _console(response.responseText);
-                        } catch(e) {
-                            _console(e);
-                        }
+                        var runid = response.responseText;
+                        if (runid) {
+                            //win.close();
+                            showWingsRanMessage(tid, runid, results_url);
+                        } else 
+                        	_console(response.responseText);
                     },
                     failure: function(response) {
                         _console(response.responseText);
