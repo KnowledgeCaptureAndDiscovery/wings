@@ -469,7 +469,7 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
                     params: {
                     		json: Ext.encode(tstore.template),
                     		constraints_json: Ext.encode(tstore.constraints),
-                        template_id: tid
+                    		template_id: tid
                     },
                     success: function(response) {
                         msgTarget.unmask();

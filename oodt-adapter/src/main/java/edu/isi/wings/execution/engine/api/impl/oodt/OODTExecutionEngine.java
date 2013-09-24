@@ -66,7 +66,7 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
 		String datadir = props.getProperty("lib.domain.data.storage") + File.separator;
 		try {
 			File f = File.createTempFile("oodt-run-", "");
-			if (f.delete() && f.mkdir()) {
+			if (f.delete() && f.mkdirs()) {
 				this.jobdir = f.getAbsolutePath() + File.separator;
 				this.wlogfile = "workflow.log";
 				this.adapter = new OODTWorkflowAdapter(wmurl, fmurl, libns,
