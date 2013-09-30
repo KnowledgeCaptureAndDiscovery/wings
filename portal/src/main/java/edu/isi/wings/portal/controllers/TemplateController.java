@@ -88,7 +88,7 @@ public class TemplateController {
 			
 			out.println("<html>");
 			out.println("<head>");
-			JSLoader.setContextRoot(out, config.getContextRootPath());
+			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadTemplateViewer(out, config.getContextRootPath());
 			JSLoader.loadTemplateViewer(out, config.getContextRootPath(), tellme);
 			out.println("</head>");

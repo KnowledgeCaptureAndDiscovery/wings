@@ -50,7 +50,7 @@ public class DomainController {
 			
 			out.println("<html>");
 			out.println("<head>");
-			JSLoader.setContextRoot(out, config.getContextRootPath());
+			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadDomainViewer(out, config.getContextRootPath());
 			JSLoader.loadDomainViewer(out, config.getContextRootPath());
 			out.println("</head>");
@@ -76,7 +76,8 @@ public class DomainController {
 
 	public String getDomainsListJSON() {
 		return "{ list: " + json.toJson(user_domains.values()) 
-				 + ", selected: "+ json.toJson(domain.getDomainName()) + "}";
+				 + ", selected: "+ (domain != null ? json.toJson(domain.getDomainName()) : "null") 
+				 + "}";
 	}
 	
 	public String getDomainJSON (String domain) {

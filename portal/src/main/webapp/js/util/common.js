@@ -132,7 +132,7 @@ function getPortalHeader(path) {
 							border : false,
 							xtype : "component",
 							height : 26,
-							html : "   <div class=\"menu\"><ul>"
+							html : "<div class=\"menu\"><ul>"
 									+ "<li class=\"first active\"><a href=\"#\">Analysis</a><ul>\n"
 									+ "<li class=\"first\"><a href=\""
 									+ path
@@ -157,8 +157,13 @@ function getPortalHeader(path) {
 									+ "<li class=\"last\"><a href=\""
 									+ path
 									+ "/domain\">Manage Domain</a></li>\n"
-									+ "</ul></li>\n" + "</ul></div>"
-						} ]
+									+ "</ul></li>\n" 
+									+ (USER_ID != 'null' ? "<li style='float:right'><a href=\""
+									+ path
+									+ "/jsp/logout.jsp\">Logout "+USER_ID+"</a></li>" : '')
+									+ "</ul>"
+									+ "</div>\n"
+						}]
 			});
 }
 

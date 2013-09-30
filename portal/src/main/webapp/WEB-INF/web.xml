@@ -85,22 +85,6 @@
     <servlet-name>ManageRuns</servlet-name>
     <url-pattern>/run/*</url-pattern>
   </servlet-mapping>
-  <security-role>
-    <role-name>WingsUser</role-name>
-  </security-role>
-  <security-constraint>
-    <display-name>SecurityConstraint</display-name>
-    <web-resource-collection>
-      <web-resource-name>WRCollection</web-resource-name>
-      <url-pattern>/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>WingsUser</role-name>
-    </auth-constraint>
-  </security-constraint>
-  <login-config>
-    <auth-method>BASIC</auth-method>
-  </login-config>
   <servlet>
     <description></description>
     <display-name>SparqlEndpoint</display-name>
@@ -111,4 +95,36 @@
     <servlet-name>SparqlEndpoint</servlet-name>
     <url-pattern>/sparql</url-pattern>
   </servlet-mapping>
+  
+  <security-role>
+    <role-name>WingsUser</role-name>
+  </security-role>
+  <security-constraint>
+    <display-name>SecurityConstraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Application</web-resource-name>
+      <url-pattern>/domain/*</url-pattern>
+      <url-pattern>/data/*</url-pattern>
+      <url-pattern>/upload/*</url-pattern>
+      <url-pattern>/component/*</url-pattern>
+      <url-pattern>/componenttype/*</url-pattern>
+      <url-pattern>/template/*</url-pattern>
+      <url-pattern>/plan/*</url-pattern>
+      <url-pattern>/run/*</url-pattern>
+      <url-pattern>/sparql/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>WingsUser</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <!--login-config>
+    <auth-method>BASIC</auth-method>
+  </login-config-->
+  <login-config>
+    <auth-method>FORM</auth-method>
+    <form-login-config>
+      <form-login-page>/jsp/login.jsp</form-login-page>
+      <form-error-page>/jsp/login_failed.jsp</form-error-page>
+    </form-login-config>
+  </login-config>
 </web-app>

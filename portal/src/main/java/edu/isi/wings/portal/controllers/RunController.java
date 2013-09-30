@@ -50,7 +50,7 @@ public class RunController {
 		try {
 			out.println("<html>");
 			out.println("<head>");
-			JSLoader.setContextRoot(out, config.getContextRootPath());
+			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadRunViewer(out, config.getContextRootPath());
 			JSLoader.loadRunViewer(out, config.getContextRootPath());
 			out.println("</head>");

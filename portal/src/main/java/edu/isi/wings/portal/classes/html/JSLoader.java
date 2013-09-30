@@ -3,6 +3,8 @@ package edu.isi.wings.portal.classes.html;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
+import edu.isi.wings.portal.classes.Config;
+
 public class JSLoader {
 	static String[] common_scripts = { "lib/extjs/ext-all.js", "js/util/common.js",
 			"js/gui/WingsMessages.js" };
@@ -26,18 +28,23 @@ public class JSLoader {
 
 	static String[] plupload_scripts = { "js/util/pluploadPanel.js", "lib/plupload/plupload.full.js" };
 
+	public static void setContextInformation(PrintWriter out, Config config) {
+		HashMap<String, Object> jsvars = new HashMap<String, Object>();
+		jsvars.put("CONTEXT_ROOT", "'" + config.getContextRootPath() + "'");
+		jsvars.put("USER_ID", "'" + config.getUserId() + "'");
+		JSLoader.showScriptKeyVals(out, jsvars);
+	}
+
+	public static void loadLoginViewer(PrintWriter out, String path) {
+		showScriptTags(out, path, common_scripts);		
+	}
+		
 	public static void loadDataViewer(PrintWriter out, String path) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, data_scripts);
 		showScriptTags(out, path, plupload_scripts);
 	}
 
-	public static void setContextRoot(PrintWriter out, String root) {
-		HashMap<String, Object> jsvars = new HashMap<String, Object>();
-		jsvars.put("CONTEXT_ROOT", "'" + root + "'");
-		JSLoader.showScriptKeyVals(out, jsvars);
-	}
-	
 	public static void loadComponentViewer(PrintWriter out, String path) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, component_scripts);

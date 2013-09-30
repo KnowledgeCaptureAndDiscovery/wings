@@ -69,7 +69,7 @@ public class ComponentController {
 			String types = json.toJson(dc.getAllDatatypeIds());
 			out.println("<html>");
 			out.println("<head>");
-			JSLoader.setContextRoot(out, config.getContextRootPath());
+			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadComponentViewer(out, config.getContextRootPath());
 			JSLoader.loadComponentViewer(out, config.getContextRootPath());
 			out.println("</head>");
