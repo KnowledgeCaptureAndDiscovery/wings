@@ -55,6 +55,7 @@ public class StorageHandler {
 			for (Enumeration<? extends ZipEntry> e = zfile.entries(); e.hasMoreElements();) {
 				ZipEntry ze = e.nextElement();
 				String name = ze.getName().replaceAll("/.+$", "");
+				name = name.replaceAll("/$", "");
 				if(topDir == null)
 					topDir = name;
 				else if(!topDir.equals(name)) {

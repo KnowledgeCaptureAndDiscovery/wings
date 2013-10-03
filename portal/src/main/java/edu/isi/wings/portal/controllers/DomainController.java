@@ -1,18 +1,27 @@
 package edu.isi.wings.portal.controllers;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
+import org.apache.commons.io.FileUtils;
 
 import com.google.gson.Gson;
 
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
+import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.classes.html.CSSLoader;
@@ -50,6 +59,7 @@ public class DomainController {
 			
 			out.println("<html>");
 			out.println("<head>");
+			out.println("<title>Manage Domain</title>");
 			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadDomainViewer(out, config.getContextRootPath());
 			JSLoader.loadDomainViewer(out, config.getContextRootPath());
@@ -91,22 +101,77 @@ public class DomainController {
 	}
 	
 	public String importDomain(String domain, String location) {
-		File f = new File(location);
+		File f = null;
+		
+		// Check if the location is a url
+		try {
+			// Fetch domain zip file from url
+			URL url = new URL(location);
+			File furl = new File(url.getPath());
+			String zipname = furl.getName();
+			InputStream input = url.openStream();
+			f = File.createTempFile("domain-", "-temp");
+			if(f.delete() && f.mkdirs()) {
+				f = new File(f.getAbsolutePath() + File.separator + zipname);
+				FileUtils.copyInputStreamToFile(input, f);
+			}
+		} catch (MalformedURLException e) {
+			// Do nothing
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		// If not a url, assume normal file location
+		if(f == null)
+			f = new File(location);
+
+		
+		// If the location is a zip file instead of a directory, 
+		// then unzip into a temporary directory
+		File ftemp = null;
+		if(f.exists() && !f.isDirectory() && f.getName().endsWith(".zip")) {
+			try {
+				ftemp = File.createTempFile("domain-", "-temp");
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+			if(ftemp.delete() && ftemp.mkdirs()) {
+				ftemp = new File(ftemp.getAbsolutePath() + File.separator + domain);
+			}
+			domain = domain.replaceFirst(".zip", "");
+			StorageHandler.unzipFile(f, domain, ftemp.getAbsolutePath());
+			f = new File(ftemp.getAbsolutePath() + File.separator + domain);
+		}
+		
+		// Finally check that the domain directory exists
 		if(!f.exists() || !f.isDirectory())
 			return null;
 		
+		// Import domain directory
 		Domain dom = null;
 		File oldf = new File(f.getAbsolutePath() + File.separator + "wings.properties");
-		if(oldf.exists())
-			dom = Domain.importLegacyDomain(domain, this.config, location);
-		
 		File newf = new File(f.getAbsolutePath() + File.separator + "domain.properties");
-		if(newf.exists())
-			dom = Domain.importDomain(domain, this.config, location);
+		if(oldf.exists())
+			dom = Domain.importLegacyDomain(domain, this.config, f.getAbsolutePath());
+		else if(newf.exists())
+			dom = Domain.importDomain(domain, this.config, f.getAbsolutePath());
+		else
+			return null;
 		
 		DomainInfo dominfo = new DomainInfo(dom);
 		this.user_domains.put(dom.getDomainName(), dominfo);
 		this.saveUserConfig(this.userConfigFile);
+		
+		// Delete temporary directory
+		if(ftemp != null)
+			try {
+				FileUtils.deleteDirectory(ftemp);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		
 		return json.toJson(dominfo);
 	}
 	
@@ -130,6 +195,27 @@ public class DomainController {
 			return true;
 		return false;
 	}
+	
+	public boolean streamDomain(String domName, HttpServletResponse response, ServletContext context) {
+		DomainInfo dominfo = this.user_domains.get(domName);
+		if(dominfo == null)
+			return false;
+		
+		Domain dom = new Domain(dominfo);
+		File f = Domain.exportDomain(dom, this.config);
+		StorageHandler.streamFile(f.getAbsolutePath() + File.separator + dom.getDomainName(), 
+				response, context);
+		try {
+			FileUtils.deleteDirectory(f);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+	/*
+	 * Private functions
+	 */
 	
 	@SuppressWarnings("unchecked")
 	private void initializeDomainList() {

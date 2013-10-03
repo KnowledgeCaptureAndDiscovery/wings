@@ -88,6 +88,7 @@ public class TemplateController {
 			
 			out.println("<html>");
 			out.println("<head>");
+			out.println("<title>Template "+(editor ? "Editor" : "Browser")+"</title>");
 			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadTemplateViewer(out, config.getContextRootPath());
 			JSLoader.loadTemplateViewer(out, config.getContextRootPath(), tellme);

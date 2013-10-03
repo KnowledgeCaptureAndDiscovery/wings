@@ -723,21 +723,44 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			else {
 				html += "<b>Node: " + getLocalName(item.id) + "</b>";
 			}
-			// if(!item.isConcrete) html += "<div><b>Abstract
-			// Component</b></div>";
-			if (item.prule == 'STYPE')
-				html += "<div><b>Iterate</b> over Data Collection (" + item.prule.expr.op + ")</div>";
-			html += "<div><b>Inputs: </b>";
+			
+			var port_role_map = {};
+			//html += "<div><b>Inputs: </b>";
 			for ( var i = 0; i < item.inputPorts.length; i++) {
-				html += (i ? ", " : "") + item.inputPorts[i].name;
+				var port = item.inputPorts[i];
+				//html += (i ? ", " : "") + port.name;
+				port_role_map[port.id] = port.name;
 			}
-			html += " <b>Outputs: </b>";
+			//html += "</div>";
+			/*(html += "<div><b>Outputs: </b>";
 			for ( var i = 0; i < item.outputPorts.length; i++) {
 				html += (i ? ", " : "") + item.outputPorts[i].name;
 			}
-			html += "</div>";
+			html += "</div>";*/
+			
+			if (item.prule.type == 'STYPE')
+				html += "<div><b>Using all Input Data</b> in the same workflow</div>";
+			html += "<div><b>Input Data Combination: </b></div>";
+			html += "<i>"+this.getExpressionText(item.prule.expr, port_role_map)+"</i>";
 		}
 		return html;
+	},
+	
+	getExpressionText : function(expr, port_role_map) {
+		var text = "";
+		if (expr && typeof expr == "object") {
+			text += "<span class='prule_op'>"+expr.op + "</span> (";
+			for ( var i = 0; i < expr.args.length; i++) {
+				if (i > 0)
+					text += ", ";
+				text += this.getExpressionText(expr.args[i], port_role_map);
+			}
+			text += ") ";
+		}
+		else if (expr) {
+			text = port_role_map[expr];
+		}
+		return text;
 	},
 
 	getInfoPanelEditor : function(item, isVariable) {
@@ -1164,6 +1187,7 @@ Ext.define('Test.view.PortRuleEditor', {
 		if (expr && typeof expr == "object") {
 			items.push({
 				text : expr.op,
+				cls : 'prule_op',
 				isOp : true,
 				isArg : false
 			});

@@ -160,6 +160,10 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	background-image:url(../images/run_default.gif) !important
 }
 
+.user {
+	color: #9ADE42;
+}
+
 .domain {
 	padding-left: 20px;
 	background: url(../images/domain.png) center left no-repeat !important;
@@ -416,5 +420,10 @@ pre.tellmelog {
 }
 .prule_highlighted {
     background-color: yellow;
+}
+.prule_op, .prule_op tspan {
+	fill: #339 !important;
+	color: #339 !important;
+    font-weight: bold;
 }
 

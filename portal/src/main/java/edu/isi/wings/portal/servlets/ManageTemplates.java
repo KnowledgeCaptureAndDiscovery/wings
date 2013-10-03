@@ -34,6 +34,8 @@ public class ManageTemplates extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
 		
 		// Extract template op and editor/tellme mode
 		boolean editor = false;

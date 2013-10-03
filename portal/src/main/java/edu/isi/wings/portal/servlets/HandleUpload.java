@@ -40,6 +40,9 @@ public class HandleUpload extends HttpServlet {
 			throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
+		
 		Domain dom = config.getDomain();
 		
 		String name = null;
@@ -72,6 +75,9 @@ public class HandleUpload extends HttpServlet {
 								else if("component".equals(value)) {
 									storageDir += dom.getConcreteComponentLibrary().getStorageDirectory();
 									isComponent = true;
+								}
+								else {
+									storageDir = System.getProperty("java.io.tmpdir"); 
 								}
 							}
 							else if ("chunk".equals(fieldName))

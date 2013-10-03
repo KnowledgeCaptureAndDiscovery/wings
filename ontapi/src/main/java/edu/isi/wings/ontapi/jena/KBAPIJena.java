@@ -678,7 +678,8 @@ public class KBAPIJena implements KBAPI {
 		if (!checkNulls(kb))
 			return;
 		KBAPIJena japi = (KBAPIJena) kb;
-		ontmodel.addSubModel(japi.ontmodel, true);
+		ontmodel.add(japi.ontmodel.listStatements());
+		//ontmodel.addSubModel(japi.ontmodel, true);
 	}
 
 	public void writeRDF(PrintStream ostr) {

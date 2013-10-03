@@ -77,6 +77,7 @@ public class DataController {
 	
 			out.println("<html>");
 			out.println("<head>");
+			out.println("<title>Manage Data</title>");
 			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadDataViewer(out, config.getContextRootPath());
 			JSLoader.loadDataViewer(out, config.getContextRootPath());

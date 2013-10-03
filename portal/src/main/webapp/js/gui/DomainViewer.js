@@ -84,6 +84,10 @@ DomainViewer.prototype.createLeftPanel = function() {
         		itemId: 'selectbutton',
         		text: 'Select',
         		iconCls: 'default_domain'
+        	}, {
+        		itemId: 'downloadbutton',
+        		text: 'Download',
+        		iconCls: 'downloadIcon'
         	}]
         }],
         columns: [{
@@ -332,6 +336,12 @@ DomainViewer.prototype.createListeners = function() {
 	});
 	this.domainsGrid.down('#importbutton').on("click", function() {
 		This.showImportDomainDialog();
+	});
+	this.domainsGrid.down('#downloadbutton').on("click", function() {
+		var sels = This.domainsGrid.getSelectionModel().getSelection();
+		if(!sels.length) return;
+		var domain = sels[0];
+		window.open(This.op_url+"/downloadDomain?domain="+escape(domain.get("name")));
 	});
 	this.domainsGrid.down('#selectbutton').on("click", function() {
 		var sels = This.domainsGrid.getSelectionModel().getSelection();

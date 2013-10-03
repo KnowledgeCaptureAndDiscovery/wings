@@ -160,7 +160,7 @@ function getPortalHeader(path) {
 									+ "</ul></li>\n" 
 									+ (USER_ID != 'null' ? "<li style='float:right'><a href=\""
 									+ path
-									+ "/jsp/logout.jsp\">Logout "+USER_ID+"</a></li>" : '')
+									+ "/jsp/logout.jsp\">Logout <span class='user'>"+USER_ID+"</span></a></li>" : '')
 									+ "</ul>"
 									+ "</div>\n"
 						}]

@@ -50,6 +50,7 @@ public class RunController {
 		try {
 			out.println("<html>");
 			out.println("<head>");
+			out.println("<title>Access Run Results</title>");
 			JSLoader.setContextInformation(out, config);
 			CSSLoader.loadRunViewer(out, config.getContextRootPath());
 			JSLoader.loadRunViewer(out, config.getContextRootPath());

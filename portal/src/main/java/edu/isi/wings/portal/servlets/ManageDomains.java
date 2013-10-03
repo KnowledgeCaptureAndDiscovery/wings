@@ -31,8 +31,9 @@ public class ManageDomains extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
 		
 		String path = request.getPathInfo();
 		if (path == null)
@@ -41,6 +42,7 @@ public class ManageDomains extends HttpServlet {
 		String op = args.length > 1 ? args[1] : null;
 
 		if (op != null && op.equals("intro")) {
+			PrintWriter out = response.getWriter();
 			out.println("<div class='x-toolbar x-toolbar-default highlightIcon' " + 
 					"style='padding:10px;font-size:1.5em;border-width:0px 0px 1px 0px'>Manage Domain</div>\n" + 
 					"<div style='padding:5px; line-height:1.5em'>\n" + 
@@ -64,14 +66,18 @@ public class ManageDomains extends HttpServlet {
 		int guid = 1;
 		DomainController dc = new DomainController(guid, config);
 		String domain = request.getParameter("domain");
-//		String libname = request.getParameter("libname");
 		
+		if (op != null && op.equals("downloadDomain")) {
+			dc.streamDomain(domain, response, this.getServletContext());
+			return;
+		}
+		
+		PrintWriter out = response.getWriter();
 		if (op == null || op.equals("")) {
 			response.setContentType("text/html");
 			dc.show(out);
 			return;
 		}
-		
 		if(op.equals("getDomainDetails")) {
 			out.println(dc.getDomainJSON(domain));
 		}

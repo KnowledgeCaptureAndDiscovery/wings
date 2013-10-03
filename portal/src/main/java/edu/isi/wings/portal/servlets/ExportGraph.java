@@ -34,6 +34,9 @@ public class ExportGraph extends HttpServlet {
 			throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
+		
 		String uri = config.getServerUrl() + request.getRequestURI();
 		OntFactory tdbfac = new OntFactory(OntFactory.JENA, config.getTripleStoreDir());
 		try {

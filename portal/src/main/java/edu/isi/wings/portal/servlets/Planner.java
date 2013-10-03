@@ -32,6 +32,8 @@ public class Planner extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
 
 		String path = request.getPathInfo();
 		if (path == null)

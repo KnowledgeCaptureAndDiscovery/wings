@@ -96,6 +96,10 @@
     <url-pattern>/sparql</url-pattern>
   </servlet-mapping>
   
+  <session-config>
+    <session-timeout>43200</session-timeout>
+  </session-config>
+  
   <security-role>
     <role-name>WingsUser</role-name>
   </security-role>

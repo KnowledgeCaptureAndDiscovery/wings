@@ -34,6 +34,8 @@ public class ManageData extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
 
 		String path = request.getPathInfo();
 		if (path == null)

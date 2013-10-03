@@ -32,6 +32,8 @@ public class ManageComponents extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
 
 		boolean loadConcrete = true;
 		String path = request.getPathInfo();

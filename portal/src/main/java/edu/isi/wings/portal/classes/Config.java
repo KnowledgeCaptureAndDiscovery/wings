@@ -1,6 +1,7 @@
 package edu.isi.wings.portal.classes;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -9,6 +10,7 @@ import java.util.Properties;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
@@ -66,6 +68,22 @@ public class Config {
 
 		// Initialize user config
 		this.initializeUserConfig(request);
+	}
+	
+	public boolean checkDomain(HttpServletResponse response) {
+		String redirectUrl = this.contextRootPath+"/domain";
+		if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
+			response.setContentType("text/html");
+			response.setHeader("Refresh", "5; URL="+this.contextRootPath+"/domain");
+			try {
+				response.getWriter().println("No Domain selected. Please select a domain first !!<br/>"
+						+ "Redirecting in 5 seconds to <a href='"+redirectUrl+"'>"+redirectUrl+"</a>");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return false;
+		}
+		return true;
 	}
 
 	private void initializeUserConfig(HttpServletRequest request) {

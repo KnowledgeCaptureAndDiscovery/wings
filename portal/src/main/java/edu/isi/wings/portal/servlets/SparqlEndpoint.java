@@ -62,9 +62,9 @@ public class SparqlEndpoint extends HttpServlet {
 		
 		try {
 			if(queryString != null && !queryString.equals(""))
-				this.showQueryResults(queryString, request);
+				this.showQueryResults(queryString, request, response);
 			else if(updateString != null && !updateString.equals(""))
-				this.updateDataset(updateString, request);
+				this.updateDataset(updateString, request, response);
 		}
 		catch (Exception e) {
 			response.getOutputStream().print(e.getMessage());
@@ -72,11 +72,13 @@ public class SparqlEndpoint extends HttpServlet {
 		response.getOutputStream().flush();
 	}
 
-	private void showQueryResults(String queryString, HttpServletRequest request) 
+	private void showQueryResults(String queryString, HttpServletRequest request, HttpServletResponse response) 
 			throws IOException {
 		Query query = QueryFactory.create(queryString);
 		if(query.isSelectType()) {
 			Config config = new Config(request);
+			if(!config.checkDomain(response))
+				return;
 			ResultsFormat fmt = ResultsFormat.lookup(request.getParameter("format"));
 			
 			Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
@@ -95,8 +97,11 @@ public class SparqlEndpoint extends HttpServlet {
 		}
 	}
 	
-	private void updateDataset(String updateString, HttpServletRequest request) throws IOException {
+	private void updateDataset(String updateString, HttpServletRequest request, HttpServletResponse response) 
+			throws IOException {
 		Config config = new Config(request);
+		if(!config.checkDomain(response))
+			return;
 		Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
 		UpdateRequest update = UpdateFactory.create(updateString);
 		UpdateAction.execute(update, tdbstore);

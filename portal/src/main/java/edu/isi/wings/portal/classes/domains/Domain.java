@@ -144,13 +144,123 @@ public class Domain {
 	}
 
 	public static Domain importDomain(String domName, Config config, String importDomDir) {
-		Domain domain = new Domain(domName);
-		// TODO: Just copy the importDomDir into correct place (if not already in it)
-		// -- If useSharedTripleStore, then copy over owl files into TDB
-		// -- rename domain name
-		// -- set new domain prefix
-		domain.saveDomain();
-		return domain;
+		String domurl;
+		try {
+			domurl = FileUtils.readFileToString(new File(importDomDir + File.separator + "domain.url"));
+			domurl = domurl.trim();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return null;
+		}
+		Domain fromdom = new Domain(domName, importDomDir, domurl, false);
+		Properties props = config.getProperties(fromdom);
+		DataCreationAPI dc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+
+		Domain todom = Domain.createDefaultDomain(domName, config.getUserDir(), config.getUserUrl());
+		props = config.getProperties(todom);
+		DataCreationAPI todc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
+		
+		// Copy from legacy apis to new apis
+		todc.copyFrom(dc);
+		toacc.copyFrom(acc);
+		toccc.copyFrom(ccc);
+		totc.copyFrom(tc);
+		
+		// Copy legacy data/code directories to new data/code storage directory
+		File srcDataDir = new File(fromdom.getDomainDirectory() + fsep
+				+ fromdom.getDataLibrary().getStorageDirectory());
+		File destDataDir = new File(todom.getDomainDirectory() + fsep
+				+ todom.getDataLibrary().getStorageDirectory());
+		File srcCodeDir = new File(fromdom.getDomainDirectory() + fsep
+				+ fromdom.getConcreteComponentLibrary().getStorageDirectory());
+		File destCodeDir = new File(todom.getDomainDirectory() + fsep
+				+ todom.getConcreteComponentLibrary().getStorageDirectory());
+		try {
+			if(srcDataDir.isDirectory())
+				FileUtils.copyDirectory(srcDataDir, destDataDir);
+			if(srcCodeDir.isDirectory()) {
+				FileUtils.copyDirectory(srcCodeDir, destCodeDir);
+				// FIXME: Setting executable permissions on all files for now
+				for(File f : FileUtils.listFiles(destCodeDir, null, true)) {
+					f.setExecutable(true);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return todom;
+	}
+	
+	public static File exportDomain(Domain fromdom, Config config) {
+		Properties props = config.getProperties(fromdom);
+		DataCreationAPI dc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+		
+		File tempdir;
+		try {
+			 tempdir = File.createTempFile("domain-", "-temp");
+			 if(!tempdir.delete() || !tempdir.mkdirs())
+				 return null;
+		} catch (IOException e1) {
+			return null;
+		}
+		
+		Domain todom = Domain.createDefaultDomain(fromdom.getDomainName(), 
+				tempdir.getAbsolutePath(), config.getUserUrl());
+		todom.setUseSharedTripleStore(false);
+		todom.saveDomain();
+		props = config.getProperties(todom);
+		DataCreationAPI todc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
+		
+		// Copy into non-triple-store apis
+		todc.copyFrom(dc);
+		toacc.copyFrom(acc);
+		toccc.copyFrom(ccc);
+		totc.copyFrom(tc);
+		
+		// Copy legacy data/code directories to new data/code storage directory
+		File srcDataDir = new File(fromdom.getDomainDirectory() + fsep
+				+ fromdom.getDataLibrary().getStorageDirectory());
+		File destDataDir = new File(todom.getDomainDirectory() + fsep
+				+ todom.getDataLibrary().getStorageDirectory());
+		File srcCodeDir = new File(fromdom.getDomainDirectory() + fsep
+				+ fromdom.getConcreteComponentLibrary().getStorageDirectory());
+		File destCodeDir = new File(todom.getDomainDirectory() + fsep
+				+ todom.getConcreteComponentLibrary().getStorageDirectory());
+		try {
+			if(srcDataDir.isDirectory())
+				FileUtils.copyDirectory(srcDataDir, destDataDir);
+			if(srcCodeDir.isDirectory()) {
+				FileUtils.copyDirectory(srcCodeDir, destCodeDir);
+				// FIXME: Setting executable permissions on all files for now
+				for(File f : FileUtils.listFiles(destCodeDir, null, true)) {
+					f.setExecutable(true);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		// Copy domain url
+		File domUriFile = new File(todom.getDomainDirectory() + fsep + "domain.url");
+		try {
+			FileUtils.write(domUriFile, fromdom.getDomainUrl());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return tempdir;
 	}
 	
 	public static boolean deleteDomain(Domain domain, Config config, boolean deleteStorage) {
