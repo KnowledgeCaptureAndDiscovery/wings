@@ -25,6 +25,7 @@
 		<copy todir = "${jslib.dir}/extjs/themes/images/default">
 			<fileset dir="${temp.dir}/extjs/resources/themes/images/default" includes="**"/>
 		</copy>
+		<copy file="${temp.dir}/extjs/license.txt" tofile="${jslib.dir}/extjs/license.txt"/>
 		<delete dir="${temp.dir}"/>
 	</target>
 
@@ -34,6 +35,7 @@
 		<unzip src="${temp.dir}/plupload.zip" dest="${temp.dir}"/>
 		<move file="${temp.dir}/plupload-${plupload.version}" tofile="${temp.dir}/plupload"/>
 		<copy file="${temp.dir}/plupload/js/plupload.full.min.js" tofile="${jslib.dir}/plupload/plupload.full.min.js"/>
+		<copy file="${temp.dir}/plupload/license.txt" tofile="${jslib.dir}/plupload/license.txt"/>
 		<delete dir="${temp.dir}"/>
 	</target>
 
