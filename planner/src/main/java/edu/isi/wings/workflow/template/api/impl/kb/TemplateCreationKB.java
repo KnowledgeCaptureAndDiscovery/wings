@@ -20,6 +20,7 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 	String onturl;
 	String wdirurl;
 	String dcdomns;
+	String dclibns;
 	String pcdomns;
 	
 	OntFactory ontologyFactory;
@@ -33,6 +34,7 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 		this.liburl = props.getProperty("lib.domain.workflow.url");
 		this.wdirurl = props.getProperty("domain.workflows.dir.url");
 		this.dcdomns = props.getProperty("ont.domain.data.url") + "#";
+		this.dclibns = props.getProperty("lib.domain.data.url") + "#";
 		this.pcdomns = props.getProperty("ont.domain.component.ns");
 		
 		String hash = "#";
@@ -214,6 +216,7 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 				ntplkb.copyFrom(tpl.getKBCopy(true));
 				KBUtils.renameTripleNamespace(ntplkb, tckb.wflowns, this.wflowns);
 				KBUtils.renameTripleNamespace(ntplkb, tckb.dcdomns, this.dcdomns);
+				KBUtils.renameTripleNamespace(ntplkb, tckb.dclibns, this.dclibns);
 				KBUtils.renameTripleNamespace(ntplkb, tckb.pcdomns, this.pcdomns);
 				
 				KBUtils.renameTripleNamespace(ntplkb, tplurl+"#", ntplurl+"#");
