@@ -88,6 +88,9 @@ public class Config {
 
 	private void initializeUserConfig(HttpServletRequest request) {
 		this.userId = request.getRemoteUser();
+		if(this.userId == null)
+			return;
+		
 		this.sessionId = request.getSession().getId();
 
 		this.userUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir

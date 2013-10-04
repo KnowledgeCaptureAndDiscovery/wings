@@ -68,7 +68,9 @@ public class ManageDomains extends HttpServlet {
 		String domain = request.getParameter("domain");
 		
 		if (op != null && op.equals("downloadDomain")) {
-			dc.streamDomain(domain, response, this.getServletContext());
+			synchronized (WriteLock.Lock) {
+				dc.streamDomain(domain, response, this.getServletContext());
+			}
 			return;
 		}
 		
@@ -93,6 +95,8 @@ public class ManageDomains extends HttpServlet {
 			} else if (op.equals("importDomain")) {
 				String location = request.getParameter("location");
 				out.println(dc.importDomain(domain, location));
+			} else if (op.equals("createDomain")) {
+				out.println(dc.createDomain(domain));
 			}
 		}
 	}

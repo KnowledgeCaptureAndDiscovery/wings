@@ -1,0 +1,89 @@
+<body>
+	<h2 style="margin-top: 0px">Welcome to the Wings Portal</h2>
+
+	<p>
+		This portal provides access to the <a
+			href="http://www.wings-workflows.org">Wings semantic workflow
+			system</a> by allowing you to browse, set up, and run workflows. Some
+		unique features of Wings that can assist a user include:
+	</p>
+	<ul>
+		<li>Choosing datasets that are valid for a workflow you have
+			selected, based on the metadata properties of the datasets and the
+			semantic constraints of that workflow</li>
+		<li>Setting parameter values that are appropriate for the
+			datasets you have selected, based on the semantic constraints of the
+			workflow steps</li>
+		<li>Handling collections of data in a compact way, based on
+			compact collection reasoning in the workflow templates</li>
+		<li>Specializing abstract workflow steps, based on the
+			constraints imposed by both datasets and other workflow steps</li>
+	</ul>
+
+	<p>
+		You can walk through some <a
+			href="http://www.wings-workflows.org/tutorial">Wings Tutorials
+			and Videos</a> that guide you through the basics of creating and using
+		workflows.
+	</p>
+
+
+	<h2>About Wings</h2>
+	<p>
+		Workflow systems can automate many aspects of workflow creation and
+		execution. The WINGS workflow system developed at USC/ISI illustrates
+		these capabilities, with WINGS providing user assistance and automatic
+		workflow validation and generation. The WINGS portal is setup by
+		default to run locally, but it can use different execution engines
+		such as <a href="http://oodt.apache.org/">OODT</a> and <a
+			href="http://pegasus.isi.edu">Pegasus</a>
+	</p>
+
+	<p>
+		<b><a href="http://www.wings-workflows.org">WINGS (Workflow
+				INstance Generation and Specialization)</a> uses AI planning and
+			semantic reasoners</b> to assist users in creating workflows while
+		validating that the workflows comply with the requirements of the
+		software components and datasets. WINGS can reason about the
+		constraints of the components and the characteristics of the data and
+		propagate them through the workflow structure. WINGS reasons over <i>semantic
+			workflow representations</i> that consist of both a traditional dataflow
+		graph as well as a network of constraints on the data and components
+		of the workflow.
+	</p>
+
+	<p>
+		<b>Wings workflow repositories are available through other portal
+			sites</b> installed for use of specific research groups. These
+		collections include workflows for population genomics, for educational
+		student assessment, and for social network analysis. Each of these
+		sites contains datasets and the executable codes for all workflow
+		steps in their collection, so the workflows can submitted for
+		execution at the location where that particular Wings portal
+		installation is set up.
+	</p>
+
+	<p>
+		<b>The WINGS workflow system has an open modular design</b> and can be
+		easily integrated with other existing workflow systems and execution
+		frameworks to extend them with semantic reasoning capabilities. We
+		have integrated the Wings semantic workflow system with other user
+		interfaces, and submitted workflows with a variety of execution
+		engines. WINGS is built on open web standards from the World Wide Web
+		Consortium (W3C) such as the Web Ontology Language (OWL), the Resource
+		Description Framework (RDF), and the SPARQL query language for RDF.
+	</p>
+
+	<p>
+		If you are interested in using the Wings semantic workflow reasoners
+		with your own workflow framework, or in setting up your own
+		installation of a Wings workflow portal, please <a
+			href="mailto:varunr@isi.edu">contact us</a>.
+	</p>
+
+	<p>
+		Publications providing overviews and technical descriptions of how
+		Wings works are available in the <a
+			href="http://www.wings-workflows.org">Wings web site</a>.
+	</p>
+</body>

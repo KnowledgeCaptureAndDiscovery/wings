@@ -402,10 +402,18 @@ pre.tellmelog {
 #app-header-title {
 	padding: 15px 10px 10px 55px;
 	background: url(../images/logo.png) no-repeat 10px 6px;
+}
+
+#app-header-title a {
 	color: #eee;
 	font-size: 18px;
 	font-weight: bold;
-	text-shadow: 0 1px 0 #666
+	text-shadow: 0 1px 0 #666;
+	text-decoration: none;
+}
+
+#app-header-title a:hover {
+	text-decoration: underline;
 }
 
 /* Show the menu */

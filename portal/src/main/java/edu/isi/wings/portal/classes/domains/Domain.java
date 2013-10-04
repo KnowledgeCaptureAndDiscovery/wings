@@ -255,7 +255,7 @@ public class Domain {
 		// Copy domain url
 		File domUriFile = new File(todom.getDomainDirectory() + fsep + "domain.url");
 		try {
-			FileUtils.write(domUriFile, fromdom.getDomainUrl());
+			FileUtils.write(domUriFile, todom.getDomainUrl());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

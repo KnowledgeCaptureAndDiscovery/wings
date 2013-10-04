@@ -175,6 +175,15 @@ public class DomainController {
 		return json.toJson(dominfo);
 	}
 	
+	public String createDomain(String domName) {
+		Domain dom = 
+				Domain.createDefaultDomain(domName, this.config.getUserDir(), this.config.getUserUrl());
+		DomainInfo dominfo = new DomainInfo(dom);
+		this.user_domains.put(dom.getDomainName(), dominfo);
+		this.saveUserConfig(this.userConfigFile);
+		return json.toJson(dominfo);
+	}
+	
 	public boolean selectDomain(String domain) {
 		DomainInfo dominfo = this.user_domains.get(domain);
 		this.domain = new Domain(dominfo);

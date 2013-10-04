@@ -14,6 +14,7 @@ import edu.isi.wings.catalog.data.classes.MetadataProperty;
 import edu.isi.wings.catalog.data.classes.MetadataValue;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.KBObject;
+import edu.isi.wings.ontapi.KBTriple;
 
 public class DataCreationKB extends DataKB implements DataCreationAPI {
 	String topclass;
@@ -395,6 +396,20 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		DataCreationKB dckb = (DataCreationKB)dc;
 		
 		this.libkb.copyFrom(dckb.libkb);
+		
+		// Change any specified locations of data
+		KBObject locProp = this.libkb.getProperty(this.dcns+"hasLocation");
+		ArrayList<KBTriple> triples = 
+				this.libkb.genericTripleQuery(null, locProp, null);
+		for(KBTriple t : triples) {
+			if(t.getObject() == null || t.getObject().getValue() == null)
+				continue;
+			KBObject data = t.getSubject();
+			String loc = (String) t.getObject().getValue();
+			File f = new File(loc);
+			loc = this.datadir + File.separator + f.getName();
+			this.libkb.setPropertyValue(data, locProp, this.libkb.createLiteral(loc));
+		}
 		KBUtils.renameTripleNamespace(this.libkb, dckb.dcns, this.dcns);
 		KBUtils.renameTripleNamespace(this.libkb, dckb.dcdomns, this.dcdomns);
 		KBUtils.renameTripleNamespace(this.libkb, dckb.dclibns, this.dclibns);

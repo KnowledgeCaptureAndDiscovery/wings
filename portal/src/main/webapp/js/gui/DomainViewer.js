@@ -47,15 +47,17 @@ DomainViewer.prototype.createLeftPanel = function() {
         },
         fields: ['name', 'directory', 'url', 'isLegacy'],
         autoLoad: true,
-        data: this.store.list
+        data: this.store.list,
+        sorters: ['name']
 	});
 	
     this.domainsGrid = new Ext.grid.Panel({
         region: 'west',
         width: '25%',
         split: true,
-        margins: '5 0 5 5',
-        cmargins: '5 5 5 5',
+        /*margins: '5 0 5 5',
+        cmargins: '5 5 5 5',*/
+        margins: 5,
         store: domainStore,
         bodyCls:'multi-line-grid',
         dockedItems: [{
@@ -77,13 +79,13 @@ DomainViewer.prototype.createLeftPanel = function() {
         	    	iconCls: 'importIcon'
         	    }]
         	}, {
+        		itemId: 'selectbutton',
+        		text: 'Use',
+        		iconCls: 'default_domain'
+        	}, {
         		itemId: 'delbutton',
         		text: 'Delete',
         		iconCls: 'delIcon'
-        	}, {
-        		itemId: 'selectbutton',
-        		text: 'Select',
-        		iconCls: 'default_domain'
         	}, {
         		itemId: 'downloadbutton',
         		text: 'Download',
@@ -151,6 +153,46 @@ DomainViewer.prototype.openDomain = function(name) {
     tab.getLoader().load();
     
     return tab;
+};
+
+DomainViewer.prototype.createDomain = function(domname) {
+	var This = this;
+    var domname = getRDFID(domname);
+    var rec = This.domainsGrid.getStore().find('name', domname);
+    if (rec != -1) {
+    	console.log(rec);
+        showError(domname + ' already exists ! Choose a different name.');
+        return;
+    }
+    var url = This.op_url + '/createDomain';
+    Ext.get(This.domainsGrid.getId()).mask("Creating Domain..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+        	domain: domname
+        },
+        success: function(response) {
+        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 try {
+        		 var ret = Ext.decode(response.responseText);
+        		 if(!ret.error && ret.name) {
+        			 This.domainsGrid.getStore().add(ret);
+        		 }
+        		 else {
+        			 _console(ret);
+        			 showError(ret.error);
+        		 }
+        	 }
+        	 catch (e) {
+        		 _console(e.message);
+        	 }
+        },
+        failure: function(response) {
+        	Ext.get(This.tabPanel.getId()).unmask();
+        	_console(response.responseText);
+        }
+        
+    });
 };
 
 DomainViewer.prototype.importDomain = function(domname, loc) {
@@ -292,6 +334,7 @@ DomainViewer.prototype.showImportDomainDialog = function() {
                 	}
                 	win.close();
                 	var domname = loc.replace(/^.+\//,"");
+                	domname = domname.replace(/^.+\\/,"");
                 	This.importDomain(domname, loc);
                 }
             }]
@@ -314,6 +357,7 @@ DomainViewer.prototype.showImportDomainDialog = function() {
                 		var loc = file.location;
                 		win.close();
                 		var domname = loc.replace(/^.+\//,"");
+                		domname = domname.replace(/^.+\\/,"");
                 		This.importDomain(domname, loc);
                 	}
                 }
@@ -325,7 +369,8 @@ DomainViewer.prototype.showImportDomainDialog = function() {
 DomainViewer.prototype.createListeners = function() {
 	var This = this;
 	this.domainsGrid.on("select", function(item, rec) {
-		This.openDomain(rec.get('name'));
+		if(This.tabPanel)
+			This.openDomain(rec.get('name'));
 	});
 	this.domainsGrid.down('#createbutton').on("click", function() {
 	    Ext.Msg.prompt("Create Domain", "Enter name for new domain", function(btn, text) {
@@ -339,20 +384,29 @@ DomainViewer.prototype.createListeners = function() {
 	});
 	this.domainsGrid.down('#downloadbutton').on("click", function() {
 		var sels = This.domainsGrid.getSelectionModel().getSelection();
-		if(!sels.length) return;
+		if(!sels.length) {
+			showError("Click on a domain first");
+			return;
+		}
 		var domain = sels[0];
 		window.open(This.op_url+"/downloadDomain?domain="+escape(domain.get("name")));
 	});
 	this.domainsGrid.down('#selectbutton').on("click", function() {
 		var sels = This.domainsGrid.getSelectionModel().getSelection();
-		if(!sels.length) return;
+		if(!sels.length) {
+			showError("Click on a domain first");
+			return;
+		}
 		var domain = sels[0];
 		This.selectDomain(domain.get("name"));
 	});
 	this.domainsGrid.down('#delbutton').on("click", function() {
 		// Delete domain
 		var sels = This.domainsGrid.getSelectionModel().getSelection();
-		if(!sels.length) return;
+		if(!sels.length) {
+			showError("Click on a domain first");
+			return;
+		}
 		var domain = sels[0];
 	    Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + domain.get('name'), function(b) {
 	        if (b == "yes") {
@@ -372,9 +426,21 @@ DomainViewer.prototype.createMainPanel = function() {
     this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
 };
 
-DomainViewer.prototype.initialize = function() {
+DomainViewer.prototype.initialize_bak = function() {
     this.createLeftPanel();
     this.createTabPanel();
     this.createMainPanel();
+    this.createListeners();
+};
+
+DomainViewer.prototype.initialize = function() {
+    this.createLeftPanel();
+    Ext.apply(this.domainsGrid, {
+    	region: 'center'
+    });
+    this.mainPanel = new Ext.Viewport({
+        layout: 'border',
+        items: [getPortalHeader(CONTEXT_ROOT), this.domainsGrid]
+    });
     this.createListeners();
 };

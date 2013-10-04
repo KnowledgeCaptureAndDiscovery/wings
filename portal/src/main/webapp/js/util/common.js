@@ -124,7 +124,7 @@ function getPortalHeader(path) {
 								border : false,
 								xtype : "component",
 								id : "app-header-title",
-								html : "Wings Portal",
+								html : "<a href=\""+path+"\">Wings Portal</a>",
 							} ]
 						},
 						{
@@ -133,7 +133,9 @@ function getPortalHeader(path) {
 							xtype : "component",
 							height : 26,
 							html : "<div class=\"menu\"><ul>"
-									+ "<li class=\"first active\"><a href=\"#\">Analysis</a><ul>\n"
+									+ "<li class=\"first active\"><a href=\""+path+"\">Home</a></li>"
+									
+									+ "<li><a href=\"#\">Analysis</a><ul>\n"
 									+ "<li class=\"first\"><a href=\""
 									+ path
 									+ "/template/edit\">Edit Workflows</a></li>\n"
@@ -165,6 +167,10 @@ function getPortalHeader(path) {
 									+ "</div>\n"
 						}]
 			});
+}
+
+function getPortalFooter() {
+	
 }
 
 function setURLComboListOptions(copts, data, selection, emptyText, editable,

@@ -66,7 +66,7 @@ public class HandleUpload extends HttpServlet {
 							String fieldName = item.getFieldName();
 							String value = Streams.asString(input);
 							if ("name".equals(fieldName))
-								name = value.replaceAll("[^\\w\\._]+", "_");
+								name = value.replaceAll("[^\\w\\.\\-_]+", "_");
 							else if ("id".equals(fieldName))
 								id = value;
 							else if ("type".equals(fieldName)) {

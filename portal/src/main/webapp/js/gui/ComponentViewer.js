@@ -902,7 +902,7 @@ ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, edita
             return;
         tab.setTitle("*" + tab.title.replace(/^\*/, ''));
         savebtn.setDisabled(false);
-        rulesArea.un('keyup', keyfn);
+        //rulesArea.un('keyup', keyfn);
     };
     if(editable)
     	rulesArea.on('keyup', keyfn);

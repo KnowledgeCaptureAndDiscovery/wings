@@ -16,6 +16,7 @@ import edu.isi.wings.catalog.component.classes.ComponentTree;
 import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.KBObject;
+import edu.isi.wings.ontapi.KBTriple;
 
 public class ComponentCreationKB extends ComponentKB implements ComponentCreationAPI {
 	public ComponentCreationKB(Properties props, boolean load_concrete) {
@@ -279,6 +280,22 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		ComponentCreationKB dckb = (ComponentCreationKB)dc;
 		
 		this.writerkb.copyFrom(dckb.writerkb);
+		
+		// Change any specified locations of data
+		KBObject locProp = this.writerkb.getProperty(this.pcns+"hasLocation");
+		ArrayList<KBTriple> triples = 
+				this.writerkb.genericTripleQuery(null, locProp, null);
+		for(KBTriple t : triples) {
+			this.writerkb.removeTriple(t);
+			if(t.getObject() == null || t.getObject().getValue() == null)
+				continue;
+			KBObject comp = t.getSubject();
+			String loc = (String) t.getObject().getValue();
+			File f = new File(loc);
+			loc = this.codedir + File.separator + f.getName();
+			this.writerkb.setPropertyValue(comp, locProp, this.writerkb.createLiteral(loc));
+		}
+		
 		KBUtils.renameTripleNamespace(this.writerkb, dckb.dcns, this.dcns);
 		KBUtils.renameTripleNamespace(this.writerkb, dckb.pcns, this.pcns);
 		KBUtils.renameTripleNamespace(this.writerkb, dckb.dcdomns, this.dcdomns);

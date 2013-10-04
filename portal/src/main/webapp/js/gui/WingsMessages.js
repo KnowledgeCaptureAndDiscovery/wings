@@ -196,7 +196,8 @@ function showWingsBindings(data, title, formItems, type) {
             fields.push({
             	name: name,
             	sortType: function(a) {
-            		return type == 'param' ? a[0].value : a[0].id;
+            		a = a[0] ? a[0] : a;
+            		return type == 'param' ? a.value : a.id;
             	}
             });
         }
