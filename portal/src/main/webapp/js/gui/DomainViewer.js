@@ -188,7 +188,7 @@ DomainViewer.prototype.createDomain = function(domname) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	Ext.get(This.domainsGrid.getId()).unmask();
         	_console(response.responseText);
         }
         
@@ -229,7 +229,7 @@ DomainViewer.prototype.importDomain = function(domname, loc) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	Ext.get(This.domainsGrid.getId()).unmask();
         	_console(response.responseText);
         }
         
@@ -261,7 +261,7 @@ DomainViewer.prototype.selectDomain = function(domname) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	Ext.get(This.domainsGrid.getId()).unmask();
         	_console(response.responseText);
         }
         
@@ -293,7 +293,7 @@ DomainViewer.prototype.deleteDomain = function(domname) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	Ext.get(This.domainsGrid.getId()).unmask();
         	_console(response.responseText);
         }
         
