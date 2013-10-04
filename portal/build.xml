@@ -40,4 +40,8 @@
 	</target>
 
 	<target name="download" depends="download_extjs, download_plupload"/>
+
+	<target name="clean">
+		<delete dir="${jslib.dir}"/>
+	</target>
 </project>
