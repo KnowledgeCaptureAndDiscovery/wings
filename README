@@ -4,6 +4,7 @@ Requirements
 2. Maven 2/3 (http://maven.apache.org/)
 3. Tomcat 6+ (http://tomcat.apache.org/)
 4. Graphviz (http://www.graphviz.org/)
+5. Unix/OSX environment (To run domains)
 
 Installation
 -------------
@@ -11,7 +12,7 @@ Installation
 	- This will create a wings-portal-<version>.war file in portal/target
 
 2. Move the war file to a Servlet container (Tomcat)
-	- $ mv /path/to/wings-portal-<version>.war /path/to/tomcat/webapps
+	- $ mv /path/to/wings-portal-<version>.war /path/to/tomcat/webapps/wings-portal.war
 
 3. Setup users in /path/to/tomcat/conf/tomcat-users.xml
 	- Wings users need to have the "WingsUser" role
@@ -19,8 +20,17 @@ Installation
 4. Start tomcat
 	- $ /path/to/tomcat/bin/startup.sh
 
-5. Login to http://<your-server-name>:8080/wings-portal-<version>/template
+5. Login to http://<your-server-name>:8080/wings-portal
 
 6. After first Login, go to $HOME/.wings directory and open portal.properties
 	- Change path to graphviz
-	- Change any other settings if needed
+	- Check that the server name is set correctly
+	- (Optional) Change any other settings if needed
+
+7. See list of Domains to download, go to http://www.wings-workflows.org/domains/
+	- To Import a domain, from the "Manage Domains" interface
+		- Add -> Import Domain
+		- Enter Domain Location: the url (or path) to the domain zip file
+		- Note that some domains might require installation of infrastructure software on your server
+
+
