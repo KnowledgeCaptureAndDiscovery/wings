@@ -26,7 +26,7 @@ public class JSLoader {
 			"js/beamer/Paraphrase.js", "js/beamer/Task.js", "js/beamer/TodoItemMatches.js",
 			"js/beamer/TodoListParser.js", "js/beamer/Token.js", "js/beamer/Trie.js" };
 
-	static String[] plupload_scripts = { "js/util/pluploadPanel.js", "lib/plupload/plupload.full.js" };
+	static String[] plupload_scripts = { "js/util/pluploadPanel.js", "lib/plupload/plupload.full.min.js" };
 
 	public static void setContextInformation(PrintWriter out, Config config) {
 		HashMap<String, Object> jsvars = new HashMap<String, Object>();

@@ -2,3 +2,4 @@
 target
 !/.gitignore
 oodt/*
+portal/src/main/webapp/lib/*

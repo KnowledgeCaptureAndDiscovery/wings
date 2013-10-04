@@ -1,0 +1,41 @@
+<!DOCTYPE project>
+<project name="Download JS Libraries" default="download">
+	<property name="temp.dir" location="temp"/>
+	<property name="jslib.dir" location="src/main/webapp/lib"/>
+
+	<property name="ext.version" value="4.2.1"/>
+	<property name="ext.relnum" value="883"/>
+	<property name="plupload.version" value="2.0.0"/>
+
+	<target name="check-libs">
+		<available file="${jslib.dir}/extjs" property="extjs.found"/>
+		<available file="${jslib.dir}/plupload" property="plupload.found"/>
+	</target>
+
+	<target name="download_extjs" depends="check-libs" unless="extjs.found">
+		<mkdir dir="${temp.dir}"/>
+		<get src="http://cdn.sencha.com/ext/gpl/ext-${ext.version}-gpl.zip" dest="${temp.dir}/extjs.zip"/>
+		<unzip src="${temp.dir}/extjs.zip" dest="${temp.dir}"/>
+		<move file="${temp.dir}/ext-${ext.version}.${ext.relnum}" tofile="${temp.dir}/extjs"/>
+		<copy file="${temp.dir}/extjs/ext-all.js" tofile="${jslib.dir}/extjs/ext-all.js"/>
+		<copy file="${temp.dir}/extjs/resources/css/ext-all.css" tofile="${jslib.dir}/extjs/css/ext-all.css"/>
+		<copy todir = "${jslib.dir}/extjs/resources/ext-theme-classic">
+			<fileset dir="${temp.dir}/extjs/resources/ext-theme-classic" includes="**"/>
+		</copy>
+		<copy todir = "${jslib.dir}/extjs/themes/images/default">
+			<fileset dir="${temp.dir}/extjs/resources/themes/images/default" includes="**"/>
+		</copy>
+		<delete dir="${temp.dir}"/>
+	</target>
+
+	<target name="download_plupload" depends="check-libs" unless="plupload.found">
+		<mkdir dir="${temp.dir}"/>
+		<get src="https://github.com/moxiecode/plupload/archive/v${plupload.version}.zip" dest="${temp.dir}/plupload.zip"/>
+		<unzip src="${temp.dir}/plupload.zip" dest="${temp.dir}"/>
+		<move file="${temp.dir}/plupload-${plupload.version}" tofile="${temp.dir}/plupload"/>
+		<copy file="${temp.dir}/plupload/js/plupload.full.min.js" tofile="${jslib.dir}/plupload/plupload.full.min.js"/>
+		<delete dir="${temp.dir}"/>
+	</target>
+
+	<target name="download" depends="download_extjs, download_plupload"/>
+</project>
