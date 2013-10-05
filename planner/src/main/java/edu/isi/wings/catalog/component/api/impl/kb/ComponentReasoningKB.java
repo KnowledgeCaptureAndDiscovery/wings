@@ -18,6 +18,7 @@ import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 import edu.isi.wings.workflow.template.classes.variables.VariableType;
 
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -880,12 +881,12 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		if(exepath != null) {
 			File f = new File(exepath);
 			if(f.isDirectory()) {
-				File exef = new File(exepath + File.separator + "run");
-				File toexef = new File(exepath + File.separator + "run.sh");
-				if(exef.exists() && !toexef.exists()) {
-					exef.renameTo(toexef);
-				}
-				exepath = toexef.getAbsolutePath();
+				File shexef = new File(exepath + File.separator + "run");
+				File winexef = new File(exepath + File.separator + "run.bat");
+				if(SystemUtils.IS_OS_WINDOWS)
+					exepath = winexef.getAbsolutePath();
+				else
+					exepath = shexef.getAbsolutePath();
 			}
 		}
 		
