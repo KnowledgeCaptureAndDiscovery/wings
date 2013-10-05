@@ -95,7 +95,7 @@ public class Config {
 
 		this.userUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
 				+ "/" + userId;
-		this.userDir = storageDirectory + "/" + usersRelativeDir + "/" + userId;
+		this.userDir = storageDirectory + File.separator + usersRelativeDir + File.separator + userId;
 
 		// Create userDir (if it doesn't exist)
 		File uf = new File(this.userDir);
@@ -150,7 +150,8 @@ public class Config {
 		if (this.configFile == null) {
 			String home = System.getProperty("user.home");
 			if (home != null && !home.equals(""))
-				this.configFile = home + "/.wings/portal.properties";
+				this.configFile = home + File.separator + ".wings" 
+						+ File.separator + "portal.properties";
 			else
 				this.configFile = "/etc/wings/portal.properties";
 		}
@@ -180,9 +181,10 @@ public class Config {
 		String storageDir = null;
 		String home = System.getProperty("user.home");
 		if (home != null && !home.equals(""))
-			storageDir = home + "/.wings/storage";
+			storageDir = home + File.separator + ".wings" + File.separator + "storage";
 		else
-			storageDir = System.getProperty("java.io.tmpdir") + "/wings/storage";
+			storageDir = System.getProperty("java.io.tmpdir") + 
+				File.separator + "wings" + File.separator + "storage";
 		if (!new File(storageDir).mkdirs())
 			System.err.println("Cannot create storage directory: " + storageDir);
 

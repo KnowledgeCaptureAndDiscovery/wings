@@ -879,8 +879,14 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		String exepath = this.getComponentLocation(comp.getID());
 		if(exepath != null) {
 			File f = new File(exepath);
-			if(f.isDirectory())
-				exepath += "/run";
+			if(f.isDirectory()) {
+				File exef = new File(exepath + File.separator + "run");
+				File toexef = new File(exepath + File.separator + "run.sh");
+				if(exef.exists() && !toexef.exists()) {
+					exef.renameTo(toexef);
+				}
+				exepath = toexef.getAbsolutePath();
+			}
 		}
 		
 		ComponentInvocation invocation = new ComponentInvocation();
