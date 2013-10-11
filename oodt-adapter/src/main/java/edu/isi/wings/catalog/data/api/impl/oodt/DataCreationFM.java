@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.oodt.cas.curation.policymgr.CurationPolicyManager;
 import org.apache.oodt.cas.filemgr.structs.Element;
 import org.apache.oodt.cas.filemgr.structs.Product;
 import org.apache.oodt.cas.filemgr.structs.ProductType;
@@ -30,12 +29,12 @@ import edu.isi.wings.common.kb.KBUtils;
 
 public class DataCreationFM implements DataCreationAPI {
 	XmlRpcFileManagerClient fmclient;
-	CurationPolicyManager cpm;
-	String dsCollection;
+	CurationServiceAPI curatorApi;
+	String policy;
 	
 	String fmurl;
-	String policydir;
-	String stagingdir;
+	String curatorurl;
+	
 	String archivedir;
 	
 	String dcurl;
@@ -46,10 +45,9 @@ public class DataCreationFM implements DataCreationAPI {
 	
 	public DataCreationFM(Properties props) {
 		this.fmurl = props.getProperty("oodt.fmurl");
-		this.policydir = props.getProperty("oodt.policydir");
+		this.curatorurl = props.getProperty("oodt.curatorurl");
 		this.archivedir = props.getProperty("oodt.archivedir");
-		this.dsCollection = props.getProperty("oodt.dscollection");
-		this.stagingdir = props.getProperty("lib.domain.data.storage");
+		this.policy = props.getProperty("oodt.fmpolicy");
 		
 		this.dcurl = props.getProperty("ont.data.url");
 		this.liburl = props.getProperty("lib.domain.data.url");
@@ -59,7 +57,7 @@ public class DataCreationFM implements DataCreationAPI {
 		if(!f.exists()) f.mkdirs();
 		
 		try {
-			this.cpm = new CurationPolicyManager(this.policydir, this.stagingdir);
+			this.curatorApi = new CurationServiceAPI(this.curatorurl, this.policy);
 			this.fmclient = new XmlRpcFileManagerClient(new URL(this.fmurl));
 		} 
 		catch (MalformedURLException e) {
@@ -79,9 +77,9 @@ public class DataCreationFM implements DataCreationAPI {
 		DataItem rootitem = new DataItem("FileManager", DataItem.DATATYPE);
 		DataTreeNode rootnode = new DataTreeNode(rootitem);
 		HashMap<String, DataTreeNode> tnmap = new HashMap<String, DataTreeNode>();
-		HashMap<String, String> pmap = this.cpm.getParentTypeMap(dsCollection);
+		HashMap<String, String> pmap = this.curatorApi.getParentTypeMap();
 		try {
-			for(ProductType ptype : this.cpm.getProductTypes(dsCollection).values()) {
+			for(ProductType ptype : this.fmclient.getProductTypes()) {
 				DataItem ptitem = new DataItem(ptype.getProductTypeId(), DataItem.DATATYPE);
 				DataTreeNode ptitemnode = new DataTreeNode(ptitem);
 				for (Product p : this.fmclient.getProductsByProductType(ptype)) {
@@ -105,6 +103,8 @@ public class DataCreationFM implements DataCreationAPI {
 		}
 		catch (CatalogException e) {
 			e.printStackTrace();
+		} catch (RepositoryManagerException e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -124,13 +124,15 @@ public class DataCreationFM implements DataCreationAPI {
 	public ArrayList<String> getAllDatatypeIds() {
 		ArrayList<String> ids = new ArrayList<String>();
 		try {
-			for(ProductType ptype : this.cpm.getProductTypes(dsCollection).values()) {
+			for(ProductType ptype : this.fmclient.getProductTypes()) {
 				for (Product p : this.fmclient.getProductsByProductType(ptype)) {
 					ids.add(p.getProductId());
 				}
 			}
 		}
 		catch (CatalogException e) {
+			e.printStackTrace();
+		} catch (RepositoryManagerException e) {
 			e.printStackTrace();
 		}
 		return ids;
@@ -139,8 +141,11 @@ public class DataCreationFM implements DataCreationAPI {
 	@Override
 	public MetadataProperty getMetadataProperty(String propid) {
 		try {
-			Element el = this.cpm.getElementById(dsCollection, propid);
+			Element el = this.fmclient.getElementById(propid);
 			MetadataProperty prop = new MetadataProperty(el.getElementId(), MetadataProperty.DATATYPE);
+			for(String domid : this.curatorApi.getProductTypeIdsHavingElement(el)) {
+				prop.addDomain(domid);
+			}
 			return prop;
 		} catch (ValidationLayerException e) {
 			e.printStackTrace();
@@ -152,11 +157,11 @@ public class DataCreationFM implements DataCreationAPI {
 	public ArrayList<MetadataProperty> getMetadataProperties(String dtypeid, boolean direct) {
 		ArrayList<MetadataProperty> props = new ArrayList<MetadataProperty>();
 		try {
-			HashMap<String, String> pmap = this.cpm.getParentTypeMap(dsCollection);
+			HashMap<String, String> pmap = this.curatorApi.getParentTypeMap();
 			String tmptypeid = dtypeid;
 			while(true) {
 				ProductType type = this.fmclient.getProductTypeById(tmptypeid);
-				for(Element el : this.cpm.getElementsForProductType(dsCollection, type, true)) {
+				for(Element el : this.curatorApi.getElementsForProductType(type, true)) {
 					MetadataProperty prop = 
 							new MetadataProperty(el.getElementId(), MetadataProperty.DATATYPE);
 					prop.addDomain(type.getProductTypeId());
@@ -172,8 +177,6 @@ public class DataCreationFM implements DataCreationAPI {
 			}
 		} catch (RepositoryManagerException e) {
 			e.printStackTrace();
-		} catch (ValidationLayerException e) {
-			e.printStackTrace();
 		}
 		return props;
 	}
@@ -182,20 +185,22 @@ public class DataCreationFM implements DataCreationAPI {
 	public ArrayList<MetadataProperty> getAllMetadataProperties() {
 		ArrayList<MetadataProperty> list = new ArrayList<MetadataProperty>();
 		HashMap<String, Boolean> elmap = new HashMap<String, Boolean>();
-		for(ProductType type : this.cpm.getProductTypes(dsCollection).values()) {
-			try {
-				for(Element el : this.cpm.getElementsForProductType(dsCollection, type, true)) {
-					if(elmap.containsKey(el.getElementId()))
+		try {
+			for (ProductType type : this.fmclient.getProductTypes()) {
+				for (Element el : this.curatorApi.getElementsForProductType(type, true)) {
+					if (elmap.containsKey(el.getElementId()))
 						continue;
 					elmap.put(el.getElementId(), true);
-					MetadataProperty prop = new MetadataProperty(el.getElementId(), MetadataProperty.DATATYPE);
+					MetadataProperty prop = new MetadataProperty(el.getElementId(),
+							MetadataProperty.DATATYPE);
 					prop.addDomain(type.getProductTypeId());
-					prop.setRange(KBUtils.XSD+"string");
+					prop.setRange(KBUtils.XSD + "string");
 					list.add(prop);
 				}
-			} catch (ValidationLayerException e) {
-				e.printStackTrace();
+
 			}
+		} catch (RepositoryManagerException e) {
+			e.printStackTrace();
 		}
 		return list;
 	}
@@ -253,7 +258,7 @@ public class DataCreationFM implements DataCreationAPI {
 			Product prod = this.fmclient.getProductById(dataid);
 			Metadata meta = this.fmclient.getMetadata(prod);
 			for(String propid : propids) {
-				Element el = this.cpm.getElementById(dsCollection, propid);
+				Element el = this.fmclient.getElementById(propid);
 				MetadataValue val = new MetadataValue(propid, 
 						meta.getMetadata(el.getElementName()), MetadataValue.DATATYPE);
 				vals.add(val);
@@ -276,11 +281,8 @@ public class DataCreationFM implements DataCreationAPI {
 		try {
 			this.fmclient.addProductType(type);
 			if(parentid != null)
-				this.cpm.addParentForProductType(dsCollection, type, parentid);
-			return true;
+				return this.curatorApi.addParentForProductType(type, parentid);
 		} catch (RepositoryManagerException e) {
-			e.printStackTrace();
-		} catch (ValidationLayerException e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -293,8 +295,7 @@ public class DataCreationFM implements DataCreationAPI {
 			for(Product prod : this.fmclient.getProductsByProductType(type)) {
 				this.fmclient.removeProduct(prod);
 			}
-			this.cpm.removeProductType(dsCollection, type);
-			return true;
+			return this.curatorApi.removeProductType(type);
 		} catch (RepositoryManagerException e) {
 			e.printStackTrace();
 		} catch (CatalogException e) {
@@ -306,7 +307,7 @@ public class DataCreationFM implements DataCreationAPI {
 	@Override
 	public boolean renameDatatype(String newtypeid, String oldtypeid) {
 		try {
-			HashMap<String, String> pmap = this.cpm.getParentTypeMap(dsCollection);
+			HashMap<String, String> pmap = this.curatorApi.getParentTypeMap();
 			this.addDatatype(newtypeid, 
 					pmap.containsKey(oldtypeid) ? pmap.get(oldtypeid) : null);
 			this.save();
@@ -317,16 +318,14 @@ public class DataCreationFM implements DataCreationAPI {
 				prod.setProductType(ntype);
 				this.fmclient.modifyProduct(prod);
 			}
-			this.cpm.addElementsForProductType(dsCollection, ntype,
-					this.cpm.getElementsForProductType(dsCollection, otype, true));
-			this.cpm.removeAllElementsForProductType(dsCollection, otype);
-			this.cpm.removeProductType(dsCollection, otype);
-			return true;
+			boolean ok1 = this.curatorApi.addElementsForProductType(ntype,
+					this.curatorApi.getElementsForProductType(otype, true));
+			boolean ok2 = this.curatorApi.removeAllElementsForProductType(otype);
+			boolean ok3 = this.curatorApi.removeProductType(otype);
+			return ok1 && ok2 && ok3;
 		} catch (RepositoryManagerException e) {
 			e.printStackTrace();
 		} catch (CatalogException e) {
-			e.printStackTrace();
-		} catch (ValidationLayerException e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -421,7 +420,7 @@ public class DataCreationFM implements DataCreationAPI {
 			Product prod = this.fmclient.getProductById(dataid);
 			if(prod == null)
 				return false;
-			Element el = this.cpm.getElementById(dsCollection, propid);
+			Element el = this.fmclient.getElementById(propid);
 			if(el == null)
 				return false;
 			Metadata meta = this.fmclient.getMetadata(prod);
@@ -485,23 +484,18 @@ public class DataCreationFM implements DataCreationAPI {
 			// FIXME: Range ignored for now
 			ArrayList<Element> elementList = new ArrayList<Element>();
 			elementList.add(el);
-			this.cpm.addElementsForProductType(dsCollection, type, elementList);
-			return true;
+			return this.curatorApi.addElementsForProductType(type, elementList);
 		} 
 		catch (RepositoryManagerException e) {
 			e.printStackTrace();
-		} 
-		catch (ValidationLayerException e) {
-			e.printStackTrace();
 		}
-		
 		return false;
 	}
 
 	@Override
 	public boolean addMetadataPropertyDomain(String propid, String domain) {
 		try {
-			Element el = this.cpm.getElementById(dsCollection, propid);
+			Element el = this.fmclient.getElementById(propid);
 			if(el == null)
 				return false;
 			ProductType type = this.fmclient.getProductTypeById(domain);
@@ -509,7 +503,7 @@ public class DataCreationFM implements DataCreationAPI {
 				return false;
 			ArrayList<Element> elist = new ArrayList<Element>();
 			elist.add(el);
-			this.cpm.addElementsForProductType(dsCollection, type, elist);
+			this.curatorApi.addElementsForProductType(type, elist);
 			return true;
 		} 
 		catch (RepositoryManagerException e) {
@@ -524,27 +518,28 @@ public class DataCreationFM implements DataCreationAPI {
 	@Override
 	public boolean removeMetadataProperty(String propid) {
 		try {
-			Element el = this.cpm.getElementById(dsCollection, propid);
+			Element el = this.fmclient.getElementById(propid);
 			if(el == null)
 				return false;
 			ArrayList<Element> elist = new ArrayList<Element>();
 			elist.add(el);
-			for(ProductType type : this.cpm.getProductTypes(dsCollection).values()) {
-				this.cpm.removeElementsForProductType(dsCollection, type, elist);
+			for(ProductType type : this.fmclient.getProductTypes()) {
+				this.curatorApi.removeElementsForProductType(type, elist);
 			}
 			return true;
 		}  
 		catch (ValidationLayerException e) {
 			e.printStackTrace();
+		} catch (RepositoryManagerException e) {
+			e.printStackTrace();
 		}
-				
 		return false;
 	}
 
 	@Override
 	public boolean removeMetadataPropertyDomain(String propid, String domain) {
 		try {
-			Element el = this.cpm.getElementById(dsCollection, propid);
+			Element el = this.fmclient.getElementById(propid);
 			if(el == null)
 				return false;
 			ProductType type = this.fmclient.getProductTypeById(domain);
@@ -552,8 +547,7 @@ public class DataCreationFM implements DataCreationAPI {
 				return false;
 			ArrayList<Element> elist = new ArrayList<Element>();
 			elist.add(el);
-			this.cpm.removeElementsForProductType(dsCollection, type, elist);
-			return true;
+			return this.curatorApi.removeElementsForProductType(type, elist);
 		} 
 		catch (RepositoryManagerException e) {
 			e.printStackTrace();
@@ -636,12 +630,12 @@ public class DataCreationFM implements DataCreationAPI {
 				props.add(prop.getID());
 				Element el;
 				try {
-					el = this.cpm.getElementById(dsCollection, prop.getID());
+					el = this.fmclient.getElementById(prop.getID());
 				} catch (ValidationLayerException e) {
 					this.addMetadataProperty(prop.getID(), dtypeid, null);
 					this.save();
 					try {
-						el = this.cpm.getElementById(dsCollection, prop.getID());
+						el = this.fmclient.getElementById(prop.getID());
 					} catch (ValidationLayerException e1) {
 						el = null;
 					}
@@ -690,8 +684,7 @@ public class DataCreationFM implements DataCreationAPI {
 			Metadata meta = new Metadata();
 			for(MetadataValue mval : mvalues) {
 				String propid = mval.getPropertyId();
-				String propname = new URIEntity(propid).getName();
-				meta.addMetadata(propname, mval.getValue().toString());
+				meta.addMetadata(propid, mval.getValue().toString());
 			}
 			this.fmclient.addMetadata(prod, meta);
 			return true;

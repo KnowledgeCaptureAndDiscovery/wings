@@ -35,17 +35,6 @@
     <!-- Apache OODT Dependencies -->
     <dependency>
       <groupId>org.apache.oodt</groupId>
-      <artifactId>cas-curator</artifactId>
-      <version>${oodt.version}</version>
-      <type>war</type>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.oodt</groupId>
-      <artifactId>cas-curator</artifactId>
-      <version>${oodt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.oodt</groupId>
       <artifactId>cas-filemgr</artifactId>
       <version>${oodt.version}</version>
     </dependency>
