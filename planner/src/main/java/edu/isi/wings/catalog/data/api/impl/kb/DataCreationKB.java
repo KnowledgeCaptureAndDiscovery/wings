@@ -180,10 +180,16 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		for (KBObject file : files) {
 			this.removeData(file.getID());
 		}
-		// Remove all properties
-		ArrayList<KBObject> props = this.kb.getPropertiesOfClass(cls, true);
+		// Remove metadata properties
+		ArrayList<KBObject> props = this.kb.getPropertiesOfClass(cls, false);
 		for (KBObject prop : props) {
-			this.removeMetadataProperty(prop.getID());
+			MetadataProperty mprop = this.getMetadataProperty(prop.getID());
+			if(mprop.getDomains().contains(dtypeid)) {
+				if(mprop.getDomains().size() > 1)
+					this.removeMetadataPropertyDomain(prop.getID(), dtypeid);
+				else
+					this.removeMetadataProperty(prop.getID());
+			}
 		}
 		// Remove all subclasses (recursive call)
 		ArrayList<KBObject> subclses = this.kb.getSubClasses(cls, true);
@@ -193,6 +199,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		}
 		// Finally remove the class itself
 		KBUtils.removeAllTriplesWith(this.ontkb, dtypeid, false);
+		
 		if(this.externalCatalog != null)
 			this.externalCatalog.removeDatatype(dtypeid);
 		return true;
@@ -364,7 +371,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		for(String domid : prop.getDomains())
 			this.ontkb.removePropertyDomainDisjunctive(propid, domid);
 		
-		// Rename all triples (this skips removing domain union classes)
+		// Remove all triples (this skips removing domain union classes)
 		KBUtils.removeAllTriplesWith(this.ontkb, propid, true);
 		KBUtils.removeAllTriplesWith(this.libkb, propid, true);
 		if(this.externalCatalog != null)
