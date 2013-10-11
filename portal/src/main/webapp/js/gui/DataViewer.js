@@ -264,7 +264,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     });
 
     // Create Save Button and it's handler
-    var deletedProperties = {};
+    var propmods = {addedProperties:{}, deletedProperties:{}, modifiedProperties:{} };
     var savebtn;
     if (This.advanced_user) {
         var savebtn = new Ext.Button({
@@ -272,8 +272,8 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             iconCls: 'saveIcon',
             disabled: true,
             handler: function() {
-                var addedProperties = {};
-                var modifiedProperties = {};
+                propmods.addedProperties = {};
+                propmods.modifiedProperties = {};
                 gridPanel.getStore().each(function(rec) {
                     // If this is a new or modified row/record
                     if (rec.dirty) {
@@ -281,17 +281,15 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                         rec.set('prop', sdata.prop);
                         var mod = rec.modified;
                         if (!mod.prop && !mod.range) {
-                            addedProperties[This.ontns + sdata.prop] = sdata;
+                            propmods.addedProperties[This.ontns + sdata.prop] = sdata;
                         } else {
                             var prop = mod.prop ? mod.prop: sdata.prop;
-                            modifiedProperties[This.ontns + prop] = sdata;
+                            propmods.modifiedProperties[This.ontns + prop] = sdata;
                         }
                     }
                 });
                 var nf = nameFormatField.value;
-                This.saveDatatype(
-                		id, addedProperties, deletedProperties, modifiedProperties, nf,
-                		gridPanel, savebtn, tab);
+                This.saveDatatype(id, propmods, nf, gridPanel, savebtn, tab);
             }
         });
     }
@@ -461,6 +459,8 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             iconCls: 'addIcon',
             handler: function() {
                 var p = new dataPropRange();
+                p.set('range', "xsd:string");
+                console.log(pos);
                 var pos = dataTypeStore.getCount();
                 editorPlugin.cancelEdit();
                 dataTypeStore.insert(pos, p);
@@ -485,7 +485,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                         // This property was just added, don't mark it as a
                         // deletedProperty for the server
                         } else {
-                        deletedProperties[This.ontns + prop] = 1;
+                        propmods.deletedProperties[This.ontns + prop] = 1;
                     }
                     dataTypeStore.remove(r);
                 }
@@ -1448,7 +1448,7 @@ DataViewer.prototype.addDatatype = function(parentNode) {
 };
 
 DataViewer.prototype.saveDatatype = function(
-		dtypeid, addedProperties, deletedProperties, modifiedProperties, nameFormat,
+		dtypeid, propmods, nameFormat,
 		gridPanel, savebtn, tab) {
 	var This = this;
     var url = This.op_url + '/saveDataTypeJSON';
@@ -1458,9 +1458,9 @@ DataViewer.prototype.saveDatatype = function(
         params: {
             props_json: Ext.encode({
                 format: nameFormat,
-                add: addedProperties,
-                del: deletedProperties,
-                mod: modifiedProperties
+                add: propmods.addedProperties,
+                del: propmods.deletedProperties,
+                mod: propmods.modifiedProperties
             }),
             data_type: dtypeid
         },
@@ -1483,7 +1483,7 @@ DataViewer.prototype.saveDatatype = function(
                     msg: data.warnings.join('<br/>')
                     });
             }
-            deletedProperties = {};
+            propmods.deletedProperties = {};
             This.refreshInactiveTabs();
             
             if(gridPanel)
