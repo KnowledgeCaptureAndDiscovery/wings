@@ -1,5 +1,7 @@
 package edu.isi.wings.catalog.data.api.impl.oodt;
 
+import java.io.DataOutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -25,15 +27,34 @@ public class CurationServiceAPI {
 		this.gson = new Gson();
 	}
 
-	private String query(String op, Object... args) {
+	private String query(String method, String op, Object... args) {
 		String url = this.curatorurl + this.service + op;
 		try {
-			String querystring = "policy=" + URLEncoder.encode(this.policy, "UTF-8");
+			String params = "policy=" + URLEncoder.encode(this.policy, "UTF-8");
 			for (int i = 0; i < args.length; i += 2) {
-				querystring += "&" + args[i] + "=" + URLEncoder.encode(args[i + 1].toString(), "UTF-8");
+				params += "&" + args[i] + "=" 
+						+ URLEncoder.encode(args[i+1].toString(), "UTF-8");
 			}
-			String result = IOUtils.toString(new URL(url + "?" + querystring));
-			return result;
+			
+			if("GET".equals(method)) {
+				URL urlobj = new URL(url + "?" + params);
+				return IOUtils.toString(urlobj);
+			}
+			else {
+				URL urlobj = new URL(url);
+				HttpURLConnection con = (HttpURLConnection) urlobj.openConnection();
+				con.setRequestMethod(method);
+				con.setDoOutput(true);
+				DataOutputStream out = new DataOutputStream(con.getOutputStream());
+				out.writeBytes(params);
+				out.flush();
+				out.close();
+				
+				String result = IOUtils.toString(con.getInputStream());
+				con.disconnect();
+				return result;
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -41,12 +62,13 @@ public class CurationServiceAPI {
 	}
 
 	public boolean removeProductType(ProductType type) {
-		String result = this.query("remove", "id", type.getProductTypeId());
+		String result = this.query("DELETE", "remove", 
+				"id", type.getProductTypeId());
 		return Boolean.parseBoolean(result);
 	}
 
 	public HashMap<String, String> getParentTypeMap() {
-		String result = this.query("getParentMap");
+		String result = this.query("GET", "getParentMap");
 		HashMap<?, ?> map = gson.fromJson(result, HashMap.class);
 		HashMap<String, String> ptypeMap = new HashMap<String, String>(); 
 		for(Object key : map.keySet()) {
@@ -56,12 +78,14 @@ public class CurationServiceAPI {
 	}
 
 	public boolean addParentForProductType(ProductType type, String parentId) {
-		String result = this.query("addParent", "id", type.getProductTypeId(), "parentId", parentId);
+		String result = this.query("POST", "addParent", 
+				"id", type.getProductTypeId(), 
+				"parentId", parentId);
 		return Boolean.parseBoolean(result);
 	}
 
 	public boolean removeParentForProductType(ProductType type) {
-		String result = this.query("removeParent", "id", type.getProductTypeId());
+		String result = this.query("DELETE", "removeParent", "id", type.getProductTypeId());
 		return Boolean.parseBoolean(result);
 	}
 
@@ -69,13 +93,16 @@ public class CurationServiceAPI {
 		String elementIds = "";
 		for(Element element: elementList)
 			elementIds += (elementIds != "" ? "," : "") + element.getElementId();
-		String result = this.query("addElements", "id", type.getProductTypeId(), 
+		String result = this.query("POST", "addElements", 
+				"id", type.getProductTypeId(), 
 				"elementIds", elementIds);
 		return Boolean.parseBoolean(result);
 	}
 
 	public List<Element> getElementsForProductType(ProductType type, boolean direct) {
-		String result = this.query("getElements" , "id", type.getProductTypeId(), "direct", direct);
+		String result = this.query("GET", "getElements",
+				"id", type.getProductTypeId(), 
+				"direct", direct);
 		List<Element> elementList = new ArrayList<Element>();
 		Object[] elementIds = gson.fromJson(result, ArrayList.class).toArray();
 		for(Object elementId : elementIds) {
@@ -86,7 +113,8 @@ public class CurationServiceAPI {
 	}
 
 	public boolean removeAllElementsForProductType(ProductType type) {
-		String result = this.query("removeAllElements" , "id", type.getProductTypeId());
+		String result = this.query("DELETE", "removeAllElements", 
+				"id", type.getProductTypeId());
 		return Boolean.parseBoolean(result);
 	}
 
@@ -94,13 +122,15 @@ public class CurationServiceAPI {
 		String elementIds = "";
 		for(Element element: elementList)
 			elementIds += (elementIds != "" ? "," : "") + element.getElementId();
-		String result = this.query("removeElements" , "id", type.getProductTypeId(),
+		String result = this.query("DELETE", "removeElements", 
+				"id", type.getProductTypeId(),
 				"elementIds", elementIds);
 		return Boolean.parseBoolean(result);
 	}
 	
 	public List<String> getProductTypeIdsHavingElement(Element el) {
-		String result = this.query("getTypesHavingElement" , "id", el.getElementId());
+		String result = this.query("GET", "getTypesHavingElement" , 
+				"id", el.getElementId());
 		Object[] typeIds = gson.fromJson(result, ArrayList.class).toArray();
 		return Arrays.asList((String[])typeIds);
 	}
