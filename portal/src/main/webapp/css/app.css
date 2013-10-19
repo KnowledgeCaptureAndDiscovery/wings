@@ -100,6 +100,10 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	background-image: url(../images/run.gif) !important
 }
 
+.stopIcon {
+	background-image: url(../images/cancel.png) !important
+}
+
 .docsIcon {
 	background-image: url(../images/docs.png) !important
 }

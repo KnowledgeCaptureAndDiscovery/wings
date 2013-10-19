@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import javax.servlet.ServletContext;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -13,6 +15,7 @@ import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
+import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
@@ -106,7 +109,7 @@ public class RunController {
 		return json.toJson(plan);
 	}
 
-	public String deleteRun(String rjson) {
+	public String deleteRun(String rjson, ServletContext context) {
 		HashMap<String, Object> ret = new HashMap<String, Object>();
 		ret.put("success", false);
 		JsonElement el = new JsonParser().parse(rjson);
@@ -115,14 +118,32 @@ public class RunController {
 
 		String runid = el.getAsJsonObject().get("id").getAsString();
 		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-		if (monitor.runExists(runid) && !monitor.deleteRun(runid))
-			return json.toJson(ret);
+		if (monitor.runExists(runid)) {
+			this.stopRun(runid, context);
+			if(!monitor.deleteRun(runid))
+				return json.toJson(ret);
+		}
 
 		ret.put("success", true);
 		return json.toJson(ret);
 	}
+	
+	public boolean stopRun(String runid, ServletContext context) {
+		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+		if(monitor.getRunDetails(runid).getRuntimeInfo().getStatus() 
+				== RuntimeInfo.Status.RUNNING) {
+			PlanExecutionEngine engine = (PlanExecutionEngine) context.getAttribute("engine_" + runid);
+			RuntimePlan rplan = (RuntimePlan) context.getAttribute("plan_" + runid);
+			if(engine != null && rplan != null) {
+				engine.abort(rplan);
+				return true;
+			}
+		}
+		return false;
+	}
 
-	public String runExpandedTemplate(String origtplid, String templatejson, String consjson) {
+	public String runExpandedTemplate(String origtplid, String templatejson, String consjson,
+			ServletContext context) {
 		Gson json = JsonHandler.createTemplateGson();
 		Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
 
@@ -142,19 +163,23 @@ public class RunController {
 			RuntimePlan rplan = new RuntimePlan(plan);
 			rplan.setExpandedTemplateID(xtpl.getID());
 			rplan.setOriginalTemplateID(origtplid);
-			this.runExecutionPlan(rplan);
+			this.runExecutionPlan(rplan, context);
 			return rplan.getID();
 		}
 		return "";
 	}
 
 	// Run the Runtime Plan
-	public void runExecutionPlan(RuntimePlan rplan) {
+	public void runExecutionPlan(RuntimePlan rplan, ServletContext context) {
 		synchronized (WriteLock.Lock) {
 			PlanExecutionEngine engine = config.getDomainExecutionEngine();
 			engine.getExecutionLogger().setWriterLock(WriteLock.Lock);
 			// "execute" below is an asynchronous call
 			engine.execute(rplan);
+			
+			// Save the engine for an abort if needed
+			context.setAttribute("plan_" + rplan.getID(), rplan);
+			context.setAttribute("engine_" + rplan.getID(), engine);
 		}
 	}
 }

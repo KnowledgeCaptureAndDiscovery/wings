@@ -217,7 +217,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 
 	private void shutdown() {		
 		try {
-			this.executor.awaitTermination(5, TimeUnit.SECONDS);
+			this.executor.awaitTermination(1, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			// Do nothing
 		}

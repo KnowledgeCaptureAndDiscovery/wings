@@ -242,11 +242,32 @@ RunBrowser.prototype.getBindingMetrics = function(bid, bindings) {
 	return metrics;
 };
 
+RunBrowser.prototype.stopRun = function(rec) {
+	var This = this;
+	var url = this.op_url + '/stopRun';
+	var msgTarget = this.runList.getEl();
+	msgTarget.mask('Stopping...', 'x-mask-loading');
+	Ext.Ajax.request({
+		url : url,
+		params : {
+			run_id : rec.data.id,
+		},
+		success : function(response) {
+			msgTarget.unmask();
+			This.runList.getStore().load();
+			
+		},
+		failure : function(response) {
+			_console(response.responseText);
+		}
+	});
+};
+
 RunBrowser.prototype.registerData = function(dsid, op_url, runid, tabPanelId) {
 	Ext.Msg.prompt("Save data..", "Name this dataset for your Data Catalog:", function(btn, text) {
 		if (btn == 'ok' && text) {
 			var newid = getRDFID(text);
-			var url = op_url + '&op=registerData';
+			var url = op_url + '/registerData';
 			var tabPanel = Ext.getCmp(tabPanelId);
 			var msgTarget = tabPanel.getEl();
 			var metrics = getBindingMetrics(dsid, tabPanel.bindings);
@@ -587,6 +608,16 @@ RunBrowser.prototype.getRunList = function() {
 						if (recs && recs.length) {
 							wRunStore.remove(recs);
 							This.tabPanel.remove(This.tabPanel.getActiveTab());
+						}
+					}
+				},
+				{
+					text : 'Stop',
+					iconCls : 'stopIcon',
+					handler : function() {
+						var recs = grid.getSelectionModel().getSelection();
+						if (recs && recs.length) {
+							This.stopRun(recs[0]);
 						}
 					}
 				}, '-', {

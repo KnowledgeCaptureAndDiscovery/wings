@@ -3,6 +3,7 @@ package edu.isi.wings.portal.servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +34,8 @@ public class ManageRuns extends HttpServlet {
 		Config config = new Config(request);
 		if(!config.checkDomain(response))
 			return;
+		
+		ServletContext context = this.getServletContext();
 		
 		String path = request.getPathInfo();
 		if (path == null)
@@ -82,10 +85,13 @@ public class ManageRuns extends HttpServlet {
         			String origtplid = request.getParameter("template_id");
         			String tpljson = request.getParameter("json");
         			String consjson = request.getParameter("constraints_json");
-        			out.print(rc.runExpandedTemplate(origtplid, tpljson, consjson));
+        			out.print(rc.runExpandedTemplate(origtplid, tpljson, consjson, context));
         		}
         		else if(op.equals("deleteRun")) {
-    				out.println(rc.deleteRun(request.getParameter("json")));
+    				out.println(rc.deleteRun(request.getParameter("json"), context));
+        		}
+        		else if(op.equals("stopRun")) {
+    				out.println(rc.stopRun(runid, context));
         		}
 		}
 	}
