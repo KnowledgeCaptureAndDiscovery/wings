@@ -216,6 +216,28 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 
 	@Override
 	public boolean moveDatatypeParent(String dtypeid, String fromtypeid, String totypeid) {
+		KBObject cls = this.kb.getConcept(dtypeid);
+		KBObject fromcls = this.kb.getConcept(fromtypeid);
+		KBObject tocls = this.kb.getConcept(totypeid);
+		ArrayList<KBObject> oldprops = this.kb.getPropertiesOfClass(fromcls, false);
+		ArrayList<KBObject> newprops = this.kb.getPropertiesOfClass(tocls, false);
+		ArrayList<KBObject> removedProps = new ArrayList<KBObject>(); 
+		for(KBObject oldprop : oldprops) {
+			if(!newprops.contains(oldprop)) {
+				removedProps.add(oldprop);
+			}
+		}
+		
+		for(KBObject ind : this.kb.getInstancesOfClass(cls, false)) {
+			for(KBObject prop : removedProps) {
+				for(KBTriple triple : this.kb.genericTripleQuery(ind, prop, null)) 
+					this.libkb.removeTriple(triple);
+			}
+		}
+		
+		if(!this.ontkb.setSuperClass(dtypeid, totypeid))
+			return false;
+
 		if(this.externalCatalog != null)
 			this.externalCatalog.moveDatatypeParent(dtypeid, fromtypeid, totypeid);
 		return true;

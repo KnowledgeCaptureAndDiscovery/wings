@@ -837,6 +837,16 @@ public class KBAPIJena implements KBAPI {
 			clsobj.addSuperClass(pobj);
 		return new KBObjectJena(clsobj);
 	}
+	
+	public boolean setSuperClass(String id, String parentid) {
+		OntClass clsobj = ontmodel.getOntClass(id);
+		Resource pobj = ontmodel.getResource(parentid);
+		if (pobj != null) {
+			clsobj.setSuperClass(pobj);
+			return true;
+		}
+		return false;
+	}
 
 	public KBObject createObjectProperty(String id) {
 		OntProperty propobj = ontmodel.createObjectProperty(id);

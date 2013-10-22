@@ -169,7 +169,6 @@ DataViewer.prototype.importFromExternalCatalog = function(win, dtypeid, xdataid,
 		var mpropid = this.ontns + getLocalName(pid);
 		propvals[mpropid] = metadata[pid];
 	}
-	console.log(propvals);
 
     Ext.get(win.getId()).mask("Importing..");
     var url = this.op_url + "/importFromExternalCatalog";
@@ -460,7 +459,6 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             handler: function() {
                 var p = new dataPropRange();
                 p.set('range', "xsd:string");
-                console.log(pos);
                 var pos = dataTypeStore.getCount();
                 editorPlugin.cancelEdit();
                 dataTypeStore.insert(pos, p);
@@ -1090,7 +1088,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
     this.dataTreePanel.on("itemclick", Ext.Function.bind(this.handleTreeClick, this));
 
     this.dataTreePanel.getStore().on('move', function(node, oldp, newp) {
-        moveDatatypeTo(node.data.id, oldp.data.id, newp.data.id, This.op_url, This.dataTreePanel);
+        This.moveDatatypeTo(node.data.id, oldp.data.id, newp.data.id);
     });
 };
 

@@ -126,6 +126,8 @@ public interface KBAPI {
 	public KBObject createClass(String id);
 
 	public KBObject createClass(String id, String parentid);
+	
+	public boolean setSuperClass(String id, String parentid);
 
 	public KBObject createIndividual(String id);
 	

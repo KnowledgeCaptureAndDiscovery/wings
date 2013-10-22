@@ -409,11 +409,15 @@ public class DataController {
 		if(dtype == null || dtype == null || totype == null)
 			return false;
 		try {
-			// FIXME: Implement this
-			return false;
+			return dc.moveDatatypeParent(dtype, fromtype, totype) 
+					&& dc.save();
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			return false;
+		}
+		finally {
+			dc.end();
 		}
 	}
 
