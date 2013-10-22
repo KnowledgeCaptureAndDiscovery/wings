@@ -184,12 +184,6 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
         data: iostore.outputs
     });
 
-    // Some generic options for editors
-    var opts = {
-        typeAhead: true,
-        forceSelection: true,
-        allowBlank: false
-    };
     var iDataGrid,
     iParamGrid,
     oDataGrid;
@@ -208,7 +202,10 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
                 },
             displayField: 'type',
             valueField: 'id',
-            queryMode: 'local'
+            queryMode: 'local',
+            typeAhead: true,
+            forceSelection: true,
+            allowBlank: false
         });
         var pTypeEditor = new Ext.form.ComboBox({
             store: {
@@ -234,7 +231,10 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
                 },
             displayField: 'type',
             valueField: 'id',
-            queryMode: 'local'
+            queryMode: 'local',
+            typeAhead: true,
+            forceSelection: true,
+            allowBlank: false
         });
         var txtEditor = new Ext.form.field.Text({
             allowBlank: false
@@ -246,9 +246,6 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
             allowDecimals: true
         });
         var boolEditor = new Ext.form.field.Checkbox();
-
-        Ext.apply(typeEditor.field, opts);
-        Ext.apply(pTypeEditor.field, opts);
 
         var columns = [{
             dataIndex: 'role',
@@ -329,19 +326,20 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
 
                     if (i != 1)
                         role = new DataRole({
-                        pfx: pfx,
-                        dim: 0
-                    });
+                        	prefix: pfx,
+                        	dimensionality: 0
+                        });
                     else
                         role = new ParamRole({
-                        pfx: pfx
-                    });
+                        	prefix: pfx
+                        });
                     panel.editorPlugin.cancelEdit();
                     gridStore.insert(pos, role);
-                    // sm.selectRange(0);
-                    // panel.editorPlugin.startEditByPosition({row:pos,
-                    // column:1});
-                    }
+                    panel.editorPlugin.startEditByPosition({
+                    	row:pos,
+                    	column:1
+                    });
+                }
             }, {
                 iconCls: 'delIcon',
                 text: 'Delete',
@@ -356,7 +354,7 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
                         gridStore.remove(r);
                     }
                     // mainPanel.doLayout();
-                    }
+                }
             }];
         }
 
@@ -584,28 +582,67 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                 location: c.location
             };
             var notok = false;
+            var message = "";
+            var names = {};
             comp.rulesText = tab.down("#rules").getValue();
             
             mainPanel.iDataGrid.getStore().each(function(rec) {
-                if (!rec.data.role || !rec.data.type || !rec.data.prefix)
+                if (!rec.data.role || !rec.data.type || !rec.data.prefix) {
+                	if(!rec.data.role) message += "Input Name not specified.. ";
+                	if(!rec.data.type) message += "Input Type not specified.. ";
+                	if(!rec.data.prefix) message += "Input Prefix not specified.. ";
                     notok = true;
-                comp.inputs.push(This.prepareRoleRecord(rec.data, false));
+                }
+                else if(names[rec.data.role]) {
+                	message += "Duplicate role name found: "+rec.data.role;
+                	notok = true;
+                }
+                else {
+                	names[rec.data.role] = 1;
+                	comp.inputs.push(This.prepareRoleRecord(rec.data, false));
+                }
             });
             mainPanel.iParamGrid.getStore().each(function(rec) {
-                if (!rec.data.role || !rec.data.type || !rec.data.prefix)
+                if (!rec.data.role || !rec.data.type || !rec.data.prefix) {
+                	if(!rec.data.role) message += "Input Parameter Name not specified.. ";
+                	if(!rec.data.type) message += "Input Parameter Type not specified.. ";
+                	if(!rec.data.prefix) message += "Input Parameter Prefix not specified.. ";
                     notok = true;
-                comp.inputs.push(This.prepareRoleRecord(rec.data, true));
+                }
+                else if(rec.data.type != This.ns['xsd'] + "string" && !rec.data.paramDefaultValue) {
+                	message += "Input Parameter Default Value not specified.. ";
+                	notok = true;
+                }
+                else if(names[rec.data.role]) {
+                	message += "Duplicate role name found: "+rec.data.role;
+                	notok = true;
+                }
+                else {
+                	names[rec.data.role] = 1;
+                	comp.inputs.push(This.prepareRoleRecord(rec.data, true));
+                }
             });
             mainPanel.oDataGrid.getStore().each(function(rec) {
-                if (!rec.data.role || !rec.data.type || !rec.data.prefix)
+                if (!rec.data.role || !rec.data.type || !rec.data.prefix) {
+                	if(!rec.data.role) message += "Output Name not specified.. ";
+                	if(!rec.data.type) message += "Output Type not specified.. ";
+                	if(!rec.data.prefix) message += "Output Prefix not specified.. ";
                     notok = true;
-                comp.outputs.push(This.prepareRoleRecord(rec.data, false));
+                }
+                else if(names[rec.data.role]) {
+                	message += "Duplicate role name found: "+rec.data.role;
+                	notok = true;
+                }
+                else {
+                	names[rec.data.role] = 1;
+                	comp.outputs.push(This.prepareRoleRecord(rec.data, false));
+                }
             });
             if (notok) {
                 Ext.MessageBox.show({
                     icon: Ext.MessageBox.ERROR,
                     buttons: Ext.MessageBox.OK,
-                    msg: "Please fill out all fields before saving"
+                    msg: message
                 });
                 return;
             }
@@ -631,15 +668,12 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                             icon: Ext.MessageBox.ERROR,
                             buttons: Ext.MessageBox.OK,
                             msg: "Could not save:<br/>" + response.responseText.replace(/\n/, '<br/>')
-                            });
-                        // if(window.console)
-                        // window.console.log(response.responseText);
-                        }
+                        });
+                    }
                 },
                 failure: function(response) {
                     Ext.get(This.treePanel.getId()).unmask();
-                    if (window.console)
-                        window.console.log(response.responseText);
+                    _console(response.responseText);
                 }
             });
         }
