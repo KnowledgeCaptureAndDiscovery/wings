@@ -89,15 +89,22 @@ public class ManageDomains extends HttpServlet {
 		}
 		
 		synchronized (WriteLock.Lock) {
-			if (op.equals("deleteDomain")) {
+			if (op.equals("createDomain")) {
+				out.println(dc.createDomain(domain));
+			} 
+			else if (op.equals("deleteDomain")) {
 				if (dc.deleteDomain(domain))
 					out.print("OK");
-			} else if (op.equals("importDomain")) {
+			} 
+			else if (op.equals("renameDomain")) {
+				String newname = request.getParameter("newname");
+				if (dc.renameDomain(domain, newname))
+					out.print("OK");
+			} 
+			else if (op.equals("importDomain")) {
 				String location = request.getParameter("location");
 				out.println(dc.importDomain(domain, location));
-			} else if (op.equals("createDomain")) {
-				out.println(dc.createDomain(domain));
-			}
+			} 
 		}
 	}
 

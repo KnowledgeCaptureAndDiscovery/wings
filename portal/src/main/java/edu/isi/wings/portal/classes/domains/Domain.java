@@ -289,6 +289,67 @@ public class Domain {
 		return true;
 	}
 
+	public static Domain renameDomain(Domain domain, String newname, Config config) {
+		Properties props = config.getProperties(domain);
+		DataCreationAPI dc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+		
+		File tempdir;
+		try {
+			 tempdir = File.createTempFile("domain-", "-temp");
+			 if(!tempdir.delete() || !tempdir.mkdirs())
+				 return null;
+		} catch (IOException e1) {
+			return null;
+		}
+		
+		Domain todom = Domain.createDefaultDomain(newname, 
+				config.getUserDir(), config.getUserUrl());
+		todom.saveDomain();
+		
+		props = config.getProperties(todom);
+		DataCreationAPI todc = DataFactory.getCreationAPI(props);
+		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
+		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
+		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
+		
+		// Copy into non-triple-store apis
+		todc.copyFrom(dc);
+		toacc.copyFrom(acc);
+		toccc.copyFrom(ccc);
+		totc.copyFrom(tc);
+		
+		// Copy legacy data/code directories to new data/code storage directory
+		File srcDataDir = new File(domain.getDomainDirectory() + fsep
+				+ domain.getDataLibrary().getStorageDirectory());
+		File destDataDir = new File(todom.getDomainDirectory() + fsep
+				+ todom.getDataLibrary().getStorageDirectory());
+		File srcCodeDir = new File(domain.getDomainDirectory() + fsep
+				+ domain.getConcreteComponentLibrary().getStorageDirectory());
+		File destCodeDir = new File(todom.getDomainDirectory() + fsep
+				+ todom.getConcreteComponentLibrary().getStorageDirectory());
+		try {
+			if(srcDataDir.isDirectory())
+				FileUtils.copyDirectory(srcDataDir, destDataDir);
+			if(srcCodeDir.isDirectory()) {
+				FileUtils.copyDirectory(srcCodeDir, destCodeDir);
+				// FIXME: Setting executable permissions on all files for now
+				for(File f : FileUtils.listFiles(destCodeDir, null, true)) {
+					f.setExecutable(true);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		deleteDomain(domain, config, true);
+		
+		return todom;
+	}
+	
+	
 	/*
 	 * Constructors / Initialization
 	 */

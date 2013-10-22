@@ -205,6 +205,24 @@ public class DomainController {
 		return false;
 	}
 	
+	public boolean renameDomain(String domain, String newname) {
+		DomainInfo dominfo = this.user_domains.get(domain);
+		if(dominfo != null) {
+			this.user_domains.remove(domain);
+			Domain dom = new Domain(dominfo);
+			Domain newdom = Domain.renameDomain(dom, newname, config);
+			if(newdom == null)
+				return false;
+			DomainInfo newdominfo = new DomainInfo(newdom);
+			this.user_domains.put(newname, newdominfo);
+			if(this.domain.getDomainName().equals(domain))
+				this.domain = newdom;
+		}
+		if(this.saveUserConfig(this.userConfigFile))
+			return true;
+		return false;
+	}
+	
 	public boolean streamDomain(String domName, HttpServletResponse response, ServletContext context) {
 		DomainInfo dominfo = this.user_domains.get(domName);
 		if(dominfo == null)

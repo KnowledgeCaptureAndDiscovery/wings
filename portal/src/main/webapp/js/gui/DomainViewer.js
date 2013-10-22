@@ -27,7 +27,7 @@ DomainViewer.prototype.createTabPanel = function() {
         }]
         });
     this.tabPanel.on('tabchange', function(tp, tab) {
-    	var rec = This.domainsGrid.getStore().find('name', tab.title);
+    	var rec = This.domainsGrid.getStore().findExact('name', tab.title);
     	if(rec < 0)
             This.domainsGrid.getSelectionModel().deselectAll(true);
     	else
@@ -86,6 +86,10 @@ DomainViewer.prototype.createLeftPanel = function() {
         		itemId: 'delbutton',
         		text: 'Delete',
         		iconCls: 'delIcon'
+        	}, {
+        		itemId: 'renamebutton',
+        		text: 'Rename',
+        		iconCls: 'docsIcon'
         	}, {
         		itemId: 'downloadbutton',
         		text: 'Download',
@@ -158,9 +162,8 @@ DomainViewer.prototype.openDomain = function(name) {
 DomainViewer.prototype.createDomain = function(domname) {
 	var This = this;
     var domname = getRDFID(domname);
-    var rec = This.domainsGrid.getStore().find('name', domname);
+    var rec = This.domainsGrid.getStore().findExact('name', domname);
     if (rec != -1) {
-    	console.log(rec);
         showError(domname + ' already exists ! Choose a different name.');
         return;
     }
@@ -198,9 +201,8 @@ DomainViewer.prototype.createDomain = function(domname) {
 DomainViewer.prototype.importDomain = function(domname, loc) {
 	var This = this;
     var domname = getRDFID(domname);
-    var rec = This.domainsGrid.getStore().find('name', domname);
+    var rec = This.domainsGrid.getStore().findExact('name', domname);
     if (rec != -1) {
-    	console.log(rec);
         showError(domname + ' already exists ! Choose a different name.');
         return;
     }
@@ -279,18 +281,48 @@ DomainViewer.prototype.deleteDomain = function(domname) {
         },
         success: function(response) {
         	 Ext.get(This.domainsGrid.getId()).unmask();
-        	 try {
-        		 if(response.responseText == "OK") {
-        			 var rec = This.domainsGrid.getStore().find('name', domname);
-        			 This.domainsGrid.getStore().removeAt(rec);
-        		 }
-        		 else {
-        			 _console(response.responseText);
-        		 }
-        	 }
-        	 catch (e) {
-        		 _console(e.message);
-        	 }
+			 if (response.responseText == "OK") {
+				var rec = This.domainsGrid.getStore().findExact('name', domname);
+				This.domainsGrid.getStore().removeAt(rec);
+			 } else {
+				_console(response.responseText);
+			 }
+        },
+        failure: function(response) {
+        	Ext.get(This.domainsGrid.getId()).unmask();
+        	_console(response.responseText);
+        }
+        
+    });
+};
+
+DomainViewer.prototype.renameDomain = function(domname, newname) {
+	var This = this;
+    var newname = getRDFID(newname);
+    var rec = This.domainsGrid.getStore().findExact('name', newname);
+    if (rec != -1) {
+        showError(newname + ' already exists ! Choose a different name.');
+        return;
+    }
+    var url = This.op_url + '/renameDomain';
+    Ext.get(This.domainsGrid.getId()).mask("Renaming Domain..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+        	domain: domname,
+        	newname: newname
+        },
+        success: function(response) {
+        	 Ext.get(This.domainsGrid.getId()).unmask();
+			 if (response.responseText == "OK") {
+				var rec = This.domainsGrid.getStore().findRecord('name', domname);
+				rec.set("name", newname);
+				if(This.store.selected == domname)
+					This.store.selected = newname;
+				This.domainsGrid.reconfigure();
+			} else {
+				_console(response.responseText);
+			}
         },
         failure: function(response) {
         	Ext.get(This.domainsGrid.getId()).unmask();
@@ -413,6 +445,20 @@ DomainViewer.prototype.createListeners = function() {
 	        	This.deleteDomain(domain.get("name"));
 	        }
 	    });
+	});
+	this.domainsGrid.down('#renamebutton').on("click", function() {
+		// Delete domain
+		var sels = This.domainsGrid.getSelectionModel().getSelection();
+		if(!sels.length) {
+			showError("Click on a domain first");
+			return;
+		}
+		var domain = sels[0];
+	    Ext.MessageBox.prompt("Rename domain", "Enter the new name", function(btn, txt) {
+	        if (btn == "ok" && txt) {
+	        	This.renameDomain(domain.get("name"), txt);
+	        }
+	    }, This, false, domain.get('name'));
 	});
 };
 
