@@ -23,6 +23,7 @@ public class Component extends URIEntity {
 	ArrayList<String> rules;
 	ArrayList<String> inheritedRules;
 	String location;
+	String documentation;
 
 	public Component(String id, int type) {
 		super(id);
@@ -79,5 +80,13 @@ public class Component extends URIEntity {
 
 	public void setLocation(String location) {
 		this.location = location;
+	}
+
+	public String getDocumentation() {
+	    return documentation;
+	}
+
+	public void setDocumentation(String documentation) {
+	    this.documentation = documentation;
 	}
 }

@@ -579,12 +579,14 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                 inputs: [],
                 outputs: [],
                 rulesText: "",
+                documentation: "",
                 location: c.location
             };
             var notok = false;
             var message = "";
             var names = {};
             comp.rulesText = tab.down("#rules").getValue();
+            comp.documentation = tab.down("#doc").getValue();
             
             mainPanel.iDataGrid.getStore().each(function(rec) {
                 if (!rec.data.role || !rec.data.type || !rec.data.prefix) {
@@ -609,7 +611,8 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                 	if(!rec.data.prefix) message += "Input Parameter Prefix not specified.. ";
                     notok = true;
                 }
-                else if(rec.data.type != This.ns['xsd'] + "string" && !rec.data.paramDefaultValue) {
+                else if(rec.data.type != This.ns['xsd'] + "string" && 
+               		 (rec.data.paramDefaultValue+"") == "") {
                 	message += "Input Parameter Default Value not specified.. ";
                 	notok = true;
                 }
@@ -777,22 +780,26 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 		}
 	});
 
+	 var editable = (This.advanced_user && This.load_concrete == c.concrete);
     var mainPanelItems = [ tab.ioEditor ];
     mainPanelItems.push(This.getRulesTab('Rules', 'rules', compStore.rules, 
-    		This.advanced_user && This.load_concrete == c.concrete, tab, savebtn));
+    		editable, tab, savebtn));
     mainPanelItems.push(This.getRulesTab('Inherited Rules', 'inhrules', 
     		compStore.inheritedRules, false, tab, savebtn));
+    mainPanelItems.push(This.getDocumentationTab('doc', compStore.documentation,
+     		editable, tab, savebtn));
     
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
         layout: 'fit',
         tbar: tbar,
+        bodyStyle: editable ? '' : 'background-color:#ddd',
         items: {
         	xtype: 'tabpanel',
         	margin: 5,
         	plain: true,
-        	tbar: (This.advanced_user && This.load_concrete == c.concrete) ? [ savebtn ] : null,
+        	tbar: editable ? [ savebtn ] : null,
         	items: mainPanelItems
         }
     });
@@ -921,34 +928,68 @@ ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, edita
         value: rulestr,
         border: false
     });
-
+    
     var keyfn = function(obj, e) {
-        var key = e.getKey();
-        if (key >= 33 && key <= 40)
-            return;
-        if (key >= 16 && key <= 18)
-            return;
-        if (key >= 112 && key <= 123)
-            return;
-        if (key >= 90 && key <= 91)
-            return;
-        if (key == 27)
-            return;
-        tab.setTitle("*" + tab.title.replace(/^\*/, ''));
-        savebtn.setDisabled(false);
-        //rulesArea.un('keyup', keyfn);
-    };
-    if(editable)
-    	rulesArea.on('keyup', keyfn);
-
-    return new Ext.Panel({
+       var key = e.getKey();
+       if (key >= 33 && key <= 40)
+           return;
+       if (key >= 16 && key <= 18)
+           return;
+       if (key >= 112 && key <= 123)
+           return;
+       if (key >= 90 && key <= 91)
+           return;
+       if (key == 27)
+           return;
+       tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+       savebtn.setDisabled(false);
+       //item.un('keyup', keyfn);
+   };
+   if(editable)
+   	rulesArea.on('keyup', keyfn);
+    
+   return new Ext.Panel({
         title: 'Rules',
         iconCls: 'inferIcon',
         layout: 'fit',
         border: false,
         items: rulesArea,
         title: title,
-    });
+   });
+};
+
+ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab, savebtn) {
+	var This = this;
+	if(!editable) {
+		return new Ext.Panel({
+	        title: 'Documentation',
+	        iconCls: 'docsIcon',
+	        layout: 'fit',
+	        border: false,
+	        bodyPadding: 10,
+	        autoScroll: true,
+	        bodyCls: 'docsDiv',
+	        html: doc
+	    });
+	}
+	else {
+		var docArea = new Ext.form.HtmlEditor({
+			itemId: id,
+			title: 'Documentation',
+			iconCls: 'docsIcon',
+			layout: 'fit',
+			region : 'center',
+			border : false,
+			enableFont : false,
+			bodyCls : 'docsDiv',
+			value : doc
+		});
+		docArea.on('sync', function() {
+			tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+	      savebtn.setDisabled(false);
+		});
+		return docArea;
+	}
 };
 
 ComponentViewer.prototype.initialize = function() {

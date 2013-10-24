@@ -88,6 +88,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		}
 
 		if (details) {
+			comp.setDocumentation(this.getComponentDocumentation(compobj));
+			
 			ArrayList<KBObject> inobjs = this.getComponentInputs(compobj);
 			for (KBObject inobj : inobjs) {
 				comp.addInput(this.getRole(inobj));
@@ -182,7 +184,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 				return false;
 			this.writerkb.addTriple(cobj, outProp, roleobj);
 		}
-
+		if(comp.getDocumentation() != null)
+			this.setComponentDocumentation(cobj, comp.getDocumentation());
+		
 		if(comp.getLocation() != null)
 			this.setComponentLocation(cid, comp.getLocation());
 		
@@ -328,7 +332,20 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
 		return kb.getPropertyValues(compobj, outProp);
 	}
-
+	
+	private String getComponentDocumentation(KBObject compobj) {
+		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
+		KBObject doc = kb.getPropertyValue(compobj, docProp);
+		if(doc != null && doc.getValue() != null)
+		    return doc.getValue().toString();
+		return null;
+	}
+	
+	private void setComponentDocumentation(KBObject compobj, String doc) {
+		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
+		kb.setPropertyValue(compobj, docProp, kb.createLiteral(doc));
+	}
+	
 	private ComponentRole getRole(KBObject argobj) {
 		ComponentRole arg = new ComponentRole(argobj.getID());
 		KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");
