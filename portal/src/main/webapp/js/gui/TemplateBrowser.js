@@ -121,6 +121,11 @@ TemplateBrowser.prototype.createNewTemplate = function() {
 		if (btn == 'ok' && text) {
 			var tname = getRDFID(text);
 			var tid = This.getTemplateID(tname);
+            var enode = This.treePanel.getStore().getNodeById(tid);
+            if (enode) {
+                showError('Template "' + tname + '" already exists');
+                return;
+            }
 			var url = This.op_url + '/newTemplate?template_id=' + escape(tid);
 			var msgTarget = Ext.get(This.treePanel.getId());
 			msgTarget.mask('Creating...', 'x-mask-loading');
