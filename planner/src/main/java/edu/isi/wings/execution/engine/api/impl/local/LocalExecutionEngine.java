@@ -107,7 +107,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 		executor.submit(new StepExecutionThread(exe, planexe, planEngine, monitor));
 	}
 
-    class StepExecutionThread implements Runnable {
+  class StepExecutionThread implements Runnable {
     	RuntimeStep exe;
     	RuntimePlan planexe;
     	PlanExecutionEngine planEngine;
@@ -123,8 +123,8 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     		this.logger = monitor;
     	}
     	
-        @Override
-        public void run() {
+      @Override
+      public void run() {
     		exe.onStart(this.logger);
     		try {
     			ArrayList<String> args = new ArrayList<String>();
@@ -151,7 +151,14 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			}
     			exe.onUpdate(this.logger, StringUtils.join(args, " "));
     			
+          
+          // Create a temporary directory
+          File tempdir = File.createTempFile(planexe.getName()+"-", "-"+exe.getName());
+          if(!tempdir.delete() || !tempdir.mkdirs())
+             throw new Exception("Cannot create temp directory");
+          
     			ProcessBuilder pb = new ProcessBuilder(args);
+    			pb.directory(tempdir);
     			Process p = pb.start();
     			exe.setProcess(p);
     			
@@ -178,7 +185,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			
     			if(fout != null)
     				fout.close();
-    			
+
+    			// Delete temp directory
+          tempdir.delete();
+          
     			if(p.exitValue() == 0) 
     				exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
     			else
@@ -189,10 +199,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			//e.printStackTrace();
     		}
     		finally {
-				this.planEngine.onStepEnd(planexe);
+    		  this.planEngine.onStepEnd(planexe);
     		}
-        }
-    }
+      }
+  }
 
 	@Override
 	public void abort(RuntimeStep exe) {
