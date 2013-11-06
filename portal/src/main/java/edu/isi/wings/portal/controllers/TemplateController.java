@@ -174,6 +174,10 @@ public class TemplateController {
 		Template tpl = null;
 		try {
 			tpl = JsonHandler.getTemplateFromJSON(this.json, templatejson, consjson);
+			
+			if(!tpl.getMetadata().getContributors().contains(this.config.getUserId()))
+				tpl.getMetadata().addContributor(this.config.getUserId());
+			
 			if(tpl != null) {
 				boolean ok = false;
 				if(tplid.equals(tpl.getID()))
