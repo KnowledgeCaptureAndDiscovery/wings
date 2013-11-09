@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
@@ -187,7 +188,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     				fout.close();
 
     			// Delete temp directory
-          tempdir.delete();
+    			FileUtils.deleteDirectory(tempdir);
           
     			if(p.exitValue() == 0) 
     				exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
