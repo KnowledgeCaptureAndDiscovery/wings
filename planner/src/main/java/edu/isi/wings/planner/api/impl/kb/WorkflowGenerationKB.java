@@ -910,18 +910,20 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								if (cons.getPredicate().getID()
 										.equals(ncons.getPredicate().getID())) {
 									if (!cons.getObject().isLiteral()) {
-										// If this value is already bound to a
-										// variable.
-										// - Then replace all occurences of the
-										// variable with the value
-										/*this.addExplanation("Setting ?"
-												+ cons.getObject().getName() + " " + " to "
-												+ ncons.getObject().getValue() + " because "
-												+ cons.getPredicate().getName() + " of "
-												+ var.getBinding().getName() + " is "
-												+ ncons.getObject().getValue());*/
-										engine.replaceObjectInConstraints(cons.getObject(),
-												ncons.getObject());
+									  if(ncons.getObject().isLiteral()) {
+  										// If this value is already bound to a
+  										// variable.
+  										// - Then replace all occurences of the
+  										// variable with the value
+  										/*this.addExplanation("Setting ?"
+  												+ cons.getObject().getName() + " " + " to "
+  												+ ncons.getObject().getValue() + " because "
+  												+ cons.getPredicate().getName() + " of "
+  												+ var.getBinding().getName() + " is "
+  												+ ncons.getObject().getValue());*/
+  										engine.replaceObjectInConstraints(cons.getObject(),
+  												ncons.getObject());
+									  }
 									} else if (!cons.getObject().getValue()
 											.equals(ncons.getObject().getValue())) {
 										// If this is already bound to a value,
