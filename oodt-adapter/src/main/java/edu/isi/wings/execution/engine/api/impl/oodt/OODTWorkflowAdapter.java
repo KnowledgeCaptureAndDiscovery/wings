@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 import org.apache.oodt.cas.metadata.Metadata;
+import org.apache.oodt.cas.wmservices.client.WmServicesClient;
+import org.apache.oodt.cas.workflow.structs.Graph;
+import org.apache.oodt.cas.workflow.structs.ParentChildWorkflow;
 import org.apache.oodt.cas.workflow.structs.Workflow;
 import org.apache.oodt.cas.workflow.structs.WorkflowTask;
 import org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration;
@@ -25,16 +28,19 @@ public class OODTWorkflowAdapter {
 	String jobdir;
 	String wmurl;
 	String fmurl;
+	String wmsurl;
 	String fmprefix;
 	String wlogfile;
 	
 	XmlRpcWorkflowManagerClient wmclient;
 	
-	public OODTWorkflowAdapter(String wmurl, String fmurl, String fmprefix,
+	public OODTWorkflowAdapter(String wmurl, String wmsurl, 
+	    String fmurl, String fmprefix,
 			String codedir, String datadir,
 			String jobdir, String wlogfile) {
 		
 		this.wmurl = wmurl;
+		this.wmsurl = wmsurl;
 		this.fmurl = fmurl;
 		this.fmprefix = fmprefix;
 		
@@ -52,9 +58,6 @@ public class OODTWorkflowAdapter {
 	
 	public Workflow runWorkflow(RuntimePlan planexe) 
 			throws Exception {
-		
-		Workflow wflow = new Workflow();
-		wflow.setId(planexe.getID());
 		
 		// Get List of all Jobs
 		HashMap<String, WorkflowTask> tasksById = new HashMap<String, WorkflowTask>();
@@ -79,27 +82,26 @@ public class OODTWorkflowAdapter {
 				inputs.add(input.getBinding());
 			for(ExecutionFile output : step.getOutputFiles())
 				outputs.add(output.getBinding());
-
 			WorkflowTask task = this.getTask(stepexe, inputs, outputs, argstring);
 			
-			tasksById.put(stepexe.getID(),  task);
+			tasksById.put(stepexe.getName(),  task);
 			for(ExecutionFile output : step.getOutputFiles())
-				opProducers.put(output.getID(), stepexe.getID());
+				opProducers.put(output.getName(), stepexe.getName());
 		}
-		
+    
 		// Get Parent Child Relationship between jobs
 		HashMap <String, ArrayList<String>> parents = 
 				new HashMap <String, ArrayList<String>>();
 		for (RuntimeStep stepexe : planexe.getQueue().getAllSteps()) {
 			ExecutionStep step = stepexe.getStep();
-			ArrayList<String> chparents = parents.get(stepexe.getID());
+			ArrayList<String> chparents = parents.get(stepexe.getName());
 			if (chparents == null)
 				chparents = new ArrayList<String>();
 			for (ExecutionFile input : step.getInputFiles()) {
-				if (opProducers.containsKey(input.getID()))
-					chparents.add(opProducers.get(input.getID()));
+				if (opProducers.containsKey(input.getName()))
+					chparents.add(opProducers.get(input.getName()));
 			}
-			parents.put(stepexe.getID(), chparents);
+			parents.put(stepexe.getName(), chparents);
 		}
 
 		// Arrange Jobs into Job Levels
@@ -115,32 +117,75 @@ public class OODTWorkflowAdapter {
 			}
 			lvljobs.add(jobid);
 		}
-	    
-	    // Add Jobs to Workflow
-	    int jobnum = 1;
-	    for (Integer lvl : jobLevels.keySet()) {
-	      for (String jobid : jobLevels.get(lvl)) {
-	    	  WorkflowTask task = tasksById.get(jobid);
-	    	  // Set job number specific configs
-	    	  String taskid = "Job"+jobnum;
-	    	  task.getTaskConfig().addConfigProperty("LOGFILE", task.getTaskName()+".log");
-	    	  task.getTaskConfig().addConfigProperty("JOBID", taskid);
-	    	  wflow.getTasks().add(task);
-	    	  jobnum++;
-	      }
-	    }
+    
+		// Create workflow graph
+    Graph graph = new Graph();
+    graph.setExecutionType("sequential");
+    graph.setModelId(planexe.getName());
+    graph.setModelName(planexe.getName());
+    
+    ParentChildWorkflow pcw = new ParentChildWorkflow(graph);
+    pcw.setId(planexe.getName());
+    
+    // Add Jobs to Workflow
+    int jobnum = 1;
+    for (Integer lvl : jobLevels.keySet()) {
+      Graph subGraph = null;
+      
+      /*if(jobLevels.get(lvl).size() > 1) {
+        subGraph = new Graph();
+        subGraph.setParent(graph);
+        subGraph.setExecutionType("parallel");
+        subGraph.setModelId(planexe.getName()+"_level_"+lvl);
+        subGraph.setModelName(planexe.getName()+"_level_"+lvl);
+      }
+      else {*/
+        subGraph = graph;
+      //}
+      
+      for (String jobid : jobLevels.get(lvl)) {
+        WorkflowTask task = tasksById.get(jobid);
+        // Set job number specific configs
+        String taskid = "Job" + jobnum;
+        task.getTaskConfig().addConfigProperty("LOGFILE",
+            task.getTaskName() + ".log");
+        task.getTaskConfig().addConfigProperty("JOBID", taskid);
+        
+        Graph taskGraph = new Graph();
+        taskGraph.setExecutionType("task");
+        taskGraph.setModelIdRef(task.getTaskId());
+        taskGraph.setTask(task);
+        
+        taskGraph.setParent(subGraph);
+        subGraph.getChildren().add(taskGraph);
+        
+        pcw.getTasks().add(task);
+        jobnum++;
+      }
+      
+      if(graph != subGraph)
+        graph.getChildren().add(subGraph);
+    }
 
-	    PrintStream wlog = new PrintStream(this.jobdir + this.wlogfile);
-	    wlog.println("Total Jobs: "+(jobnum-1));
-	    wlog.close();
-
-	    this.wmclient.executeWorkflow(wflow, new Metadata());
-		return wflow;
+    PrintStream wlog = new PrintStream(this.jobdir + this.wlogfile);
+    wlog.println("Total Jobs: " + (jobnum - 1));
+    wlog.close();
+    
+    try {
+      WmServicesClient wmclient = new WmServicesClient(this.wmsurl);
+      wmclient.addPackagedWorkflow(pcw.getId(), pcw);
+      this.wmclient.sendEvent(pcw.getId(), new Metadata());
+      return pcw;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
 	}
 	
 	public boolean stopWorkflow(RuntimePlan exe) {
 		try {
-			return this.wmclient.stopWorkflowInstance(exe.getID());
+			return this.wmclient.stopWorkflowInstance(exe.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -167,11 +212,11 @@ public class OODTWorkflowAdapter {
 	private WorkflowTask getTask(RuntimeStep exe, 
 			ArrayList<String> ips, ArrayList<String> ops, String arg) 
 					throws Exception {
-		checkAndCreateTask(this.wmclient, exe.getID(), exe.getName());
+		  //checkAndCreateTask(this.wmclient, exe.getName(), exe.getName());
 	    WorkflowTask task = new WorkflowTask();
 	    //task.setConditions(Collections.emptyList());
 	    task.setRequiredMetFields(Collections.emptyList());
-	    task.setTaskId(exe.getID());
+	    task.setTaskId(exe.getName());
 	    task.setTaskInstanceClassName("org.apache.oodt.cas.workflow.misc.WingsTask");
 	    task.setTaskName(exe.getName());
 	    task.setTaskConfig(this.getTaskConfiguration(exe, ips, ops, arg));
@@ -196,23 +241,5 @@ public class OODTWorkflowAdapter {
 	    config.addConfigProperty("W_LOGFILE", this.wlogfile);
 	    config.addConfigProperty("TASKNAME", exe.getName());
 	    return config;
-	}
-	
-	private void checkAndCreateTask(XmlRpcWorkflowManagerClient client, String taskId, String tname) 
-			throws Exception {
-		WorkflowTask task = null;
-		try {
-			task = client.getTaskById(taskId);
-		}
-		catch (Exception e) {
-			task = null;
-		}
-		if(task == null) {
-			task = new WorkflowTask();
-			task.setTaskId(taskId);
-			task.setTaskInstanceClassName("org.apache.oodt.cas.workflow.misc.WingsTask");
-		    task.setTaskName(tname);
-			client.addTask(task);
-		}
 	}
 }

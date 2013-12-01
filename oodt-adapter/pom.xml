@@ -40,7 +40,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.oodt</groupId>
-      <artifactId>cas-workflow</artifactId>
+      <artifactId>cas-wm-services</artifactId>
       <version>${oodt.version}</version>
     </dependency>
   </dependencies>

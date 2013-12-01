@@ -60,6 +60,7 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
 	public void execute(RuntimePlan exe) {
 		String wmurl = props.getProperty("oodt.wmurl");
 		String fmurl = props.getProperty("oodt.fmurl");
+		String wmsurl = props.getProperty("oodt.wmsurl");
 		String libns = props.getProperty("lib.domain.data.url") + "#";
 		
 		String codedir = props.getProperty("lib.domain.code.storage") + File.separator;
@@ -69,7 +70,8 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
 			if (f.delete() && f.mkdirs()) {
 				this.jobdir = f.getAbsolutePath() + File.separator;
 				this.wlogfile = "workflow.log";
-				this.adapter = new OODTWorkflowAdapter(wmurl, fmurl, libns,
+				this.adapter = new OODTWorkflowAdapter(wmurl, wmsurl, 
+				    fmurl, libns,
 						codedir, datadir,
 						jobdir, wlogfile);
 				this.adapter.runWorkflow(exe);
