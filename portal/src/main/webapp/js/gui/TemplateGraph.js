@@ -394,7 +394,10 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			notifyEnter : function(ddSource, e, data) {
 				if (data.records.length) {
 					var comp = data.records[0].data.component;
-					data.ddel.dom.innerHTML = "Drop to add <b>" + getLocalName(comp.id) + "</b>";
+					if(comp)
+						data.ddel.dom.innerHTML = "Drop to add <b>" + getLocalName(comp.id) + "</b>";
+					else
+						data.ddel.dom.innerHTML = "Cannot drop this item";
 				}
 				return this.overClass;
 			},
@@ -404,6 +407,8 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			notifyDrop : function(ddSource, e, data) {
 				if (data.records.length) {
 					var comp = data.records[0].data.component;
+					if(!comp)
+						return false;
 					var mouse = me.canvas.translateEventCoordsToCanvasCoords(e.getPageX(), e.getPageY());
 					var node = me.template.addNode(comp);
 					node.x = mouse.x;
