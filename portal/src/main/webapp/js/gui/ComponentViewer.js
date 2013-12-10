@@ -68,6 +68,50 @@ ComponentViewer.prototype.getComponentTree = function(item) {
     return cnode;
 };
 
+ComponentViewer.prototype.getComponentTreeByIO = function(item, isInput) {
+    var tmp = item.children;
+    var compsByIO = {};
+    while(tmp.length > 0) {
+    	var comp = tmp.pop();
+        var cls = comp.cls;
+        if (cls.component) {
+        	var ios = isInput ? cls.component.inputs : cls.component.outputs; 
+        	for(var i=0; i<ios.length; i++) {
+        		var type = ios[i].type;
+        		if(!compsByIO[type]) compsByIO[type] = [];
+        		var isIncluded = false;
+        		for(var j=0; j<compsByIO[type].length; j++) {
+        			if(compsByIO[type][j] == type) {
+        				isIncluded = true;
+        				break;
+        			}
+        		}
+        		if(!isIncluded)
+        			compsByIO[type].push(comp);
+        	}
+        }
+        tmp = tmp.concat(comp.children);
+    }
+    var root = this.getComponentTreeNode(item, false);
+    for(var type in compsByIO) {
+    	var comps = compsByIO[type];
+    	var typenode = {
+    			text: getLocalName(type),
+    			id: type,
+    			cls: type,
+    			leaf: false,
+    			iconCls: 'dtypeIcon',
+    			expanded: true,
+    			children: []
+    	};
+    	for(var i=0; i<comps.length; i++) {
+    		typenode.children.push(this.getComponentTreeNode(comps[i], false));
+    	}
+    	root.children.push(typenode);
+    }
+    return root;
+};
+
 ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
     // Get the component holder class
     var cls = item.cls;
@@ -121,7 +165,17 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
 
 ComponentViewer.prototype.getComponentListTree = function(enableDrag) {
     var tmp = this.getComponentTree(this.store.tree);
-    return this.getComponentTreePanel(tmp, 'Tree', (this.load_concrete ? 'compIcon': 'absCompIcon'), this.guid, this.op_url, enableDrag);
+    return this.getComponentTreePanel(tmp, 'Tree', (this.load_concrete ? 'compIcon': 'absCompIcon'), enableDrag);
+};
+
+ComponentViewer.prototype.getComponentInputsTree = function(enableDrag) {
+    var tmp = this.getComponentTreeByIO(this.store.tree, true);
+    return this.getComponentTreePanel(tmp, 'Inputs', 'inputIcon', enableDrag);
+};
+
+ComponentViewer.prototype.getComponentOutputsTree = function(enableDrag) {
+    var tmp = this.getComponentTreeByIO(this.store.tree, false);
+    return this.getComponentTreePanel(tmp, 'Outputs', 'outputIcon', enableDrag);
 };
 
 ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, savebtn, editable) {
@@ -1015,10 +1069,7 @@ ComponentViewer.prototype.initialize = function() {
         });
 
     this.treePanel = this.getComponentListTree();
-    // var cInputsTree = getComponentInputsTree(guid, tabPanel, store.tree,
-    // op_url);
-    // var cOutputsTree = getComponentOutputsTree(guid, tabPanel, store.tree,
-    // op_url);
+    
     var This = this;
     var delbtn = new Ext.Button({
         text: 'Delete',

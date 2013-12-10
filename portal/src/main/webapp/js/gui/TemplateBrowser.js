@@ -1542,10 +1542,16 @@ TemplateBrowser.prototype.initialize = function(tid) {
 		var cv = new ComponentViewer(this.guid, this.store.components,
 				this.op_url, null, this.nsmap.pcdom, this.nsmap.dcdom,
 				this.nsmap.dclib, true, false);
-		var cPanel = cv.getComponentListTree(true);
-		Ext.apply(cPanel, {
-			title : 'Components'
-		});
+		var cTree = cv.getComponentListTree(true);
+	    var cInputsTree = cv.getComponentInputsTree(true);
+	    var cOutputsTree = cv.getComponentOutputsTree(true);
+		var cPanel = {
+			xtype: 'tabpanel',
+			title : 'Components',
+			plain: true,
+			padding: '3 0 0 0',
+			items: [cTree, cInputsTree, cOutputsTree]
+		};
 		this.leftPanel.add(cPanel);
 	}
 
