@@ -106,6 +106,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	@Override
 	public void execute(RuntimeStep exe, RuntimePlan planexe) {
 		executor.submit(new StepExecutionThread(exe, planexe, planEngine, monitor));
+    exe.onStart(this.monitor);
 	}
 
   class StepExecutionThread implements Runnable {
@@ -126,7 +127,6 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     	
       @Override
       public void run() {
-    		exe.onStart(this.logger);
     		try {
     			ArrayList<String> args = new ArrayList<String>();
     			args.add(exe.getStep().getCodeBinding().getLocation());
