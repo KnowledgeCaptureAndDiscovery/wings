@@ -27,6 +27,8 @@ import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.classes.html.CSSLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
+import edu.isi.wings.workflow.plan.api.ExecutionStep;
+import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.api.Template;
 
 public class RunController {
@@ -106,6 +108,14 @@ public class RunController {
 	public String getRunJSON(String runid) {
 		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
 		RuntimePlan plan = monitor.getRunDetails(runid);
+		for(ExecutionStep step : plan.getPlan().getAllExecutionSteps()) {
+      for(ExecutionFile file : step.getInputFiles()) {
+        file.loadMetadataFromLocation();
+      }
+		  for(ExecutionFile file : step.getOutputFiles()) {
+		    file.loadMetadataFromLocation();
+		  }
+		}
 		return json.toJson(plan);
 	}
 

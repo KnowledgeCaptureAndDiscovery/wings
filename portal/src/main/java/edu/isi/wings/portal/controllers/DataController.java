@@ -9,11 +9,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.google.gson.Gson;
@@ -284,6 +286,72 @@ public class DataController {
 		finally {
 			dc.end();
 		}
+	}
+	
+	public synchronized String registerData(String dataid, String newname, String metadata_json) {
+    if (dc == null)
+      return "No Data Catalog";
+    try {
+      JsonParser parser = new JsonParser();
+      JsonElement propvals = parser.parse(metadata_json);
+      JsonObject pvals = propvals.getAsJsonObject();
+      if(pvals.get("type") == null)
+        return "Datatype not known";
+      
+      String dtypeid = pvals.get("type").getAsString();
+      
+      String dloc = dc.getDataLocation(dataid);
+      if(dloc == null)
+        return "Existing data not found on server";
+      
+      String newid = this.libns + newname;
+      String newloc = dc.getDataLocation(newid);
+      if(!dc.addData(newid, dtypeid))
+        return "Could not add data";
+
+      if(!dataid.equals(newid)) {
+        File origf = new File(dloc);
+        File newf = new File(origf.getParentFile().getAbsolutePath()+File.separator+newname);
+        newloc = newf.getAbsolutePath();
+        if(origf.exists() && !newf.exists())
+          FileUtils.copyFile(origf, newf);
+      }
+      if(newloc == null)
+        return "Cannot find location for new data";
+      
+      if(!dc.setDataLocation(newid, newloc))
+         return "Could not set data location";
+      
+      ArrayList<MetadataProperty> props = dc.getMetadataProperties(dtypeid, false);
+      HashMap<String, MetadataProperty> pinfos = new HashMap<String, MetadataProperty>();
+      for (MetadataProperty prop : props) {
+        pinfos.put(prop.getName(), prop);
+      }
+
+      for(Entry<String, JsonElement> entry : pvals.entrySet()) {
+        String pname = entry.getKey();
+        String value = entry.getValue().getAsString();
+        MetadataProperty pinfo = pinfos.get(pname);
+        if(pinfo != null) {
+          if (pinfo.isDatatypeProperty()) {
+            if (value.equals("") && !pinfo.getRange().contains("string"))
+              continue;
+            dc.addDatatypePropertyValue(newid, pinfo.getID(), value, pinfo.getRange());
+          } else {
+            dc.addObjectPropertyValue(newid, pinfo.getID(), this.domns + value.toString());
+          }
+        }
+      }
+      dc.save();
+      return "OK";
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      return e.getMessage();
+    }
+    finally {
+      dc.end();
+    }
 	}
 
 	public synchronized String saveDatatypeJSON(String dtypeid, String props_json) {

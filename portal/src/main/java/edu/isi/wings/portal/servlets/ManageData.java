@@ -176,6 +176,10 @@ public class ManageData extends HttpServlet {
 				String location = request.getParameter("location");
 				if(dv.importFromExternalCatalog(dataid, dtype, propvals_json, location))
 					out.print("OK");
+			} else if (op.equals("registerData")) {
+        String newname = request.getParameter("newname");
+			  String metadata_json = request.getParameter("metadata_json");
+			  out.print(dv.registerData(dataid, newname, metadata_json));
 			}
 		}
 	}

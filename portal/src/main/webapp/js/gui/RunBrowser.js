@@ -44,38 +44,28 @@ RunBrowser.prototype.formatProgressBar = function(value, meta, record, rowind, c
 			d.failed_jobs, d.running_jobs);
 };
 
-RunBrowser.prototype.formatBinding = function(value, meta, record, runid) {
-	return this.getBindingItemHTML(value, record.data.type, runid);
-};
-
-RunBrowser.prototype.getBindingItemHTML = function(b, type, runid) {
+RunBrowser.prototype.formatBinding = function(b, meta, record, runid) {
 	var str = "";
 	var This = this;
-	if (Ext.isArray(b)) {
-		str += "{ ";
-		Ext.each(b, function(cb, i) {
-			if (i)
-				str += ", ";
-			str += This.getBindingItemHTML(cb, type, runid);
-		});
-		str += " }";
-	}
-	else {
 		if (b.type == 'literal')
-			str += "<b style='color:green'>" + b.value + "</b>";
-		else if (b.size != -1) {
-			var href = This.data_url+"/fetch?data_id="+escape(b.id);
-			str += "<a href='" + href + "' target='_blank'>" + getLocalName(b.id) + "</a> ";
-			/*str += "<i style='color:#888'>(" + formatSize(b.size);
-			if (type != "Input") {
-				str += ", <a class='smSaveIcon' href='#' ";
-				str += "onclick=\"return registerData('" + b.id + "','" + runid + "')\">Save</a>";
-			}
-			str += ")</i>";*/
-		}
-		else
-			str += "<b style='color:red'>Not yet available</b>";
-	}
+		str += "<b style='color:green'>" + b.value + "</b>";
+	else if (b.size != -1) {
+		var href = This.data_url + "/fetch?data_id=" + escape(b.id);
+		str += "<a href='" + href + "' target='_blank'>" + getLocalName(b.id)
+				+ "</a> ";
+		str += "<span style='color:#888'>(";
+		str += This.formatSize(b.size);
+		str += ")</span>";
+	} else
+		str += "<b style='color:red'>Not yet available</b>";
+	return str;
+};
+
+RunBrowser.prototype.formatSave = function(b, meta, record, runid) {
+	var str = "";
+	if (record.data.type != "Input") {
+		str += "<a class='smSaveIcon' href='#'>Save</a>";
+	}	
 	return str;
 };
 
@@ -97,11 +87,29 @@ RunBrowser.prototype.formatSize = function(bytes, precision) {
 
 RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 	var This = this;
-	var vmaps = {};
 	
+	// Get information about the file bindings
+	var filedata = {};
+	var steps = data.plan.steps;
+	for(var i=0; i<steps.length; i++) {
+		var step = steps[i];
+		for(var j=0; j<step.inputFiles.length; j++) {
+			var file = step.inputFiles[j];
+			filedata[file.id] = file;
+		}
+		for(var j=0; j<step.outputFiles.length; j++) {
+			var file = step.outputFiles[j];
+			filedata[file.id] = file;
+		}
+	}
+	// Get mappings of variables to bindings
+	var vmaps = {};
 	for(var i=0; i<tstore.Variables.length; i++) {
 		var v = tstore.Variables[i];
-		vmaps[v.id] = {v: getLocalName(v.id), b: v.binding};
+		var binding = filedata[v.id] ? filedata[v.id] : v.binding;
+		if(v.binding.id)
+			binding.id = v.binding.id;
+		vmaps[v.id] = {v: getLocalName(v.id), b: binding};
 	}
 	for(var i=0; i<tstore.Links.length; i++) {
 		var l = tstore.Links[i];
@@ -112,38 +120,26 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 		else 
 			vmaps[l.variable.id].type = 'Intermediate';
 	}
-	
-	// Classify IO into In/Out/Inter
-	/*var steps = data.plan.steps;
-	for(var i=0; i<steps.length; i++) {
-		var step = steps[i];
-		for(var j=0; j<step.inputFiles.length; j++) {
-			var file = step.inputFiles[j];
-			var ftype = vmaps[file.id];
-			if(!ftype)
-				ftype = {v: getLocalName(file.id), type: 'Input', b: file.location};
-			else {
-				if(ftype.type == 'Output')
-					ftype.type = 'Intermediate';
-			}
-			vmaps[file.id] = ftype;
+
+	// Get variable constraints
+	for(var i=0; i<tstore.constraints.length; i++) {
+		var cons = tstore.constraints[i];
+		var vid = cons.subject;
+		if(vmaps[vid] && vmaps[vid].b) {
+			var b = vmaps[vid].b;
+			var pred = getLocalName(cons.predicate);
+			if(!b.metadata)
+				b.metadata = {};
+			if(!b.metadata[pred])
+				b.metadata[pred] = cons.object;
+			vmaps[vid].b = b;
 		}
-		for(var j=0; j<step.outputFiles.length; j++) {
-			var file = step.outputFiles[j];
-			var ftype = vmaps[file.id];
-			if(!ftype)
-				ftype = {v: getLocalName(file.id), type: 'Output', b: file.location};
-			else {
-				if(ftype.type == 'Input')
-					ftype.type = 'Intermediate';
-			}
-			vmaps[file.id] = ftype;
-		}
-	}*/
-	var bindings = [];
-	for(var vid in vmaps) {
-		bindings.push(vmaps[vid]);
 	}
+	
+	// Create binding data
+	var bindings = [];
+	for(var vid in vmaps)
+		bindings.push(vmaps[vid]);
 	
 	if (!Ext.ModelManager.isRegistered('workflowRunDetails'))
 		Ext.define('workflowRunDetails', {
@@ -186,12 +182,19 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 					sortable : true,
 					menuDisabled : true
 				}, {
-					header : 'Bindings',
+					header : 'Binding',
 					dataIndex : 'b',
 					flex : 1,
 					menuDisabled : true,
 					renderer : function(v, m, r) {
 						return This.formatBinding(v, m, r, runid);
+					}
+				}, {
+					header : 'Save',
+					flex : 1,
+					menuDisabled : true,
+					renderer : function(v, m, r) {
+						return This.formatSave(v, m, r, runid);
 					}
 				}, {
 					header : 'Data',
@@ -200,6 +203,18 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 					menuDisabled : true
 				}
 		],
+		
+		listeners: {
+			cellclick: function(table, td, ci, rec, tr, ri, e, eopts) {
+				if(ci != 3) return;
+				var clicked_item = e.getTarget();
+				// Listen for a click on the "Save" link
+				if(clicked_item.tagName == "A") {
+					var b = rec.data.b;
+					This.registerData(b, runid);
+				}
+			} 
+		},
 
 		// autoExpandColumn: 'binding',
 		monitorResize : true,
@@ -214,32 +229,6 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 	});
 
 	return grid;
-};
-
-RunBrowser.prototype.getBindingMetrics_helper = function(bid, b) {
-	var metrics = null;
-	if (Ext.isArray(b)) {
-		Ext.each(b, function(cb) {
-			var m = getBindingMetrics_helper(bid, cb);
-			if (m)
-				metrics = m;
-		});
-	}
-	else {
-		if (!b.param && b.size >= 0 && b.id == bid)
-			metrics = b.metrics;
-	}
-	return metrics;
-};
-
-RunBrowser.prototype.getBindingMetrics = function(bid, bindings) {
-	var metrics = null;
-	Ext.each(bindings, function(binding) {
-		var m = getBindingMetrics_helper(bid, binding.b);
-		if (m)
-			metrics = m;
-	});
-	return metrics;
 };
 
 RunBrowser.prototype.stopRun = function(rec) {
@@ -263,36 +252,39 @@ RunBrowser.prototype.stopRun = function(rec) {
 	});
 };
 
-RunBrowser.prototype.registerData = function(dsid, op_url, runid, tabPanelId) {
+RunBrowser.prototype.registerData = function(b, runid) {
+	var This = this;
+	var dsname = getLocalName(b.id);
+	var dsns = getNamespace(b.id);
 	Ext.Msg.prompt("Save data..", "Name this dataset for your Data Catalog:", function(btn, text) {
 		if (btn == 'ok' && text) {
-			var newid = getRDFID(text);
-			var url = op_url + '/registerData';
-			var tabPanel = Ext.getCmp(tabPanelId);
-			var msgTarget = tabPanel.getEl();
-			var metrics = getBindingMetrics(dsid, tabPanel.bindings);
+			var newname = getRDFID(text);
+			var url = This.data_url + '/registerData';
+			var msgTarget = This.tabPanel.getEl();
 			msgTarget.mask('Saving and Registering Data...', 'x-mask-loading');
 			Ext.Ajax.request({
 				url : url,
 				params : {
-					dsid : dsid,
-					newid : newid,
-					run_id : runid,
-					metrics : Ext.encode(metrics)
+					data_id : b.id,
+					newname : newname,
+					metadata_json : Ext.encode(b.metadata)
 				},
 				success : function(response) {
 					msgTarget.unmask();
 					if (response.responseText == "OK") {
-						// Replace dsid with newid in store
+						// Everything ok
 					}
-					else _console(response.responseText);
+					else {
+						showError(response.responseText);
+						_console(response.responseText);
+					}
 				},
 				failure : function(response) {
 					_console(response.responseText);
 				}
 			});
 		}
-	}, window, false, dsid);
+	}, window, false, dsname);
 	return false;
 };
 
