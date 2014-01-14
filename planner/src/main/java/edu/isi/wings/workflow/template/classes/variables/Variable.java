@@ -9,6 +9,7 @@ public class Variable extends URIEntity {
 	private Binding binding;
 	private String comment;
 	private short type;
+	private boolean autofill;
 
 	public Variable(String id, short type) {
 		super(id);
@@ -51,7 +52,15 @@ public class Variable extends URIEntity {
 		this.comment = str;
 	}
 
-	public String toString() {
+	public boolean isAutoFill() {
+    return autofill;
+  }
+
+  public void setAutoFill(boolean autoFill) {
+    this.autofill = autoFill;
+  }
+
+  public String toString() {
 		return getID() + (binding != null ? " (" + binding.toString() + ")" : "");
 	}
 }

@@ -331,6 +331,8 @@ public class TemplateController {
 		for (Link l : tpl.getInputLinks()) {
 			Variable var = l.getVariable();
 
+			if(var.isAutoFill())
+			  continue;
 			if (varsDone.containsKey(var.getID()))
 				continue;
 			varsDone.put(var.getID(), true);

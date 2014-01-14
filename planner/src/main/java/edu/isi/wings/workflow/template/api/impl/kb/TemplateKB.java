@@ -198,6 +198,8 @@ public class TemplateKB extends URIEntity implements Template {
 			propertyObjMap.put("hasRoleID", kb.createDatatypeProperty(this.wflowns+"hasRoleID"));
 		if(!propertyObjMap.containsKey("hasMetadata"))
 			propertyObjMap.put("hasMetadata", kb.createDatatypeProperty(this.wflowns+"hasMetadata"));
+    if(!propertyObjMap.containsKey("autoFill"))
+      propertyObjMap.put("autoFill", kb.createDatatypeProperty(this.wflowns+"autoFill"));
 		if(!conceptObjMap.containsKey("ReduceDimensionality"))
 			conceptObjMap.put("ReduceDimensionality", kb.createClass(this.wflowns+"ReduceDimensionality"));
 		if(!conceptObjMap.containsKey("Shift"))
@@ -480,6 +482,10 @@ public class TemplateKB extends URIEntity implements Template {
 					if (paramValue != null && paramValue.getValue() != null) {
 						var.setBinding(readValueBindingObjectFromKB(kb, paramValue));
 					}
+	        KBObject autoFill = kb.getPropertyValue(varObj, pmap.get("autoFill"));
+	        if(autoFill != null && (Boolean)autoFill.getValue())
+	          var.setAutoFill(true);
+	        
 					varMap.put(varObj.getID(), var);
 				}
 			}
@@ -826,9 +832,18 @@ public class TemplateKB extends URIEntity implements Template {
 	public Link[] getLinks(Node fromN, Node toN) {
 		ArrayList<Link> links = new ArrayList<Link>();
 		for (Link l : Links) {
-			if (l.getOriginNode().equals(fromN) && l.getDestinationNode().equals(toN)) {
+		  boolean from_match = false;
+		  boolean to_match = false;
+		  if(fromN == null && l.getOriginNode() == null)
+		    from_match = true;
+		  if(toN == null && l.getDestinationNode() == null)
+		    to_match = true;
+			if (fromN != null && fromN.equals(l.getOriginNode()))
+			  from_match = true;
+		  if (toN != null && toN.equals(l.getDestinationNode()))
+        to_match = true;
+		  if(from_match && to_match)
 				links.add(l);
-			}
 		}
 		return links.toArray(new Link[0]);
 	}
@@ -1618,6 +1633,10 @@ public class TemplateKB extends URIEntity implements Template {
 				if (v.getBinding() != null) {
 					tkb.addPropertyValue(vobj, pmap.get("hasParameterValue"),
 							writeValueBindingObjectToKB(tkb, (ValueBinding)v.getBinding()));
+				}
+				if(v.isAutoFill()) {
+				  tkb.addPropertyValue(vobj, pmap.get("autoFill"), 
+				      ontologyFactory.getDataObject(true));
 				}
 			}
 			if (vobj != null && v.getComment() != null) {

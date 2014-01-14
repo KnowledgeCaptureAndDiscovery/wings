@@ -83,12 +83,13 @@ Template.prototype.initialize = function() {
 		var orole = this.store.outputRoles[variable.id];
 		if(orole)
 			this.variables[variable.id].setDimensionality(parseInt(orole.dimensionality));
-		
-		//FIXME: unknown, autofill aren't currently set in the template variables on server
-		if (variable.unknown)
-			this.variables[variable.id].setIsUnknown(variable.unknown);
+
 		if (variable.autofill)
 			this.variables[variable.id].setAutoFill(variable.autofill);
+		
+		//FIXME: unknown isn't currently set in the template variables on server
+		if (variable.unknown)
+			this.variables[variable.id].setIsUnknown(variable.unknown);
 	}
 	for ( var i in this.store.Links) {
 		var link = this.store.Links[i];

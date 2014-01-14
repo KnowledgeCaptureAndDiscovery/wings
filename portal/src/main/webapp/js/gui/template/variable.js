@@ -48,7 +48,7 @@ Variable.prototype.setDefaultColors = function() {
 	var alpha = 1;
 	if (this.autofill)
 		alpha = 0.4;
-
+	
 	if (this.unknown) {
 		this.color = "rgba(128,5,22," + alpha + ")";
 		this.setTextColor("rgba(255,230,230," + alpha + ")");
@@ -56,6 +56,8 @@ Variable.prototype.setDefaultColors = function() {
 	else if (this.type == 'PARAM') {
 		this.color = "rgba(102,153,51," + alpha + ")";
 		this.setTextColor("rgba(230,255,230," + alpha + ")");
+		if(this.autofill)
+			this.setTextColor("rgba(0,0,0," + alpha + ")");
 	}
 	else {
 		if (this.isInput) {
