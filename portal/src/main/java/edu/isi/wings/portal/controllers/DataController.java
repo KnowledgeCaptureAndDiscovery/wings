@@ -57,7 +57,7 @@ public class DataController {
 		this.config = config;
 		this.isSandboxed = config.isSandboxed();
 		this.loadExternal = load_external;
-		json = JsonHandler.createPrettyGson();
+		json = JsonHandler.createDataGson();
 		this.props = config.getProperties();
 
 		dc = DataFactory.getCreationAPI(props);

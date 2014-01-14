@@ -120,6 +120,9 @@ function formatDataBindings(value) {
 function formatParameterBindings(value) {
     var s = "";
     if(value.type == "literal") {
+    	// Replace the ending timezone "Z" for dates that is used in XSDDateTime
+    	if(value.datatype == "http://www.w3.org/2001/XMLSchema#date")
+    		value.value = value.value.replace(/Z$/, '');
     	s = "<div>" + value.value + "</div>";
     }
     else if (value.length) {

@@ -86,6 +86,9 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 } else if (dtype == "int" || dtype == "integer") {
                     copts.allowDecimals = false;
                     formitem = new Ext.form.NumberField(copts);
+                } else if (dtype == "date") {
+                	copts.format = 'Y-m-d';
+                	formitem = new Ext.form.DateField(copts);
                 } else
                     formitem = new Ext.form.TextField(copts);
             }

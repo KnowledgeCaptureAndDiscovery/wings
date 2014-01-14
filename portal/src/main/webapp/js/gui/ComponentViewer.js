@@ -276,11 +276,10 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
                 }, {
                     id: this.ns['xsd'] + 'float',
                     type: 'xsd:float'
-                }
-                /*, {
+                }, {
 					id : this.ns['xsd'] + 'date',
 					type : 'xsd:date'
-				}*/
+				}
                 ]
                 },
             displayField: 'type',

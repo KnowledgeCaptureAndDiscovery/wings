@@ -134,11 +134,10 @@ DataViewer.prototype.createMetricsRangeStores = function(metricTree) {
         }, {
             id: this.xsd + 'float',
             type: 'xsd:float'
-        }
-        /*, {
+        }, {
 			id : this.xsd + 'date',
 			type : 'xsd:date'
-		}*/
+		}
         ]
         });
     // Set dataRangeTypes from User defined Metrics
@@ -221,8 +220,8 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 
     // DataType's NameFormat field
     var nameFormatField = new Ext.form.field.Text({
-        fieldLabel: 'Name Format',
-        padding: '0 0 0 5',
+        width: '100%',
+        fieldStyle: 'border:1px solid #EEE',
         value: store.name_format
     });
 
@@ -553,8 +552,13 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         mainPanel.add(inhGridPanel);
     }
     if(!This.use_import_ui)
-    	mainPanel.add(nameFormatField);
-    
+    	mainPanel.add({
+    		xtype: 'panel',
+    		title: 'Name Format',
+    		margins: '5 5 5 5',
+    		items: nameFormatField
+    	});
+
     tab.add(mainPanel);
 };
 
