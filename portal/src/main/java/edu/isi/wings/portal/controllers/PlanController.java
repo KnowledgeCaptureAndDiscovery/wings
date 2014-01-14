@@ -253,22 +253,26 @@ public class PlanController {
 
 			for(String v : binding_b.keySet()) {
 				Binding b = binding_b.get(v);
-				if(b.isSet()) {
-					for(WingsSet cb : b) {
-						TreeMap<String, Binding> binding_x = new TreeMap<String, Binding>();
-						for(String v1 : binding_b.keySet()) {
-							Binding b1 = binding_b.get(v1);
-							binding_x.put(v1,  b1);
-						}
-						binding_x.put(v, (Binding)cb);
-						bindings_b.add(binding_x);
-					}
-					hasSets = true;
-				}
-				else {
-					ValueBinding vb = (ValueBinding)b;
-					binding.put(v, new ValueBinding(vb.getValue(), vb.getDatatype()));
-				}
+        if (b.isSet() && b.size() > 1) {
+          for (WingsSet cb : b) {
+            TreeMap<String, Binding> binding_x = new TreeMap<String, Binding>();
+            for (String v1 : binding_b.keySet()) {
+              Binding b1 = binding_b.get(v1);
+              binding_x.put(v1, b1);
+            }
+            binding_x.put(v, (Binding) cb);
+            bindings_b.add(binding_x);
+          }
+          hasSets = true;
+        } 
+        else if (b.isSet() && b.size() == 1) {
+          ValueBinding vb = (ValueBinding) b.get(0);
+          binding.put(v, new ValueBinding(vb.getValue(), vb.getDatatype()));
+        }
+        else if (!b.isSet()){
+          ValueBinding vb = (ValueBinding) b;
+          binding.put(v, new ValueBinding(vb.getValue(), vb.getDatatype()));
+        }
 			}
 			if(!hasSets) {
 				String bstr = "";
