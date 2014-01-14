@@ -2104,11 +2104,19 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				HashMap<Binding, Binding> parentb = new HashMap<Binding, Binding>();
 
 				Port op = l.getOriginPort();
-				Port dp = l.getDestinationPort();
+				//Port dp = l.getDestinationPort();
+				//Get all destination ports that are fed the same variable
+				Link[] all_links = template.getLinks(on, dn);
+				ArrayList<Port> dps = new ArrayList<Port>();
+				for(Link link: all_links) {
+				  if(link.getVariable().getID().equals(l.getVariable().getID()))
+				    dps.add(link.getDestinationPort());
+				}
 
 				while (!ocbs.isEmpty()) {
 					Binding ocb = ocbs.remove(0);
-
+					Binding oxb = null;
+					
 					if (ocb.isSet()) {
 						for (WingsSet os : ocb) {
 							Binding osb = (Binding) os;
@@ -2121,14 +2129,14 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 
 						if (opblist != null) {
 							PortBinding opb = opblist.getPortBinding();
-							Binding oxb = opb.getById(op.getID());
+							oxb = opb.getById(op.getID());
 							if (oxb == null)
 								continue;
 
 							// For each port-binding in dcb, check that there
 							// exists a corresponding port-binding in ocb
 							// - If not, then that ocb item must be deleted
-
+							
 							ArrayList<Binding> dcbs = new ArrayList<Binding>();
 							dcbs.add(dc.getBinding());
 
@@ -2142,36 +2150,33 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								} else {
 									PortBindingList dpblist = (PortBindingList) dcb.getData();
 									PortBinding dpb = dpblist.getPortBinding();
-									Binding dxb = dpb.getById(dp.getID());
-
-									// Currently, just assuming that all higher
-									// dimension data is consumed
-									if (oxb.getMaxDimension() > dxb.getMaxDimension()) {
-										ok = true;
-										break;
-									}
-
-									ArrayList<Binding> dxbs = new ArrayList<Binding>();
-									dxbs.add(dxb);
-
-									while (!dxbs.isEmpty()) {
-										dxb = dxbs.remove(0);
-										if (dxb.isSet()
-												&& dxb.getMaxDimension() > oxb.getMaxDimension()) {
-											for (WingsSet ds : dxb)
-												dxbs.add((Binding) ds);
-										} else {
-											/*
-											 * if (oxb.getID() == null ||
-											 * dxb.getID() == null) {
-											 * System.out.println("bzzt"); }
-											 */
-											if (dxb != null
-													&& dxb.toString().equals(oxb.toString())) {
-												ok = true;
-												break;
-											}
-										}
+									for(Port dp : dps) {
+  									Binding dxb = dpb.getById(dp.getID());
+  
+  									// Currently, just assuming that all higher
+  									// dimension data is consumed
+  									if (oxb.getMaxDimension() > dxb.getMaxDimension()) {
+  										ok = true;
+  										break;
+  									}
+  
+  									ArrayList<Binding> dxbs = new ArrayList<Binding>();
+  									dxbs.add(dxb);
+  
+  									while (!dxbs.isEmpty()) {
+  										dxb = dxbs.remove(0);
+  										if (dxb.isSet()
+  												&& dxb.getMaxDimension() > oxb.getMaxDimension()) {
+  											for (WingsSet ds : dxb)
+  												dxbs.add((Binding) ds);
+  										} else {
+  											if (dxb != null
+  													&& dxb.toString().equals(oxb.toString())) {
+  												ok = true;
+  												break;
+  											}
+  										}
+  									}
 									}
 									if (ok)
 										break;
@@ -2197,9 +2202,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 						}
 					}
 				}
+        if (oc.getBinding() == null)
+          return false;
 				if (oc.getBinding().isSet() && oc.getBinding().isEmpty())
-					return false;
-				if (oc.getBinding() == null)
 					return false;
 			}
 
