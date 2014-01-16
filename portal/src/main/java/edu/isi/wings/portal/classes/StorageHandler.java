@@ -56,6 +56,10 @@ public class StorageHandler {
 				ZipEntry ze = e.nextElement();
 				String name = ze.getName().replaceAll("/.+$", "");
 				name = name.replaceAll("/$", "");
+				// OSX Zips carry an extra __MACOSX directory. Ignore it
+				if(name.equals("__MACOSX")) 
+				  continue;
+				
 				if(topDir == null)
 					topDir = name;
 				else if(!topDir.equals(name)) {
@@ -73,8 +77,14 @@ public class StorageHandler {
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(f));
 			ZipEntry ze = zis.getNextEntry();
 			while (ze != null) {
-				// Get relative file path translated to 'todirname'
 				String fileName = ze.getName();
+        // OSX Zips carry an extra __MACOSX directory. Ignore it
+				if(fileName.startsWith("__MACOSX")) {
+				  ze = zis.getNextEntry();
+				  continue;
+				}
+				
+        // Get relative file path translated to 'todirname'
 				if(isOneDir)
 					fileName = fileName.replaceFirst(topDir, todirname);
 				else
@@ -95,6 +105,8 @@ public class StorageHandler {
 						fos.write(buffer, 0, len);
 					}
 					fos.close();
+					// Set all files as executable for now
+					newFile.setExecutable(true);
 				}
 				catch (FileNotFoundException fe) {
 					// Silently ignore
