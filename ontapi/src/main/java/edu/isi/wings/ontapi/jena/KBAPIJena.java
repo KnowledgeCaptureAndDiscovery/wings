@@ -416,6 +416,24 @@ public class KBAPIJena implements KBAPI {
 		return subProps;
 	}
 
+  public ArrayList<KBObject> getSuperPropertiesOf(KBObject prop, boolean direct) {
+    ArrayList<KBObject> superProps = new ArrayList<KBObject>();
+    if (!checkNulls(prop))
+      return superProps;
+    OntProperty p = ontmodel.getOntProperty(prop.getID());
+    if (!checkNulls(p)) {
+      return superProps;
+    }
+    for (Iterator<? extends OntProperty> it = p.listSuperProperties(direct); it
+        .hasNext();) {
+      Resource superprop = (Resource) it.next();
+      if (!superprop.getURI().equals(prop.getID())) {
+        superProps.add(new KBObjectJena(superprop));
+      }
+    }
+    return superProps;
+  }
+	 
 	public void setPropertyValue(KBObject obj, KBObject prop, KBObject value) {
 		if (!checkNulls(obj, prop, value))
 			return;
@@ -998,7 +1016,7 @@ public class KBAPIJena implements KBAPI {
 
 	public ArrayList<KBObject> getAllProperties() {
 		ArrayList<KBObject> list = new ArrayList<KBObject>();
-		for (Iterator<OntProperty> i = ontmodel.listOntProperties(); i.hasNext();) {
+		for (Iterator<OntProperty> i = ontmodel.listAllOntProperties(); i.hasNext();) {
 			list.add(new KBObjectJena((RDFNode) i.next()));
 		}
 		return list;
@@ -1152,6 +1170,31 @@ public class KBAPIJena implements KBAPI {
 	public void setLocal(String uriPrefix, String localDirectory) {
 		ontmodel.getDocumentManager().addAltEntry(uriPrefix, localDirectory);
 	}
+
+  public String getLabel(KBObject obj) {
+    if (!checkNulls(obj))
+      return null;
+    Individual ind = getIndividual((Resource) obj.getInternalNode());
+    if (ind == null) {
+      return null;
+    }
+
+    RDFNode n = ind.getPropertyValue(RDFS.label);
+    if (n != null && n.isLiteral()) {
+      return (String) n.asNode().getLiteralValue();
+    }
+    return null;
+  }
+
+  public void setLabel(KBObject obj, String label) {
+    if (!checkNulls(obj, label))
+      return;
+    Individual ind = getIndividual((Resource) obj.getInternalNode());
+    if (ind == null) {
+      return;
+    }
+    ind.setPropertyValue(RDFS.label, ontmodel.createTypedLiteral(label));
+  }
 
 	public String getComment(KBObject obj) {
 		if (!checkNulls(obj))

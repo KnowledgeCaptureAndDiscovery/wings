@@ -77,6 +77,11 @@ public interface KBAPI {
 
 	public ArrayList<KBObject> getPropertyRanges(KBObject prop);
 
+	// Shortcut to get Label properties
+	public String getLabel(KBObject obj);
+	
+	public void setLabel(KBObject obj, String label);
+	
 	// Shortcut to get Comment properties
 	public String getComment(KBObject obj);
 
@@ -121,6 +126,8 @@ public interface KBAPI {
 	public ArrayList<KBObject> getSuperClasses(KBObject cls, boolean direct_only);
 
 	public ArrayList<KBObject> getSubPropertiesOf(KBObject prop, boolean direct);
+	
+	public ArrayList<KBObject> getSuperPropertiesOf(KBObject prop, boolean direct);
 
 	// Creation/Deletion
 	public KBObject createClass(String id);
