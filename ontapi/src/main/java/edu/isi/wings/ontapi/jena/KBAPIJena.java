@@ -237,7 +237,7 @@ public class KBAPIJena implements KBAPI {
 
 		// Create a temporary inference ontmodel and create new entailments
 		OntModel newmodel = ModelFactory.createOntologyModel(rulesModelSpec);
-		newmodel.add(ontmodel.getBaseModel());
+		newmodel.add(ontmodel);
 
 		for (Iterator<Statement> itst = newmodel.getDeductionsModel().listStatements(); itst
 				.hasNext();) {
