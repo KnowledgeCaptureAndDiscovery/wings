@@ -176,6 +176,8 @@ public class KBAPIJena implements KBAPI {
 			modelspec = OntModelSpec.OWL_MEM_RULE_INF;
 		} else if (spec == OntSpec.TRANS) {
 			modelspec = OntModelSpec.OWL_MEM_TRANS_INF;
+	   } else if (spec == OntSpec.RDFS) {
+	      modelspec = OntModelSpec.OWL_MEM_RDFS_INF;
 		} else if (spec == OntSpec.PELLET) {
 			cleanPelletSpec(PelletReasonerFactory.THE_SPEC);
 			modelspec = PelletReasonerFactory.THE_SPEC;
@@ -304,6 +306,8 @@ public class KBAPIJena implements KBAPI {
 			return null;
 		Individual ind = getIndividual((Resource) obj.getInternalNode());
 		Resource node = ind.getRDFType(true);
+		if(node == null)
+		  return null;
 		if (node.canAs(OntClass.class)) {
 			cl = (OntClass) node.as(OntClass.class);
 		}

@@ -460,6 +460,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	getImageData : function(scale, show_constraints) {
+		var MAX_SHOW_CONSTRAINTS_IN_GRAPH = 200;
 		var x = 20;
 		var y = this.template_layer.itemHeight + 10;
 		var ctx = this.canvas.getCtx();
@@ -475,15 +476,25 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		var constraints = [];
 		if (show_constraints && this.gridPanel && this.gridPanel.store.getCount()) {
 			var This = this;
-			this.gridPanel.store.data.each(function() {
-				var cons = getPrefixedUrl(this.data.subject, This.browser.nsmap) + '  '
-						+ getPrefixedUrl(this.data.predicate, This.browser.nsmap) + '  '
-						+ getPrefixedUrl(this.data.object, This.browser.nsmap);
+			if(this.gridPanel.store.getCount() > MAX_SHOW_CONSTRAINTS_IN_GRAPH) {
+				var cons = "Too many constraints to show in image";
 				constraints.push(cons);
 				var width = (cons.length * w * 0.75) + x + 20;
 				if (width > canvasWidth)
 					canvasWidth = width;
-			});
+				consHeight = h*2 + 10;
+			}
+			else {
+				this.gridPanel.store.data.each(function() {
+					var cons = getPrefixedUrl(this.data.subject, This.browser.nsmap) + '  '
+							+ getPrefixedUrl(this.data.predicate, This.browser.nsmap) + '  '
+							+ getPrefixedUrl(this.data.object, This.browser.nsmap);
+					constraints.push(cons);
+					var width = (cons.length * w * 0.75) + x + 20;
+					if (width > canvasWidth)
+						canvasWidth = width;
+				});
+			}
 		}
 
 		this.canvasDom.height = (this.template_layer.itemHeight + consHeight) * scale;
