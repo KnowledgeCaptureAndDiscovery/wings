@@ -302,7 +302,7 @@ public class KBAPIJena implements KBAPI {
 	// Membership queries
 	public KBObject getClassOfInstance(KBObject obj) {
 		OntClass cl = null;
-		if (!checkNulls(obj))
+		if (!checkNulls(obj, obj.getInternalNode()))
 			return null;
 		Individual ind = getIndividual((Resource) obj.getInternalNode());
 		Resource node = ind.getRDFType(true);
@@ -316,7 +316,7 @@ public class KBAPIJena implements KBAPI {
 	}
 
 	public ArrayList<KBObject> getAllClassesOfInstance(KBObject obj, boolean direct) {
-		if (!checkNulls(obj))
+		if (!checkNulls(obj, obj.getInternalNode()))
 			return null;
 		ArrayList<KBObject> list = new ArrayList<KBObject>();
 		Individual ind = getIndividual((Resource) obj.getInternalNode());
