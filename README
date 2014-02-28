@@ -27,8 +27,8 @@ Installation
 	- Check that the server name is set correctly
 	- (Optional) Change any other settings if needed
 
-7. See list of Domains to download, go to http://www.wings-workflows.org/domains/
-	- To Import a domain, from the "Manage Domains" interface
+7. To see a list of Domains to download, please go to http://www.wings-workflows.org/domains/
+	- To Import a domain: From the "Manage Domains" interface, do the following:
 		- Add -> Import Domain
 		- Enter Domain Location: the url (or path) to the domain zip file
 		- Note that some domains might require installation of infrastructure software on your server
