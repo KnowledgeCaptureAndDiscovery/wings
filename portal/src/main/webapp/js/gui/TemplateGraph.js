@@ -500,6 +500,8 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		this.canvasDom.height = (this.template_layer.itemHeight + consHeight) * scale;
 		this.canvasDom.width = canvasWidth * scale;
 
+		this.updateCanvasForRetina();
+		
 		ctx.scale(scale, scale);
 		this.template_layer.clear(ctx);
 		this.template_layer.draw();
@@ -943,6 +945,18 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		this.template_layer.clear(this.canvas.getCtx());
 	},
 
+	updateCanvasForRetina : function() {
+		if(window.devicePixelRatio == 2) {
+			var ow = this.canvasDom.width;
+			var oh = this.canvasDom.height;
+			this.canvasDom.width = ow*2;
+			this.canvasDom.height = oh*2;
+			this.canvasDom.style.width = this.canvasDom.width/2;
+			this.canvasDom.style.height = this.canvasDom.height/2;
+			this.canvas.getCtx().scale(2, 2);
+		}
+	},
+	
 	redrawCanvas : function(preferredWidth, preferredHeight) {
 		var minX = 9999999;
 		var minY = 9999999;
@@ -1015,7 +1029,9 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		// The following are used in the TemplateGraph Class only
 		this.template_layer.itemWidth = w;
 		this.template_layer.itemHeight = h;
-
+		
+		this.updateCanvasForRetina();
+		
 		// if(window.console) window.console.log(scale);
 		// Resetting the scale to previous value
 		this.canvas.scale = 1.0;
