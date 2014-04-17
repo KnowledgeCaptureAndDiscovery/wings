@@ -305,6 +305,8 @@ public class KBAPIJena implements KBAPI {
 		if (!checkNulls(obj, obj.getInternalNode()))
 			return null;
 		Individual ind = getIndividual((Resource) obj.getInternalNode());
+		if(ind == null)
+		  return null;
 		Resource node = ind.getRDFType(true);
 		if(node == null)
 		  return null;
