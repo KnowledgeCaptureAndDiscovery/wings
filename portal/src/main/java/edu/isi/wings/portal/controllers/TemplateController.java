@@ -275,6 +275,7 @@ public class TemplateController {
 			curline = "";
 		}
 		bin.close();
+		bout.close();
 		
 		float maxY = 0;
 		for(String id : idpositions.keySet()) {
