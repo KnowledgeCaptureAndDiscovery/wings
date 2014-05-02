@@ -840,15 +840,24 @@ public class KBAPIJena implements KBAPI {
 		return null;
 	}
 
-	public void addClassForInstance(KBObject obj, KBObject cls) {
-		Individual ind = ontmodel.getIndividual(obj.getID());
-		OntClass clsobj = (OntClass) cls.getInternalNode();
-		if (!checkNulls(ind, clsobj)) {
-			return;
-		}
-		ind.addRDFType(clsobj);
-	}
+  public void addClassForInstance(KBObject obj, KBObject cls) {
+    Individual ind = ontmodel.getIndividual(obj.getID());
+    OntClass clsobj = (OntClass) cls.getInternalNode();
+    if (!checkNulls(ind, clsobj)) {
+      return;
+    }
+    ind.addRDFType(clsobj);
+  }
 
+  public void setClassForInstance(KBObject obj, KBObject cls) {
+    Individual ind = ontmodel.getIndividual(obj.getID());
+    OntClass clsobj = (OntClass) cls.getInternalNode();
+    if (!checkNulls(ind, clsobj)) {
+      return;
+    }
+    ind.setRDFType(clsobj);
+  }
+	 
 	public KBObject createClass(String id) {
 		OntClass clsobj = ontmodel.createClass(id);
 		return new KBObjectJena(clsobj);

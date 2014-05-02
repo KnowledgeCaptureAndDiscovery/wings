@@ -49,6 +49,8 @@ public interface KBAPI {
 	public ArrayList<KBObject> getPropertiesOfClass(KBObject cls, boolean direct);
 
 	public void addClassForInstance(KBObject obj, KBObject cls);
+	
+	public void setClassForInstance(KBObject obj, KBObject cls);
 
 	// Property Queries/Setting
 	public KBObject getPropertyValue(KBObject obj, KBObject prop);
