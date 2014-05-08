@@ -13,6 +13,8 @@ public class RuntimeStep extends URIEntity {
 	ExecutionStep step;
 	RuntimeInfo runtimeInfo;
 	RuntimePlan runtimePlan;
+	int logCount = 0;
+	int logBatchSize = 20;
 	
 	ArrayList<RuntimeStep> parents;
 	Process process;
@@ -83,7 +85,12 @@ public class RuntimeStep extends URIEntity {
 	
 	public void onUpdate(ExecutionLoggerAPI logger, String log) {
 		this.runtimeInfo.addLog(log);
-		// NOTE: Not updating logger here (will cause too many updates)
+    // NOTE: Updating KB in batches of [logBatchSize]
+		this.logCount++;
+		if(this.logCount > this.logBatchSize) {
+		  logger.updateRuntimeInfo(this);
+		  this.logCount = 0;
+		}
 	}
 	
 	public void abort() {

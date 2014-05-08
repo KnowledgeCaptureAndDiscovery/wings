@@ -160,10 +160,9 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
           
     			ProcessBuilder pb = new ProcessBuilder(args);
     			pb.directory(tempdir);
+    			pb.redirectErrorStream(true);
     			Process p = pb.start();
     			exe.setProcess(p);
-    			
-    			//p.waitFor();
     			
     			// Read output stream
         	String line = "";
@@ -175,18 +174,12 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     					exe.onUpdate(this.logger, line);
     			}
     			b.close();
-
-    			// Read error stream
-        	line = "";
-    			b = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-    			while ((line = b.readLine()) != null) {
-    				exe.onUpdate(this.logger, line);
-    			}
-    			b.close();
     			
     			if(fout != null)
     				fout.close();
 
+          p.waitFor();
+          
     			// Delete temp directory
     			FileUtils.deleteDirectory(tempdir);
           

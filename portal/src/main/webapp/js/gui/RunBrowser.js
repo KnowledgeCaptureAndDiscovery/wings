@@ -365,6 +365,13 @@ RunBrowser.prototype.getRunLogPanel = function(data) {
 			log += step.runtimeInfo.log+"\n";
 		}
 	}
+	for(var i=0; i<data.queue.steps.length; i++) {
+		var step = data.queue.steps[i];
+		if(step.runtimeInfo.status == 'RUNNING') {
+			log += getLocalName(step.id) + "\n-----------RUNNING-------------\n";
+			log += step.runtimeInfo.log+"\n";
+		}
+	}
 	log += data.runtimeInfo.log;
 	return new Ext.Panel({
 		title : 'Run Log',
