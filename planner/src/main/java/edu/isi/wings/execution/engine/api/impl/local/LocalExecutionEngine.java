@@ -163,10 +163,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			Process p = pb.start();
     			exe.setProcess(p);
     			
-    			p.waitFor();
+    			//p.waitFor();
     			
     			// Read output stream
-        		String line = "";
+        	String line = "";
     			BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
     			while ((line = b.readLine()) != null) {
     				if(fout != null)
@@ -177,7 +177,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			b.close();
 
     			// Read error stream
-        		line = "";
+        	line = "";
     			b = new BufferedReader(new InputStreamReader(p.getErrorStream()));
     			while ((line = b.readLine()) != null) {
     				exe.onUpdate(this.logger, line);
