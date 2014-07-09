@@ -12,6 +12,7 @@ public class JSLoader {
 	static String[] domain_scripts = { "js/gui/DomainViewer.js" };
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };
 	static String[] data_scripts = { "js/gui/DataViewer.js" };
+	static String[] resource_scripts = { "js/gui/ResourceViewer.js" };
 	static String[] template_scripts = { "js/gui/SeedForm.js", "js/gui/template/Canvas.js",
 			"js/gui/template/port.js", "js/gui/template/shape.js", "js/gui/template/link.js",
 			"js/gui/template/node.js", "js/gui/template/variable.js", "js/gui/template/template.js",
@@ -58,6 +59,11 @@ public class JSLoader {
 		showScriptTags(out, path, plupload_scripts);
 	}
 
+	 public static void loadResourceViewer(PrintWriter out, String path) {
+	    showScriptTags(out, path, common_scripts);
+	    showScriptTags(out, path, resource_scripts);
+	  }
+	 
 	public static void loadRunViewer(PrintWriter out, String path) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, run_scripts);

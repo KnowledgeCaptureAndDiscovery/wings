@@ -1263,6 +1263,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 							c.setBinding(new Binding(cbinding.getID()));
 							//c.setBinding(new Binding(ns + cbinding.getName()));
 
+							boolean process_node = true;
+							
 							// Create a new Node
 							Node newNode = curt.addNode(c);
 							//newNode.addComponentSetRule(destNode.getComponentSetRule());
@@ -1307,6 +1309,18 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										continue;
 									}
 									
+	                if(variable.isBreakpoint()) {
+	                  ExecutionFile file = new ExecutionFile(cb.getID());
+	                  String loc = dc.getDataLocation(cb.getID());
+	                  if(loc == null)
+	                    loc = dc.getDefaultDataLocation(cb.getID());
+	                  file.setLocation(loc);
+	                  file.loadMetadataFromLocation();
+	                  if(file.getMetadata().isEmpty())
+	                    process_node = false;
+	                  //System.out.println(cb.getName()+"="+file.getMetadata());
+	                }
+	                
 									String varkey = cb.isValueBinding() ? variable.getName() : "";
 									varkey += cb.toString();
 									
@@ -1341,8 +1355,13 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										// Add Binding metrics as constraints
 										curt.getConstraintEngine().addConstraints(
 												this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
-									}
+                  }
 								}
+							}
+							
+							if(!process_node) {
+							  curt.deleteNode(newNode);
+							  continue;
 							}
 
 							// Get outputs from this node
@@ -1794,6 +1813,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 		for (Role r : roleMap.keySet()) {
 			Variable var = roleMap.get(r);
 			Variable sendVar = new Variable(var.getID(), var.getVariableType());
+			sendVar.setBreakpoint(var.isBreakpoint());
 			if (var.getBinding() != null)
 				sendVar.setBinding((Binding) var.getBinding().clone());
 			sendMap.put(r, sendVar);
@@ -1942,18 +1962,22 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				if (ccmr.getComponent().isTemplate())
 					pc = this.tc;
 
+				// Fetch input data real metadata (if any)
+        ccmr = pc.getInputDataDescriptions(ccmr, this.dc);
+        
 				// No new roles introduced by the forward sweep call
 				ArrayList<ComponentPacket> allcmrs = pc.findOutputDataPredictedDescriptions(ccmr);
-
+        
 				ArrayList<ComponentPacket> rcmr = new ArrayList<ComponentPacket>();
-				for (ComponentPacket acmr : allcmrs) {
-					this.addExplanations(acmr.getExplanations());
-					if (!acmr.getInvalidFlag())
-						rcmr.add(acmr);
-					else {
-						// Do something with the invalid components
-					}
-				}
+        for (ComponentPacket acmr : allcmrs) {
+          this.addExplanations(acmr.getExplanations());
+          if (!acmr.getInvalidFlag())
+            rcmr.add(acmr);
+          else {
+            // Do something with the invalid components
+          }
+        }
+
 				if (rcmr.isEmpty()) {
 					logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.2")
 							.addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));

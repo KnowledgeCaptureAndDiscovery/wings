@@ -200,6 +200,8 @@ public class TemplateKB extends URIEntity implements Template {
 			propertyObjMap.put("hasMetadata", kb.createDatatypeProperty(this.wflowns+"hasMetadata"));
     if(!propertyObjMap.containsKey("autoFill"))
       propertyObjMap.put("autoFill", kb.createDatatypeProperty(this.wflowns+"autoFill"));
+    if(!propertyObjMap.containsKey("breakPoint"))
+      propertyObjMap.put("breakPoint", kb.createDatatypeProperty(this.wflowns+"breakPoint"));
 		if(!conceptObjMap.containsKey("ReduceDimensionality"))
 			conceptObjMap.put("ReduceDimensionality", kb.createClass(this.wflowns+"ReduceDimensionality"));
 		if(!conceptObjMap.containsKey("Shift"))
@@ -474,6 +476,9 @@ public class TemplateKB extends URIEntity implements Template {
 					if (dsBinding != null) {
 						var.setBinding(readBindingObjectFromKB(kb, dsBinding));
 					}
+          KBObject breakPoint = kb.getPropertyValue(varObj, pmap.get("breakPoint"));
+          if(breakPoint != null && (Boolean)breakPoint.getValue())
+            var.setBreakpoint(true);
 					varMap.put(varObj.getID(), var);
 				} else if (kb.isA(varObj, cmap.get("ParameterVariable"))) {
 					var = new ParameterVariable(varObj.getID());
@@ -485,7 +490,6 @@ public class TemplateKB extends URIEntity implements Template {
 	        KBObject autoFill = kb.getPropertyValue(varObj, pmap.get("autoFill"));
 	        if(autoFill != null && (Boolean)autoFill.getValue())
 	          var.setAutoFill(true);
-	        
 					varMap.put(varObj.getID(), var);
 				}
 			}
@@ -1209,6 +1213,8 @@ public class TemplateKB extends URIEntity implements Template {
 					}
 				}
 				vv.setComment(v.getComment());
+				vv.setAutoFill(v.isAutoFill());
+				vv.setBreakpoint(v.isBreakpoint());
 			}
 			if (vv != null) {
 				Link ll = t.addLink(fromNode, toNode, fromPort, toPort, vv);
@@ -1628,6 +1634,10 @@ public class TemplateKB extends URIEntity implements Template {
 					tkb.addPropertyValue(vobj, pmap.get("hasDataBinding"),
 							writeBindingObjectToKB(tkb, v.getBinding()));
 				}
+        if(v.isBreakpoint()) {
+          tkb.addPropertyValue(vobj, pmap.get("breakPoint"), 
+              ontologyFactory.getDataObject(true));
+        }
 			} else if (v.isParameterVariable()) {
 				vobj = tkb.createObjectOfClass(v.getID(), cmap.get("ParameterVariable"));
 				if (v.getBinding() != null) {

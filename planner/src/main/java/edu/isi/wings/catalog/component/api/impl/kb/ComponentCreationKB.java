@@ -14,6 +14,7 @@ import edu.isi.wings.catalog.component.classes.ComponentHolder;
 import edu.isi.wings.catalog.component.classes.ComponentRole;
 import edu.isi.wings.catalog.component.classes.ComponentTree;
 import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
@@ -89,6 +90,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 		if (details) {
 			comp.setDocumentation(this.getComponentDocumentation(compobj));
+			comp.setComponentRequirement(this.getComponentRequirements(compobj));
 			
 			ArrayList<KBObject> inobjs = this.getComponentInputs(compobj);
 			for (KBObject inobj : inobjs) {
@@ -187,6 +189,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		if(comp.getDocumentation() != null)
 			this.setComponentDocumentation(cobj, comp.getDocumentation());
 		
+    if(comp.getComponentRequirement() != null)
+      this.setComponentRequirements(cobj, comp.getComponentRequirement());
+    
 		if(comp.getLocation() != null)
 			this.setComponentLocation(cid, comp.getLocation());
 		
@@ -241,6 +246,19 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		for (KBObject obj : outputobjs) {
 			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
 		}
+		
+		ArrayList<KBObject> sdobjs = this.kb.getPropertyValues(compobj, 
+		    this.objPropMap.get("hasSoftwareDependency"));
+		for(KBObject obj : sdobjs)
+		  for(KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
+		    this.writerkb.removeTriple(t);
+
+		ArrayList<KBObject> hdobjs = this.kb.getPropertyValues(compobj,
+        this.objPropMap.get("hasHardwareDependency"));
+    for(KBObject obj : hdobjs)
+      for (KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
+        this.writerkb.removeTriple(t);
+		
 		KBUtils.removeAllTriplesWith(writerkb, cid, false);
 		
 		// Delete the component directory
@@ -341,11 +359,70 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		return null;
 	}
 	
+	private ComponentRequirement getComponentRequirements(KBObject compobj) {
+    ComponentRequirement requirement = new ComponentRequirement();
+    
+    KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
+    KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
+    // KBObject minver = this.objPropMap.get("requiresMinimumVersion");
+    KBObject exver = this.objPropMap.get("requiresExactVersion");
+    for(KBObject sdobj : this.kb.getPropertyValues(compobj, sdprop)) {
+      KBObject verobj = this.kb.getPropertyValue(sdobj, exver);
+      if(verobj != null) 
+        requirement.addSoftwareId(verobj.getID());
+    }
+
+    KBObject hdobj = this.kb.getPropertyValue(compobj, hdprop);
+    KBObject memobj = this.kb.getPropertyValue(hdobj,
+        this.dataPropMap.get("requiresMemoryGB"));
+    KBObject stobj = this.kb.getPropertyValue(hdobj,
+        this.dataPropMap.get("requiresStorageGB"));
+    KBObject s4bitobj = this.kb.getPropertyValue(hdobj,
+        this.dataPropMap.get("needs64bit"));
+    if(memobj != null)
+      requirement.setMemoryGB((Float)memobj.getValue());
+    if(stobj != null)
+      requirement.setStorageGB((Float)stobj.getValue());
+    if(s4bitobj != null)
+      requirement.setNeed64bit((Boolean)s4bitobj.getValue());
+    
+    return requirement;
+  }
+	
 	private void setComponentDocumentation(KBObject compobj, String doc) {
 		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
 		kb.setPropertyValue(compobj, docProp, kb.createLiteral(doc));
 	}
-	
+
+  private void setComponentRequirements(KBObject compobj,
+      ComponentRequirement requirement) {
+    KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
+    KBObject sdcls = this.conceptMap.get("SoftwareDependency");
+    KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
+    KBObject hdcls = this.conceptMap.get("HardwareDependency");
+    //KBObject minver = this.objPropMap.get("requiresMinimumVersion");
+    KBObject exver = this.objPropMap.get("requiresExactVersion");
+    for (String softwareId : requirement.getSoftwareIds()) {
+      KBObject sdobj = this.writerkb.createObjectOfClass(null, sdcls);
+      KBObject verobj = this.kb.getIndividual(softwareId);
+      if(verobj != null)
+        this.writerkb.setPropertyValue(sdobj, exver, verobj);
+      this.writerkb.addPropertyValue(compobj, sdprop, sdobj);
+    }
+    
+    KBObject hdobj = this.writerkb.createObjectOfClass(null, hdcls);
+    this.writerkb.setPropertyValue(hdobj, 
+        this.dataPropMap.get("requiresMemoryGB"), 
+        this.writerkb.createLiteral(requirement.getMemoryGB()));
+    this.writerkb.setPropertyValue(hdobj, 
+        this.dataPropMap.get("requiresStorageGB"), 
+        this.writerkb.createLiteral(requirement.getStorageGB()));
+    this.writerkb.setPropertyValue(hdobj, 
+        this.dataPropMap.get("needs64bit"), 
+        this.writerkb.createLiteral(requirement.isNeed64bit()));
+    this.writerkb.setPropertyValue(compobj, hdprop, hdobj);
+  }
+	 
 	private ComponentRole getRole(KBObject argobj) {
 		ComponentRole arg = new ComponentRole(argobj.getID());
 		KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");

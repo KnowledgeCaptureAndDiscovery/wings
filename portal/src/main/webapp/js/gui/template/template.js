@@ -86,6 +86,8 @@ Template.prototype.initialize = function() {
 
 		if (variable.autofill)
 			this.variables[variable.id].setAutoFill(variable.autofill);
+		if (variable.breakpoint)
+			this.variables[variable.id].setBreakPoint(variable.breakpoint);
 		
 		//FIXME: unknown isn't currently set in the template variables on server
 		if (variable.unknown)
@@ -222,9 +224,10 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			comment : "x="+v.x+",y="+v.y,
 			type : v.type == 'DATA' ? 1 : 2,
 			//binding : v.binding,
-			//FIXME: unknown, autofill aren't currently stored on server
+			//FIXME: unknown isn't currently stored on server
 			unknown : v.unknown, 
-			autofill : v.autofill
+			autofill : v.autofill,
+			breakpoint: v.breakpoint
 		});
 	}
 	for ( var i in this.links) {

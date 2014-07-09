@@ -266,7 +266,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     var savebtn;
     if (This.advanced_user) {
         var savebtn = new Ext.Button({
-            text: 'Save Changes',
+            text: 'Save',
             iconCls: 'saveIcon',
             disabled: true,
             handler: function() {
@@ -361,7 +361,21 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     
     var tbar;
     if(!This.use_import_ui) {
-        tbar = [uploadfilesbtn];
+    	tbar = [];
+        if(This.advanced_user)
+        	tbar.push(savebtn);
+		tbar.push({
+			iconCls : 'reloadIcon',
+			text : 'Reload',
+			handler : function() {
+				tab.getLoader().load();
+				savebtn.setDisabled(true);
+				tab.setTitle(tab.title.replace(/^\*/, ''));
+			}
+		});
+        tbar.push('-');
+        tbar.push({xtype: 'tbfill'});
+        tbar.push(uploadfilesbtn);
 		if (this.has_external_catalog)
 			tbar.push({
 				iconCls : 'importIcon',
@@ -407,18 +421,6 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 					//window.open(This.op_url+"/external");
 				}
 			});
-        
-        tbar.push({xtype: 'tbfill'});
-        tbar.push('-');
-		tbar.push({
-			iconCls : 'reloadIcon',
-			text : 'Reload Datatype',
-			handler : function() {
-				tab.getLoader().load();
-				savebtn.setDisabled(true);
-				tab.setTitle(tab.title.replace(/^\*/, ''));
-			}
-		});
     }
     
     var mainPanel = new Ext.Panel({
@@ -488,8 +490,6 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                 }
             }
         });
-        tbar.push('-');
-        tbar.push(savebtn);
     }
 
     // Show properties
@@ -756,7 +756,7 @@ DataViewer.prototype.openDataEditor = function(args) {
     });
 
     var savebtn = new Ext.Button({
-        text: 'Save Metadata',
+        text: 'Save',
         iconCls: 'saveIcon',
         disabled: true,
         handler: function() {
@@ -807,7 +807,7 @@ DataViewer.prototype.openDataEditor = function(args) {
         customEditors: customEditors,
         title: 'Metadata for ' + getLocalName(id),
         listeners: { 'beforeedit': function (e) { return !This.use_import_ui; } },
-        tbar: This.use_import_ui ? null : [savebtn]
+        //tbar: This.use_import_ui ? null : [savebtn]
     });
     
     if(this.use_import_ui)
@@ -829,7 +829,7 @@ DataViewer.prototype.openDataEditor = function(args) {
 
     var addfilebtn = {
         xtype: 'button',
-        text: 'Set File',
+        text: 'Upload/Set Path',
         iconCls: 'addIcon',
         handler: function() {
             var win = new Ext.Window({
@@ -893,7 +893,20 @@ DataViewer.prototype.openDataEditor = function(args) {
     
     var tbar;
     if(!This.use_import_ui) {
-	    tbar = [ addfilebtn, 
+    	tbar = [
+    	savebtn, 
+    	{
+	        iconCls: 'reloadIcon',
+	        text: 'Reload',
+	        handler: function() {
+	            tab.getLoader().load();
+	            savebtn.setDisabled(true);
+	            tab.setTitle(tab.title.replace(/^\*/, ''));
+	        }
+	    }, 
+	    '-',
+	    { xtype: 'tbfill' },
+	    addfilebtn, 
 		{
 		    iconCls: 'downloadIcon',
 		    itemId: 'downloadFile',
@@ -903,16 +916,6 @@ DataViewer.prototype.openDataEditor = function(args) {
 		    	window.open(This.op_url+"/fetch?data_id="+escape(id));
 		        //showWingsMessage('Location: '+ store.location, 'Location of '+ getLocalName(id), null, 400, 100);
 		    }
-	    },
-		{ xtype: 'tbfill' }, 
-		'-', {
-	        iconCls: 'reloadIcon',
-	        text: 'Reload Metadata',
-	        handler: function() {
-	            tab.getLoader().load();
-	            savebtn.setDisabled(true);
-	            tab.setTitle(tab.title.replace(/^\*/, ''));
-	        }
 	    }];
     }
     else {

@@ -2,6 +2,7 @@ package edu.isi.wings.catalog.component.api;
 
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
+import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 
 import java.util.ArrayList;
 
@@ -17,5 +18,7 @@ public interface ComponentReasoningAPI {
 
 	ArrayList<ComponentPacket> findOutputDataPredictedDescriptions(ComponentPacket details);
 
+	ComponentPacket getInputDataDescriptions(ComponentPacket details, DataReasoningAPI dc);
+	
 	ComponentInvocation getComponentInvocation(ComponentPacket details);
 }

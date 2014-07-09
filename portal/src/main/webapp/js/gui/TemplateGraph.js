@@ -792,6 +792,9 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			if (item.isInput && item.type == "DATA") {
 				source['b_varColl'] = (item.dim != 0);
 			}
+			if (!item.isInput && item.type == "DATA") {
+				source['b_breakpoint'] = (item.breakpoint ? true : false);
+			}
 			if (item.isInput && item.type == "PARAM") {
 				source['c_varAutoFill'] = (item.autofill ? true : false);
 			}
@@ -813,6 +816,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			propertyNames : {
 				'a_varName' : 'Variable Name',
 				'b_varColl' : 'Input Data should be a Collection',
+				'b_breakpoint' : 'Set breakpoint',
 				'c_varAutoFill' : 'Automatically Set Parameter Value (Don\'t ask user)',
 				'a_pruleS' : 'Use all Input Data in the same workflow',
 				'c_cruleS' : 'Use all Concrete Components of this Abstract Component in the same workflow'
@@ -848,6 +852,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 					}
 				}
 				item.setDimensionality(mySource['b_varColl'] ? 1 : 0);
+				item.setBreakPoint(mySource['b_breakpoint'] ? true : false);
 				item.setAutoFill(mySource['c_varAutoFill'] ? true : false);
 			}
 			else {

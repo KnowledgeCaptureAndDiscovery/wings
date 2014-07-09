@@ -41,6 +41,7 @@ public class Config {
 	private String dataOntologyUrl;
 	private String componentOntologyUrl;
 	private String executionOntologyUrl;
+	private String resourceOntologyUrl;
 	
 	private String ontdirurl = "http://www.wings-workflows.org/ontology";
 
@@ -57,6 +58,10 @@ public class Config {
 	private String contextRootPath;
 	private String scriptPath;
 
+	private String communityRelativeDir = "common";
+	private String communityUrl;
+	private String communityDir;
+	
 	// This following are user/domain specific properties
 	private String userUrl;
 	private String userDir;
@@ -101,7 +106,7 @@ public class Config {
 		File uf = new File(this.userDir);
 		if (!uf.exists() && !uf.mkdirs())
 			System.err.println("Cannot create user directory : " + uf.getAbsolutePath());
-
+		
 		// Get user's selected domain
 		DomainController dc = new DomainController(1, this);
 		this.domain = dc.getUserDomain();
@@ -120,8 +125,18 @@ public class Config {
 		this.componentOntologyUrl = serverConfig.getString("ontology.component");
 		this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
 		this.executionOntologyUrl = serverConfig.getString("ontology.execution");
-		this.engines = new HashMap<String, ExeEngine>();
-
+		this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
+		
+    this.communityUrl = serverUrl + contextRootPath + exportServletPath + "/" 
+        + communityRelativeDir;
+    this.communityDir = storageDirectory + File.separator 
+        + communityRelativeDir;
+    // Create communityDir (if it doesn't exist)
+    File uf = new File(this.communityDir);
+    if (!uf.exists() && !uf.mkdirs())
+      System.err.println("Cannot create community directory : " + uf.getAbsolutePath());
+    
+    this.engines = new HashMap<String, ExeEngine>();
 		@SuppressWarnings("unchecked")
 		List<SubnodeConfiguration> enginenodes = serverConfig.configurationsAt("execution.engine");
 		for (SubnodeConfiguration enode : enginenodes) {
@@ -200,6 +215,7 @@ public class Config {
 		config.addProperty("ontology.component", ontdirurl + "/component.owl");
 		config.addProperty("ontology.workflow", ontdirurl + "/workflow.owl");
 		config.addProperty("ontology.execution", ontdirurl + "/execution.owl");
+		config.addProperty("ontology.resource", ontdirurl + "/resource.owl");
 
 		this.addEngineConfig(config, new ExeEngine("Local", 
 				LocalExecutionEngine.class.getCanonicalName(),ExeEngine.Type.BOTH));
@@ -248,6 +264,11 @@ public class Config {
 			if (domain.getUseSharedTripleStore())
 				props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
 
+      if(this.getResourceOntologyUrl() == null)
+        this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
+      props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
+      props.setProperty("lib.resource.url", this.getCommunityUrl()+"/resource/library.owl");
+      
 			ExeEngine pengine = engines.get(domain.getPlanEngine());
 			ExeEngine sengine = engines.get(domain.getStepEngine());
 			props.putAll(pengine.getProperties());
@@ -321,7 +342,15 @@ public class Config {
 		this.executionOntologyUrl = executionOntologyUrl;
 	}
 
-	public String getConfigFile() {
+	public String getResourceOntologyUrl() {
+    return resourceOntologyUrl;
+  }
+
+  public void setResourceOntologyUrl(String resourceOntologyUrl) {
+    this.resourceOntologyUrl = resourceOntologyUrl;
+  }
+
+  public String getConfigFile() {
 		return configFile;
 	}
 
@@ -373,7 +402,23 @@ public class Config {
 		this.serverUrl = serverUrl;
 	}
 
-	public String getContextRootPath() {
+	public String getCommunityUrl() {
+    return communityUrl;
+  }
+
+  public void setCommunityUrl(String communityUrl) {
+    this.communityUrl = communityUrl;
+  }
+
+  public String getCommunityDir() {
+    return communityDir;
+  }
+
+  public void setCommunityDir(String communityDir) {
+    this.communityDir = communityDir;
+  }
+
+  public String getContextRootPath() {
 		return contextRootPath;
 	}
 

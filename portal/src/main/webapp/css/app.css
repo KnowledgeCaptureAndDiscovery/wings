@@ -60,6 +60,13 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	background-image: url(../images/arrow_up.png) !important
 }
 
+.upIcon {
+	background-image: url(../images/arrow_up.png) !important
+}
+.downIcon {
+	background-image: url(../images/arrow_down.png) !important
+}
+
 .compIcon {
 	background-image: url(../images/component_concrete.png) !important
 }
@@ -162,6 +169,18 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 
 .rundefIcon {
 	background-image:url(../images/run_default.gif) !important
+}
+
+.machineIcon {
+	background-image:url(../images/computer.png) !important
+}
+
+.softwareIcon {
+	background-image:url(../images/package.png) !important
+}
+
+.versionIcon {
+	background-image:url(../images/version.png) !important
 }
 
 .user {

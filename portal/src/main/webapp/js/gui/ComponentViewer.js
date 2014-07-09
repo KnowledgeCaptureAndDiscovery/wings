@@ -1,7 +1,10 @@
-function ComponentViewer(guid, store, op_url, upload_url, pcdomns, dcdomns, liburl, load_concrete, advanced_user) {
+function ComponentViewer(guid, store, op_url, res_url, 
+		upload_url, pcdomns, dcdomns, liburl, 
+		load_concrete, advanced_user) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
+    this.res_url = res_url;
     this.upload_url = upload_url;
     this.liburl = liburl;
     this.libname = liburl.replace(/.+\//, '').replace(/\.owl$/, '');
@@ -621,7 +624,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     var This = this;
 
     var savebtn = new Ext.Button({
-        text: 'Save Component',
+        text: 'Save',
         iconCls: 'saveIcon',
         disabled: true,
         handler: function() {
@@ -640,6 +643,15 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
             var names = {};
             comp.rulesText = tab.down("#rules").getValue();
             comp.documentation = tab.down("#doc").getValue();
+            
+        	var form = tab.down('form');
+        	if(form) {
+	        	var fields = form.getForm().getFields();
+	        	comp.requirement = {};
+	        	fields.each(function(field) {
+	        		comp.requirement[field.getName()] = field.getValue();
+	        	});
+        	}
             
             mainPanel.iDataGrid.getStore().each(function(rec) {
                 if (!rec.data.role || !rec.data.type || !rec.data.prefix) {
@@ -739,7 +751,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     
     var addcompbtn = {
             xtype: 'button',
-            text: 'Set Component',
+            text: 'Upload/Set Path',
             iconCls: 'addIcon',
             handler: function() {
                 var win = new Ext.Window({
@@ -803,13 +815,31 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
         };
 
 	        
+	var editable = (This.advanced_user && This.load_concrete == c.concrete);
+	
     var tbar = [];
-	if (c.concrete && This.advanced_user) {
+    if(editable)
+    	tbar.push(savebtn);
+	tbar.push({
+		iconCls : 'reloadIcon',
+		text : 'Reload',
+		handler : function() {
+			tab.getLoader().load();
+			savebtn.setDisabled(true);
+			tab.setTitle(tab.title.replace(/^\*/, ''));
+		}
+	});
+	
+	if (This.advanced_user && c.concrete) {
+		tbar.push('-');
+		tbar.push({
+			xtype : 'tbfill'
+		});
 		tbar.push(addcompbtn);
 		tbar.push({
 			iconCls : 'downloadIcon',
 			itemId : 'downloadComponent',
-			text : 'Download Component',
+			text : 'Download',
 			disabled : !c.location,
 			handler : function() {
 				window.open(This.op_url+"/fetch?cid="+escape(c.id));
@@ -817,23 +847,9 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 //						'Location of ' + getLocalName(c.id), null, 400, 100);
 			}
 		});
-		tbar.push({
-			xtype : 'tbfill'
-		});
-		tbar.push('-');
 	}
-	
-	tbar.push({
-		iconCls : 'reloadIcon',
-		text : 'Reload Component',
-		handler : function() {
-			tab.getLoader().load();
-			savebtn.setDisabled(true);
-			tab.setTitle(tab.title.replace(/^\*/, ''));
-		}
-	});
 
-	 var editable = (This.advanced_user && This.load_concrete == c.concrete);
+
     var mainPanelItems = [ tab.ioEditor ];
     mainPanelItems.push(This.getRulesTab('Rules', 'rules', compStore.rules, 
     		editable, tab, savebtn));
@@ -841,6 +857,9 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     		compStore.inheritedRules, false, tab, savebtn));
     mainPanelItems.push(This.getDocumentationTab('doc', compStore.documentation,
      		editable, tab, savebtn));
+    if(c.concrete)
+    	mainPanelItems.push(This.getDependenciesTab('Dependencies', 
+    		compStore.requirement, editable, tab, savebtn));
     
     var mainPanel = new Ext.Panel({
         region: 'center',
@@ -852,7 +871,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
         	xtype: 'tabpanel',
         	margin: 5,
         	plain: true,
-        	tbar: editable ? [ savebtn ] : null,
+        	//tbar: editable ? [ savebtn ] : null,
         	items: mainPanelItems
         }
     });
@@ -1043,6 +1062,158 @@ ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab,
 		});
 		return docArea;
 	}
+};
+
+ComponentViewer.prototype.getDependenciesTab = 
+		function(title, mstore, editable, tab, savebtn) {
+	var This = this;
+	
+	if(!this.version_store) {
+		this.version_store = Ext.create('Ext.data.Store', {
+			fields : [ 'id', 'softwareGroupId', 'versionNumber', 'versionText', 
+			           {name:'versionDisplay',
+						convert: function (val, model) {
+							return getLocalName(model.get('softwareGroupId'))
+									+ " " + model.get('versionText');
+						}},
+			           {name:'groupDisplay',
+						convert: function (val, model) {
+							return getLocalName(model.get('softwareGroupId'));
+						}}],
+			proxy : {
+				type : 'ajax',
+				url : This.res_url + '/getAllSoftwareVersions'
+			},
+			groupers : 'softwareGroupId',
+			sorters : ['softwareGroupId', 'versionNumber'],
+			autoLoad : true
+		});
+	}
+	if(!this.environment_store) {
+		this.environment_store = Ext.create('Ext.data.Store', {
+			fields : [ 'variable', 'softwareGroupId' ],
+			proxy : {
+				type : 'ajax',
+				url : This.res_url + '/getAllSoftwareEnvironment'
+			},
+			groupers : 'softwareGroupId',
+			autoLoad : true
+		});
+	}
+	this.environment_store.on('load', function() {
+		This.showEnvironmentVariables(tab, mstore);
+	});
+
+	var tpl = new Ext.XTemplate(
+			'<tpl for=".">',
+			'<tpl if="this.softwareGroupId != values.softwareGroupId">',
+				'<tpl exec="this.softwareGroupId = values.softwareGroupId"></tpl>',
+				'<div class="x-panel-header-default x-panel-header-text-container ' 
+				+ 'x-panel-header-text x-panel-header-text-default">'
+				+ '{groupDisplay}</div>',
+			'</tpl>',
+			'<div class="x-boundlist-item">{versionDisplay}</div>',
+			'</tpl>'
+	);
+
+	var form = {
+		xtype : 'form',
+		title : title,
+		iconCls : 'softwareIcon',
+		bodyStyle : 'padding:5px',
+		autoScroll : true,
+		defaults : {
+			xtype : 'textfield',
+			flex : 1,
+			anchor : '100%',
+			disabled : !editable
+		},
+		items : [{
+			xtype: 'combo',
+			name : 'softwareIds',
+			fieldLabel : 'Requires Software',
+			labelWidth : 150,
+			value : mstore.softwareIds,
+			multiSelect : true,
+			store: This.version_store,
+			queryMode : 'local',
+			displayField: 'versionDisplay',
+			groupField: 'softwareGroupId',
+			valueField: 'id',
+			tpl: tpl,
+			listeners: {
+				select: function(item) {
+					mstore.softwareIds = item.value;
+					This.showEnvironmentVariables(tab, mstore);
+				}
+			}
+		}, {
+			xtype : 'panel',
+			border: false,
+			frame: true,
+			type: 'evarpanel',
+			margin: 5,
+			html: '',
+			listeners: {
+				afterrender: function() {
+					This.showEnvironmentVariables(tab, mstore);
+				}
+			}
+		}, {
+			name : 'memoryGB',
+			fieldLabel : 'Requires Memory (GB)',
+			labelWidth : 150,
+			value : mstore.memoryGB
+		}, {
+			name : 'storageGB',
+			fieldLabel : 'Requires Storage (GB)',
+			labelWidth : 150,
+			value : mstore.storageGB
+		}, {
+			name : 'needs64bit',
+			xtype: 'checkbox',
+			fieldLabel : 'Needs 64-bit machine',
+			labelWidth : 150,
+			checked : mstore.needs64bit
+		} ],
+		listeners : {
+			dirtychange : function(item, dirty, opts) {
+				if (dirty) {
+					savebtn.setDisabled(false);
+					tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+				}
+			}
+		}
+	};
+	return form;
+};
+
+ComponentViewer.prototype.showEnvironmentVariables = function(tab, mstore) {
+	var text = 'Following Environment Variables are available for the component:<br/>';
+	var swversions = {};
+	this.version_store.each(function(field) {
+		var sw = field.get('softwareGroupId');
+		if(!swversions[sw]) 
+			swversions[sw] = [];
+		swversions[sw].push(field.get('id'));
+	});
+	var ptext = tab.down('panel[type="evarpanel"]');
+	if(!ptext || !this.environment_store || !this.version_store)
+		return;
+	var evars = [];
+	this.environment_store.each(function(field) {
+		var sw = field.get('softwareGroupId');
+		var vr = field.get('variable');
+		if(!swversions[sw] || !mstore.softwareIds) return;
+		var int = Ext.Array.intersect(mstore.softwareIds, swversions[sw]);
+		if(int.length)
+			evars.push("$"+vr);
+	});
+	if(evars.length)
+		text += evars.join(", ");
+	else
+		text = "No Environment Variables are available for the component";
+	Ext.getCmp(ptext.getId()).update(text);
 };
 
 ComponentViewer.prototype.initialize = function() {

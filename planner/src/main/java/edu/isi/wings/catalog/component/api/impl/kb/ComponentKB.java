@@ -31,6 +31,8 @@ public class ComponentKB {
 	protected String liburl;
 	protected String absurl;
 	protected String dconturl;
+	protected String resonturl;
+	protected String resliburl;
 	protected String codedir;
 	protected String topclass;
 
@@ -72,6 +74,8 @@ public class ComponentKB {
 		this.absurl = props.getProperty("lib.abstract.url");
 		this.liburl = props.getProperty("lib.concrete.url");
 		this.codedir = props.getProperty("lib.domain.code.storage");
+    this.resonturl = props.getProperty("ont.resource.url");
+    this.resliburl = props.getProperty("lib.resource.url");
 		this.load_concrete = load_concrete;
 		this.topclass = this.pcns + "Component";
 		
@@ -109,8 +113,12 @@ public class ComponentKB {
 					OntSpec.PLAIN, create_if_empty));
 			this.kb.importFrom(this.ontologyFactory.getKB(props.getProperty("ont.component.url"),
 					OntSpec.PLAIN, create_if_empty, true));
-//			this.kb.importFrom(this.ontologyFactory.getKB(props.getProperty("ont.data.url"),
-//					OntSpec.PLAIN, true, true));
+//		this.kb.importFrom(this.ontologyFactory.getKB(props.getProperty("ont.data.url"),
+//				OntSpec.PLAIN, true, true));
+      this.kb.importFrom(this.ontologyFactory.getKB(this.resonturl,
+          OntSpec.PLAIN, create_if_empty, true));
+      this.kb.importFrom(this.ontologyFactory.getKB(this.resliburl,
+          OntSpec.PLAIN, create_if_empty, true));
 	
 			if (create_writers) {
 				if (load_concrete)

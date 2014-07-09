@@ -35,6 +35,7 @@ public class ComponentController {
 	private String liburl;
 	
 	private String uploadScript;
+	private String resourceScript;
 
 	private ComponentCreationAPI cc;
 	private DataCreationAPI dc;
@@ -60,6 +61,7 @@ public class ComponentController {
 		this.liburl = (String) props.get("lib.concrete.url");
 		
 		this.uploadScript = config.getContextRootPath() + "/upload";
+		this.resourceScript = config.getContextRootPath() + "/resource";
 	}
 
 	public void show(PrintWriter out) {
@@ -82,7 +84,8 @@ public class ComponentController {
 						+ "tree: " + tree + ", " 
 						+ "types: " + types 
 					+ " }, " 
-					+ "'" + config.getScriptPath() + "', " 
+					+ "'" + config.getScriptPath() + "', "
+					+ "'" + this.resourceScript + "', "
 					+ "'" + this.uploadScript + "', "
 					+ "'" + this.pcdomns + "', "
 					+ "'" + this.dcdomns + "', " 

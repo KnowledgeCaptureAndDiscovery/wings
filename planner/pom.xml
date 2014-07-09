@@ -17,6 +17,8 @@
 	</parent>
 
 	<properties>
+		<jsch.version>0.1.51</jsch.version>
+		<nanocloud.version>0.8.2.3</nanocloud.version>
 		<gson.version>2.2.4</gson.version>
 		<junit.version>4.5</junit.version>
 		<log4j.version>1.2.14</log4j.version>
@@ -69,6 +71,20 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>${gson.version}</version>
+		</dependency>
+
+		<!-- jsch -->
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>${jsch.version}</version>
+		</dependency>
+	
+		<!-- gridkit nanocloud -->
+		<dependency>
+			<groupId>org.gridkit.lab</groupId>
+			<artifactId>nanocloud</artifactId>
+			<version>${nanocloud.version}</version>
 		</dependency>
 
 		<!-- getopt -->

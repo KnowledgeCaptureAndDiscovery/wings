@@ -10,6 +10,7 @@ public class Variable extends URIEntity {
 	private String comment;
 	private short type;
 	private boolean autofill;
+	private boolean breakpoint;
 
 	public Variable(String id, short type) {
 		super(id);
@@ -58,6 +59,14 @@ public class Variable extends URIEntity {
 
   public void setAutoFill(boolean autoFill) {
     this.autofill = autoFill;
+  }
+
+  public boolean isBreakpoint() {
+    return breakpoint;
+  }
+
+  public void setBreakpoint(boolean breakpoint) {
+    this.breakpoint = breakpoint;
   }
 
   public String toString() {

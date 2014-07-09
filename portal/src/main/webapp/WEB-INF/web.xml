@@ -95,11 +95,19 @@
     <servlet-name>SparqlEndpoint</servlet-name>
     <url-pattern>/sparql</url-pattern>
   </servlet-mapping>
-  
+  <servlet>
+    <description></description>
+    <display-name>DescribeResources</display-name>
+    <servlet-name>DescribeResources</servlet-name>
+    <servlet-class>edu.isi.wings.portal.servlets.DescribeResources</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DescribeResources</servlet-name>
+    <url-pattern>/resource/*</url-pattern>
+  </servlet-mapping>
   <session-config>
     <session-timeout>43200</session-timeout>
   </session-config>
-  
   <security-role>
     <role-name>WingsUser</role-name>
   </security-role>
@@ -111,6 +119,7 @@
       <url-pattern>/data/*</url-pattern>
       <url-pattern>/upload/*</url-pattern>
       <url-pattern>/component/*</url-pattern>
+      <url-pattern>/resource/*</url-pattern>
       <url-pattern>/componenttype/*</url-pattern>
       <url-pattern>/template/*</url-pattern>
       <url-pattern>/plan/*</url-pattern>
@@ -121,11 +130,8 @@
       <role-name>WingsUser</role-name>
     </auth-constraint>
   </security-constraint>
-  <!--login-config>
-    <auth-method>BASIC</auth-method>
-  </login-config-->
   <login-config>
-    <auth-method>FORM</auth-method>
+    <auth-method>BASIC</auth-method>
     <form-login-config>
       <form-login-page>/jsp/login.jsp</form-login-page>
       <form-error-page>/jsp/login_failed.jsp</form-error-page>

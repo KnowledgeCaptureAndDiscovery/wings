@@ -156,6 +156,9 @@ function getPortalHeader(path) {
 									+ "<li><a href=\""
 									+ path
 									+ "/component\">Manage Components</a></li>\n"
+									+ "<li><a href=\""
+									+ path
+									+ "/resource\">Describe Resources</a></li>\n"
 									+ "<li class=\"last\"><a href=\""
 									+ path
 									+ "/domain\">Manage Domain</a></li>\n"

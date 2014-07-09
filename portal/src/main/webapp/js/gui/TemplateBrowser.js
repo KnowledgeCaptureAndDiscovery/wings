@@ -1540,7 +1540,7 @@ TemplateBrowser.prototype.initialize = function(tid) {
 
 	if (this.editor_mode) {
 		var cv = new ComponentViewer(this.guid, this.store.components,
-				this.op_url, null, this.nsmap.pcdom, this.nsmap.dcdom,
+				this.op_url, null, null, this.nsmap.pcdom, this.nsmap.dcdom,
 				this.nsmap.dclib, true, false);
 		var cTree = cv.getComponentListTree(true);
 	    var cInputsTree = cv.getComponentInputsTree(true);

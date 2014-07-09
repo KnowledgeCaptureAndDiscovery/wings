@@ -6,6 +6,7 @@ import java.util.HashMap;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
+import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.ontapi.OntFactory;
@@ -217,4 +218,11 @@ public class TemplateReasoningKB implements ComponentReasoningAPI {
 
 		return list;
 	}
+
+  @Override
+  public ComponentPacket getInputDataDescriptions(ComponentPacket details,
+      DataReasoningAPI dc) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

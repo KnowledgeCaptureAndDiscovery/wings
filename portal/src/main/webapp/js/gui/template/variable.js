@@ -16,6 +16,7 @@ var Variable = function(tpl, id, text, x, y, type) {
 	this.isInput = false;
 	this.isOutput = false;
 	this.autofill = false;
+	this.breakpoint = false;
 	this.binding = null;
 	// this.font = "Bold 14px Tahoma, Arial";
 	// this.font = "bold 14px Optimer";
@@ -65,8 +66,14 @@ Variable.prototype.setDefaultColors = function() {
 			this.setTextColor("rgba(230,230,255," + alpha + ")");
 		}
 		else {
-			this.color = "rgba(0,51,102," + alpha + ")";
-			this.setTextColor("rgba(220,220,255," + alpha + ")");
+			if(!this.breakpoint) {
+				this.color = "rgba(0,51,102," + alpha + ")";
+				this.setTextColor("rgba(220,220,255," + alpha + ")");
+			}
+			else {
+				this.color = "rgba(153,0,0," + alpha + ")";
+				this.setTextColor("rgba(255,230,230," + alpha + ")");				
+			}
 		}
 	}
 	this.setBackgroundColor(this.color);
@@ -99,6 +106,11 @@ Variable.prototype.setIsUnknown = function(unknown) {
 
 Variable.prototype.setAutoFill = function(autofill) {
 	this.autofill = autofill;
+	this.setDefaultColors();
+};
+
+Variable.prototype.setBreakPoint = function(breakpoint) {
+	this.breakpoint = breakpoint;
 	this.setDefaultColors();
 };
 

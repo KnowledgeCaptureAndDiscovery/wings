@@ -8,7 +8,7 @@ Requirements
 
 Installation
 -------------
-1. $ mvn clean install
+1. $ mvn install
 	- This will create a wings-portal-<version>.war file in portal/target
 
 2. Move the war file to a Servlet container (Tomcat)
