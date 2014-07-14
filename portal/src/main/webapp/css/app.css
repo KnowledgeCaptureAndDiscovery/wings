@@ -183,6 +183,16 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	background-image:url(../images/version.png) !important
 }
 
+.connect_false {
+	color: red;
+	font-weight: bold;
+}
+
+.connect_true {
+	color: green;
+	font-weight: bold;
+}
+
 .user {
 	color: #9ADE42;
 }

@@ -45,6 +45,10 @@ ResourceViewer.prototype.refreshEnvironmentVariables = function(tab, mstore) {
 	pgrid.setSource(source);
 };
 
+ResourceViewer.prototype.getGB = function(bytes) {
+	return (bytes/1073741824).toFixed(2) + " GB";
+};
+
 ResourceViewer.prototype.openMachineEditor = function(args) {
     var tab = args[0];
     var id = args[1];
@@ -100,10 +104,11 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
     
     Ext.Ajax.timeout = 300000;
     var checkbtn = new Ext.Button({
-        text: 'Check Machine',
+        text: 'Get Machine Details',
         iconCls: 'runIcon',
         handler: function(btn) {
-        	Ext.get(This.tabPanel.getId()).mask("Connecting..");
+        	Ext.get(This.tabPanel.getId()).mask("Connecting and checking..<br/>"+
+        			"This may take some time for first-time connections");
         	Ext.Ajax.request({
                 url: This.op_url + '/checkMachine',
                 params: {
@@ -112,15 +117,62 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
                 timeout: 300000,
                 success: function(response) {
                     Ext.get(This.tabPanel.getId()).unmask();
-                    if (response.responseText == "OK") {
-						// Reset dirty bit
-                    	// Do something. The response should be a json
-                    	// - decode, and display in a window
-                    } else {
+                    try {
+                    	var store = Ext.decode(response.responseText);
+						var win = new Ext.Window({
+							layout : 'border',
+							constrain : true,
+							maximizable : true,
+							title : getLocalName(id),
+							frame : false,
+							border : false,
+							autoScroll : true,
+							width : 450,
+							height : 350,
+							items: [{
+								xtype: 'propertygrid',
+								region: 'center',
+								source: store,
+								customRenderers:{
+									storageRootMax:function(v) {
+										return This.getGB(v);},
+									storageRootFree:function(v) {
+										return This.getGB(v);},
+									memoryFree:function(v) {
+										return This.getGB(v);},
+									memoryMax:function(v) {
+										return This.getGB(v);},
+									connect: function(v) {
+										return "<div class='connect_"+v+"'>"+
+											v+"</div>";
+									},
+									systemLoad: function(v) {
+										return v.toFixed(2);
+									}
+								},
+							    listeners: {
+							        'beforeedit': {
+							            fn: function () {
+							                return false;
+							            }
+							        }
+							    }
+							}, {
+								region: 'south',
+								title: 'Errors',
+								bodyStyle: 'padding:5px;font:tahoma 11px',
+								html: store.errors.join("<br/>")
+							}]
+						});
+                    	win.show();
+                    }
+                    catch (e) {
+                    	console.log(e);
                         Ext.MessageBox.show({
                             icon: Ext.MessageBox.ERROR,
                             buttons: Ext.MessageBox.OK,
-                            msg: "Could not connect:<br/>" + response.responseText.replace(/\n/, '<br/>')
+                            msg: "Got invalid response:<br/>" 
+                            	+ response.responseText.replace(/\n/, '<br/>')
                         });
                     }
                 },
@@ -194,6 +246,11 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
 			name : 'userKey',
 			fieldLabel : 'User Private Key (path)',
 			value: mstore.userKey
+		},{
+			xtype : 'checkbox',
+			name : 'isHealthy',
+			fieldLabel : 'Is Healthy ?',
+			checked : mstore.isHealthy
 		},{
 			name : 'memoryGB',
 			fieldLabel : 'System Memory (GB)',

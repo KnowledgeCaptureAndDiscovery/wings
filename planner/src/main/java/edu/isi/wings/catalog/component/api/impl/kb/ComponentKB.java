@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Scanner;
 
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
+import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
@@ -36,6 +38,8 @@ public class ComponentKB {
 	protected String codedir;
 	protected String topclass;
 
+	protected ResourceAPI resapi;
+	
 	protected OntFactory ontologyFactory;
 
 	protected HashMap<String, KBObject> objPropMap;
@@ -117,8 +121,8 @@ public class ComponentKB {
 //				OntSpec.PLAIN, true, true));
       this.kb.importFrom(this.ontologyFactory.getKB(this.resonturl,
           OntSpec.PLAIN, create_if_empty, true));
-      this.kb.importFrom(this.ontologyFactory.getKB(this.resliburl,
-          OntSpec.PLAIN, create_if_empty, true));
+//    this.kb.importFrom(this.ontologyFactory.getKB(this.resliburl,
+//        OntSpec.PLAIN, create_if_empty, true));
 	
 			if (create_writers) {
 				if (load_concrete)
@@ -222,6 +226,67 @@ public class ComponentKB {
 		return ontologyFactory.parseRules(rulestr);
 	}
 	
+	 
+  protected ComponentRequirement getComponentRequirements(KBObject compobj, 
+      KBAPI tkb) {
+    ComponentRequirement requirement = new ComponentRequirement();
+    
+    KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
+    KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
+    // KBObject minver = this.objPropMap.get("requiresMinimumVersion");
+    KBObject exver = this.objPropMap.get("requiresExactVersion");
+    for(KBObject sdobj : tkb.getPropertyValues(compobj, sdprop)) {
+      KBObject verobj = tkb.getPropertyValue(sdobj, exver);
+      if(verobj != null) 
+        requirement.addSoftwareId(verobj.getID());
+    }
+
+    KBObject hdobj = tkb.getPropertyValue(compobj, hdprop);
+    KBObject memobj = tkb.getPropertyValue(hdobj,
+        this.dataPropMap.get("requiresMemoryGB"));
+    KBObject stobj = tkb.getPropertyValue(hdobj,
+        this.dataPropMap.get("requiresStorageGB"));
+    KBObject s4bitobj = tkb.getPropertyValue(hdobj,
+        this.dataPropMap.get("needs64bit"));
+    if(memobj != null && memobj.getValue() != null)
+      requirement.setMemoryGB(Float.parseFloat(memobj.getValue().toString()));
+    if(stobj != null && stobj.getValue() != null)
+      requirement.setStorageGB(Float.parseFloat(stobj.getValue().toString()));
+    if(s4bitobj != null)
+      requirement.setNeed64bit((Boolean)s4bitobj.getValue());
+    
+    return requirement;
+  }
+  
+
+  protected void setComponentRequirements(KBObject compobj,
+      ComponentRequirement requirement, KBAPI tkb, KBAPI writerkb) {
+    KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
+    KBObject sdcls = this.conceptMap.get("SoftwareDependency");
+    KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
+    KBObject hdcls = this.conceptMap.get("HardwareDependency");
+    //KBObject minver = this.objPropMap.get("requiresMinimumVersion");
+    KBObject exver = this.objPropMap.get("requiresExactVersion");
+    for (String softwareId : requirement.getSoftwareIds()) {
+      KBObject sdobj = writerkb.createObjectOfClass(null, sdcls);
+      KBObject verobj = tkb.getIndividual(softwareId);
+      if(verobj != null)
+        writerkb.setPropertyValue(sdobj, exver, verobj);
+      writerkb.addPropertyValue(compobj, sdprop, sdobj);
+    }
+    
+    KBObject hdobj = writerkb.createObjectOfClass(null, hdcls);
+    writerkb.setPropertyValue(hdobj, 
+        this.dataPropMap.get("requiresMemoryGB"), 
+        writerkb.createLiteral(requirement.getMemoryGB()));
+    writerkb.setPropertyValue(hdobj, 
+        this.dataPropMap.get("requiresStorageGB"), 
+        writerkb.createLiteral(requirement.getStorageGB()));
+    writerkb.setPropertyValue(hdobj, 
+        this.dataPropMap.get("needs64bit"), 
+        writerkb.createLiteral(requirement.isNeed64bit()));
+    writerkb.setPropertyValue(compobj, hdprop, hdobj);
+  }
 
 	/*
 	 * Legacy component library porting functions
@@ -413,6 +478,8 @@ public class ComponentKB {
 		rulePrefixes.put("acdom", this.pcdomns); // Legacy
 		rulePrefixes.put("ac", this.pcns); // Legacy
 		rulePrefixes.put("wflow", this.wflowns);
+		rulePrefixes.put("res", this.resonturl+"#");
+		rulePrefixes.put("reslib", this.resliburl+"#");
 		kb.setRulePrefixes(rulePrefixes);
 	}
 }

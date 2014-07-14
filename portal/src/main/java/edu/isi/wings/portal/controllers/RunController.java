@@ -13,6 +13,7 @@ import com.google.gson.JsonParser;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
+import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
@@ -160,7 +161,7 @@ public class RunController {
 		String requestid = UuidGen.generateAUuid("");
 		WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
 				DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
-				requestid);
+				ResourceFactory.getAPI(props), requestid);
 		ExecutionPlan plan = wg.getExecutionPlan(xtpl);
 
 		if (plan != null) {

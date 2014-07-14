@@ -4,6 +4,8 @@ import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
+import edu.isi.wings.catalog.resource.ResourceFactory;
+import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.kb.PropertiesHelper;
 import edu.isi.wings.common.logging.LogEvent;
@@ -50,7 +52,8 @@ public class Wings {
 
 	ComponentReasoningAPI pc;
 	DataReasoningAPI dc;
-
+	ResourceAPI rc;
+	
 	boolean storeProvenance;
 
 	String requestId;
@@ -111,10 +114,16 @@ public class Wings {
 		return pc;
 	}
 
+	 public ResourceAPI initializeRC() {
+	    this.props.putAll(ComponentFactory.createLegacyConfiguration());
+	    rc = ResourceFactory.getAPI(props);
+	    return rc;
+	  }
+	 
 	public void initializeWorkflowGenerator() {
 		this.props.putAll(TemplateFactory.createLegacyConfiguration());
 		this.props.putAll(DataFactory.createLegacyConfiguration());
-		wg = new WorkflowGenerationKB(this.props, dc, pc, requestId);
+		wg = new WorkflowGenerationKB(this.props, dc, pc, rc, requestId);
 	}
 
 	public DataReasoningAPI initializeDC() {
@@ -527,6 +536,7 @@ public class Wings {
 
 		LogEvent ev = wings.start();
 		wings.initializePC();
+		wings.initializeRC();
 		wings.initializeWorkflowGenerator();
 		// Initialize the DC later
 		// (DC initialization messes up Jena Maps and we can't load the

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.EnvironmentValue;
 import edu.isi.wings.catalog.resource.classes.Machine;
@@ -174,6 +175,8 @@ public class ResourceKB implements ResourceAPI {
         pmap.get("hasMemoryGB"));
     KBObject is64Bit = this.kb.getPropertyValue(mobj, 
         pmap.get("is64Bit"));
+    KBObject isHealthy = this.kb.getPropertyValue(mobj, 
+        pmap.get("isHealthy"));
     KBObject storageFolder = this.kb.getPropertyValue(mobj,
         pmap.get("hasWingsStorageFolder"));
     KBObject executionFolder = this.kb.getPropertyValue(mobj,
@@ -198,6 +201,8 @@ public class ResourceKB implements ResourceAPI {
       machine.setStorageGB((Float)storageGB.getValue());
     if(is64Bit != null)
       machine.setIs64Bit((Boolean)is64Bit.getValue());
+    if(isHealthy != null)
+      machine.setHealthy((Boolean)isHealthy.getValue());
     if(storageFolder != null)
       machine.setStorageFolder((String)storageFolder.getValue());
     if(executionFolder != null)
@@ -291,6 +296,32 @@ public class ResourceKB implements ResourceAPI {
   }
 
   @Override
+  public ArrayList<String> getMatchingMachineIds(ComponentRequirement req) {
+    ArrayList<String> machineIds = new ArrayList<String>();
+    // Time-bound cache (say a cache that cleans itself after every half hour)
+    for(String machineId : this.getMachineIds()) {
+      Machine machine = this.getMachine(machineId);
+      boolean ok = true;
+      // TODO: Check that the machine is "available" - could be fetched live
+      for(String softwareId : req.getSoftwareIds()) {
+        if(!machine.getSoftwareIds().contains(softwareId)) {
+          ok = false;
+          break;
+        }
+      }
+      // TODO: the machine's memory/storage could be live information
+      // gleaned from the machine
+      if(req.getMemoryGB() > machine.getMemoryGB())
+        ok = false;
+      if(req.getStorageGB() > machine.getStorageGB())
+        ok = false;
+      if(ok)
+        machineIds.add(machineId);
+    }
+    return machineIds;
+  }
+  
+  @Override
   public boolean saveMachine(Machine machine) {
     KBObject mobj = this.kb.getIndividual(machine.getID());
     if(mobj == null)
@@ -314,6 +345,8 @@ public class ResourceKB implements ResourceAPI {
         this.libkb.createLiteral(machine.getMemoryGB()));
     this.libkb.setPropertyValue(mobj, pmap.get("is64Bit"), 
         this.libkb.createLiteral(machine.is64Bit()));
+    this.libkb.setPropertyValue(mobj, pmap.get("isHealthy"), 
+        this.libkb.createLiteral(machine.isHealthy()));
     this.libkb.setPropertyValue(mobj, pmap.get("hasExecutionFolder"), 
         this.libkb.createLiteral(machine.getExecutionFolder()));
     this.libkb.setPropertyValue(mobj, pmap.get("hasWingsStorageFolder"), 

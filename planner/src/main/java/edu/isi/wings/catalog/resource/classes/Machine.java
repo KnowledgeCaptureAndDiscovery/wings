@@ -28,6 +28,7 @@ public class Machine extends Resource {
   private float memoryGB;
   private float storageGB;
   private boolean is64Bit;
+  private boolean isHealthy;
   
   private String storageFolder;
   private String executionFolder;
@@ -98,6 +99,14 @@ public class Machine extends Resource {
     this.is64Bit = is64Bit;
   }
 
+  public boolean isHealthy() {
+    return isHealthy;
+  }
+
+  public void setHealthy(boolean isHealthy) {
+    this.isHealthy = isHealthy;
+  }
+
   public String getStorageFolder() {
     return storageFolder;
   }
@@ -154,7 +163,8 @@ public class Machine extends Resource {
     this.osid = osid;
   }
 
-  public boolean checkConnection() {
+  public MachineDetails getMachineDetails() {
+    MachineDetails details = new MachineDetails();
     try {      
       String name = this.getName();
       Cloud cloud = CloudFactory.createCloud();
@@ -172,17 +182,15 @@ public class Machine extends Resource {
         javaexec = jhome + "/bin/java";
       node.setProp(SshSpiConf.SPI_BOOTSTRAP_JVM_EXEC, javaexec);
       node.touch();
-      String r = node.exec(new CheckMachine(this));
-      System.out.println(r);
+      details = node.exec(new MachineDetailsGrabber(this));
       cloud.shutdown();
     }
     catch (Exception e) {
-      if(e instanceof java.lang.RuntimeException)
-        System.out.println ("Default java not OK. Set JAVA_HOME");
-      e.printStackTrace();
-      return false;
+      details.setCanConnect(false);
+      details.addError(e.getMessage());
+      //e.printStackTrace();
     }
-    return true;
+    return details;
     /*JSch ssh = new JSch();
     try {
       if (this.getUserKey() != null)
@@ -228,66 +236,153 @@ public class Machine extends Resource {
   }
 }
 
-class CheckMachine implements Callable<String>, Serializable {
+class MachineDetailsGrabber implements Callable<MachineDetails>, Serializable {
   private static final long serialVersionUID = 5960512182954001309L;
   private final Machine machine;
 
-  public CheckMachine(Machine machine) {
+  public MachineDetailsGrabber(Machine machine) {
     this.machine = machine;
   }
 
+  @SuppressWarnings("restriction")
   @Override
-  public String call() {
-    System.out.println("Connected");
+  public MachineDetails call() {
+    MachineDetails details = new MachineDetails();
+    details.setCanConnect(true);;
     File f = new File(machine.getStorageFolder());
     if (!f.exists())
-      System.out.println("Cannot find Wings Storage Folder: "
+      details.addError("Cannot find Wings Storage Folder: "
           + machine.getStorageFolder());
     if (!f.canWrite())
-      System.out.println("Cannot write to Wings Storage Folder: "
+      details.addError("Cannot write to Wings Storage Folder: "
           + machine.getStorageFolder());
 
     f = new File(machine.getExecutionFolder());
     if (!f.exists())
-      System.out.println("Cannot find Wings Execution Folder: "
+      details.addError("Cannot find Wings Execution Folder: "
           + machine.getExecutionFolder());
     if (!f.canWrite())
-      System.out.println("Cannot write to Wings Execution Folder: "
+      details.addError("Cannot write to Wings Execution Folder: "
           + machine.getExecutionFolder());
     
-    /* Total number of processors or cores available to the JVM */
-    System.out.println("Available processors (cores): " + 
-        Runtime.getRuntime().availableProcessors());
-
-    /* Total amount of free memory available to the JVM */
-    System.out.println("Free memory (bytes): " + 
-        Runtime.getRuntime().freeMemory());
-
-    /* This will return Long.MAX_VALUE if there is no preset limit */
-    long maxMemory = Runtime.getRuntime().maxMemory();
-    /* Maximum amount of memory the JVM will attempt to use */
-    System.out.println("Maximum memory (bytes): " + 
-        (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory));
-
-    /* Total memory currently available to the JVM */
-    System.out.println("Total memory available to JVM (bytes): " + 
-        Runtime.getRuntime().totalMemory());
-
-    /* Get a list of all filesystem roots on this system */
+    details.setNumCores(Runtime.getRuntime().availableProcessors());
+    details.setMaxMemory(((com.sun.management.OperatingSystemMXBean) 
+        ManagementFactory.getOperatingSystemMXBean())
+          .getTotalPhysicalMemorySize());
+    details.setFreeMemory(((com.sun.management.OperatingSystemMXBean) 
+        ManagementFactory.getOperatingSystemMXBean())
+          .getFreePhysicalMemorySize());
     File[] roots = File.listRoots();
-
-    /* For each filesystem root, print some info */
     for (File root : roots) {
-      System.out.println("File system root: " + root.getAbsolutePath());
-      System.out.println("Total space (bytes): " + root.getTotalSpace());
-      System.out.println("Free space (bytes): " + root.getFreeSpace());
-      System.out.println("Usable space (bytes): " + root.getUsableSpace());
+      details.setStorageRoot(root.getAbsolutePath());
+      details.setTotalStorage(root.getTotalSpace());
+      details.setFreeStorage(root.getFreeSpace());
+      break;
     }
 
-    System.out.println("Architecture: "+
+    details.setArchitecture(
+        ManagementFactory.getOperatingSystemMXBean().getName() + " - "+
         ManagementFactory.getOperatingSystemMXBean().getArch());
-    System.out.println("Load average: "+
+    details.setSystemLoad(
         ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage());
-    return "ping";
+    return details;
+  }
+}
+
+class MachineDetails implements Serializable {
+  private static final long serialVersionUID = -2690736677192673940L;
+  private boolean connect;
+  private float memoryMax;
+  private float memoryFree;
+  private int numCores;
+  private String storageRoot;
+  private float storageRootMax;
+  private float storageRootFree;
+  private String systemArch;
+  private double systemLoad;
+  private ArrayList<String> errors;
+
+  public MachineDetails() {
+    errors = new ArrayList<String>();
+  }
+  
+  public boolean isCanConnect() {
+    return connect;
+  }
+
+  public void setCanConnect(boolean canConnect) {
+    this.connect = canConnect;
+  }
+
+  public float maxMemory() {
+    return memoryMax;
+  }
+
+  public void setMaxMemory(float memoryMax) {
+    this.memoryMax = memoryMax;
+  }
+
+  public float getFreeMemory() {
+    return memoryFree;
+  }
+
+  public void setFreeMemory(float memoryFree) {
+    this.memoryFree = memoryFree;
+  }
+
+  public int getNumCores() {
+    return numCores;
+  }
+
+  public void setNumCores(int numCores) {
+    this.numCores = numCores;
+  }
+
+  public String getStorageRoot() {
+    return storageRoot;
+  }
+
+  public void setStorageRoot(String storageRoot) {
+    this.storageRoot = storageRoot;
+  }
+
+  public float getTotalStorage() {
+    return storageRootMax;
+  }
+
+  public void setTotalStorage(float totalStorage) {
+    this.storageRootMax = totalStorage;
+  }
+
+  public float getFreeStorage() {
+    return storageRootFree;
+  }
+
+  public void setFreeStorage(float freeStorage) {
+    this.storageRootFree = freeStorage;
+  }
+
+  public String getArchitecture() {
+    return systemArch;
+  }
+
+  public void setArchitecture(String architecture) {
+    this.systemArch = architecture;
+  }
+
+  public double getSystemLoad() {
+    return systemLoad;
+  }
+
+  public void setSystemLoad(double systemLoad) {
+    this.systemLoad = systemLoad;
+  }
+
+  public ArrayList<String> getErrors() {
+    return errors;
+  }
+
+  public void addError(String error) {
+    this.errors.add(error);
   }
 }

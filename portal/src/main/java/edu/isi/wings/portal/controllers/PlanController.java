@@ -20,6 +20,8 @@ import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
+import edu.isi.wings.catalog.resource.ResourceFactory;
+import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
@@ -39,6 +41,7 @@ import edu.isi.wings.workflow.template.classes.variables.Variable;
 public class PlanController {
 	private DataReasoningAPI dc;
 	private ComponentReasoningAPI cc;
+	private ResourceAPI rc;
 	private TemplateCreationAPI tc;
 	private WorkflowGenerationAPI wg;
 
@@ -63,7 +66,8 @@ public class PlanController {
 		tc = TemplateFactory.getCreationAPI(props);
 		cc = ComponentFactory.getReasoningAPI(props);
 		dc = DataFactory.getReasoningAPI(props);
-		wg = new WorkflowGenerationKB(props, dc, cc, UuidGen.generateAUuid(""));
+		rc = ResourceFactory.getAPI(props);
+		wg = new WorkflowGenerationKB(props, dc, cc, rc, UuidGen.generateAUuid(""));
 
 		this.wliburl = (String) props.get("domain.workflows.dir.url");
 		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";

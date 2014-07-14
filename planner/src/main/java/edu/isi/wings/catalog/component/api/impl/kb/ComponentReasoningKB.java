@@ -3,6 +3,7 @@ package edu.isi.wings.catalog.component.api.impl.kb;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
@@ -470,6 +471,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 			list.add(details);
 			return list;
 		}
+		
+		ComponentRequirement requirement = this.getComponentRequirements(comp, this.kb);
+		c.setRequirements(requirement);
 
 		// Get a mapping of ArgID's to arg for the Component
 		// Also note which roles are inputs
@@ -700,6 +704,16 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 			return list;
 		}
 
+		// Check component dependencies
+		// If set, overwrite the component dependencies with these
+		ComponentRequirement req = this.getComponentRequirements(tcomp, tkb);
+		if(req != null) {
+		  if(req.getMemoryGB() != 0)
+		    c.getRequirements().setMemoryGB(req.getMemoryGB());
+      if(req.getStorageGB() != 0)
+        c.getRequirements().setMemoryGB(req.getStorageGB());
+		}
+		
 		// Set values of variables by looking at values set by rules
 		// in temporary kb store
 		// - Only set if there isn't already a binding value for the variable
@@ -868,7 +882,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		list.add(details);
 		return list;
 	}
-	
 	
 	public ComponentPacket getInputDataDescriptions(ComponentPacket details, DataReasoningAPI dc) {
 	   HashMap<String, KBObject> omap = this.objPropMap;

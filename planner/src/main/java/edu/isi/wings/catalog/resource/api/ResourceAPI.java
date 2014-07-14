@@ -2,6 +2,7 @@ package edu.isi.wings.catalog.resource.api;
 
 import java.util.ArrayList;
 
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareEnvironment;
@@ -25,6 +26,8 @@ public interface ResourceAPI {
 
   SoftwareVersion getSoftwareVersion(String versionid);
 
+  ArrayList<String> getMatchingMachineIds(ComponentRequirement req);
+  
   // Write functions
   boolean addMachine(String machineid);
   

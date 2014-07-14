@@ -44,4 +44,11 @@ public class ComponentRequirement {
     this.softwareIds.add(softwareId);
   }
 
+  public String toString() {
+    String str = "Softwares: "+this.softwareIds.toString()+"\n";
+    str += "MemoryGB: "+this.memoryGB+"\n";
+    str += "StorageGB: "+this.storageGB+"\n";
+    str += "Needs64bit: "+this.need64bit;
+    return str;
+  }
 }

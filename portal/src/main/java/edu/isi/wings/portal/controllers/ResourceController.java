@@ -132,13 +132,13 @@ public class ResourceController {
     }
   }
   
-  public boolean checkMachine(String resid) {
+  public String checkMachine(String resid) {
     try {
       Machine machine = this.api.getMachine(resid);
-      return machine.checkConnection();
+      return json.toJson(machine.getMachineDetails());
     } catch (Exception e) {
       e.printStackTrace();
-      return false;
+      return null;
     } finally {
       api.end();
     }

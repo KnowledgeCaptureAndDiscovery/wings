@@ -9,6 +9,7 @@ import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
+import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
@@ -66,6 +67,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 	public ComponentReasoningAPI pc;
 
 	public ComponentReasoningAPI tc;
+	
+	public ResourceAPI rc;
 
 	public ArrayList<String> explanations;
 
@@ -94,13 +97,15 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 	 *            the domain of the template library
 	 */
 
-	public WorkflowGenerationKB(Properties props, DataReasoningAPI dc, ComponentReasoningAPI pc, String ldid) {
+	public WorkflowGenerationKB(Properties props, DataReasoningAPI dc, 
+	    ComponentReasoningAPI pc, ResourceAPI rc, String ldid) {
 		this.props = props;
 		this.request_id = ldid;
 		this.logger = Logger.getLogger(this.getClass().getName());
 
 		this.dc = dc;
 		this.pc = pc;
+		this.rc = rc;
 		this.tc = new TemplateReasoningKB(this);
 		this.dataNS = props.getProperty("lib.domain.data.url") + "#";
 		this.wNS = props.getProperty("ont.workflow.url") + "#";
@@ -1995,6 +2000,15 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 					for (int i = 0; i < rcmr.size(); i++) {
 						ComponentPacket m = rcmr.get(i);
 
+						// If DistributedExecutionEngine {
+  						System.out.println(m.getComponent().getName());
+  		        System.out.println(m.getComponent().getRequirements());
+  		        System.out.println(
+  		            this.rc.getMatchingMachineIds(
+  		                m.getComponent().getRequirements()));
+  		        // If no matching machine ids
+  		        // Prune this branch -- add explanation
+		        // }
 						PortBinding newpb = new PortBinding();
 						// PortBinding opb = new PortBinding();
 						HashMap<Role, Variable> mRoleMap = m.getRoleMap();
