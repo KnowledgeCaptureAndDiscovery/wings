@@ -1213,7 +1213,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 	 * 		- No collections at all (component or data)
 	 * 		- There can be more than one link to a port (i.e. expansion of a collection as an input to that port)
 	 */
-	public Template getExpandedTemplate(Template template) {
+	@SuppressWarnings("unchecked")
+  public Template getExpandedTemplate(Template template) {
 		Template curt = new TemplateKB((TemplateKB)template);
 		curt.setID(UuidGen.generateURIUuid((URIEntity)template));
 		// Convert to execution prefix id
@@ -1234,7 +1235,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 			Link currentLink = investigateLinks.remove(0);
 			if (!currentLink.isOutputLink()) {
 				Node destNode = currentLink.getDestinationNode();
-
+				
 				if (!nodesDone.contains(destNode)) {
 					// Check all input links to this node have been already processed
 					// If not, re-add back to queue
@@ -1252,7 +1253,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 					}
 					nodesDone.add(destNode);
 					ComponentVariable component = destNode.getComponentVariable();
-
+			     
 					// Expand the component bindings into multiple nodes
 					ArrayList<Binding> cbindings = new ArrayList<Binding>();
 					cbindings.add(component.getBinding());
@@ -1267,8 +1268,6 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 							c.setConcrete(true);
 							c.setBinding(new Binding(cbinding.getID()));
 							//c.setBinding(new Binding(ns + cbinding.getName()));
-
-							boolean process_node = true;
 							
 							// Create a new Node
 							Node newNode = curt.addNode(c);
@@ -1276,6 +1275,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 							//newNode.addPortSetRule(destNode.getPortSetRule());
 							newNode.setComment(destNode.getComment());
 
+							newNode.setMachineIds((ArrayList<String>)
+							    cbinding.getData("machineIds"));
+							
 							// Get data bindings for this component binding
 							PortBindingList pb = (PortBindingList) cbinding.getData();
 							
@@ -1321,11 +1323,13 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 	                    loc = dc.getDefaultDataLocation(cb.getID());
 	                  file.setLocation(loc);
 	                  file.loadMetadataFromLocation();
-	                  if(file.getMetadata().isEmpty())
-	                    process_node = false;
+	                  // If there is no metadata for a breakpoint
+	                  // Then mark the destination as inactive
+	                  if(file.getMetadata().isEmpty() && destNode != null)
+	                    newNode.setInactive(true);
 	                  //System.out.println(cb.getName()+"="+file.getMetadata());
 	                }
-	                
+                  
 									String varkey = cb.isValueBinding() ? variable.getName() : "";
 									varkey += cb.toString();
 									
@@ -1337,6 +1341,11 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										// - Modify link to point to the new node as destination
 										// Else, add new links
 										for(Link l : curlinks) {
+		                  // If origin in inactive, set destination as inactive
+		                  if(l.getOriginNode() != null &&
+		                      l.getOriginNode().isInactive()) {
+		                    newNode.setInactive(true);
+		                  }
 											if(l.getDestinationNode() == null) {
 												l.setDestinationNode(newNode);
 												l.setDestinationPort(newPort);
@@ -1362,11 +1371,6 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 												this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
                   }
 								}
-							}
-							
-							if(!process_node) {
-							  curt.deleteNode(newNode);
-							  continue;
 							}
 
 							// Get outputs from this node
@@ -1415,6 +1419,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										newVariable.setBinding(cb);
 										newVariables.put(varkey, newVariable);
 									}
+									
 									// Add new output link
 									curt.addLink(newNode, null, newPort, null, newVariable);
 
@@ -2000,15 +2005,16 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 					for (int i = 0; i < rcmr.size(); i++) {
 						ComponentPacket m = rcmr.get(i);
 
-						// If DistributedExecutionEngine {
-  						System.out.println(m.getComponent().getName());
-  		        System.out.println(m.getComponent().getRequirements());
-  		        System.out.println(
-  		            this.rc.getMatchingMachineIds(
-  		                m.getComponent().getRequirements()));
-  		        // If no matching machine ids
-  		        // Prune this branch -- add explanation
-		        // }
+						ArrayList<String> machineIds = 
+						    this.rc.getMatchingMachineIds(
+						        m.getComponent().getRequirements());
+						if(machineIds.size() == 0) {
+						  this.addExplanation("ERROR: Could not find a suitable machine "+
+						      "to run "+m.getComponent().getName());
+						  continue;
+						}
+            cb.setData("machineIds", machineIds);
+
 						PortBinding newpb = new PortBinding();
 						// PortBinding opb = new PortBinding();
 						HashMap<Role, Variable> mRoleMap = m.getRoleMap();

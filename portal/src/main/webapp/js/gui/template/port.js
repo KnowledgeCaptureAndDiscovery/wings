@@ -152,6 +152,8 @@ Port.prototype.createLayerItem = function(id) {
 		draw : function(ctx) {
 			var lyr = this.getLayer ? this.getLayer().parent.LayerManager.findLayer(this.getLayer().id) : null;
 
+			if(port.partOf.isInactive())
+				ctx.globalAlpha = 0.3;
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = 'rgba(0,0,0,1)';
 
@@ -170,7 +172,8 @@ Port.prototype.createLayerItem = function(id) {
 				ctx.fillStyle = this.port.color;
 			
 			ctx.fill();
-
+			ctx.globalAlpha = 1.0;
+			
 			this.x = this.port.x - this.width / 2.0;
 			this.y = this.port.y - (this.port.isInput ? this.height : 0);
 		},

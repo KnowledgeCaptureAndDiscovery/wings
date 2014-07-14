@@ -35,10 +35,12 @@ Template.prototype.initialize = function() {
 			continue;
 		var xy = this.getXYFromComment(node.comment);
 		var n = new Node(this, node.id, node.componentVariable, parseInt(xy.x) + 0.5, parseInt(xy.y) + 0.5);
+		n.machineIds = node.machineIds;
 		n.setBinding(node.componentVariable.binding);
 		n.setConcrete(node.componentVariable.isConcrete);
 		n.setComponentRule(node.crule);
 		n.setPortRule(node.prule);
+		n.setInactive(node.inactive);
 
 		// in case inputPorts/outputPorts are explicitly provided for the nodes
 		if (node.inputPorts) {
@@ -104,14 +106,17 @@ Template.prototype.initialize = function() {
 				this.ports[link.fromPort.id] = new Port(this, link.fromPort.id, link.fromPort.role.roleid);
 				this.ports[link.fromPort.id].dim = parseInt(link.fromPort.role.dimensionality);
 			}
-			this.nodes[link.fromNode.id].addOutputPort(this.ports[link.fromPort.id]);
+			var n = this.nodes[link.fromNode.id];
+			n.addOutputPort(this.ports[link.fromPort.id]);
 			this.ports[link.fromPort.id].type = this.variables[link.variable.id].type;
-
+				
 			var v = this.variables[link.variable.id];
 			if (link.fromPort.role.dimensionality)
 				v.setDimensionality(parseInt(link.fromPort.role.dimensionality));
 			if (!link.toPort)
 				v.setIsOutput(true);
+			if(!n.isInactive())
+				v.setInactive(false);
 
 			fromPort = this.ports[link.fromPort.id];
 		}
@@ -120,7 +125,8 @@ Template.prototype.initialize = function() {
 				this.ports[link.toPort.id] = new Port(this, link.toPort.id, link.toPort.role.roleid);
 				this.ports[link.toPort.id].dim = parseInt(link.toPort.role.dimensionality);
 			}
-			this.nodes[link.toNode.id].addInputPort(this.ports[link.toPort.id]);
+			var n = this.nodes[link.toNode.id];
+			n.addInputPort(this.ports[link.toPort.id]);
 			this.ports[link.toPort.id].type = this.variables[link.variable.id].type;
 
 			var v = this.variables[link.variable.id];
@@ -128,7 +134,9 @@ Template.prototype.initialize = function() {
 				v.setDimensionality(parseInt(link.toPort.role.dimensionality));
 			if (!link.fromPort)
 				v.setIsInput(true);
-
+			if(!n.isInactive())
+				v.setInactive(false);
+			
 			toPort = this.ports[link.toPort.id];
 		}
 		link = new Link(this, fromPort, toPort, this.variables[link.variable.id]);

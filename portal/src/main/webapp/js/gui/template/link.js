@@ -150,15 +150,21 @@ Link.prototype.draw = function(ctx, sideEffects, items) {
 		if (sideEffects && sideEffects.op == "changeFromPort") {
 			this.color = this.hideLinkColor;
 		}
+		if(this.fromNode.isInactive())
+			ctx.globalAlpha = 0.3;
 		// Draw Path from fromNode/fromOutputPort -> Variable/inputPort
 		this.drawPartialLink(ctx, this.fromPort, this.variable.getInputPort(), false, true, items);
+		ctx.globalAlpha = 1.0;
 		this.color = color;
 	}
 	if (this.toPort) {
 		if (sideEffects && sideEffects.op == "changeToPort") {
 			this.color = this.hideLinkColor;
 		}
+		if(this.toNode.isInactive() || this.variable.isInactive())
+			ctx.globalAlpha = 0.3;
 		this.drawPartialLink(ctx, this.variable.getOutputPort(), this.toPort, false, true, items);
+		ctx.globalAlpha = 1.0;
 		this.color = color;
 	}
 	this.color = color;

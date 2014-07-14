@@ -18,6 +18,7 @@ var Node = function(tpl, id, component, x, y) {
 
 	this.font = "bold 13px tahoma";
 	this.dim = 0;
+	this.machineIds = [];
 };
 Node.prototype = new Shape();
 
@@ -112,18 +113,30 @@ Node.prototype.getBindingDimensionality = function(binding) {
 	return max;
 };
 
+Node.prototype.getMachinesText = function() {
+	if(this.machineIds.length == 1)
+		return getLocalName(this.machineIds[0]);
+	else if(this.machineIds.length > 1)
+		return "1 of " + this.machineIds.length + " machines";
+	else
+		return "";
+};
+
+
 Node.prototype.getBindingText = function(binding) {
 	if(!binding) binding = this.binding;
+	var sfx = this.getMachinesText();
+	if(sfx) 
+		sfx = ",[Run on " + sfx + "]";
+	
 	if (!binding.length)
-		return getLocalName(binding.id);
+		return getLocalName(binding.id) + sfx;
 	var text = "";
 	for ( var i = 0; i < binding.length; i++) {
 		if(i > 0) text += ",";
 		text += this.getBindingText(binding[i]);
 	}
-	if(binding.length == 1)
-		return text;
-	return text;
+	return text + sfx;
 };
 
 Node.prototype.getBindingId = function(binding) {
@@ -165,8 +178,9 @@ Node.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 		this.enableShadow(ctx);
 	}
 	ctx.beginPath();
+	var len = (this.text.split(",")).length;
 	//this.drawRectangle(ctx, x, y, width, height);
-	this.drawParallelogram(ctx, x, y, width, height, 4);
+	this.drawParallelogram(ctx, x, y, width + (len-1)*4, height, 4);
 	ctx.closePath();
 	ctx.stroke();
 	ctx.fill();

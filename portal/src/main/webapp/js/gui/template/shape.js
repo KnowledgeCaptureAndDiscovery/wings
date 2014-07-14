@@ -31,6 +31,7 @@ Shape.prototype.initialize = function(id, text, x, y, wmul, hmul) {
 	this.outputPorts = new Array();
 	this.canvas = null;
 	this.shadow = false;
+	this.inactive = false;
 };
 
 Shape.prototype.getInputPorts = function() {
@@ -259,8 +260,11 @@ Shape.prototype.draw = function(ctx, text, x, y, highlight) {
 		}
 	}
 
+	if(this.isInactive())
+		ctx.globalAlpha=0.3;
 	this.drawShape(ctx, this.x, this.y, this.width, this.height, highlight);
 	this.drawText(ctx, text, this.x, this.y, this.width, this.height, highlight);
+	ctx.globalAlpha=1.0;
 
 	// Restore original colors
 	this.backgroundColor = color;
@@ -305,6 +309,14 @@ Shape.prototype.getForegroundColor = function() {
 
 Shape.prototype.getTextColor = function() {
 	return this.textColor;
+};
+
+Shape.prototype.isInactive = function() {
+	return this.inactive;
+};
+
+Shape.prototype.setInactive = function(inactive) {
+	this.inactive = inactive;
 };
 
 Shape.prototype.drawPath = function(ctx, x, y, width, height) {

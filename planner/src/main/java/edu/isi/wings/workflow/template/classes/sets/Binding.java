@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.TimeZone;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
@@ -22,7 +23,7 @@ public class Binding extends WingsSet implements Serializable {
 	protected transient Object value;
 	protected Metrics metrics = new Metrics();
 
-	protected Object data;
+	protected HashMap<String, Object> data;
 
 	public Binding() {
 	}
@@ -30,6 +31,7 @@ public class Binding extends WingsSet implements Serializable {
 	public Binding(String id) {
 		setID(id);
 		this.obj = this.id;
+		this.data = new HashMap<String, Object>();
 	}
 
 	public Binding(Binding b) {
@@ -111,13 +113,22 @@ public class Binding extends WingsSet implements Serializable {
 	}
 
 	public void setData(Object data) {
-		this.data = data;
+		this.data.put("data", data);
 		super.obj = "" + this.id + this.data.toString();
 	}
 
 	public Object getData() {
-		return this.data;
+		return this.data.get("data");
 	}
+	
+	 public void setData(String key, Object data) {
+	    this.data.put(key, data);
+	    super.obj = "" + this.id + this.data.toString();
+	  }
+
+	  public Object getData(String key) {
+	    return this.data.get(key);
+	  }
 
 	/*
 	 * public Binding clone() { Binding b = (Binding)super.clone(); if(isSet())

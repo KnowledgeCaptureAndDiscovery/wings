@@ -1,5 +1,6 @@
 package edu.isi.wings.workflow.template.classes;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -19,11 +20,16 @@ public class Node extends URIEntity {
 
 	private PortSetCreationRule prule;
 	private ComponentSetCreationRule crule;
+	
+	private ArrayList<String> machineIds;
+	private boolean inactive;
 
 	public Node(String id) {
 		super(id);
 		inputPorts = new HashMap<String, Port>();
 		outputPorts = new HashMap<String, Port>();
+		machineIds = new ArrayList<String>();
+		inactive = false;
 	}
 
 	public void setComponentVariable(ComponentVariable componentVariable) {
@@ -98,7 +104,23 @@ public class Node extends URIEntity {
 		return outputPorts.get(id);
 	}
 
-	public String toString() {
+	public ArrayList<String> getMachineIds() {
+    return machineIds;
+  }
+
+  public void setMachineIds(ArrayList<String> machineIds) {
+    this.machineIds = machineIds;
+  }
+
+  public String toString() {
 		return this.getID();
 	}
+  
+  public boolean isInactive() {
+    return inactive;
+  }
+
+  public void setInactive(boolean inactive) {
+    this.inactive = inactive;
+  }
 }

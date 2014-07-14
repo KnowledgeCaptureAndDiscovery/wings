@@ -301,20 +301,23 @@ public class ResourceKB implements ResourceAPI {
     // Time-bound cache (say a cache that cleans itself after every half hour)
     for(String machineId : this.getMachineIds()) {
       Machine machine = this.getMachine(machineId);
+
+      // Check that the machine is "healthy" - could be fetched live ?
+      if(!machine.isHealthy())
+        continue;
+      // The machine's memory/storage - could be live information ?
+      if(req.getMemoryGB() > machine.getMemoryGB())
+        continue;
+      if(req.getStorageGB() > machine.getStorageGB())
+        continue;
+      
       boolean ok = true;
-      // TODO: Check that the machine is "available" - could be fetched live
       for(String softwareId : req.getSoftwareIds()) {
         if(!machine.getSoftwareIds().contains(softwareId)) {
           ok = false;
           break;
         }
       }
-      // TODO: the machine's memory/storage could be live information
-      // gleaned from the machine
-      if(req.getMemoryGB() > machine.getMemoryGB())
-        ok = false;
-      if(req.getStorageGB() > machine.getStorageGB())
-        ok = false;
       if(ok)
         machineIds.add(machineId);
     }
