@@ -6,6 +6,7 @@ function getWingsDebugOutput(data) {
 }
 
 function getWingsExplanation(data) {
+	data.explanations = Ext.Array.unique(data.explanations);
     for (var i = 0; i < data.explanations.length; i++) {
         // Replace urls with local names
         data.explanations[i] = data.explanations[i].replace(/http.*?#/g, '');

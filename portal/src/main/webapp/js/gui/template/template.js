@@ -36,11 +36,11 @@ Template.prototype.initialize = function() {
 		var xy = this.getXYFromComment(node.comment);
 		var n = new Node(this, node.id, node.componentVariable, parseInt(xy.x) + 0.5, parseInt(xy.y) + 0.5);
 		n.machineIds = node.machineIds;
+		n.setInactive(node.inactive);
 		n.setBinding(node.componentVariable.binding);
 		n.setConcrete(node.componentVariable.isConcrete);
 		n.setComponentRule(node.crule);
 		n.setPortRule(node.prule);
-		n.setInactive(node.inactive);
 
 		// in case inputPorts/outputPorts are explicitly provided for the nodes
 		if (node.inputPorts) {

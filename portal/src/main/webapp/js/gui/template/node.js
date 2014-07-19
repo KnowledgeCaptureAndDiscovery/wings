@@ -114,6 +114,8 @@ Node.prototype.getBindingDimensionality = function(binding) {
 };
 
 Node.prototype.getMachinesText = function() {
+	if(this.inactive)
+		return "";
 	if(this.machineIds.length == 1)
 		return getLocalName(this.machineIds[0]);
 	else if(this.machineIds.length > 1)
@@ -190,11 +192,6 @@ Node.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 Node.prototype.drawRectangle = function(ctx, x, y, width, height) {
 	ctx.beginPath();
 	ctx.rect(x, y, width, height);
-	/*ctx.moveTo(x, y);
-	ctx.lineTo(x, y+height);
-	ctx.lineTo(x+width, y+height);
-	ctx.lineTo(x+width, y);
-	ctx.lineTo(x,y);*/
 	ctx.closePath();
 };
 
