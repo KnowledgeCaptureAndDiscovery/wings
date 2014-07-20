@@ -14,11 +14,12 @@ var Node = function(tpl, id, component, x, y) {
 	this.binding = null;
 	
 	this.crule = {type:'WTYPE'};
-	this.prule = {type:'WTYPE', expr:{'op' : 'XPRODUCT', args: []}};
+	this.prule = {type:'STYPE', expr:{'op' : 'XPRODUCT', args: []}};
 
 	this.font = "bold 13px tahoma";
 	this.dim = 0;
 	this.machineIds = [];
+	this.inactive = false;
 };
 Node.prototype = new Shape();
 
@@ -65,7 +66,7 @@ Node.prototype.setPortRule = function(prule) {
 };
 
 Node.prototype.setDefaultPortRule = function() {
-	this.prule = {type:'WTYPE', expr:{'op' : 'XPRODUCT', 'args': []}};
+	this.prule = {type:'STYPE', expr:{'op' : 'XPRODUCT', 'args': []}};
 	var ips = this.getInputPorts();
 	for(var i=0; i<ips.length; i++) {
 		this.prule.expr.args.push(ips[i].id);

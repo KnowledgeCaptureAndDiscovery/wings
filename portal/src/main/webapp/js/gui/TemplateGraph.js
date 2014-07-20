@@ -756,10 +756,12 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			}
 			html += "</div>";*/
 			
-			if (item.prule.type == 'STYPE')
-				html += "<div><b>Using all Input Data</b> in the same workflow</div>";
-			html += "<div><b>Input Data Combination: </b></div>";
-			html += "<i>"+this.getExpressionText(item.prule.expr, port_role_map)+"</i>";
+			if (item.prule.type == 'WTYPE')
+				html += "<div><b>Creating multiple workflows</b> for input data collection</div>";
+			if (item.prule.expr.args.length) {
+				html += "<div><b>Input Data Combination: </b></div>";
+				html += "<i>"+this.getExpressionText(item.prule.expr, port_role_map)+"</i>";
+			}
 		}
 		return html;
 	},
@@ -785,6 +787,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		var title = '';
 		var source = {};
 		source['id'] = item.id;
+		var showPrule = false, showCrule = false;
 		if (isVariable) {
 			title = (item.isInput ? 'Input ' : (item.isOutput ? 'Output ' : 'Intermediate '))
 					+ (item.type == "DATA" ? 'Data' : 'Parameter') + ' Variable: ' + item.text;
@@ -800,9 +803,20 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			}
 		}
 		else {
+			var links = this.template.getLinksToNode(item);
+			for(var i=0; i<links.length; i++) {
+				if(links[i].variable.dim > 0) {
+					showPrule = true;
+					break;
+				}
+			}
+			if(!item.isConcrete)
+				showCrule = true;
+			
 			title = 'Node: ' + getLocalName(item.id);
-			source['a_pruleS'] = (item.prule.type == 'STYPE');
-			if (!item.isConcrete)
+			if(showPrule)
+				source['a_pruleS'] = (item.prule.type == 'STYPE');
+			if (showCrule)
 				source['c_cruleS'] = (item.crule.type == 'STYPE');
 		}
 		var dataGrid = new Ext.grid.PropertyGrid({
@@ -819,7 +833,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 				'b_breakpoint' : 'Set breakpoint',
 				'c_varAutoFill' : 'Automatically Set Parameter Value (Don\'t ask user)',
 				'a_pruleS' : 'Use all Input Data in the same workflow',
-				'c_cruleS' : 'Use all Concrete Components of this Abstract Component in the same workflow'
+				'c_cruleS' : 'Use all Components of this Type in the same workflow'
 			}
 		});
 		var me = this;
@@ -857,11 +871,11 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			}
 			else {
 				item.setPortRule({
-					type : (mySource['a_pruleS'] ? 'STYPE' : 'WTYPE'),
+					type : (mySource['a_pruleS']==false) ? 'WTYPE' : 'STYPE',
 					expr : item.prule.expr
 				});
 				item.setComponentRule({
-					type : mySource['c_cruleS'] ? 'STYPE' : 'WTYPE'
+					type : (mySource['c_cruleS']==true) ? 'STYPE' : 'WTYPE'
 				});
 			}
 			me.template.forwardSweep();
@@ -871,7 +885,13 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			dataGrid
 		];
 		if (!isVariable) {
-			items.push(this.getAdvancedRuleEditor(item));
+			if(showPrule)
+				items.push(this.getAdvancedRuleEditor(item));
+			else if(!showCrule)
+				return {
+					html: title,
+					bodyStyle: 'padding:5px'
+				};
 		}
 		return {
 			xtype : 'tabpanel',

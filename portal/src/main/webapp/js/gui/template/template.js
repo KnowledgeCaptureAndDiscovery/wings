@@ -35,7 +35,8 @@ Template.prototype.initialize = function() {
 			continue;
 		var xy = this.getXYFromComment(node.comment);
 		var n = new Node(this, node.id, node.componentVariable, parseInt(xy.x) + 0.5, parseInt(xy.y) + 0.5);
-		n.machineIds = node.machineIds;
+		if(node.machineIds)
+			n.machineIds = node.machineIds;
 		n.setInactive(node.inactive);
 		n.setBinding(node.componentVariable.binding);
 		n.setConcrete(node.componentVariable.isConcrete);
@@ -90,6 +91,10 @@ Template.prototype.initialize = function() {
 			this.variables[variable.id].setAutoFill(variable.autofill);
 		if (variable.breakpoint)
 			this.variables[variable.id].setBreakPoint(variable.breakpoint);
+		
+		// Set all variables as inactive for now. 
+		// Check links/nodes to show them as active
+		this.variables[variable.id].setInactive(true);
 		
 		//FIXME: unknown isn't currently set in the template variables on server
 		if (variable.unknown)
@@ -341,6 +346,28 @@ Template.prototype.getLinksWithVariable = function(variable) {
 	for ( var lid in this.links) {
 		var l = this.links[lid];
 		if (l.variable == variable) {
+			links.push(l);
+		}
+	}
+	return links;
+};
+
+Template.prototype.getLinksFromNode = function(node) {
+	var links = [];
+	for ( var lid in this.links) {
+		var l = this.links[lid];
+		if (l.fromNode == node) {
+			links.push(l);
+		}
+	}
+	return links;
+};
+
+Template.prototype.getLinksToNode = function(node) {
+	var links = [];
+	for ( var lid in this.links) {
+		var l = this.links[lid];
+		if (l.toNode == node) {
 			links.push(l);
 		}
 	}

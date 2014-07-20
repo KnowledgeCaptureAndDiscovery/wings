@@ -21,7 +21,7 @@ var Variable = function(tpl, id, text, x, y, type) {
 	// this.font = "Bold 14px Tahoma, Arial";
 	// this.font = "bold 14px Optimer";
 	this.font = "13px tahoma";
-	this.inactive = true;
+	this.inactive = false;
 };
 Variable.prototype = new Shape();
 Variable.prototype.KAPPA = 1.4 * (Math.sqrt(2) - 1);
