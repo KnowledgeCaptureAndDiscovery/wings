@@ -16,6 +16,7 @@ public class RuntimePlan extends URIEntity {
 	
 	String originalTemplateId;
 	String expandedTemplateId;
+	String seededTemplateId;
 	
 	public RuntimePlan(String id) {
 	    super(id);
@@ -100,4 +101,12 @@ public class RuntimePlan extends URIEntity {
 	public void setOriginalTemplateID(String tid) {
 		this.originalTemplateId = tid;
 	}
+
+  public String getSeededTemplateID() {
+    return seededTemplateId;
+  }
+
+  public void setSeededTemplateId(String seededTemplateId) {
+    this.seededTemplateId = seededTemplateId;
+  }
 }

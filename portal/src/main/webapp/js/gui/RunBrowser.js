@@ -47,9 +47,9 @@ RunBrowser.prototype.formatProgressBar = function(value, meta, record, rowind, c
 RunBrowser.prototype.formatBinding = function(b, meta, record, runid) {
 	var str = "";
 	var This = this;
-		if (b.type == 'literal')
+	if (b.type == 'literal')
 		str += "<b style='color:green'>" + b.value + "</b>";
-	else if (b.size != -1) {
+	else if (b.size != -1 && b.location) {
 		var href = This.data_url + "/fetch?data_id=" + escape(b.id);
 		str += "<a href='" + href + "' target='_blank'>" + getLocalName(b.id)
 				+ "</a> ";
@@ -602,6 +602,8 @@ RunBrowser.prototype.getRunList = function() {
 				{
 					text : 'Delete',
 					iconCls : 'delIcon',
+					disabled : true,
+					id : 'delButton',
 					handler : function() {
 						var recs = grid.getSelectionModel().getSelection();
 						if (recs && recs.length) {
@@ -613,6 +615,8 @@ RunBrowser.prototype.getRunList = function() {
 				{
 					text : 'Stop',
 					iconCls : 'stopIcon',
+					id : 'stopButton',
+					disabled : true,
 					handler : function() {
 						var recs = grid.getSelectionModel().getSelection();
 						if (recs && recs.length) {
@@ -634,6 +638,11 @@ RunBrowser.prototype.getRunList = function() {
 
 	grid.getSelectionModel().on("select", function(sm, rec, ind) {
 		This.openRunDetails(rec.data.id, rec.data.status);
+		grid.down('#delButton').setDisabled(false);
+		if(rec.data.status == 'RUNNING')
+			grid.down('#stopButton').setDisabled(false);
+		else 
+			grid.down('#stopButton').setDisabled(true);
 		// Ext.EventManager.stopEvent(event);
 	}, this);
 

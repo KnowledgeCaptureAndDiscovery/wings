@@ -12,7 +12,7 @@ public class ExecutionFile extends URIEntity {
 	String location;
 	String bindingId;
 	
-	String metaExtension = ".met";
+	transient String metaExtension = ".met";
 	Properties metadata;
 	long size;
 	

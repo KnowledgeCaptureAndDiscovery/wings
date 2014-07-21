@@ -476,6 +476,8 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
                     params: {
                     		json: Ext.encode(tstore.template),
                     		constraints_json: Ext.encode(tstore.constraints),
+                    		seed_json: Ext.encode(data.seed.template),
+                    		seed_constraints_json: Ext.encode(data.seed.constraints),
                     		template_id: tid
                     },
                     success: function(response) {

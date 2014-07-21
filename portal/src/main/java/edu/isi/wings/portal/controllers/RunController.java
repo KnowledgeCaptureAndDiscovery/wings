@@ -109,13 +109,15 @@ public class RunController {
 	public String getRunJSON(String runid) {
 		ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
 		RuntimePlan plan = monitor.getRunDetails(runid);
-		for(ExecutionStep step : plan.getPlan().getAllExecutionSteps()) {
-      for(ExecutionFile file : step.getInputFiles()) {
-        file.loadMetadataFromLocation();
-      }
-		  for(ExecutionFile file : step.getOutputFiles()) {
-		    file.loadMetadataFromLocation();
-		  }
+		if(plan.getPlan() != null) {
+  		for(ExecutionStep step : plan.getPlan().getAllExecutionSteps()) {
+        for(ExecutionFile file : step.getInputFiles()) {
+          file.loadMetadataFromLocation();
+        }
+  		  for(ExecutionFile file : step.getOutputFiles()) {
+  		    file.loadMetadataFromLocation();
+  		  }
+  		}
 		}
 		return json.toJson(plan);
 	}
@@ -153,10 +155,11 @@ public class RunController {
 		return false;
 	}
 
-	public String runExpandedTemplate(String origtplid, String templatejson, String consjson,
-			ServletContext context) {
+	public String runExpandedTemplate(String origtplid, String templatejson, 
+	    String consjson, String seedjson, String seedconsjson, ServletContext context) {
 		Gson json = JsonHandler.createTemplateGson();
 		Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
+		Template seedtpl = JsonHandler.getTemplateFromJSON(json, seedjson, seedconsjson);
 
 		String requestid = UuidGen.generateAUuid("");
 		WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
@@ -166,14 +169,17 @@ public class RunController {
 
 		if (plan != null) {
 			synchronized (WriteLock.Lock) {
-				// Save the expanded template and plan
+				// Save the expanded template, seeded template and plan
 				if (!xtpl.save())
 					return "";
+        if (!seedtpl.save())
+          return "";
 				plan.save();
 			}
 			RuntimePlan rplan = new RuntimePlan(plan);
 			rplan.setExpandedTemplateID(xtpl.getID());
 			rplan.setOriginalTemplateID(origtplid);
+			rplan.setSeededTemplateId(seedtpl.getID());
 			this.runExecutionPlan(rplan, context);
 			return rplan.getID();
 		}

@@ -202,6 +202,8 @@ public class TemplateKB extends URIEntity implements Template {
       propertyObjMap.put("autoFill", kb.createDatatypeProperty(this.wflowns+"autoFill"));
     if(!propertyObjMap.containsKey("breakPoint"))
       propertyObjMap.put("breakPoint", kb.createDatatypeProperty(this.wflowns+"breakPoint"));
+    if(!propertyObjMap.containsKey("isInactive"))
+      propertyObjMap.put("breakPoint", kb.createDatatypeProperty(this.wflowns+"isInactive"));
 		if(!conceptObjMap.containsKey("ReduceDimensionality"))
 			conceptObjMap.put("ReduceDimensionality", kb.createClass(this.wflowns+"ReduceDimensionality"));
 		if(!conceptObjMap.containsKey("Shift"))
@@ -214,9 +216,13 @@ public class TemplateKB extends URIEntity implements Template {
 
 		KBObject compObj = kb.getPropertyValue(obj, propertyObjMap.get("hasComponent"));
 		KBObject wObj = kb.getPropertyValue(obj, propertyObjMap.get("hasWorkflow"));
+    KBObject isInactive = kb.getPropertyValue(obj, propertyObjMap.get("isInactive"));
 
 		Node n = new Node(obj.getID());
-
+    
+		if(isInactive != null && (Boolean)isInactive.getValue())
+      n.setInactive(true);
+    
 		if (compObj != null) {
 			ComponentVariable comp = new ComponentVariable(compObj.getID());
 
@@ -1150,6 +1156,7 @@ public class TemplateKB extends URIEntity implements Template {
 			Node n = t.addNode(cv);
 			n.setID(e.getID());
 			n.setComment(e.getComment());
+			n.setInactive(e.isInactive());
 
 			// Copy over ports
 			for (Port p : e.getInputPorts()) {
@@ -1525,6 +1532,11 @@ public class TemplateKB extends URIEntity implements Template {
 			KBObject nobj = tkb.createObjectOfClass(n.getID(), cmap.get("Node"));
 			tkb.addPropertyValue(tobj, pmap.get("hasNode"), nobj);
 
+      if(n.isInactive()) {
+        tkb.addPropertyValue(nobj, pmap.get("isInactive"), 
+            ontologyFactory.getDataObject(true));
+      }
+      
 			ComponentVariable c = n.getComponentVariable();
 			if (c != null && !c.isTemplate()) {
 				KBObject cobj = tkb.getResource(c.getID());

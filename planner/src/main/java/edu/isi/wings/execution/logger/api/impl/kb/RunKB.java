@@ -1,5 +1,6 @@
 package edu.isi.wings.execution.logger.api.impl.kb;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -22,6 +23,8 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
 import edu.isi.wings.workflow.plan.PlanFactory;
+import edu.isi.wings.workflow.plan.api.ExecutionStep;
+import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	KBAPI kb;
@@ -81,6 +84,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		}
 		if (!dataPropMap.containsKey("hasLog"))
 			dataPropMap.put("hasLog", this.kb.createDatatypeProperty(this.onturl + "#hasLog"));
+    if(!objPropMap.containsKey("hasSeededTemplate"))
+      objPropMap.put("hasSeededTemplate", kb.createObjectProperty(this.onturl+"#hasSeededTemplate"));
 	}
 
 	@Override
@@ -189,10 +194,16 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		KBObject exobj = tkb.createObjectOfClass(exe.getID(), conceptMap.get("Execution"));
 		KBObject xtobj = tkb.getResource(exe.getExpandedTemplateID());
 		KBObject tobj = tkb.getResource(exe.getOriginalTemplateID());
+		KBObject sobj = tkb.getResource(exe.getSeededTemplateID());
 		KBObject pobj = tkb.getResource(exe.getPlan().getID());
-		tkb.setPropertyValue(exobj, objPropMap.get("hasExpandedTemplate"), xtobj);
-		tkb.setPropertyValue(exobj, objPropMap.get("hasTemplate"), tobj);
-		tkb.setPropertyValue(exobj, objPropMap.get("hasPlan"), pobj);
+		if(xtobj != null)
+		  tkb.setPropertyValue(exobj, objPropMap.get("hasExpandedTemplate"), xtobj);
+		if(sobj != null)
+		  tkb.setPropertyValue(exobj, objPropMap.get("hasSeededTemplate"), sobj);
+		if(tobj != null)
+		  tkb.setPropertyValue(exobj, objPropMap.get("hasTemplate"), tobj);
+		if(pobj != null)
+		  tkb.setPropertyValue(exobj, objPropMap.get("hasPlan"), pobj);
 		for (RuntimeStep stepexe : exe.getQueue().getAllSteps()) {
 			KBObject stepobj = this.writeExecutionStep(tkb, stepexe);
 			tkb.addPropertyValue(exobj, objPropMap.get("hasStep"), stepobj);
@@ -223,11 +234,17 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 				// Get provenance information
 				KBObject xtobj = tkb.getPropertyValue(exobj, objPropMap.get("hasExpandedTemplate"));
+        KBObject sobj = tkb.getPropertyValue(exobj, objPropMap.get("hasSeededTemplate"));
 				KBObject tobj = tkb.getPropertyValue(exobj, objPropMap.get("hasTemplate"));
 				KBObject pobj = tkb.getPropertyValue(exobj, objPropMap.get("hasPlan"));
-				rplan.setExpandedTemplateID(xtobj.getID());
-				rplan.setOriginalTemplateID(tobj.getID());
-				rplan.setPlan(PlanFactory.loadExecutionPlan(pobj.getID(), props));
+				if(xtobj != null)
+				  rplan.setExpandedTemplateID(xtobj.getID());
+        if(sobj != null)
+          rplan.setSeededTemplateId(sobj.getID());
+				if(tobj != null)
+				  rplan.setOriginalTemplateID(tobj.getID());
+				if(pobj != null)
+				  rplan.setPlan(PlanFactory.loadExecutionPlan(pobj.getID(), props));
 
 				return rplan;
 			} catch (Exception e) {
@@ -238,17 +255,32 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	private boolean deleteExecutionRun(String runid) {
-		RuntimePlan rplan = new RuntimePlan(runid);
+		KBObject exobj = this.kb.getIndividual(runid);
+		RuntimePlan rplan = this.getExecutionRun(exobj, true);
 		try {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
-			KBObject exobj = tkb.getIndividual(rplan.getID());
 			KBObject xtobj = tkb.getPropertyValue(exobj, objPropMap.get("hasExpandedTemplate"));
+			KBObject sobj = tkb.getPropertyValue(exobj, objPropMap.get("hasSeededTemplate"));
 			KBObject pobj = tkb.getPropertyValue(exobj, objPropMap.get("hasPlan"));
 			tkb.delete();
 
-			ontologyFactory.getKB(new URIEntity(xtobj.getID()).getURL(), OntSpec.PLAIN).delete();
-			ontologyFactory.getKB(new URIEntity(pobj.getID()).getURL(), OntSpec.PLAIN).delete();
+			if(xtobj != null)
+			  ontologyFactory.getKB(new URIEntity(xtobj.getID()).getURL(), OntSpec.PLAIN).delete();
+			if(pobj != null)
+			  ontologyFactory.getKB(new URIEntity(pobj.getID()).getURL(), OntSpec.PLAIN).delete();
+			if(sobj != null)
+			  ontologyFactory.getKB(new URIEntity(sobj.getID()).getURL(), OntSpec.PLAIN).delete();
 
+			// Delete output files
+			if(rplan.getPlan() != null) {
+        for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
+          for (ExecutionFile file : step.getOutputFiles()) {
+            File f = new File(file.getLocation());
+            if(f.exists())
+              f.delete();
+          }
+        }
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

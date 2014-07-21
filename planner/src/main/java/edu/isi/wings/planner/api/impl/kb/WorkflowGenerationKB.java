@@ -1135,7 +1135,13 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 
 			HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
 			for(Node n : template.getNodes()) {
+			  if(n.isInactive())
+			    continue;
+			  
 				ExecutionStep step = PlanFactory.createExecutionStep(n.getID(), props);
+				// TODO: Also store machine ids 
+				// (Plan should save internally using canRunOn)
+				// n.getMachineIds();
 				
 				ComponentVariable c = n.getComponentVariable();
 
@@ -1193,10 +1199,13 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 			}
 			// Add Parent Steps
 			for(Node n : template.getNodes()) {
+			  if(n.isInactive())
+			    continue;
 				ExecutionStep step = nodeMap.get(n);
 				for(Link l : template.getInputLinks(n)) {
 					ExecutionStep parentStep = nodeMap.get(l.getOriginNode());
-					step.addParentStep(parentStep);
+					if(parentStep != null)
+					  step.addParentStep(parentStep);
 				}
 			}
 			return plan;

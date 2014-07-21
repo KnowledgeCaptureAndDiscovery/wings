@@ -758,10 +758,18 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			
 			if (item.prule.type == 'WTYPE')
 				html += "<div><b>Creating multiple workflows</b> for input data collection</div>";
+			/*else
+				html += "<div><b>Using all input data</b> in the same workflow</div>";*/
 			if (item.prule.expr.args.length) {
 				html += "<div><b>Input Data Combination: </b></div>";
 				html += "<i>"+this.getExpressionText(item.prule.expr, port_role_map)+"</i>";
 			}
+			if(item.machineIds)
+				html += "<div><b>Can run on: </b> " + 
+					Ext.Array.map(item.machineIds, function(item) {
+						return getLocalName(item);
+					}).join(",") + 
+					"</div>";
 		}
 		return html;
 	},

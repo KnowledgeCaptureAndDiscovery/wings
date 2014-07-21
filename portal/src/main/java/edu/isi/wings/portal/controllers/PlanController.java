@@ -22,6 +22,7 @@ import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
+import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
@@ -147,29 +148,38 @@ public class PlanController {
 			return;
 		}
 		if(op.equals("getExpansions")) {
-			printTemplatesJSON(ets, tplid);
+			printTemplatesJSON(ets, tplid, tpl);
 			return;
 		}
 		
 		printError();
 	}
-		
-	private void printTemplatesJSON(ArrayList<Template> ts, String tplid) {
+
+	private HashMap<String, Object> getTemplateDetails(Template t) {
+    ArrayList<String> varids = new ArrayList<String>();
+    for(Variable v : t.getVariables()) varids.add(v.getID());
+    HashMap<String, Object> tstore = new HashMap<String, Object>();
+    tstore.put("template",  t);
+    tstore.put("constraints",  t.getConstraintEngine().getConstraints(varids));
+    //tstore.put("time", this.getEstimatedExecutionTime(t, tplid));
+    return tstore;
+	}
+	
+	private void printTemplatesJSON(ArrayList<Template> ts, String tplid,
+	    Template seedtpl) {
 		ArrayList<Object> template_stores = new ArrayList<Object>();
 		for(Template t : ts) {
-			ArrayList<String> varids = new ArrayList<String>();
-			for(Variable v : t.getVariables()) varids.add(v.getID());
-			HashMap<String, Object> tstore = new HashMap<String, Object>();
-			tstore.put("template",  t);
-			tstore.put("constraints",  t.getConstraintEngine().getConstraints(varids));
-			//tstore.put("time", this.getEstimatedExecutionTime(t, tplid));
-			template_stores.add(tstore);
+			template_stores.add(this.getTemplateDetails(t));
 		}
 		HashMap<String, Object> map = new HashMap<String, Object>(); 
 		map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
 		map.put("templates", template_stores);
-		map.put("output",  "");
+    map.put("output",  "");
+    
+		seedtpl.setID(UuidGen.generateURIUuid((URIEntity)seedtpl));
+		map.put("seed", this.getTemplateDetails(seedtpl));
+		
 		this.printEncodedResults(map); 
 	}
 	

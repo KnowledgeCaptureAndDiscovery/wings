@@ -75,24 +75,23 @@ public class ManageRuns extends HttpServlet {
 			return;
 		}
 		synchronized(WriteLock.Lock) {
-        		if(op.equals("getRunList")) {
-        			out.println(rc.getRunListJSON());
-        		}
-        		else if(op.equals("getRunDetails")) {
-        			out.println(rc.getRunJSON(runid));
-        		}
-        		else if(op.equals("runWorkflow")) {
-        			String origtplid = request.getParameter("template_id");
-        			String tpljson = request.getParameter("json");
-        			String consjson = request.getParameter("constraints_json");
-        			out.print(rc.runExpandedTemplate(origtplid, tpljson, consjson, context));
-        		}
-        		else if(op.equals("deleteRun")) {
-    				out.println(rc.deleteRun(request.getParameter("json"), context));
-        		}
-        		else if(op.equals("stopRun")) {
-    				out.println(rc.stopRun(runid, context));
-        		}
+      if (op.equals("getRunList")) {
+        out.println(rc.getRunListJSON());
+      } else if (op.equals("getRunDetails")) {
+        out.println(rc.getRunJSON(runid));
+      } else if (op.equals("runWorkflow")) {
+        String origtplid = request.getParameter("template_id");
+        String tpljson = request.getParameter("json");
+        String consjson = request.getParameter("constraints_json");
+        String seedjson = request.getParameter("seed_json");
+        String seedconsjson = request.getParameter("seed_constraints_json");
+        out.print(rc.runExpandedTemplate(origtplid, tpljson, consjson,
+            seedjson, seedconsjson, context));
+      } else if (op.equals("deleteRun")) {
+        out.println(rc.deleteRun(request.getParameter("json"), context));
+      } else if (op.equals("stopRun")) {
+        out.println(rc.stopRun(runid, context));
+      }
 		}
 	}
 	
