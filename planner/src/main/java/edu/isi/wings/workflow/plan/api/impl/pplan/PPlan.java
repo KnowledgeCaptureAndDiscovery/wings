@@ -20,6 +20,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
 
   transient Properties props;
 
+  boolean incomplete;
   ArrayList<ExecutionStep> steps;
 
   public PPlan(String id, Properties props) {
@@ -208,5 +209,29 @@ public class PPlan extends URIEntity implements ExecutionPlan {
       e.printStackTrace();
     }
     return false;
+  }
+  
+  public boolean saveAs(String newid) {
+    try {
+      KBAPI kb = this.getKBModel();
+      String curns = this.getNamespace();
+      this.setID(newid);
+      String newns = this.getNamespace();
+      KBUtils.renameTripleNamespace(kb, curns, newns);
+      return kb.saveAs(this.getURL());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isIncomplete() {
+    return this.incomplete;
+  }
+
+  @Override
+  public void setIsIncomplete(boolean incomplete) {
+    this.incomplete = incomplete;
   }
 }

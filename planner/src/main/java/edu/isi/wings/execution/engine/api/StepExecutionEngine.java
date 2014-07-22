@@ -2,6 +2,7 @@ package edu.isi.wings.execution.engine.api;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
 
 public interface StepExecutionEngine {
 	
@@ -13,7 +14,11 @@ public interface StepExecutionEngine {
 	
 	public PlanExecutionEngine getPlanExecutionEngine();
 	
-	public void setExecutionLogger(ExecutionLoggerAPI monitor);
-	
+	public void setExecutionLogger(ExecutionLoggerAPI logger);
+
+	public void setExecutionMonitor(ExecutionMonitorAPI monitor);
+	 
 	public ExecutionLoggerAPI getExecutionLogger();
+	
+	public ExecutionMonitorAPI getExecutionMonitor();
 }

@@ -10,6 +10,9 @@ import java.util.Properties;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
+import edu.isi.wings.catalog.component.ComponentFactory;
+import edu.isi.wings.catalog.data.DataFactory;
+import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.execution.engine.classes.ExecutionQueue;
@@ -22,9 +25,15 @@ import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
+import edu.isi.wings.planner.api.WorkflowGenerationAPI;
+import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.workflow.plan.PlanFactory;
+import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
+import edu.isi.wings.workflow.template.TemplateFactory;
+import edu.isi.wings.workflow.template.api.Template;
+import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 
 public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	KBAPI kb;
@@ -254,27 +263,29 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		return rplan;
 	}
 
+	private void deleteGraph(String id) {
+	  try {
+      ontologyFactory.getKB(new URIEntity(id).getURL(), OntSpec.PLAIN).delete();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+	}
+	
 	private boolean deleteExecutionRun(String runid) {
 		KBObject exobj = this.kb.getIndividual(runid);
 		RuntimePlan rplan = this.getExecutionRun(exobj, true);
 		try {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
-			KBObject xtobj = tkb.getPropertyValue(exobj, objPropMap.get("hasExpandedTemplate"));
-			KBObject sobj = tkb.getPropertyValue(exobj, objPropMap.get("hasSeededTemplate"));
-			KBObject pobj = tkb.getPropertyValue(exobj, objPropMap.get("hasPlan"));
-			tkb.delete();
-
-			if(xtobj != null)
-			  ontologyFactory.getKB(new URIEntity(xtobj.getID()).getURL(), OntSpec.PLAIN).delete();
-			if(pobj != null)
-			  ontologyFactory.getKB(new URIEntity(pobj.getID()).getURL(), OntSpec.PLAIN).delete();
-			if(sobj != null)
-			  ontologyFactory.getKB(new URIEntity(sobj.getID()).getURL(), OntSpec.PLAIN).delete();
-
+			this.deleteGraph(rplan.getExpandedTemplateID());
+			this.deleteGraph(rplan.getSeededTemplateID());
+			this.deleteGraph(rplan.getPlan().getID());
+	    tkb.delete();
+	     
 			// Delete output files
 			if(rplan.getPlan() != null) {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
           for (ExecutionFile file : step.getOutputFiles()) {
+            file.removeMetadataFile();
             File f = new File(file.getLocation());
             if(f.exists())
               f.delete();
@@ -303,6 +314,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void updateExecutionStep(KBAPI tkb, RuntimeStep exe) {
 		KBObject exobj = tkb.getIndividual(exe.getID());
+		if(exobj == null) {
+      exobj = this.writeExecutionStep(tkb, exe);
+		  KBObject planexeobj = tkb.getIndividual(exe.getRuntimePlan().getID());
+      tkb.addPropertyValue(planexeobj, objPropMap.get("hasStep"), exobj);
+		}
 		this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
 	}
 
@@ -341,5 +357,127 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			info.setLog((String) log.getValue());
 		return info;
 	}
+	
+	private RuntimePlan setPlanError(RuntimePlan planexe, String message) {
+	  planexe.getRuntimeInfo().addLog(message);
+	  planexe.getRuntimeInfo().setStatus(RuntimeInfo.Status.FAILURE);
+	  return planexe;
+	}
+
+  @Override
+  public RuntimePlan rePlan(RuntimePlan planexe) {
+    WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
+        DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
+        ResourceFactory.getAPI(props), planexe.getID());
+    TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+    
+    Template seedtpl = tc.getTemplate(planexe.getSeededTemplateID());
+    Template itpl = wg.getInferredTemplate(seedtpl);
+    ArrayList<Template> candidates = wg.specializeTemplates(itpl);
+    if(candidates.size() == 0) 
+      return this.setPlanError(planexe, 
+          "No Specialized templates after planning");
+    
+    ArrayList<Template> bts = new ArrayList<Template>();
+    for(Template t : candidates)
+      bts.addAll(wg.selectInputDataObjects(t));
+    if(bts.size() == 0) 
+      return this.setPlanError(planexe, 
+          "No Bound templates after planning");
+    
+    wg.setDataMetricsForInputDataObjects(bts);
+
+    ArrayList<Template> cts = new ArrayList<Template>();
+    for(Template bt : bts)
+      cts.addAll(wg.configureTemplates(bt));
+    if(cts.size() == 0)
+      return this.setPlanError(planexe, 
+          "No Configured templates after planning");
+
+    ArrayList<Template> ets = new ArrayList<Template>();
+    for(Template ct : cts)
+      ets.add(wg.getExpandedTemplate(ct));
+    if(ets.size() == 0)
+      return this.setPlanError(planexe, 
+          "No Expanded templates after planning");
+
+    // TODO: Should show all options to the user. Picking the top one for now
+    Template xtpl = ets.get(0);
+    String xpid = planexe.getExpandedTemplateID();
+    synchronized (this.writerLock) {
+      // Delete the existing expanded template
+      this.deleteGraph(xpid);
+      // Save the new expanded template
+      if (!xtpl.saveAs(xpid)) {
+        return this.setPlanError(planexe, 
+            "Could not save new Expanded template");
+      }
+      xtpl = tc.getTemplate(xpid);
+    }
+    
+    String ppid = planexe.getPlan().getID();
+    ExecutionPlan newplan = wg.getExecutionPlan(xtpl);
+    if(newplan != null) {
+      synchronized (this.writerLock) {
+        // Delete the existing plan
+        this.deleteGraph(ppid);
+        // Save the new plan
+        if(!newplan.saveAs(ppid)) {
+          return this.setPlanError(planexe, 
+              "Could not save new Plan");
+        }
+        newplan.setID(ppid);
+      }
+      
+      // Get the new runtime plan
+      RuntimePlan newexe = new RuntimePlan(newplan);
+      
+      // Update the current plan executable with the new plan
+      planexe.setPlan(newplan);
+      
+      // Hash steps from current queue
+      HashMap<String, RuntimeStep>
+        stepMap = new HashMap<String, RuntimeStep>();
+      for(RuntimeStep step : planexe.getQueue().getAllSteps())
+        stepMap.put(step.getID(), step);
+      
+      // Add new steps to the current queue
+      boolean newsteps = false;
+      for(RuntimeStep newstep : newexe.getQueue().getAllSteps()) {
+        // Add steps not already in current queue
+        if(!stepMap.containsKey(newstep.getID())) {
+          newsteps = true;
+          
+          // Set runtime plan
+          newstep.setRuntimePlan(planexe);
+          
+          // Set parents
+          @SuppressWarnings("unchecked")
+          ArrayList<RuntimeStep> parents = 
+              (ArrayList<RuntimeStep>) newstep.getParents().clone();
+          newstep.getParents().clear();
+          for(RuntimeStep pstep : parents) {
+            if(stepMap.containsKey(pstep.getID()))
+              pstep = stepMap.get(pstep.getID());
+            newstep.addParent(pstep);
+          }
+          
+          // Add new step to queue
+          planexe.getQueue().addStep(newstep);
+        }
+      }
+      
+      if(newsteps)
+        return planexe;
+      else {
+        return this.setPlanError(planexe, 
+            "No new steps in the new execution plan");
+      }
+    }
+    else {
+      return this.setPlanError(planexe, 
+          "Could not get a new Execution Plan");
+    }
+  }
 
 }

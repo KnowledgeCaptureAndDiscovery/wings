@@ -12,30 +12,30 @@ public class ExecutionQueue {
 	ArrayList<RuntimeStep> steps;
 	
 	public ExecutionQueue() { 
-	    	this.steps = new ArrayList<RuntimeStep>();
+    this.steps = new ArrayList<RuntimeStep>();
 	}
 	
 	public ExecutionQueue(ExecutionPlan plan) {
 		this.plan = plan;
-	    	this.steps = new ArrayList<RuntimeStep>();
+    this.steps = new ArrayList<RuntimeStep>();
 		this.initialize();
 	}
 	
 	private void initialize() {
-	    	HashMap<ExecutionStep, RuntimeStep> stepmap = 
-	    		new HashMap<ExecutionStep, RuntimeStep>(); 
+    HashMap<String, RuntimeStep> stepmap = 
+        new HashMap<String, RuntimeStep>();
 		for(ExecutionStep step : plan.getAllExecutionSteps()) {
 			RuntimeStep exestep = new RuntimeStep(step);
 			steps.add(exestep);
-			stepmap.put(step, exestep);
+			stepmap.put(step.getID(), exestep);
 		}
 		for(ExecutionStep step : plan.getAllExecutionSteps()) {
-		    RuntimeStep exestep = stepmap.get(step);
-		    for(ExecutionStep pstep : step.getParentSteps()) {
-			RuntimeStep exepstep = stepmap.get(pstep);
-			if(exepstep != null)
-			    exestep.addParent(exepstep);
-		    }
+      RuntimeStep exestep = stepmap.get(step.getID());
+      for (ExecutionStep pstep : step.getParentSteps()) {
+        RuntimeStep exepstep = stepmap.get(pstep.getID());
+        if (exepstep != null)
+          exestep.addParent(exepstep);
+      }
 		}
 	}
 
@@ -57,7 +57,7 @@ public class ExecutionQueue {
 	}
 	
 	public ArrayList<RuntimeStep> getAllSteps() {
-	    	return this.steps; 
+    return this.steps;
 	}
 	
 	public ArrayList<RuntimeStep> getFinishedSteps() {
@@ -67,7 +67,7 @@ public class ExecutionQueue {
 				steps.add(step);
 		}
 		return steps;
-}
+  }
 	
 	public ArrayList<RuntimeStep> getFailedSteps() {
 		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
@@ -76,7 +76,7 @@ public class ExecutionQueue {
 				steps.add(step);
 		}
 		return steps;
-}
+  }
 	
 	public ArrayList<RuntimeStep> getRunningSteps() {
 		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
@@ -96,10 +96,10 @@ public class ExecutionQueue {
 	}
 	
 	public void addStep(RuntimeStep step) {
-	    	this.steps.add(step);
+    this.steps.add(step);
 	}
 	
 	public void removeStep(RuntimeStep step) {
-	    	this.steps.remove(step);
+    this.steps.remove(step);
 	}
 }

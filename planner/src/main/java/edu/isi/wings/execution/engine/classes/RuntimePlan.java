@@ -19,7 +19,7 @@ public class RuntimePlan extends URIEntity {
 	String seededTemplateId;
 	
 	public RuntimePlan(String id) {
-	    super(id);
+    super(id);
 	}
 	
 	public RuntimePlan(ExecutionPlan plan) {

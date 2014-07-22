@@ -291,9 +291,11 @@ public class Config {
 					pengine.getImplementation(), pengine.getProperties());
 			StepExecutionEngine see = ExecutionFactory.createStepExecutionEngine(
 					sengine.getImplementation(), sengine.getProperties());
-			ExecutionLoggerAPI logger = LoggerFactory.createLogger(this.getProperties()); 
+			ExecutionLoggerAPI logger = LoggerFactory.createLogger(this.getProperties());
+			ExecutionMonitorAPI monitor = LoggerFactory.createMonitor(this.getProperties());
 			pee.setStepExecutionEngine(see);
 			pee.setExecutionLogger(logger);
+			pee.setExecutionMonitor(monitor);
 			return pee;
 		} catch (Exception e) {
 			e.printStackTrace();

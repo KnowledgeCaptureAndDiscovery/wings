@@ -37,6 +37,13 @@ public class ExecutionFile extends URIEntity {
     }
   }
 
+  public void removeMetadataFile() {
+    File metaf = new File(location + metaExtension);
+    if(metaf.exists() && metaf.isFile()) {
+      metaf.delete();
+    }
+  }
+  
 	public String getLocation() {
 		return location;
 	}

@@ -19,6 +19,7 @@ import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionEngine {
@@ -31,7 +32,8 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	StepExecutionEngine stepEngine;
 	PlanExecutionEngine planEngine;
 	
-	ExecutionLoggerAPI monitor;
+	ExecutionLoggerAPI logger;
+	ExecutionMonitorAPI monitor;
 	
 	public LocalExecutionEngine(Properties props) {
 		this.props = props;
@@ -44,17 +46,29 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 
 
 	@Override
-	public void setExecutionLogger(ExecutionLoggerAPI monitor) {
-		this.monitor = monitor;
+	public void setExecutionLogger(ExecutionLoggerAPI logger) {
+		this.logger = logger;
 		if(this.stepEngine != this)
-			this.stepEngine.setExecutionLogger(monitor);
+			this.stepEngine.setExecutionLogger(logger);
 	}
 
 	@Override
 	public ExecutionLoggerAPI getExecutionLogger() {
-		return this.monitor;
+		return this.logger;
 	}
 	
+  @Override
+  public void setExecutionMonitor(ExecutionMonitorAPI monitor) {
+    this.monitor = monitor;
+    if (this.stepEngine != this)
+      this.stepEngine.setExecutionMonitor(monitor);
+  }
+
+  @Override
+  public ExecutionMonitorAPI getExecutionMonitor() {
+    return this.monitor;
+  }
+	  
 	@Override
 	public void setStepExecutionEngine(StepExecutionEngine engine) {
 		this.stepEngine = engine;
@@ -78,7 +92,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void execute(RuntimePlan exe) {
-		exe.onStart(this.monitor);
+		exe.onStart(this.logger);
 		this.onStepEnd(exe);
 	}
 	
@@ -88,10 +102,25 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 		if(steps.size() == 0) {
 			// Nothing to execute. Check if finished
 			if(exe.getQueue().getRunningSteps().size() == 0) {
+			  String endlog = "Finished";
 				RuntimeInfo.Status status = RuntimeInfo.Status.FAILURE;
-				if(exe.getQueue().getFinishedSteps().size() == exe.getQueue().getAllSteps().size())
-					status = RuntimeInfo.Status.SUCCESS;
-				exe.onEnd(this.monitor, status, "Finished");
+				if(exe.getQueue().getFinishedSteps().size() 
+				    == exe.getQueue().getAllSteps().size()) {
+					if(exe.getPlan().isIncomplete()) {
+					  // If the plan is incomplete, then replan and continue
+            System.out.println("Replanning, and re-executing");
+					  exe = this.monitor.rePlan(exe);
+					  if(exe.getRuntimeInfo().getStatus() != 
+					      RuntimeInfo.Status.FAILURE) {
+					    this.onStepEnd(exe);
+					    return;
+					  }
+					}
+					else {
+					  status = RuntimeInfo.Status.SUCCESS;
+					}
+				}
+				exe.onEnd(this.logger, status, endlog);
 				this.shutdown();
 			}
 		}
@@ -105,8 +134,8 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void execute(RuntimeStep exe, RuntimePlan planexe) {
-		executor.submit(new StepExecutionThread(exe, planexe, planEngine, monitor));
-    exe.onStart(this.monitor);
+		executor.submit(new StepExecutionThread(exe, planexe, planEngine, logger));
+    exe.onStart(this.logger);
 	}
 
   class StepExecutionThread implements Runnable {
@@ -117,12 +146,12 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     	
     	public StepExecutionThread(RuntimeStep exe, 
     			RuntimePlan planexe, PlanExecutionEngine planEngine,
-    			ExecutionLoggerAPI monitor) {
+    			ExecutionLoggerAPI logger) {
     		this.exe = exe;
     		this.exe.setRuntimePlan(planexe);
     		this.planexe = planexe;
     		this.planEngine = planEngine;
-    		this.logger = monitor;
+    		this.logger = logger;
     	}
     	
       @Override
@@ -151,7 +180,6 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     				}
     			}
     			exe.onUpdate(this.logger, StringUtils.join(args, " "));
-    			
           
           // Create a temporary directory
           File tempdir = File.createTempFile(planexe.getName()+"-", "-"+exe.getName());

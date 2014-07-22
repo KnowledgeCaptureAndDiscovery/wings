@@ -838,7 +838,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			propertyNames : {
 				'a_varName' : 'Variable Name',
 				'b_varColl' : 'Input Data should be a Collection',
-				'b_breakpoint' : 'Set breakpoint',
+				'b_breakpoint' : 'Set Breakpoint for fetching metadata',
 				'c_varAutoFill' : 'Automatically Set Parameter Value (Don\'t ask user)',
 				'a_pruleS' : 'Use all Input Data in the same workflow',
 				'c_cruleS' : 'Use all Components of this Type in the same workflow'

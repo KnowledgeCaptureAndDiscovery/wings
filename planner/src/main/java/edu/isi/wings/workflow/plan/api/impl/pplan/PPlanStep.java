@@ -16,6 +16,7 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 	ArrayList<ExecutionStep> parentSteps;
 	ArrayList<ExecutionFile> inputFiles;
 	ArrayList<ExecutionFile> outputFiles;
+	ArrayList<String> machineIds;
 	
 	HashMap<String, ArrayList<Object>> argumentNameValueMap;
 	String invocationLine;
@@ -29,6 +30,7 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 		inputFiles = new ArrayList<ExecutionFile>();
 		outputFiles = new ArrayList<ExecutionFile>();
 		parentSteps = new ArrayList<ExecutionStep>();
+		machineIds = new ArrayList<String>();
 		argumentNameValueMap = new HashMap<String, ArrayList<Object>>();
 	}
 
@@ -118,4 +120,14 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 	public void addOutputFile(ExecutionFile file) {
 		this.outputFiles.add(file);
 	}
+
+  @Override
+  public ArrayList<String> getMachineIds() {
+    return this.machineIds;
+  }
+
+  @Override
+  public void setMachineIds(ArrayList<String> machineIds) {
+    this.machineIds = machineIds;
+  }
 }

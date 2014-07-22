@@ -14,5 +14,9 @@ public interface ExecutionMonitorAPI {
 	
 	boolean deleteRun(String runid);
 	
+	RuntimePlan rePlan(RuntimePlan planexe);
+	
+	void setWriterLock(Object lock); // Writer Lock
+	
 	void delete();
 }

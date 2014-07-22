@@ -6,6 +6,7 @@ import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
 
 public class PegasusExecutionEngine implements PlanExecutionEngine {
 	
@@ -66,5 +67,17 @@ public class PegasusExecutionEngine implements PlanExecutionEngine {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+  @Override
+  public void setExecutionMonitor(ExecutionMonitorAPI monitor) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public ExecutionMonitorAPI getExecutionMonitor() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
 }

@@ -1135,13 +1135,14 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 
 			HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
 			for(Node n : template.getNodes()) {
-			  if(n.isInactive())
+			  if(n.isInactive()) {
+			    plan.setIsIncomplete(true);
 			    continue;
+			  }
 			  
 				ExecutionStep step = PlanFactory.createExecutionStep(n.getID(), props);
-				// TODO: Also store machine ids 
-				// (Plan should save internally using canRunOn)
-				// n.getMachineIds();
+				step.setMachineIds(n.getMachineIds());
+				// TODO: Plan should save internally using runOn/canRunOn
 				
 				ComponentVariable c = n.getComponentVariable();
 

@@ -20,6 +20,13 @@ public interface ExecutionPlan {
 	
 	public ArrayList<ExecutionStep> getAllExecutionSteps();
 	
+	// Interleaving planning / execution
+	public boolean isIncomplete();
+	
+	public void setIsIncomplete(boolean incomplete);
+	
 	// Save
 	public boolean save();
+	
+	public boolean saveAs(String newid);
 }

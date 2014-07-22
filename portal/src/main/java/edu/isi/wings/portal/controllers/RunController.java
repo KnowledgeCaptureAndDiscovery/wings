@@ -14,6 +14,7 @@ import com.google.gson.JsonParser;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.resource.ResourceFactory;
+import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
@@ -167,19 +168,20 @@ public class RunController {
 				ResourceFactory.getAPI(props), requestid);
 		ExecutionPlan plan = wg.getExecutionPlan(xtpl);
 
+		String seedid = UuidGen.generateURIUuid((URIEntity)seedtpl);
 		if (plan != null) {
 			synchronized (WriteLock.Lock) {
 				// Save the expanded template, seeded template and plan
 				if (!xtpl.save())
 					return "";
-        if (!seedtpl.save())
+        if (!seedtpl.saveAs(seedid))
           return "";
 				plan.save();
 			}
 			RuntimePlan rplan = new RuntimePlan(plan);
 			rplan.setExpandedTemplateID(xtpl.getID());
 			rplan.setOriginalTemplateID(origtplid);
-			rplan.setSeededTemplateId(seedtpl.getID());
+			rplan.setSeededTemplateId(seedid);
 			this.runExecutionPlan(rplan, context);
 			return rplan.getID();
 		}
@@ -191,6 +193,7 @@ public class RunController {
 		synchronized (WriteLock.Lock) {
 			PlanExecutionEngine engine = config.getDomainExecutionEngine();
 			engine.getExecutionLogger().setWriterLock(WriteLock.Lock);
+			engine.getExecutionMonitor().setWriterLock(WriteLock.Lock);
 			// "execute" below is an asynchronous call
 			engine.execute(rplan);
 			

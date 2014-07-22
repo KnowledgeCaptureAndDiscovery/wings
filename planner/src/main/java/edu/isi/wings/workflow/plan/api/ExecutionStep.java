@@ -34,7 +34,7 @@ public interface ExecutionStep {
 	
 	public void setInvocationArguments(HashMap<String, ArrayList<Object>> argumentMap);
 	
-	// Input/Output information for staging inptus and ingesting outputs (if used)
+	// Input/Output information for staging inputs and ingesting outputs (if used)
 	public ArrayList<ExecutionFile> getInputFiles();
 	
 	public void addInputFile(ExecutionFile file);
@@ -42,4 +42,10 @@ public interface ExecutionStep {
 	public ArrayList<ExecutionFile> getOutputFiles();
 	
 	public void addOutputFile(ExecutionFile file);
+	
+	// Machine information
+	public ArrayList<String> getMachineIds();
+	
+	public void setMachineIds(ArrayList<String> machineIds);
+	
 }

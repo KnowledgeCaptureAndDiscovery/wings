@@ -176,8 +176,6 @@ public class PlanController {
 		map.put("error",  false);
 		map.put("templates", template_stores);
     map.put("output",  "");
-    
-		seedtpl.setID(UuidGen.generateURIUuid((URIEntity)seedtpl));
 		map.put("seed", this.getTemplateDetails(seedtpl));
 		
 		this.printEncodedResults(map); 
