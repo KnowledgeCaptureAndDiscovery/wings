@@ -4,13 +4,11 @@ import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
-import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.*;
-import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.api.ConstraintEngine;
 import edu.isi.wings.workflow.template.api.impl.kb.ConstraintEngineKB;
 import edu.isi.wings.workflow.template.classes.Role;
@@ -881,78 +879,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// FIXME: Handle multiple configurations
 		list.add(details);
 		return list;
-	}
-	
-	public ComponentPacket getInputDataDescriptions(ComponentPacket details, DataReasoningAPI dc) {
-	   HashMap<String, KBObject> omap = this.objPropMap;
-	    HashMap<String, KBObject> dmap = this.dataPropMap;
-	   ComponentVariable c = details.getComponent();
-	    HashMap<String, Variable> sRoleMap = details.getStringRoleMaps();
-
-	    //ArrayList<KBTriple> redbox = details.getRequirements();
-
-	    // Get Component
-	    KBObject comp = this.kb.getIndividual(c.getBinding().getID());
-	    if (comp == null) {
-	      logger.debug(comp + " is not a valid component");
-	      details.addExplanations(comp + " is not a valid component");
-	      details.setInvalidFlag(true);
-	      return details;
-	    }
-
-	    ArrayList<KBObject> inputArgs = this.kb.getPropertyValues(comp, omap.get("hasInput"));
-	    for (KBObject oarg : inputArgs) {
-	      KBObject argid = this.kb.getDatatypePropertyValue(oarg, dmap.get("hasArgumentID"));
-	      String rolestr = (String) argid.getValue();
-	      
-	      Variable var = sRoleMap.get(rolestr);
-	      
-	      if (var.isDataVariable()) {// && var.isBreakpoint()) {
-	        // If the variable is a data variable (& is bound)
-	        if (var.getBinding() != null) {
-	          ArrayList<Binding> bindings = new ArrayList<Binding>();
-	          bindings.add(var.getBinding());
-	          while (!bindings.isEmpty()) {
-	            Binding b = bindings.remove(0);
-	            // System.out.println(var.getName() + ":" + b);
-	            if (b.isSet()) {
-	              for (WingsSet s : b) {
-	                bindings.add((Binding) s);
-	              }
-	            } else {
-	              if(var.isBreakpoint()) {
-  	              ExecutionFile file = new ExecutionFile(b.getID());
-  	              String loc = dc.getDataLocation(b.getID());
-  	              if(loc == null)
-  	                loc = dc.getDefaultDataLocation(b.getID());
-  	              file.setLocation(loc);
-  	              file.loadMetadataFromLocation();
-  	              for(Object key: file.getMetadata().keySet()) {
-  	                KBObject mprop = this.dataPropMap.get(key);
-  	                Object val = file.getMetadata().get(key);
-  	                if(mprop != null) {
-  	                  b.getMetrics().addMetric(mprop.getID(), 
-  	                      new Metric(Metric.LITERAL, val));
-  	                }
-  	                else {
-  	                  mprop = this.objPropMap.get(key);
-  	                  if(mprop != null) {
-  	                    b.getMetrics().addMetric(mprop.getID(), 
-  	                        new Metric(Metric.URI, val));
-  	                  }
-  	                  else {
-  	                    logger.debug(key + " is not a valid metadata property");
-  	                    details.addExplanations(key + " is not a valid metadata property");
-  	                  }
-  	                }
-  	              }
-	              }
-	            }
-	          }
-	        }
-	      }
-	    }
-	    return details;
 	}
 
 	public ComponentInvocation getComponentInvocation(ComponentPacket details) {

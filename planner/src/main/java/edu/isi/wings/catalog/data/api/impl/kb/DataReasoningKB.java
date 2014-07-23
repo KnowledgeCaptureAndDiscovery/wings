@@ -23,6 +23,7 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.ontapi.SparqlQuery;
 import edu.isi.wings.ontapi.SparqlQuerySolution;
+import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 	private Logger logger = Logger.getLogger(this.getClass());
@@ -101,13 +102,12 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 	/**
 	 * Q4.1 and Q8.2
 	 * <p/>
-	 * If metricsOrCharacteristics ArrayList is null or empty, then for the
-	 * given dataSourceId this function returns an XML string that represents
+	 * Given dataObjectId this function returns a Metrics object that represents
 	 * all the data metrics (and charateristics) of a the data source.
 	 * 
 	 * @param dataObjectId
 	 *            the (unique) id of the dataObject
-	 * @return a string of xml
+	 * @return the Metrics object
 	 */
 	@Override
 	public Metrics findDataMetricsForDataObject(String dataObjectId) {
@@ -151,6 +151,38 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 		return result;
 	}
 
+	 /**
+   * Given dataObjectId this function Fetches Metrics from the .met file
+   * 
+   * @param dataObjectId
+   *            the (unique) id of the dataObject
+   * @return the Metrics object
+   */
+  @Override
+  public Metrics fetchDataMetricsForDataObject(String dataObjectId) {
+    Metrics metrics = new Metrics();
+    ExecutionFile file = new ExecutionFile(dataObjectId);
+    String loc = this.getDataLocation(dataObjectId);
+    if (loc == null)
+      loc = this.getDefaultDataLocation(dataObjectId);
+    file.setLocation(loc);
+    file.loadMetadataFromLocation();
+    for (Object key : file.getMetadata().keySet()) {
+      KBObject mprop = this.dataPropMap.get(key);
+      Object val = file.getMetadata().get(key);
+      if (mprop != null) {
+        metrics.addMetric(mprop.getID(), new Metric(Metric.LITERAL, val));
+      } else {
+        mprop = this.objPropMap.get(key);
+        if (mprop != null) {
+          metrics.addMetric(mprop.getID(), new Metric(Metric.URI, val));
+        } else {
+          logger.debug(key + " is not a valid metadata property");
+        }
+      }
+    }
+    return metrics;
+  }
 	/**
 	 * <p>
 	 * Check if first class subsumes the second class

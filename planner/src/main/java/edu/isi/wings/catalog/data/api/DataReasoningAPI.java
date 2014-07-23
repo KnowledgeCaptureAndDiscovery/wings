@@ -16,6 +16,8 @@ public interface DataReasoningAPI {
 	ArrayList<VariableBindingsList> findDataSources(ArrayList<KBTriple> dods);
 
 	Metrics findDataMetricsForDataObject(String dataObjectId);
+	
+	Metrics fetchDataMetricsForDataObject(String dataObjectId);
 
 	String getDataLocation(String dataid);
 	
@@ -26,4 +28,5 @@ public interface DataReasoningAPI {
 	String createDataIDFromMetrics(String id, String type, Metrics metrics);
 
 	boolean checkDatatypeSubsumption(String dtypeid_subsumer, String dtypeid_subsumee);
+	
 }

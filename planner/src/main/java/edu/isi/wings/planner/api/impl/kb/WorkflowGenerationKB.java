@@ -1433,7 +1433,10 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 									// Add new output link
 									curt.addLink(newNode, null, newPort, null, newVariable);
 
+	                // FIXME: Not working properly ? (check hasSize)
 									// Add Binding metrics as constraints
+                  System.out.println(cb.getID());
+                  System.out.println(cb.getMetrics());
 									curt.getConstraintEngine().addConstraints(
 											this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
 								}
@@ -1981,9 +1984,6 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				ComponentReasoningAPI pc = this.pc;
 				if (ccmr.getComponent().isTemplate())
 					pc = this.tc;
-
-				// Fetch input data real metadata (if any)
-        ccmr = pc.getInputDataDescriptions(ccmr, this.dc);
         
 				// No new roles introduced by the forward sweep call
 				ArrayList<ComponentPacket> allcmrs = pc.findOutputDataPredictedDescriptions(ccmr);
@@ -2066,7 +2066,18 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
 										Binding ds = createNewBinding(v, db, vtype, r,
 												sortedInputs, event);
+										dc.getDataLocation(ds.getID());
 										db.setID(ds.getID() + sfx);
+										
+										// For each output, fetch actual metrics from .met file 
+										// and override predicted metrics
+										Metrics newm = this.dc.fetchDataMetricsForDataObject(db.getID());
+					          logger.info(event
+					              .createLogMsg()
+					              .addWQ(LogEvent.QUERY_NUMBER, "4.x")
+					              .addWQ(LogEvent.QUERY_RESPONSE,
+					                  "Returned " + newm));
+										db.getMetrics().getMetrics().putAll(newm.getMetrics());
 									}
 								}
 							}
