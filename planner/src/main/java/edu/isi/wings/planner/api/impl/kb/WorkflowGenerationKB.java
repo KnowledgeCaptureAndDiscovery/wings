@@ -1433,10 +1433,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 									// Add new output link
 									curt.addLink(newNode, null, newPort, null, newVariable);
 
-	                // FIXME: Not working properly ? (check hasSize)
 									// Add Binding metrics as constraints
-                  System.out.println(cb.getID());
-                  System.out.println(cb.getMetrics());
 									curt.getConstraintEngine().addConstraints(
 											this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
 								}

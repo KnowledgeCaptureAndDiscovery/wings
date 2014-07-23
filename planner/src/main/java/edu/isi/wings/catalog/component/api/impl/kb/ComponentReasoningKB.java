@@ -503,6 +503,24 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// Keep a map of variable object to variable name
 		HashMap<Variable, String> variableNameMap = new HashMap<Variable, String>();
 
+    // Add the information from redbox to the temporary KB store
+    // Cache varid to varobj
+    HashMap<String, KBObject> varIDObjMap = new HashMap<String, KBObject>();
+    for (Variable var : sRoleMap.values()) {
+      KBObject varobj = tkb.getResource(variableNameMap.get(var));
+      varIDObjMap.put(var.getID(), varobj);
+    }
+    // Add information from redbox
+    for (KBTriple t : redbox) {
+      KBObject subj = varIDObjMap.get(t.getSubject().getID());
+      KBObject obj = varIDObjMap.get(t.getObject().getID());
+      if (subj == null)
+        subj = t.getSubject();
+      if (obj == null)
+        obj = t.getObject();
+      tkb.addTriple(subj, t.getPredicate(), obj);
+    }
+    
 		// Convert metrics to Property assertions in the Temporary KB
 		for (String rolestr : sRoleMap.keySet()) {
 			Variable var = sRoleMap.get(rolestr);
@@ -549,6 +567,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 								if (!metricProp.getID().equals(KBUtils.RDF + "type"))
 									valobj = this.copyObjectIntoKB(valobj.getID(), valobj, tkb,
 											null, null, true);
+								// Remove any existing values first
+								for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
+								  tkb.removeTriple(t);
 								// Add a Triple for the metric property value
 								tkb.addTriple(varobj, metricProp, valobj);
 							} else if (type == Metric.LITERAL && val != null) {
@@ -556,8 +577,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 								KBObject tobj = dtype != null ? tkb.createXSDLiteral(val.toString(), dtype) :
 													this.ontologyFactory.getDataObject(val);
 								if (tobj != null) {
-									// Add a Triple for the metric property
-									// value
+	                // Remove any existing values first
+	                for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
+	                  tkb.removeTriple(t);
+	                 // Add a Triple for the metric propertyvalue
 									tkb.addTriple(varobj, metricProp, tobj);
 								} else {
 									details.addExplanations("ERROR Cannot Convert Metrics Value " + val);
@@ -652,23 +675,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		metricTriples.addAll(this.kb.genericTripleQuery(null, rdfsProp, dcPropD));
 		// Add all metrics and datametrics properties to temporary store
 		tkb.addTriples(metricTriples);
-
-		// Cache varid to varobj
-		HashMap<String, KBObject> varIDObjMap = new HashMap<String, KBObject>();
-		for (Variable var : sRoleMap.values()) {
-			KBObject varobj = tkb.getResource(variableNameMap.get(var));
-			varIDObjMap.put(var.getID(), varobj);
-		}
-		// Add the information from redbox to the temporary KB store
-		for (KBTriple t : redbox) {
-			KBObject subj = varIDObjMap.get(t.getSubject().getID());
-			KBObject obj = varIDObjMap.get(t.getObject().getID());
-			if (subj == null)
-				subj = t.getSubject();
-			if (obj == null)
-				obj = t.getObject();
-			tkb.addTriple(subj, t.getPredicate(), obj);
-		}
 
 		// Redirect Standard output to a byte stream
 		ByteArrayOutputStream bost = new ByteArrayOutputStream();
