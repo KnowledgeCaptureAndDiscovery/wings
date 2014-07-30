@@ -169,13 +169,16 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
     file.loadMetadataFromLocation();
     for (Object key : file.getMetadata().keySet()) {
       KBObject mprop = this.dataPropMap.get(key);
-      Object val = file.getMetadata().get(key);
+      String valstr = file.getMetadata().get(key).toString();
       if (mprop != null) {
+        KBObject range = this.kb.getPropertyRange(mprop);
+        KBObject valobj = this.kb.createXSDLiteral(valstr, range.getID());
+        Object val = valobj.getValue();
         metrics.addMetric(mprop.getID(), new Metric(Metric.LITERAL, val));
       } else {
         mprop = this.objPropMap.get(key);
         if (mprop != null) {
-          metrics.addMetric(mprop.getID(), new Metric(Metric.URI, val));
+          metrics.addMetric(mprop.getID(), new Metric(Metric.URI, valstr));
         } else {
           logger.debug(key + " is not a valid metadata property");
         }

@@ -503,6 +503,14 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// Keep a map of variable object to variable name
 		HashMap<Variable, String> variableNameMap = new HashMap<Variable, String>();
 
+    for (String rolestr : sRoleMap.keySet()) {
+      Variable var = sRoleMap.get(rolestr);
+      // Map template variable to a temporary variable for running rules
+      // - Reason is that the same variable may be used in multiple roles
+      // and we want to distinguish them
+      String variableName = var.getID() + "_" + rolestr;
+      variableNameMap.put(var, variableName);
+    }
     // Add the information from redbox to the temporary KB store
     // Cache varid to varobj
     HashMap<String, KBObject> varIDObjMap = new HashMap<String, KBObject>();
@@ -529,12 +537,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				details.addExplanations("ERROR Component catalog cannot recognize role id "+rolestr);
 				continue;
 			}
-			
-			// Map template variable to a temporary variable for running rules
-			// - Reason is that the same variable may be used in multiple roles
-			// and we want to distinguish them
-			String variableName = var.getID() + "_" + rolestr;
-			variableNameMap.put(var, variableName);
+			String variableName = variableNameMap.get(var);
 
 			// Get a KBObject for the temporary variable
 			KBObject varobj = tkb.getResource(variableName);
@@ -575,7 +578,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 							} else if (type == Metric.LITERAL && val != null) {
 								// Literal value
 								KBObject tobj = dtype != null ? tkb.createXSDLiteral(val.toString(), dtype) :
-													this.ontologyFactory.getDataObject(val);
+													tkb.createLiteral(val);
 								if (tobj != null) {
 	                // Remove any existing values first
 	                for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
@@ -675,7 +678,36 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		metricTriples.addAll(this.kb.genericTripleQuery(null, rdfsProp, dcPropD));
 		// Add all metrics and datametrics properties to temporary store
 		tkb.addTriples(metricTriples);
+		
 
+    // Get a list of all metrics and datametrics properties in the catalog
+    ArrayList<KBObject> metricProps = this.kb
+        .getSubPropertiesOf(omap.get("hasMetrics"), false);
+    metricProps.addAll(this.kb.getSubPropertiesOf(dmap.get("hasDataMetrics"), false));
+    
+		// Set current output variable metrics to do a diff with later
+    for (String rolestr : sRoleMap.keySet()) {
+      Variable var = sRoleMap.get(rolestr);
+      if (var.isDataVariable() && !sInputRoles.containsKey(rolestr)) {
+        Metrics metrics = new Metrics();
+        KBObject varobj = tkb.getResource(variableNameMap.get(var));
+        // Create Metrics from PC Properties
+        for (KBObject metricProp : metricProps) {
+          KBObject val = tkb.getPropertyValue(varobj, metricProp);
+          if (val == null)
+            continue;
+          // Add value
+          if (val.isLiteral())
+            metrics.addMetric(metricProp.getID(), new Metric(Metric.LITERAL,
+                val.getValue(), val.getDataType()));
+          else
+            metrics.addMetric(metricProp.getID(),
+                new Metric(Metric.URI, val.getID()));
+        }
+        var.getBinding().setMetrics(metrics);
+      }
+    }
+    
 		// Redirect Standard output to a byte stream
 		ByteArrayOutputStream bost = new ByteArrayOutputStream();
 		PrintStream oldout = System.out;
@@ -735,37 +767,43 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 			}
 		}
 
-		// Get a list of all metrics and datametrics properties in the catalog
-		ArrayList<KBObject> metricProps = this.kb
-				.getSubPropertiesOf(omap.get("hasMetrics"), false);
-		metricProps.addAll(this.kb.getSubPropertiesOf(dmap.get("hasDataMetrics"), false));
-
 		// To create the output Variable metrics, we go through the metrics
 		// property of the output data variables and get their metrics property
 		// values
 		for (String rolestr : sRoleMap.keySet()) {
 			Variable var = sRoleMap.get(rolestr);
 			if (var.isDataVariable() && !sInputRoles.containsKey(rolestr)) {
+		    Metrics curmetrics = var.getBinding().getMetrics();
 				Metrics metrics = new Metrics();
-
 				KBObject varobj = tkb.getResource(variableNameMap.get(var));
 
 				// Create Metrics from PC Properties
 				for (KBObject metricProp : metricProps) {
-					KBObject val = tkb.getPropertyValue(varobj, metricProp);
-					// If no value set, then continue onto the next property
-					if (val == null)
-						continue;
-
-					if (val.isLiteral())
-						metrics.addMetric(metricProp.getID(), new Metric(Metric.LITERAL, val.getValue(), val.getDataType()));
-					else
-						metrics.addMetric(metricProp.getID(), new Metric(Metric.URI, val.getID()));
+				  ArrayList<KBObject> vals = tkb.getPropertyValues(varobj, metricProp);
+				  if(vals == null)
+				    continue;
+				  for(KBObject val : vals) {
+				    if(vals.size() > 1) {
+				      // If multiple values present, ignore value that is equal to current value
+				      Metric mval = curmetrics.getMetrics().get(metricProp.getID());
+				      if(!val.isLiteral() && val.getID().equals(mval.getValue()))
+				        continue;
+				      else if(val.isLiteral() && val.getValue().equals(mval.getValue()))
+				        continue;
+				    }
+				    // Add value
+            if (val.isLiteral())
+              metrics.addMetric(metricProp.getID(), new Metric(Metric.LITERAL,
+                  val.getValue(), val.getDataType()));
+            else
+              metrics.addMetric(metricProp.getID(),
+                  new Metric(Metric.URI, val.getID()));
+				  }
 				}
 				ArrayList<KBObject> clses = tkb.getAllClassesOfInstance(varobj, true);
 				for (KBObject cls : clses)
 					metrics.addMetric(KBUtils.RDF + "type", new Metric(Metric.URI, cls.getID()));
-
+        
 				// Set metrics for the Binding
 				if (var.getBinding() != null)
 					var.getBinding().setMetrics(metrics);
