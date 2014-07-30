@@ -1,0 +1,445 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.wings-workflows.org/ontology/resource.owl#"
+     xml:base="http://www.wings-workflows.org/ontology/resource.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://www.wings-workflows.org/ontology/resource.owl"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasEnvironment -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasEnvironment">
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#EnvironmentValue"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasHardwareDependency -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasHardwareDependency">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#HardwareDependency"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasOperatingSystem -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasOperatingSystem">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#OperatingSystem"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasSoftware -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasSoftware">
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareDependency -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareDependency">
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareDependency"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareGroup -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareGroup">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#requiresExactVersion -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#requiresExactVersion">
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareDependency"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#requiresMinimumVersion -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#requiresMinimumVersion">
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareDependency"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#requiresSoftware -->
+
+    <owl:ObjectProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#requiresSoftware">
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareDependency"/>
+        <rdfs:range rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasEnvironmentValue -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasEnvironmentValue">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#EnvironmentValue"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasEnvironmentVariable -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasEnvironmentVariable">
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.wings-workflows.org/ontology/resource.owl#EnvironmentValue"/>
+                    <rdf:Description rdf:about="http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasExecutionFolder -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasExecutionFolder">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasHardwareProperty -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasHardwareProperty">
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasHostIP -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasHostIP">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasHostName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasHostName">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#isHealthy -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#isHealthy">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasMemoryGB -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasMemoryGB">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#hasHardwareProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareName">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareProperty -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareProperty">
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasStorageGB -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasStorageGB">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#hasHardwareProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasVersionNumber -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasVersionNumber">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;integer"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasUserID -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasUserID">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasUserKey -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasUserKey">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasVersionText -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasVersionText">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#hasWingsStorageFolder -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#hasWingsStorageFolder">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#is64Bit -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#is64Bit">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Machine"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#hasHardwareProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#requiresMemoryGB -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#requiresMemoryGB">
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#HardwareDependency"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#requiresStorageGB -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#requiresStorageGB">
+        <rdfs:range rdf:resource="&xsd;float"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#HardwareDependency"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#needs64bit -->
+
+    <owl:DatatypeProperty rdf:about="http://www.wings-workflows.org/ontology/resource.owl#needs64bit">
+        <rdfs:range rdf:resource="&xsd;boolean"/>
+        <rdfs:domain rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#HardwareDependency"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#Dependency -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#Dependency"/>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#EnvironmentValue -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#EnvironmentValue"/>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#ExecutionResource -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#ExecutionResource"/>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#HardwareDependency -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#HardwareDependency">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Dependency"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#HardwareResource -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#HardwareResource">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#ExecutionResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#Machine -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#Machine">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#HardwareResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#OperatingSystem -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#OperatingSystem">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#SoftwareDependency -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#SoftwareDependency">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#Dependency"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#SoftwareGroup">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#SoftwareResource -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#SoftwareResource">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#ExecutionResource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion -->
+
+    <owl:Class rdf:about="http://www.wings-workflows.org/ontology/resource.owl#SoftwareVersion">
+        <rdfs:subClassOf rdf:resource="http://www.wings-workflows.org/ontology/resource.owl#SoftwareResource"/>
+    </owl:Class>
+
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+    <!-- http://www.wings-workflows.org/ontology/resource.owl#Localhost -->
+
+    <Machine rdf:ID="Localhost">
+        <isHealthy rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</isHealthy>
+        <hasHostIP rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >127.0.0.1</hasHostIP>
+        <hasHostName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >localhost</hasHostName>
+    </Machine>
+</rdf:RDF>
+
+
+<!-- Generated by the OWL API (version 3.4.2) http://owlapi.sourceforge.net -->
+

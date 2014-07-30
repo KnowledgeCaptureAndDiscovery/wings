@@ -114,12 +114,12 @@ public class Wings {
 		return pc;
 	}
 
-	 public ResourceAPI initializeRC() {
-	    this.props.putAll(ComponentFactory.createLegacyConfiguration());
-	    rc = ResourceFactory.getAPI(props);
-	    return rc;
-	  }
-	 
+  public ResourceAPI initializeRC() {
+    this.props.putAll(ResourceFactory.createLegacyConfiguration());
+    rc = ResourceFactory.getAPI(props);
+    return rc;
+  }
+
 	public void initializeWorkflowGenerator() {
 		this.props.putAll(TemplateFactory.createLegacyConfiguration());
 		this.props.putAll(DataFactory.createLegacyConfiguration());

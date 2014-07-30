@@ -265,7 +265,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void deleteGraph(String id) {
 	  try {
-      ontologyFactory.getKB(new URIEntity(id).getURL(), OntSpec.PLAIN).delete();
+	    if(id != null)
+	      ontologyFactory.getKB(new URIEntity(id).getURL(), OntSpec.PLAIN).delete();
     } catch (Exception e) {
       e.printStackTrace();
     }

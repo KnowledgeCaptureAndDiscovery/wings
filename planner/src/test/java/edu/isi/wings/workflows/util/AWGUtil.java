@@ -43,6 +43,7 @@ public class AWGUtil {
 		Wings wings = new Wings(template, requestid, conf_path, true);
 
 		wings.initializePC();
+    wings.initializeRC();
 		wings.initializeWorkflowGenerator();
 		wings.setDC(wings.initializeDC());
 		wings.initializeItem();
@@ -68,6 +69,7 @@ public class AWGUtil {
 		Wings wings = new Wings(seed, requestid, conf_path);
 
 		wings.initializePC();
+		wings.initializeRC();
 		wings.initializeWorkflowGenerator();
 		wings.setDC(wings.initializeDC());
 		wings.initializeItem();
