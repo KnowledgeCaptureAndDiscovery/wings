@@ -29,6 +29,9 @@ public class ResourceKB implements ResourceAPI {
 
   HashMap<String, KBObject> pmap;
   HashMap<String, KBObject> cmap;
+  
+  HashMap<String, SoftwareVersion> swcache;
+  HashMap<String, Machine> mcache;
 
   public ResourceKB(Properties props) {
     this.onturl = props.getProperty("ont.resource.url");
@@ -71,7 +74,7 @@ public class ResourceKB implements ResourceAPI {
         this.cmap.put(cls.getName(), cls);
     }
   }
-
+  
   @Override
   public ArrayList<String> getMachineIds() {
     ArrayList<String> machineIds = new ArrayList<String>();
@@ -295,12 +298,28 @@ public class ResourceKB implements ResourceAPI {
     return version;
   }
 
+  private void createCaches() {
+    if(swcache == null) {
+      swcache = new HashMap<String, SoftwareVersion>();
+      for(SoftwareVersion swver : this.getAllSoftwareVersions()) {
+        swcache.put(swver.getID(), swver);
+      }
+    }
+    if(mcache == null) {
+      mcache = new HashMap<String, Machine>();
+      for(String mid : this.getMachineIds()) {
+        mcache.put(mid, this.getMachine(mid));
+      }
+    }
+  }
+  
   @Override
   public ArrayList<String> getMatchingMachineIds(ComponentRequirement req) {
     ArrayList<String> machineIds = new ArrayList<String>();
-    // Time-bound cache (say a cache that cleans itself after every half hour)
-    for(String machineId : this.getMachineIds()) {
-      Machine machine = this.getMachine(machineId);
+    this.createCaches();
+    
+    for(String machineId : mcache.keySet()) {
+      Machine machine = mcache.get(machineId);
 
       // Check that the machine is "healthy" - could be fetched live ?
       if(!machine.isHealthy())
@@ -312,8 +331,21 @@ public class ResourceKB implements ResourceAPI {
         continue;
       
       boolean ok = true;
+      // Check all required softwares
       for(String softwareId : req.getSoftwareIds()) {
-        if(!machine.getSoftwareIds().contains(softwareId)) {
+        boolean swmatch = false;
+        SoftwareVersion swver = swcache.get(softwareId);
+        // Check that each machine has the required software version
+        //  - OR a higher version of the same software
+        for(String mswid : machine.getSoftwareIds()) {
+          SoftwareVersion mswver = swcache.get(mswid);
+          if(mswver.getSoftwareGroupId().equals(swver.getSoftwareGroupId()) &&
+              mswver.getVersionNumber() >= swver.getVersionNumber()) {
+            swmatch = true;
+            break;
+          }
+        }
+        if(!swmatch) {
           ok = false;
           break;
         }
