@@ -1431,7 +1431,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 			region : 'center',
 			title : tabname,
 			tabPosition : 'top',
-			margins : 5,
+			margin : 5,
 			activeTab : 0,
 			path : path,
 			items : [ templatePanel ]
@@ -1569,4 +1569,11 @@ TemplateBrowser.prototype.initialize = function(tid) {
 			This.openTemplate(tid, getLocalName(tid), path);
 		}
 	}
+	
+	// Initialize tooltips
+	Ext.tip.QuickTipManager.init();
+	Ext.apply(Ext.tip.QuickTipManager.getQuickTip(), {
+	    maxWidth: 400,
+	    minWidth: 250,
+	});
 };

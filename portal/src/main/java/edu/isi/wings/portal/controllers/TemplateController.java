@@ -101,7 +101,6 @@ public class TemplateController {
 			// FIXME: Propvals issue: 
 			// - Add propval values -- get values via an ajax call ?
 			out.println("Ext.onReady(function() {"
-					+ "Ext.QuickTips.init();\n"
 					+ "tBrowser_" + guid + " = new TemplateBrowser('" + guid + "', opts, { "
 							+ "tree: " + tree
 							+ ", components: { tree: " + json.toJson(cc.getComponentHierarchy(editor).getRoot()) + "}"

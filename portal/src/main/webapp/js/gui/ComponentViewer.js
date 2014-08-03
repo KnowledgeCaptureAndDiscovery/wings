@@ -137,7 +137,7 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
 
     var tooltip = '<h4>Component: ' + getLocalName(c.id) + '</h4>';
     if (c.inputs && c.outputs) {
-        tooltip += "<br/><b>Inputs</b><br/>";
+        tooltip += "<b>Inputs</b><br/>";
         for (var i = 0; i < c.inputs.length; i++)
             tooltip += " - " + c.inputs[i].role + " (" + getPrefixedUrl(c.inputs[i].type, this.ns) + ')<br/>';
         tooltip += "<br/><b>Outputs</b><br/>";
@@ -163,7 +163,7 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
         qtip: tooltip,
         expanded: true,
         children: []
-        };
+    };
 };
 
 ComponentViewer.prototype.getComponentListTree = function(enableDrag) {
@@ -1327,7 +1327,7 @@ ComponentViewer.prototype.initialize = function() {
     var libname = (this.libname == "library" ? "Default": this.libname);
     Ext.apply(this.treePanel, {
         title: 'Component' + (!This.load_concrete ? ' Types': 's: ' + libname)
-        });
+    });
 
     this.store.types.sort();
     this.initComponentTreePanelEvents();

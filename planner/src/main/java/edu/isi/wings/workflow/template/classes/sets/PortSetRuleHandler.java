@@ -132,13 +132,15 @@ public class PortSetRuleHandler {
 				if (expr.getOperator() == SetOperator.REDUCEDIM && !cexpr.isSet()) {
 					Binding b = portBindings.get(cexpr.getPort());
 					if (b.isSet() && b.size() > 0) {
-						Binding newb = (Binding) b.get(0);
+						Binding newb = new Binding();
 						// If other items in the collection are also sets, then
-						// add their elements
-						for (int ri = 1; ri < b.size(); ri++) {
+						// merge all their elements in, else add
+						for (int ri = 0; ri < b.size(); ri++) {
 							Binding cb = (Binding) b.get(ri);
 							if (cb.isSet() && b.isSet())
 								newb.addAll(cb);
+							else
+							  newb.add(cb);
 						}
 						portBindings.put(cexpr.getPort(), newb);
 					}
