@@ -1131,7 +1131,7 @@ ComponentViewer.prototype.getDependenciesTab =
 		items : [{
 			xtype: 'combo',
 			name : 'softwareIds',
-			fieldLabel : 'Requires Software',
+			fieldLabel : 'Requires Software (Minimum Version)',
 			labelWidth : 150,
 			value : mstore.softwareIds,
 			multiSelect : true,

@@ -936,12 +936,14 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// Get Component
 		KBObject comp = this.kb.getResource(c.getBinding().getID());
 		String exepath = this.getComponentLocation(comp.getID());
+		String exedir = null;
 		if(exepath != null) {
 			File f = new File(exepath);
 			if(f.isDirectory()) {
+			  exedir = exepath;
 				File shexef = new File(exepath + File.separator + "run");
 				File winexef = new File(exepath + File.separator + "run.bat");
-				if(SystemUtils.IS_OS_WINDOWS)
+				if(SystemUtils.IS_OS_WINDOWS && winexef.exists())
 					exepath = winexef.getAbsolutePath();
 				else
 					exepath = shexef.getAbsolutePath();
@@ -951,6 +953,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		ComponentInvocation invocation = new ComponentInvocation();
 		invocation.setComponentId(comp.getID());
 		invocation.setComponentLocation(exepath);
+		invocation.setComponentDirectory(exedir);
 
 		ArrayList<KBObject> inputs = this.kb.getPropertyValues(comp, omap.get("hasInput"));
 		ArrayList<KBObject> outputs = this.kb.getPropertyValues(comp, omap.get("hasOutput"));

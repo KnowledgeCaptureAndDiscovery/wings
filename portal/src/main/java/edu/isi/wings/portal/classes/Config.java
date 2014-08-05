@@ -19,6 +19,7 @@ import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
+import edu.isi.wings.execution.engine.api.impl.distributed.DistributedExecutionEngine;
 import edu.isi.wings.execution.tools.ExecutionToolsFactory;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
@@ -144,6 +145,18 @@ public class Config {
 			ExeEngine engine = this.getExeEngine(enode); 
 			this.engines.put(engine.getName(), engine);
 		}
+		// Add in the distributed engine if it doesn't already exist
+		if(!this.engines.containsKey("Distributed")) {
+		  ExeEngine distengine = new ExeEngine("Distributed", 
+          DistributedExecutionEngine.class.getCanonicalName(),ExeEngine.Type.BOTH);
+		  this.engines.put(distengine.getName(), distengine);
+	    this.addEngineConfig(serverConfig, distengine);
+	    try {
+	      serverConfig.save(this.configFile);
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
+		}
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -220,6 +233,8 @@ public class Config {
 
 		this.addEngineConfig(config, new ExeEngine("Local", 
 				LocalExecutionEngine.class.getCanonicalName(),ExeEngine.Type.BOTH));
+    this.addEngineConfig(config, new ExeEngine("Distributed", 
+        DistributedExecutionEngine.class.getCanonicalName(),ExeEngine.Type.BOTH));
 		
 		/*this.addEngineConfig(config, new ExeEngine("OODT",
 				OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
@@ -295,6 +310,7 @@ public class Config {
 			ExecutionLoggerAPI logger = ExecutionToolsFactory.createLogger(this.getProperties());
 			ExecutionMonitorAPI monitor = ExecutionToolsFactory.createMonitor(this.getProperties());
 			ExecutionResourceAPI resource = ExecutionToolsFactory.getResourceAPI(this.getProperties());
+			resource.setLocalStorageFolder(this.getStorageDirectory());
 			pee.setStepExecutionEngine(see);
 			pee.setExecutionLogger(logger);
 			pee.setExecutionMonitor(monitor);

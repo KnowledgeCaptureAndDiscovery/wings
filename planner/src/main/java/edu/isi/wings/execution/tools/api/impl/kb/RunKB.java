@@ -196,6 +196,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.writerLock = lock;
 	}
 
+  @Override
+  public Object getWriterLock() {
+    return this.writerLock;
+  }
+
 	/*
 	 * Private helper functions
 	 */

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class ComponentInvocation {
 	String componentId;
 	String componentLocation;
+	String componentDirectory;
 	ArrayList<Argument> arguments;
 
 	public ComponentInvocation() {
@@ -26,6 +27,14 @@ public class ComponentInvocation {
 	public void setComponentLocation(String componentLocation) {
 		this.componentLocation = componentLocation;
 	}
+
+  public String getComponentDirectory() {
+    return componentDirectory;
+  }
+
+  public void setComponentDirectory(String componentDirectory) {
+    this.componentDirectory = componentDirectory;
+  }
 
 	public ArrayList<Argument> getArguments() {
 		return arguments;

@@ -11,6 +11,9 @@ public interface ExecutionLoggerAPI {
 	
 	void updateRuntimeInfo(RuntimeStep step);
 	
-	void setWriterLock(Object lock); // Writer Lock
-
+	//Writer Lock
+	void setWriterLock(Object lock); 
+  
+	Object getWriterLock();
+  
 }

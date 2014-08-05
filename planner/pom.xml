@@ -74,11 +74,11 @@
 		</dependency>
 
 		<!-- jsch -->
-		<dependency>
+		<!--dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>${jsch.version}</version>
-		</dependency>
+		</dependency-->
 	
 		<!-- gridkit nanocloud -->
 		<dependency>

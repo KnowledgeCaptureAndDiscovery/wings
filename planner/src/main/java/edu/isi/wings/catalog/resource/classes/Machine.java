@@ -4,8 +4,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 
+import org.gridkit.internal.com.jcraft.jsch.ChannelExec;
+import org.gridkit.internal.com.jcraft.jsch.ChannelSftp;
+import org.gridkit.internal.com.jcraft.jsch.JSch;
+import org.gridkit.internal.com.jcraft.jsch.JSchException;
+import org.gridkit.internal.com.jcraft.jsch.Session;
 import org.gridkit.nanocloud.Cloud;
 import org.gridkit.nanocloud.CloudFactory;
 import org.gridkit.nanocloud.telecontrol.ssh.RemoteNodeTypeHandler;
@@ -184,49 +190,99 @@ public class Machine extends Resource {
     T retval = node.exec(callobject);
     cloud.shutdown();
     return retval;
-    
-    /*JSch ssh = new JSch();
+  }
+  
+  public ChannelExec getRunChannel() {
+    JSch ssh = new JSch();
     try {
       if (this.getUserKey() != null)
         ssh.addIdentity(this.getUserKey());
-      Session ssh_session;
-      if(this.getUserId() == null)
-        ssh_session = ssh.getSession(this.getHostName());
-      else
-        ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
+      Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
       java.util.Properties config = new java.util.Properties(); 
       config.put("StrictHostKeyChecking", "no");
       ssh_session.setConfig(config);
       
       ssh_session.connect();
       if(ssh_session.isConnected()) {
-        ChannelExec channel = (ChannelExec) ssh_session.openChannel("exec");
-        channel.setCommand("ls "+ executionFolder);
-        channel.setInputStream(null);
-        ((ChannelExec)channel).setErrStream(System.err);
-        InputStream in=channel.getInputStream();
+        ChannelExec channel = (ChannelExec) ssh_session.openChannel("ssh");
         channel.connect();
-        byte[] tmp=new byte[1024];
-        while(true){
-          while(in.available()>0){
-            int i=in.read(tmp, 0, 1024);
-            if(i<0)break;
-            System.out.print(new String(tmp, 0, i));
-          }
-          if(channel.isClosed()){
-            if(in.available()>0) continue; 
-            System.out.println("exit-status: "+channel.getExitStatus());
-            break;
-          }
+        if(channel.isConnected())
+          return channel;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  public void disconnectRunChannel(ChannelExec channel) {
+    try {
+      channel.disconnect();
+      channel.getSession().disconnect();
+    } catch (JSchException e) {
+      e.printStackTrace();
+    }
+  }
+  
+  public boolean uploadFiles(HashMap<String, String> localRemoteMap) {
+    JSch ssh = new JSch();
+    try {
+      if (this.getUserKey() != null)
+        ssh.addIdentity(this.getUserKey());
+      Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
+      java.util.Properties config = new java.util.Properties(); 
+      config.put("StrictHostKeyChecking", "no");
+      ssh_session.setConfig(config);
+      
+      ssh_session.connect();
+      if(ssh_session.isConnected()) {
+        ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
+        sftpChannel.connect();
+        for(String local: localRemoteMap.keySet()) {
+          String remote = localRemoteMap.get(local);
+          sftpChannel.put(local, remote);
         }
-        channel.disconnect();
+        sftpChannel.disconnect();
         ssh_session.disconnect();
         return true;
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return false;*/
+    return false;
+  }
+  
+  public boolean downloadFiles(HashMap<String, String> localRemoteMap) {
+    JSch ssh = new JSch();
+    try {
+      if (this.getUserKey() != null)
+        ssh.addIdentity(this.getUserKey());
+      Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
+      java.util.Properties config = new java.util.Properties(); 
+      config.put("StrictHostKeyChecking", "no");
+      ssh_session.setConfig(config);
+      
+      ssh_session.connect();
+      if(ssh_session.isConnected()) {
+        ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
+        sftpChannel.connect();
+        for(String local: localRemoteMap.keySet()) {
+          String remote = localRemoteMap.get(local);
+          try {
+            sftpChannel.get(remote, local);
+          }
+          catch (Exception e) {
+            // Ignore
+          }
+        }
+        sftpChannel.disconnect();
+        ssh_session.disconnect();
+        return true;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
   }
   
   public MachineDetails getMachineDetails() {

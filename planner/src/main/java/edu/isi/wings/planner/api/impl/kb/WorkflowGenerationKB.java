@@ -1165,6 +1165,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				
 				ExecutionCode code = new ExecutionCode(invocation.getComponentId());
 				code.setLocation(invocation.getComponentLocation());
+				code.setCodeDirectory(invocation.getComponentDirectory());
 				step.setCodeBinding(code);
 				
 				HashMap<String, ArrayList<Object>> argMaps = new HashMap<String, ArrayList<Object>>(); 
