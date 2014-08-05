@@ -20,7 +20,7 @@ import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
-import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.Config;

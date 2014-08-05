@@ -5,8 +5,9 @@ import java.util.Properties;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
-import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
-import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
 
 public class PegasusExecutionEngine implements PlanExecutionEngine {
 	
@@ -76,6 +77,18 @@ public class PegasusExecutionEngine implements PlanExecutionEngine {
 
   @Override
   public ExecutionMonitorAPI getExecutionMonitor() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void setExecutionResource(ExecutionResourceAPI resource) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public ExecutionResourceAPI getExecutionResource() {
     // TODO Auto-generated method stub
     return null;
   }

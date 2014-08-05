@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import edu.isi.wings.common.URIEntity;
-import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 
 public class RuntimeStep extends URIEntity {

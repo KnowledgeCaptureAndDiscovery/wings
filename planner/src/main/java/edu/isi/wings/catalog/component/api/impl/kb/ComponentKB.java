@@ -233,10 +233,10 @@ public class ComponentKB {
     
     KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
     KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
-    // KBObject minver = this.objPropMap.get("requiresMinimumVersion");
-    KBObject exver = this.objPropMap.get("requiresExactVersion");
+    KBObject minver = this.objPropMap.get("requiresMinimumVersion");
+    //KBObject exver = this.objPropMap.get("requiresExactVersion");
     for(KBObject sdobj : tkb.getPropertyValues(compobj, sdprop)) {
-      KBObject verobj = tkb.getPropertyValue(sdobj, exver);
+      KBObject verobj = tkb.getPropertyValue(sdobj, minver);
       if(verobj != null) 
         requirement.addSoftwareId(verobj.getID());
     }
@@ -265,13 +265,13 @@ public class ComponentKB {
     KBObject sdcls = this.conceptMap.get("SoftwareDependency");
     KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
     KBObject hdcls = this.conceptMap.get("HardwareDependency");
-    //KBObject minver = this.objPropMap.get("requiresMinimumVersion");
-    KBObject exver = this.objPropMap.get("requiresExactVersion");
+    KBObject minver = this.objPropMap.get("requiresMinimumVersion");
+    //KBObject exver = this.objPropMap.get("requiresExactVersion");
     for (String softwareId : requirement.getSoftwareIds()) {
       KBObject sdobj = writerkb.createObjectOfClass(null, sdcls);
-      KBObject verobj = tkb.getIndividual(softwareId);
+      KBObject verobj = tkb.getResource(softwareId);
       if(verobj != null)
-        writerkb.setPropertyValue(sdobj, exver, verobj);
+        writerkb.setPropertyValue(sdobj, minver, verobj);
       writerkb.addPropertyValue(compobj, sdprop, sdobj);
     }
     

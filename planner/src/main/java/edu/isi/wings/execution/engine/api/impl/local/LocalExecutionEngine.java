@@ -18,22 +18,24 @@ import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
-import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
-import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionEngine {
 	
-	private final ExecutorService executor;
+	protected final ExecutorService executor;
 	
-	Properties props;
+	protected Properties props;
 	protected int maxParallel = 4;
 	
-	StepExecutionEngine stepEngine;
-	PlanExecutionEngine planEngine;
+	protected StepExecutionEngine stepEngine;
+	protected PlanExecutionEngine planEngine;
 	
-	ExecutionLoggerAPI logger;
-	ExecutionMonitorAPI monitor;
+	protected ExecutionLoggerAPI logger;
+	protected ExecutionMonitorAPI monitor;
+	protected ExecutionResourceAPI resource;
 	
 	public LocalExecutionEngine(Properties props) {
 		this.props = props;
@@ -67,6 +69,18 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
   @Override
   public ExecutionMonitorAPI getExecutionMonitor() {
     return this.monitor;
+  }
+  
+  @Override
+  public void setExecutionResource(ExecutionResourceAPI resource) {
+    this.resource = resource;
+    if(this.stepEngine != this)
+      this.stepEngine.setExecutionResource(resource);
+  }
+  
+  @Override
+  public ExecutionResourceAPI getExecutionResource() {
+    return this.resource;
   }
 	  
 	@Override

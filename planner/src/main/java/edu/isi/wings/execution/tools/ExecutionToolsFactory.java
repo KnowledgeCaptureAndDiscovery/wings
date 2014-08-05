@@ -1,12 +1,14 @@
-package edu.isi.wings.execution.logger;
+package edu.isi.wings.execution.tools;
 
 import java.util.Properties;
 
-import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
-import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
-import edu.isi.wings.execution.logger.api.impl.kb.RunKB;
+import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
+import edu.isi.wings.execution.tools.api.impl.kb.ExecutionResourceKB;
+import edu.isi.wings.execution.tools.api.impl.kb.RunKB;
 
-public class LoggerFactory {
+public class ExecutionToolsFactory {
 	
 	public static ExecutionLoggerAPI createLogger(String impl, Properties props) 
 			throws Exception {
@@ -27,4 +29,8 @@ public class LoggerFactory {
 	public static ExecutionMonitorAPI createMonitor(Properties props) {
 		return new RunKB(props);
 	}
+	
+	 public static ExecutionResourceAPI getResourceAPI(Properties props) {
+	    return new ExecutionResourceKB(props);
+	  }
 }

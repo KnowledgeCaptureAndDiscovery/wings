@@ -1,4 +1,4 @@
-package edu.isi.wings.execution.logger.api.impl.kb;
+package edu.isi.wings.execution.tools.api.impl.kb;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,8 +19,8 @@ import edu.isi.wings.execution.engine.classes.ExecutionQueue;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
-import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
-import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.OntFactory;

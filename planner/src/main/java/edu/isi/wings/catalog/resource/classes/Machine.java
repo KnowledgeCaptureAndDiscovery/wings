@@ -163,34 +163,28 @@ public class Machine extends Resource {
     this.osid = osid;
   }
 
-  public MachineDetails getMachineDetails() {
-    MachineDetails details = new MachineDetails();
-    try {      
-      String name = this.getName();
-      Cloud cloud = CloudFactory.createCloud();
-      cloud.node(name).setConfigElement(ViConf.TYPE_HANDLER + "remote", 
-          new RemoteNodeTypeHandler());
-      ViNode node = cloud.node(name);
-      ViProps.at(node).setRemoteType();
-      node.setProp(SshSpiConf.SPI_SSH_TARGET_HOST, hostName);
-      node.setProp(SshSpiConf.SPI_SSH_TARGET_ACCOUNT, userId);
-      node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, userKey);
-      node.setProp(SshSpiConf.SPI_JAR_CACHE, storageFolder + "/nanocloud");
-      String jhome = this.getEnvironmentValue("JAVA_HOME");
-      String javaexec = "java";
-      if(jhome != null && !jhome.equals(""))
-        javaexec = jhome + "/bin/java";
-      node.setProp(SshSpiConf.SPI_BOOTSTRAP_JVM_EXEC, javaexec);
-      node.touch();
-      details = node.exec(new MachineDetailsGrabber(this));
-      cloud.shutdown();
-    }
-    catch (Exception e) {
-      details.setCanConnect(false);
-      details.addError(e.getMessage());
-      //e.printStackTrace();
-    }
-    return details;
+  public <T> T runCallableOnMachine(Callable<T> callobject)
+      throws Exception {
+    String name = this.getName();
+    Cloud cloud = CloudFactory.createCloud();
+    cloud.node(name).setConfigElement(ViConf.TYPE_HANDLER + "remote", 
+        new RemoteNodeTypeHandler());
+    ViNode node = cloud.node(name);
+    ViProps.at(node).setRemoteType();
+    node.setProp(SshSpiConf.SPI_SSH_TARGET_HOST, hostName);
+    node.setProp(SshSpiConf.SPI_SSH_TARGET_ACCOUNT, userId);
+    node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, userKey);
+    node.setProp(SshSpiConf.SPI_JAR_CACHE, storageFolder + "/nanocloud");
+    String jhome = this.getEnvironmentValue("JAVA_HOME");
+    String javaexec = "java";
+    if(jhome != null && !jhome.equals(""))
+      javaexec = jhome + "/bin/java";
+    node.setProp(SshSpiConf.SPI_BOOTSTRAP_JVM_EXEC, javaexec);
+    node.touch();
+    T retval = node.exec(callobject);
+    cloud.shutdown();
+    return retval;
+    
     /*JSch ssh = new JSch();
     try {
       if (this.getUserKey() != null)
@@ -233,6 +227,20 @@ public class Machine extends Resource {
       e.printStackTrace();
     }
     return false;*/
+  }
+  
+  public MachineDetails getMachineDetails() {
+    MachineDetails details = new MachineDetails();
+    try {      
+      MachineDetailsGrabber mdg = new MachineDetailsGrabber(this);
+      details = this.runCallableOnMachine(mdg);
+    }
+    catch (Exception e) {
+      details.setCanConnect(false);
+      details.addError(e.getMessage());
+      //e.printStackTrace();
+    }
+    return details;
   }
 }
 

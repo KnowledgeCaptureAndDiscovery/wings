@@ -19,9 +19,10 @@ import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
-import edu.isi.wings.execution.logger.LoggerFactory;
-import edu.isi.wings.execution.logger.api.ExecutionLoggerAPI;
-import edu.isi.wings.execution.logger.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.ExecutionToolsFactory;
+import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
+import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
+import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
 import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.controllers.DomainController;
 
@@ -291,11 +292,13 @@ public class Config {
 					pengine.getImplementation(), pengine.getProperties());
 			StepExecutionEngine see = ExecutionFactory.createStepExecutionEngine(
 					sengine.getImplementation(), sengine.getProperties());
-			ExecutionLoggerAPI logger = LoggerFactory.createLogger(this.getProperties());
-			ExecutionMonitorAPI monitor = LoggerFactory.createMonitor(this.getProperties());
+			ExecutionLoggerAPI logger = ExecutionToolsFactory.createLogger(this.getProperties());
+			ExecutionMonitorAPI monitor = ExecutionToolsFactory.createMonitor(this.getProperties());
+			ExecutionResourceAPI resource = ExecutionToolsFactory.getResourceAPI(this.getProperties());
 			pee.setStepExecutionEngine(see);
 			pee.setExecutionLogger(logger);
 			pee.setExecutionMonitor(monitor);
+			pee.setExecutionResource(resource);
 			return pee;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -308,7 +311,7 @@ public class Config {
 	}
 	
 	public ExecutionMonitorAPI getDomainExecutionMonitor() {
-		return LoggerFactory.createMonitor(this.getProperties());
+		return ExecutionToolsFactory.createMonitor(this.getProperties());
 	}
 
 	// Getters and Setters
