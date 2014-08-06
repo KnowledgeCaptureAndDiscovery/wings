@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -39,9 +40,45 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
   
   @Override
   public void execute(RuntimeStep exe, RuntimePlan planexe) {
-    executor.submit(new DistributedStepExecutionThread(exe, planexe, planEngine, 
-        logger, resource));
-    exe.onStart(this.logger);
+    Machine machine = this.selectStepMachine(exe);
+    // If no healthy machine found. Log an error, and exit
+    if(machine == null) {
+      exe.onStart(this.logger);
+      exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, 
+          "No healthy machine to run "+exe.getStep().getName());
+      return;
+    }
+    // If machine is localhost, just call execute for the LocalExecutionEngine
+    if(machine.getName().equals("Localhost")) {
+      super.execute(exe, planexe);
+    }
+    else {
+      // Submit job on machine
+      executor.submit(new DistributedStepExecutionThread(exe, planexe, planEngine, 
+          logger, resource, machine));
+      exe.onStart(this.logger);
+    }
+  }
+  
+  private Machine selectStepMachine(RuntimeStep exe) {
+    // Get machine ids first
+    ArrayList<String> machineIds = exe.getStep().getMachineIds();
+    ArrayList<Machine> healthyMachines = new ArrayList<Machine>();
+    synchronized (this.logger.getWriterLock()) {
+      for(String machineId : machineIds) {
+        Machine machine = this.resource.getMachine(machineId);
+        if(machine.isHealthy()) 
+          healthyMachines.add(machine);
+      }
+    }
+    if(healthyMachines.size() == 0)
+      return null;
+    
+    // Pick a random healthy machine for now
+    // TODO: This should be based on machine load, connectivity, etc
+    Random rand = new Random();
+    int index = rand.nextInt(healthyMachines.size());
+    return healthyMachines.get(index);
   }
 
   class DistributedStepExecutionThread implements Runnable {
@@ -51,6 +88,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
       ExecutionLoggerAPI logger;
       ExecutionMonitorAPI monitor;
       ExecutionResourceAPI resource;
+      Machine machine;
       
       String localfolder = "";
       String remotefolder = "";
@@ -58,13 +96,15 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
       
       public DistributedStepExecutionThread(RuntimeStep exe, 
           RuntimePlan planexe, PlanExecutionEngine planEngine,
-          ExecutionLoggerAPI logger, ExecutionResourceAPI resource) {
+          ExecutionLoggerAPI logger, ExecutionResourceAPI resource, 
+          Machine machine) {
         this.exe = exe;
         this.exe.setRuntimePlan(planexe);
         this.planexe = planexe;
         this.planEngine = planEngine;
         this.logger = logger;
         this.resource = resource;
+        this.machine = machine;
         this.uploadFiles = new ArrayList<String[]>();
       }
       
@@ -79,24 +119,6 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
       @Override
       public void run() {
         try {
-          // Get machine ids first
-          ArrayList<String> machineIds = exe.getStep().getMachineIds();
-          Machine machine = null;
-          synchronized (this.logger.getWriterLock()) {
-            for(String machineId : machineIds) {
-              machine = this.resource.getMachine(machineId);
-              if(machine.isHealthy()) 
-                break; // Choose the first healthy machine
-            }
-          }
-          
-          // If no healthy machine found. Log an error, and exit
-          if(machine == null) {
-            exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, 
-                "No healthy machine to run "+exe.getStep().getName());
-            return;
-          }
-          
           this.localfolder = this.resource.getLocalStorageFolder();
           this.remotefolder = machine.getStorageFolder();
 
@@ -152,10 +174,10 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
             machine.uploadFiles(uploadMap);
           }
           
-
           exe.onUpdate(this.logger, "Running on "+machine.getName());
           exe.onUpdate(this.logger, StringUtils.join(args, " "));
-          // Run the code on the machine
+          
+          // Run code on the machine
           HashMap<String, String> environment = new HashMap<String, String>();
           for(EnvironmentValue eval : machine.getEnvironmentValues()) {
             environment.put(eval.getVariable(), eval.getValue());

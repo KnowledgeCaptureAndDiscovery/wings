@@ -6,6 +6,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import org.gridkit.internal.com.jcraft.jsch.ChannelExec;
 import org.gridkit.internal.com.jcraft.jsch.ChannelSftp;
@@ -187,7 +188,9 @@ public class Machine extends Resource {
       javaexec = jhome + "/bin/java";
     node.setProp(SshSpiConf.SPI_BOOTSTRAP_JVM_EXEC, javaexec);
     node.touch();
-    T retval = node.exec(callobject);
+    Future<T> retfuture = node.submit(callobject);
+    T retval = retfuture.get();
+    node.shutdown();
     cloud.shutdown();
     return retval;
   }

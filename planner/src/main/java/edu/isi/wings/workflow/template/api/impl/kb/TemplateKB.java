@@ -246,12 +246,17 @@ public class TemplateKB extends URIEntity implements Template {
 			}
 			n.setComponentVariable(comp);
 		}
-
 		else if (wObj != null) {
 			Template t = readTemplate(wObj);
 			ComponentVariable comp = new ComponentVariable(t);
 			n.setComponentVariable(comp);
 		}
+		
+		ArrayList<String> machineIds = new ArrayList<String>();
+    for(KBObject mobj : kb.getPropertyValues(obj, propertyObjMap.get("canRunOn"))) {
+      machineIds.add(mobj.getID());
+    }
+    n.setMachineIds(machineIds);
 
 		return n;
 	}
@@ -1535,6 +1540,11 @@ public class TemplateKB extends URIEntity implements Template {
       if(n.isInactive()) {
         tkb.addPropertyValue(nobj, pmap.get("isInactive"), 
             ontologyFactory.getDataObject(true));
+      }
+      
+      for(String machineId : n.getMachineIds()) {
+        tkb.addTriple(nobj, propertyObjMap.get("canRunOn"), 
+            tkb.getResource(machineId));
       }
       
 			ComponentVariable c = n.getComponentVariable();

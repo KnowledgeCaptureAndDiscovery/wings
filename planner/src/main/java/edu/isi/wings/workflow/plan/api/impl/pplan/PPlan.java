@@ -67,6 +67,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
   private void loadFromKB() throws Exception {
     String wfinst = "http://purl.org/net/wf-invocation";
     String pplan = "http://purl.org/net/p-plan";
+    String wfont = this.props.getProperty("ont.workflow.url");
 
     OntFactory fac;
     String tdbRepository = this.props.getProperty("tdb.repository.dir");
@@ -80,6 +81,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     KBAPI kb = fac.getKB(this.getURL(), OntSpec.MICRO);
     kb.importFrom(fac.getKB(wfinst, OntSpec.PLAIN, true));
     kb.importFrom(fac.getKB(pplan, OntSpec.PLAIN, true));
+    kb.importFrom(fac.getKB(wfont, OntSpec.PLAIN, true, true));
 
     KBObject stepcls = kb.getConcept(wfinst + "#Step");
     KBObject varcls = kb.getConcept(wfinst + "#Variable");
@@ -92,6 +94,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     KBObject invlineprop = kb.getProperty(pplan + "#hasInvocationLine");
     KBObject outvarprop = kb.getProperty(pplan + "#hasOutputVar");
     KBObject cbindingprop = kb.getProperty(wfinst + "#hasCodeBinding");
+    KBObject canrunonprop = kb.getProperty(wfont + "#canRunOn");
 
     for (KBObject pobj : kb.getInstancesOfClass(plancls, true)) {
       this.setID(pobj.getID());
@@ -114,6 +117,11 @@ public class PPlan extends URIEntity implements ExecutionPlan {
           step.addInputFile(varmaps.get(invar.getID()));
         for (KBObject outvar : kb.getPropertyValues(sobj, outvarprop))
           step.addOutputFile(varmaps.get(outvar.getID()));
+        
+        ArrayList<String> machineIds = new ArrayList<String>();
+        for (KBObject mvar : kb.getPropertyValues(sobj, canrunonprop))
+          machineIds.add(mvar.getID());
+        step.setMachineIds(machineIds);
 
         ExecutionCode code = new ExecutionCode(sobj.getID());
         KBObject cobj = kb.getPropertyValue(sobj, cbindingprop);
@@ -134,6 +142,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
   private KBAPI getKBModel() throws Exception {
     String wfinst = "http://purl.org/net/wf-invocation";
     String pplan = "http://purl.org/net/p-plan";
+    String wfont = this.props.getProperty("ont.workflow.url");
 
     OntFactory fac;
     String tdbRepository = this.props.getProperty("tdb.repository.dir");
@@ -160,6 +169,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     KBObject outvarprop = pkb.getProperty(pplan + "#hasOutputVar");
     KBObject cbindingprop = wfkb.getProperty(wfinst + "#hasCodeBinding");
     // KBObject outvarprop = pkb.getProperty(pplan+"#isOutputVarOf");
+    KBObject canrunonprop = kb.getProperty(wfont + "#canRunOn");
 
     KBObject planobj = kb.createObjectOfClass(this.getID(), plancls);
 
@@ -195,6 +205,10 @@ public class PPlan extends URIEntity implements ExecutionPlan {
           fileObjects.put(f.getID(), varobj);
         }
         kb.setPropertyValue(stepobj, outvarprop, varobj);
+      }
+      
+      for(String mid : step.getMachineIds()) {
+        kb.addTriple(stepobj, canrunonprop, kb.getResource(mid));
       }
     }
     return kb;
