@@ -2,6 +2,7 @@ package edu.isi.wings.execution.engine.classes;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.Future;
 
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
@@ -17,7 +18,7 @@ public class RuntimeStep extends URIEntity {
 	int logBatchSize = 20;
 	
 	ArrayList<RuntimeStep> parents;
-	Process process;
+	Future<?> process;
 	
 	public RuntimeStep(String id) {
 	    super(id);
@@ -46,11 +47,11 @@ public class RuntimeStep extends URIEntity {
 		return this.parents;
 	}
 	
-	public Process getProcess() {
+	public Future<?> getProcess() {
 		return process;
 	}
 
-	public void setProcess(Process process) {
+	public void setProcess(Future<?> process) {
 		this.process = process;
 	}
 	
@@ -94,6 +95,6 @@ public class RuntimeStep extends URIEntity {
 	}
 	
 	public void abort() {
-		this.getProcess().destroy();
+		this.getProcess().cancel(true);
 	}
 }

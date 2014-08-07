@@ -44,6 +44,9 @@ public class Machine extends Resource {
   private ArrayList<String> softwareIds;
   private String osid;
   
+  private transient ViNode node;
+  private transient Cloud cloud;
+  
   public Machine(String id) {
     super(id);
     environmentValues = new ArrayList<EnvironmentValue>();
@@ -170,13 +173,15 @@ public class Machine extends Resource {
     this.osid = osid;
   }
 
-  public <T> T runCallableOnMachine(Callable<T> callobject)
-      throws Exception {
+  public ViNode getCallableNode() throws Exception {
+    if(this.node != null)
+      return this.node;
+    
     String name = this.getName();
-    Cloud cloud = CloudFactory.createCloud();
-    cloud.node(name).setConfigElement(ViConf.TYPE_HANDLER + "remote", 
+    this.cloud = CloudFactory.createCloud();
+    this.cloud.node(name).setConfigElement(ViConf.TYPE_HANDLER + "remote", 
         new RemoteNodeTypeHandler());
-    ViNode node = cloud.node(name);
+    this.node = cloud.node(name);
     ViProps.at(node).setRemoteType();
     node.setProp(SshSpiConf.SPI_SSH_TARGET_HOST, hostName);
     node.setProp(SshSpiConf.SPI_SSH_TARGET_ACCOUNT, userId);
@@ -188,11 +193,16 @@ public class Machine extends Resource {
       javaexec = jhome + "/bin/java";
     node.setProp(SshSpiConf.SPI_BOOTSTRAP_JVM_EXEC, javaexec);
     node.touch();
-    Future<T> retfuture = node.submit(callobject);
-    T retval = retfuture.get();
-    node.shutdown();
-    cloud.shutdown();
-    return retval;
+    return node;
+  }
+  
+  public void shutdown() {
+    if(this.node != null)
+      this.node.shutdown();
+    if(this.cloud != null)
+      this.cloud.shutdown();
+    this.node = null;
+    this.cloud = null;
   }
   
   public ChannelExec getRunChannel() {
@@ -292,7 +302,8 @@ public class Machine extends Resource {
     MachineDetails details = new MachineDetails();
     try {      
       MachineDetailsGrabber mdg = new MachineDetailsGrabber(this);
-      details = this.runCallableOnMachine(mdg);
+      Future<MachineDetails> job = this.getCallableNode().submit(mdg);
+      details = job.get();
     }
     catch (Exception e) {
       details.setCanConnect(false);

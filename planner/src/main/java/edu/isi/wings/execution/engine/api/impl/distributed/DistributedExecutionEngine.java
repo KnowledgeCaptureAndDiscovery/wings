@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -54,8 +56,10 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
     }
     else {
       // Submit job on machine
-      executor.submit(new DistributedStepExecutionThread(exe, planexe, planEngine, 
-          logger, resource, machine));
+      Future<?> job = 
+          executor.submit(new DistributedStepExecutionThread(exe, planexe, planEngine, 
+              logger, resource, machine));
+      exe.setProcess(job);
       exe.onStart(this.logger);
     }
   }
@@ -67,7 +71,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
     synchronized (this.logger.getWriterLock()) {
       for(String machineId : machineIds) {
         Machine machine = this.resource.getMachine(machineId);
-        if(machine.isHealthy()) 
+        if(machine.isHealthy() && !machine.getName().equals("Localhost")) 
           healthyMachines.add(machine);
       }
     }
@@ -89,6 +93,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
       ExecutionMonitorAPI monitor;
       ExecutionResourceAPI resource;
       Machine machine;
+      Future<ProcessStatus> job;
       
       String localfolder = "";
       String remotefolder = "";
@@ -161,7 +166,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
           
           // Logon to machine, and check the list of upload files
           // to see which ones really need to be uploaded
-          this.uploadFiles = machine.runCallableOnMachine(
+          this.uploadFiles = machine.getCallableNode().exec(
               new MachineUploadLister(this.uploadFiles));
           
           // Upload the required files (if any)
@@ -182,34 +187,44 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
           for(EnvironmentValue eval : machine.getEnvironmentValues()) {
             environment.put(eval.getVariable(), eval.getValue());
           }
-          ProcessStatus status = machine.runCallableOnMachine(new MachineCodeRunner(
-              planexe.getName(), exe.getName(), codebin, args, outfilepath, environment));
+          MachineCodeRunner mcr = new MachineCodeRunner(planexe.getName(), 
+              exe.getName(), codebin, args, outfilepath, environment);
+          this.job = machine.getCallableNode().submit(mcr);
+          
+          ProcessStatus status = this.job.get();
           exe.onUpdate(this.logger, status.getLog());
           
-          // Fetch  outputs from the machine
-          // Add all output files to the list of files to download
-          HashMap<String, String> downloadMap = new HashMap<String, String>();
-          for(ExecutionFile exf : exe.getStep().getOutputFiles()) {
-            String fp = (new File(exf.getLocation())).getAbsolutePath();
-            String newfp = fp.replace(localfolder, remotefolder); 
-            downloadMap.put(fp, newfp); 
-            downloadMap.put(fp+".met", newfp+".met"); // Also download .met files
-          }
-
-          exe.onUpdate(this.logger, "Downloading output files from "+machine.getName());
-          machine.downloadFiles(downloadMap);
-          
-          if(status.exitValue() == 0) 
+          if(status.exitValue() == 0) {
+            // Fetch  outputs from the machine
+            // Add all output files to the list of files to download
+            HashMap<String, String> downloadMap = new HashMap<String, String>();
+            for(ExecutionFile exf : exe.getStep().getOutputFiles()) {
+              String fp = (new File(exf.getLocation())).getAbsolutePath();
+              String newfp = fp.replace(localfolder, remotefolder); 
+              downloadMap.put(fp, newfp); 
+              downloadMap.put(fp+".met", newfp+".met"); // Also download .met files
+            }
+            exe.onUpdate(this.logger, "Downloading output files from "+machine.getName());
+            machine.downloadFiles(downloadMap);
             exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
-          else
+          }
+          else {
             exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, "");
-
+          }
         } 
+        catch (InterruptedException e) {
+          if(this.job != null)
+            this.job.cancel(true);
+
+          exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, 
+              "!! Stopping !! .. " + exe.getName() + " interrupted");
+        }
         catch (Exception e) {
           exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
           e.printStackTrace();
         }
         finally {
+          machine.shutdown();
           this.planEngine.onStepEnd(planexe);
         }
       }
@@ -256,6 +271,7 @@ class MachineCodeRunner implements Callable<ProcessStatus>, Serializable {
   String planName;
   String exeName;
   String codeBinary;
+  Process process;
   ArrayList<String> args;
   String outfilepath;
   HashMap<String, String> environment;
@@ -278,51 +294,90 @@ class MachineCodeRunner implements Callable<ProcessStatus>, Serializable {
     if(!tempdir.delete() || !tempdir.mkdirs())
        throw new Exception("Cannot create temp directory");
     
-    File codef = new File(this.codeBinary);
-    codef.setExecutable(true);
-    
     ProcessStatus status = new ProcessStatus();
-    ProcessBuilder pb = new ProcessBuilder(args);
-    pb.directory(tempdir);
-    pb.redirectErrorStream(true);
-    
-    // Set environment variables
-    for(String var : this.environment.keySet())
-      pb.environment().put(var, this.environment.get(var));
-    
-    Process p = pb.start();
-    //TODO: We should get back the process-id while this happens asynchronously ?
-    //TODO: Stream log back directly via SSH ?
-    //exe.setProcess(p);
-    
-    // Read output stream
-    String line = "";
-    BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    PrintWriter fout = null;
-    if(outfilepath != null) {
-      File f = new File(outfilepath);
-      f.getParentFile().mkdirs();
-      fout = new PrintWriter(f);
-    }
-    String log = "";
-    while ((line = b.readLine()) != null) {
-      if(fout != null)
-        fout.println(line);
-      else
-        log += line+"\n";
-    }
-    b.close();
-    
-    if(fout != null)
-      fout.close();
+    try {
+      File codef = new File(this.codeBinary);
+      codef.setExecutable(true);
+      
+      PrintWriter fout = null;
+      if(outfilepath != null) {
+        File f = new File(outfilepath);
+        f.getParentFile().mkdirs();
+        fout = new PrintWriter(f);
+      }
+      
+      ProcessBuilder pb = new ProcessBuilder(args);
+      pb.directory(tempdir);
+      pb.redirectErrorStream(true);
+      
+      // Set environment variables
+      for(String var : this.environment.keySet())
+        pb.environment().put(var, this.environment.get(var));
+      
+      this.process = pb.start();
 
-    p.waitFor();
-    status.setExitValue(p.exitValue());
-    status.setLog(log);
+      // Read output stream
+      StreamGobbler outputGobbler = new 
+          StreamGobbler(this.process.getInputStream(), fout);
+      outputGobbler.start();
+  
+      this.process.waitFor();
+      
+      status.setExitValue(this.process.exitValue());
+      status.setLog(outputGobbler.getLog());
+    }
+    catch (InterruptedException e) {
+      if(this.process != null) {
+        //System.out.println("Stopping remote process");
+        this.process.destroy();
+      }
+      status.setLog("!! Stopping Remotely !! .. " + exeName);
+      status.setExitValue(-1);
+    }
+    catch (Exception e) {
+      status.setLog(e.getMessage());
+      status.setExitValue(-1);
+    }
     
     // Delete temp directory
     FileUtils.deleteDirectory(tempdir);
     return status;
+  }
+}
+
+class StreamGobbler extends Thread {
+  InputStream is;
+  String log;
+  PrintWriter fout;
+  
+  public StreamGobbler (InputStream is, PrintWriter fout) {
+    this.is = is;
+    this.fout = fout;
+    this.log = "";
+  }
+  
+  public void run() {
+    try {
+      String line = "";
+      BufferedReader b = new BufferedReader(
+          new InputStreamReader(this.is));
+      while ((line = b.readLine()) != null) {
+        if(fout != null)
+          fout.println(line);
+        else
+          this.log += line+"\n";
+      }
+      b.close();
+      if(fout != null)
+        fout.close();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+  public String getLog() {
+    return this.log;
   }
 }
 

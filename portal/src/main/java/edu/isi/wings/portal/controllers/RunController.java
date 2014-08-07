@@ -90,9 +90,11 @@ public class RunController {
 				ArrayList<RuntimeStep> failed_steps = exe.getQueue().getFailedSteps();
 				map.put("running_jobs", this.getStepIds(running_steps));
 				map.put("failed_jobs", this.getStepIds(failed_steps));
-				map.put("percent_done", numdone * 100.0 / numtotal);
-				map.put("percent_running", running_steps.size() * 100.0 / numtotal);
-				map.put("percent_failed", failed_steps.size() * 100.0 / numtotal);
+				if(numtotal > 0) {
+  				map.put("percent_done", numdone * 100.0 / numtotal);
+  				map.put("percent_running", running_steps.size() * 100.0 / numtotal);
+  				map.put("percent_failed", failed_steps.size() * 100.0 / numtotal);
+				}
 			}
 			list.add(map);
 		}

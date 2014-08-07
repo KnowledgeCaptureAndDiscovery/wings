@@ -284,7 +284,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 			this.deleteGraph(rplan.getExpandedTemplateID());
 			this.deleteGraph(rplan.getSeededTemplateID());
-			this.deleteGraph(rplan.getPlan().getID());
+			if(rplan.getPlan() != null)
+			  this.deleteGraph(rplan.getPlan().getID());
 	    tkb.delete();
 	     
 			// Delete output files

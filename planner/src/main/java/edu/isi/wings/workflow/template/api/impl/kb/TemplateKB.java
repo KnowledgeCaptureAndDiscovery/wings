@@ -1542,10 +1542,11 @@ public class TemplateKB extends URIEntity implements Template {
             ontologyFactory.getDataObject(true));
       }
       
-      for(String machineId : n.getMachineIds()) {
-        tkb.addTriple(nobj, propertyObjMap.get("canRunOn"), 
-            tkb.getResource(machineId));
-      }
+      if(n.getMachineIds() != null)
+        for(String machineId : n.getMachineIds()) {
+          tkb.addTriple(nobj, propertyObjMap.get("canRunOn"), 
+              tkb.getResource(machineId));
+        }
       
 			ComponentVariable c = n.getComponentVariable();
 			if (c != null && !c.isTemplate()) {

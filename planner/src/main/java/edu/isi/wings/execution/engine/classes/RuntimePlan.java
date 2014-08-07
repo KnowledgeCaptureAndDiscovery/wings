@@ -73,10 +73,10 @@ public class RuntimePlan extends URIEntity {
 			if(this.runtimeInfo.getStatus() != RuntimeInfo.Status.RUNNING)
 				break;
 			for(RuntimeStep step : queue.getRunningSteps()) {
-				if(step.getProcess() != null)
-					step.getProcess().waitFor();
+				if(step.getProcess() != null && !step.getProcess().isDone())
+		      Thread.sleep(1000);
 			}
-			Thread.sleep(50);
+			Thread.sleep(500);
 		}
 	}
 	

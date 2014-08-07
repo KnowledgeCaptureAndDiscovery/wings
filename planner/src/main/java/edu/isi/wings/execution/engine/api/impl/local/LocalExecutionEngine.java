@@ -2,12 +2,14 @@ package edu.isi.wings.execution.engine.api.impl.local;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
@@ -148,7 +150,9 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void execute(RuntimeStep exe, RuntimePlan planexe) {
-		executor.submit(new StepExecutionThread(exe, planexe, planEngine, logger));
+		Future<?> job = 
+		    executor.submit(new StepExecutionThread(exe, planexe, planEngine, logger));
+		exe.setProcess(job);
     exe.onStart(this.logger);
 	}
 
@@ -157,6 +161,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     	RuntimePlan planexe;
     	PlanExecutionEngine planEngine;
     	ExecutionLoggerAPI logger;
+    	Process process;
     	
     	public StepExecutionThread(RuntimeStep exe, 
     			RuntimePlan planexe, PlanExecutionEngine planEngine,
@@ -203,36 +208,33 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			ProcessBuilder pb = new ProcessBuilder(args);
     			pb.directory(tempdir);
     			pb.redirectErrorStream(true);
-    			Process p = pb.start();
-    			exe.setProcess(p);
+    			this.process = pb.start();
     			
     			// Read output stream
-        	String line = "";
-    			BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
-    			while ((line = b.readLine()) != null) {
-    				if(fout != null)
-    					fout.println(line);
-    				else
-    					exe.onUpdate(this.logger, line);
-    			}
-    			b.close();
-    			
-    			if(fout != null)
-    				fout.close();
+    			StreamGobbler outputGobbler = new 
+              StreamGobbler(this.process.getInputStream(), exe, fout, this.logger);
+    			outputGobbler.start();
 
-          p.waitFor();
+          this.process.waitFor();
           
     			// Delete temp directory
     			FileUtils.deleteDirectory(tempdir);
           
-    			if(p.exitValue() == 0) 
+    			if(this.process.exitValue() == 0) 
     				exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
     			else
     				exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, "");
-    		} 
+    		}
+    		catch (InterruptedException e) {
+    		  if(this.process != null)
+    		    this.process.destroy();
+
+    		  exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, 
+    		      "!! Stopping !! .. " + exe.getName() + " interrupted");
+    		}
     		catch (Exception e) {
     			exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
-    			//e.printStackTrace();
+    			e.printStackTrace();
     		}
     		finally {
     		  this.planEngine.onStepEnd(planexe);
@@ -270,3 +272,40 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 		this.executor.shutdownNow();
 	}
 }
+
+class StreamGobbler extends Thread {
+  InputStream is;
+  RuntimeStep exe;
+  PrintWriter fout;
+  ExecutionLoggerAPI logger;
+
+  public StreamGobbler (InputStream is, RuntimeStep exe, PrintWriter fout, 
+      ExecutionLoggerAPI logger) {
+    this.is = is;
+    this.exe = exe;
+    this.fout = fout;
+    this.logger = logger;
+  }
+  
+  public void run() {
+    try {
+      String line = "";
+      BufferedReader b = new BufferedReader(
+          new InputStreamReader(this.is));
+      while ((line = b.readLine()) != null) {
+        if(fout != null)
+          fout.println(line);
+        else
+          exe.onUpdate(this.logger, line);
+      }
+      b.close();
+      if(fout != null)
+        fout.close();
+    }
+    catch (Exception e) {
+      exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
+      e.printStackTrace();
+    }
+  }
+}
+
