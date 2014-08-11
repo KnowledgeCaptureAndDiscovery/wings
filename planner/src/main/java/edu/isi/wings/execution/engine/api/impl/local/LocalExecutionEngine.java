@@ -215,6 +215,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
               StreamGobbler(this.process.getInputStream(), exe, fout, this.logger);
     			outputGobbler.start();
 
+    			// Wait for the process to exit
           this.process.waitFor();
           
     			// Delete temp directory

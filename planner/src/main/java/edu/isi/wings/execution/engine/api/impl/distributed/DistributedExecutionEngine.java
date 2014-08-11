@@ -71,7 +71,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
     synchronized (this.logger.getWriterLock()) {
       for(String machineId : machineIds) {
         Machine machine = this.resource.getMachine(machineId);
-        if(machine.isHealthy() && !machine.getName().equals("Localhost")) 
+        if(machine.isHealthy()) 
           healthyMachines.add(machine);
       }
     }
@@ -163,7 +163,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
               }
             }
           }
-          
+
           // Logon to machine, and check the list of upload files
           // to see which ones really need to be uploaded
           this.uploadFiles = machine.getCallableNode().exec(
@@ -321,6 +321,7 @@ class MachineCodeRunner implements Callable<ProcessStatus>, Serializable {
           StreamGobbler(this.process.getInputStream(), fout);
       outputGobbler.start();
   
+      // Wait for the process to exit
       this.process.waitFor();
       
       status.setExitValue(this.process.exitValue());
@@ -383,8 +384,9 @@ class StreamGobbler extends Thread {
 
 class ProcessStatus implements Serializable {
   private static final long serialVersionUID = -3638512231716838756L;
-  
   String log;
+  int exitValue;
+  
   public String getLog() {
     return log;
   }
@@ -397,6 +399,4 @@ class ProcessStatus implements Serializable {
   public void setExitValue(int exitValue) {
     this.exitValue = exitValue;
   }
-  int exitValue;
-  
 }

@@ -8,22 +8,14 @@ import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-import org.gridkit.internal.com.jcraft.jsch.ChannelExec;
 import org.gridkit.internal.com.jcraft.jsch.ChannelSftp;
 import org.gridkit.internal.com.jcraft.jsch.JSch;
 import org.gridkit.internal.com.jcraft.jsch.JSchException;
 import org.gridkit.internal.com.jcraft.jsch.Session;
 import org.gridkit.nanocloud.Cloud;
-import org.gridkit.nanocloud.CloudFactory;
-import org.gridkit.nanocloud.telecontrol.ssh.RemoteNodeTypeHandler;
+import org.gridkit.nanocloud.SimpleCloudFactory;
 import org.gridkit.nanocloud.telecontrol.ssh.SshSpiConf;
-import org.gridkit.vicluster.ViConf;
 import org.gridkit.vicluster.ViNode;
-import org.gridkit.vicluster.ViProps;
-
-/*import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;*/
 
 public class Machine extends Resource {
   private static final long serialVersionUID = 5211295601774494163L;
@@ -178,11 +170,8 @@ public class Machine extends Resource {
       return this.node;
     
     String name = this.getName();
-    this.cloud = CloudFactory.createCloud();
-    this.cloud.node(name).setConfigElement(ViConf.TYPE_HANDLER + "remote", 
-        new RemoteNodeTypeHandler());
+    this.cloud = SimpleCloudFactory.createSimpleSshCloud();
     this.node = cloud.node(name);
-    ViProps.at(node).setRemoteType();
     node.setProp(SshSpiConf.SPI_SSH_TARGET_HOST, hostName);
     node.setProp(SshSpiConf.SPI_SSH_TARGET_ACCOUNT, userId);
     node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, userKey);
@@ -205,49 +194,22 @@ public class Machine extends Resource {
     this.cloud = null;
   }
   
-  public ChannelExec getRunChannel() {
+  private Session getSSHSession() 
+      throws JSchException {
     JSch ssh = new JSch();
-    try {
-      if (this.getUserKey() != null)
-        ssh.addIdentity(this.getUserKey());
-      Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
-      java.util.Properties config = new java.util.Properties(); 
-      config.put("StrictHostKeyChecking", "no");
-      ssh_session.setConfig(config);
-      
-      ssh_session.connect();
-      if(ssh_session.isConnected()) {
-        ChannelExec channel = (ChannelExec) ssh_session.openChannel("ssh");
-        channel.connect();
-        if(channel.isConnected())
-          return channel;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-  
-  public void disconnectRunChannel(ChannelExec channel) {
-    try {
-      channel.disconnect();
-      channel.getSession().disconnect();
-    } catch (JSchException e) {
-      e.printStackTrace();
-    }
+    if (this.getUserKey() != null)
+      ssh.addIdentity(this.getUserKey());
+    Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
+    java.util.Properties config = new java.util.Properties();
+    config.put("StrictHostKeyChecking", "no");
+    ssh_session.setConfig(config);
+    ssh_session.connect();
+    return ssh_session;
   }
   
   public boolean uploadFiles(HashMap<String, String> localRemoteMap) {
-    JSch ssh = new JSch();
     try {
-      if (this.getUserKey() != null)
-        ssh.addIdentity(this.getUserKey());
-      Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
-      java.util.Properties config = new java.util.Properties(); 
-      config.put("StrictHostKeyChecking", "no");
-      ssh_session.setConfig(config);
-      
-      ssh_session.connect();
+      Session ssh_session = this.getSSHSession();
       if(ssh_session.isConnected()) {
         ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
         sftpChannel.connect();
@@ -266,16 +228,8 @@ public class Machine extends Resource {
   }
   
   public boolean downloadFiles(HashMap<String, String> localRemoteMap) {
-    JSch ssh = new JSch();
     try {
-      if (this.getUserKey() != null)
-        ssh.addIdentity(this.getUserKey());
-      Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
-      java.util.Properties config = new java.util.Properties(); 
-      config.put("StrictHostKeyChecking", "no");
-      ssh_session.setConfig(config);
-      
-      ssh_session.connect();
+      Session ssh_session = this.getSSHSession();
       if(ssh_session.isConnected()) {
         ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
         sftpChannel.connect();
