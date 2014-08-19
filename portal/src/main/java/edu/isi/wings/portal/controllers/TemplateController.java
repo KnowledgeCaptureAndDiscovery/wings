@@ -75,8 +75,8 @@ public class TemplateController {
 		this.pcdomns = (String) props.get("ont.domain.component.ns");
 		this.wflowns = (String) props.get("ont.workflow.url") + "#";
 		
-		this.planScript = config.getContextRootPath() + "/plan";
-		this.runScript = config.getContextRootPath() + "/run";
+		this.planScript = config.getUserDomainUrl() + "/plan";
+		this.runScript = config.getUserDomainUrl() + "/run";
 		this.thisScript = config.getScriptPath();
 	}
 
@@ -399,4 +399,12 @@ public class TemplateController {
 		allprops.addAll(tc.getAllConstraintProperties());
 		return allprops;
 	}
+
+  public String getWliburl() {
+    return wliburl;
+  }
+
+  public void setWliburl(String wliburl) {
+    this.wliburl = wliburl;
+  }
 }

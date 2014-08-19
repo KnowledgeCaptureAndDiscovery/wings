@@ -40,21 +40,18 @@ public class ManageTemplates extends HttpServlet {
 		// Extract template op and editor/tellme mode
 		boolean editor = false;
 		boolean tellme = false;
-		String path = request.getPathInfo();
-		if (path == null)
-			path = "/";
-		String[] args = path.split("\\/");
-		String op = args.length > 1 ? args[1] : null;
+		String[] args = config.getScriptArguments();
+		String op = args.length > 0 ? args[0] : null;
 		if(op != null && op.equals("edit")) {
 			editor = true;
 			config.setScriptPath(config.getScriptPath()+"/"+op);
-			op = args.length > 2 ? args[2] : null;
+			op = args.length > 1 ? args[1] : null;
 		}
 		else if(op != null && op.equals("tellme")) {
 			editor = true;
 			tellme = true;
 			config.setScriptPath(config.getScriptPath()+"/"+op);
-			op = args.length > 2 ? args[2] : null;
+			op = args.length > 1 ? args[1] : null;
 		}
 		
 		if (op != null && op.equals("intro")) {
@@ -122,6 +119,14 @@ public class ManageTemplates extends HttpServlet {
 			response.setContentType("text/html");
 			tv.show(out, options, template_id, editor, tellme);
 			return;
+		}
+		else if(op.matches(".*\\.owl")) {
+      response.setContentType("text/html");
+      String tname = op.replace(".owl", "");
+      String tid = tv.getWliburl()+"/"+op+"#"+tname;
+      options.put("hide_selector", true);
+      tv.show(out, options, tid, editor, tellme);
+      return;
 		}
 		else if(op.equals("dotLayout")) {
 			String dotstr = request.getParameter("dotstr");

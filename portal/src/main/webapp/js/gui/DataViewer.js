@@ -1046,10 +1046,12 @@ DataViewer.prototype.onDataItemContextMenu = function(dataview, node, item, inde
             items: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem()]
             });
     }
-    if (node.parentNode)
-        this.menu.showAt(e.getXY());
-    else
-        this.topmenu.showAt(e.getXY());
+    if(this.advanced_user) {
+	    if (node.parentNode)
+	        this.menu.showAt(e.getXY());
+	    else
+	        this.topmenu.showAt(e.getXY());
+    }
 };
 
 DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {

@@ -106,7 +106,7 @@ public class Domain {
 		TemplateCreationAPI ltc = TemplateFactory.getCreationAPI(legacyprops);
 
 		// Get new apis
-		Domain domain = Domain.createDefaultDomain(domName, config.getUserDir(), config.getUserUrl());
+		Domain domain = Domain.createDefaultDomain(domName, config.getUserDir(), config.getExportUserUrl());
 		Properties props = config.getProperties(domain);
 		DataCreationAPI dc = DataFactory.getCreationAPI(props);
 		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
@@ -159,7 +159,7 @@ public class Domain {
 		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 
-		Domain todom = Domain.createDefaultDomain(domName, config.getUserDir(), config.getUserUrl());
+		Domain todom = Domain.createDefaultDomain(domName, config.getUserDir(), config.getExportUserUrl());
 		props = config.getProperties(todom);
 		DataCreationAPI todc = DataFactory.getCreationAPI(props);
 		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
@@ -214,7 +214,7 @@ public class Domain {
 		}
 		
 		Domain todom = Domain.createDefaultDomain(fromdom.getDomainName(), 
-				tempdir.getAbsolutePath(), config.getUserUrl());
+				tempdir.getAbsolutePath(), config.getExportUserUrl());
 		todom.setUseSharedTripleStore(false);
 		todom.saveDomain();
 		props = config.getProperties(todom);
@@ -306,7 +306,7 @@ public class Domain {
 		}
 		
 		Domain todom = Domain.createDefaultDomain(newname, 
-				config.getUserDir(), config.getUserUrl());
+				config.getUserDir(), config.getExportUserUrl());
 		todom.saveDomain();
 		
 		props = config.getProperties(todom);

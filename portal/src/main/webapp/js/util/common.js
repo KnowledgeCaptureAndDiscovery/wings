@@ -138,10 +138,10 @@ function getPortalHeader(path) {
 									+ "<li><a href=\"#\">Analysis</a><ul>\n"
 									+ "<li class=\"first\"><a href=\""
 									+ path
-									+ "/template/edit\">Edit Workflows</a></li>\n"
+									+ "/workflows/edit\">Edit Workflows</a></li>\n"
 									+ "<li><a href=\""
 									+ path
-									+ "/template\">Run Workflows</a></li>\n"
+									+ "/workflows\">Run Workflows</a></li>\n"
 									+ "<li class=\"last\"><a href=\""
 									+ path
 									+ "/run\">Access Runs</a></li>\n"
@@ -152,20 +152,22 @@ function getPortalHeader(path) {
 									+ "/data\">Manage Data</a></li>\n"
 									+ "<li><a href=\""
 									+ path
-									+ "/component/type\">Manage Component Types</a></li>\n"
+									+ "/components/type\">Manage Component Types</a></li>\n"
 									+ "<li><a href=\""
 									+ path
-									+ "/component\">Manage Components</a></li>\n"
+									+ "/components\">Manage Components</a></li>\n"
 									+ "<li><a href=\""
 									+ path
-									+ "/resource\">Describe Resources</a></li>\n"
+									+ "/common/resource\">Describe Resources</a></li>\n"
 									+ "<li class=\"last\"><a href=\""
 									+ path
 									+ "/domain\">Manage Domain</a></li>\n"
 									+ "</ul></li>\n" 
-									+ (USER_ID != 'null' ? "<li style='float:right'><a href=\""
+									+ (VIEWER_ID != 'null' ? "<li style='float:right'><a href=\""
 									+ path
-									+ "/jsp/logout.jsp\">Logout <span class='user'>"+USER_ID+"</span></a></li>" : '')
+									+ "/jsp/logout.jsp\">Logout <span class='user'>"+VIEWER_ID+"</span></a></li>" : '')
+									+ (VIEWER_ID != USER_ID ? 
+											"<li style='float:right'><a><i>Viewing "+USER_ID+" account</i></a></li>" : "") 
 									+ "</ul>"
 									+ "</div>\n"
 						}]

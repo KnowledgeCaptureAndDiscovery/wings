@@ -1,8 +1,9 @@
-function RunBrowser(guid, runid, op_url, data_url) {
+function RunBrowser(guid, runid, op_url, data_url, template_url) {
 	this.guid = guid;
 	this.runid = runid;
 	this.op_url = op_url;
 	this.data_url = data_url;
+	this.template_url = template_url;
 	
 	this.tabPanel;
 	this.runList;
@@ -336,7 +337,7 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 				hide_selector: true, hide_form: true, hide_intro: true, 
 				hide_documentation: true, hide_title: true 
 			}, 
-			null, false, false,  CONTEXT_ROOT+"/template");
+			null, false, false,  This.template_url);
 	
 	tBrowser.tabPanel = tabPanel;
 

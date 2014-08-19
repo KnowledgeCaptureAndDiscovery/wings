@@ -68,7 +68,7 @@ public class DataController {
 		this.domns = (String) props.get("ont.domain.data.url") + "#";
 		this.libns = (String) props.get("lib.domain.data.url") + "#";
 		
-		this.uploadScript = config.getContextRootPath() + "/upload";
+		this.uploadScript = config.getUserDomainUrl() + "/upload";
 	}
 
 	public void show(PrintWriter out) {

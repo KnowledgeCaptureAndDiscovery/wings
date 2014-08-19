@@ -1049,7 +1049,8 @@ Template.prototype.forwardSweep = function() {
 			var ol = n.outputLinks[i];
 			if (n.prule.type == 'STYPE') {
 				ol.variable.setDimensionality(ol.fromPort.dim + extraDim);
-				n.dim = ol.fromPort.dim + extraDim;
+				// n.dim = ol.fromPort.dim + extraDim;
+				n.dim = extraDim;
 			}
 			else {
 				ol.variable.setDimensionality(ol.fromPort.dim);

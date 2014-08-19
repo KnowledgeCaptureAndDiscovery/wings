@@ -60,8 +60,8 @@ public class ComponentController {
 		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";
 		this.liburl = (String) props.get("lib.concrete.url");
 		
-		this.uploadScript = config.getContextRootPath() + "/upload";
-		this.resourceScript = config.getContextRootPath() + "/resource";
+		this.uploadScript = config.getUserDomainUrl() + "/upload";
+		this.resourceScript = config.getCommunityPath() + "/resource";
 	}
 
 	public void show(PrintWriter out) {

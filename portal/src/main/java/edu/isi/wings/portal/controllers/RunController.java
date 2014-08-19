@@ -43,13 +43,15 @@ public class RunController {
 	String userConfigFile;
 	Object writeLock;
 	String dataScript;
+	String templateScript;
 
 	public RunController(int guid, Config config) {
 		this.guid = guid;
 		this.config = config;
 		this.json = JsonHandler.createRunGson();
 		this.props = config.getProperties();
-		this.dataScript = config.getContextRootPath() + "/data";
+		this.dataScript = config.getUserDomainUrl() + "/data";
+		this.templateScript = config.getUserDomainUrl() + "/workflows";
 	}
 
 	public void show(PrintWriter out, String runid) {
@@ -65,9 +67,15 @@ public class RunController {
 
 			out.println("<script>");
 			out.println("var runViewer_" + guid + ";");
-			out.println("Ext.onReady(function() {" + "runViewer_" + guid + " = new RunBrowser("
-					+ "'" + guid + "', '" + runid + "', " + "'" + config.getScriptPath() + "', " + "'"
-					+ this.dataScript + "' " + ");\n" + "runViewer_" + guid + ".initialize();\n"
+			out.println("Ext.onReady(function() {" 
+			      + "runViewer_" + guid + " = new RunBrowser("
+			        + "'" + guid + "', '" 
+			        + runid + "', " + "'" 
+			        + config.getScriptPath() + "', " 
+			        + "'" + this.dataScript + "', " 
+			        + "'" + this.templateScript + "' "
+			        + ");\n" 
+			      + "runViewer_" + guid + ".initialize();\n"
 					+ "});");
 			out.println("</script>");
 			out.println("</html>");

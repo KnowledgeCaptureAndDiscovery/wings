@@ -764,7 +764,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 				html += "<div><b>Input Data Combination: </b></div>";
 				html += "<i>"+this.getExpressionText(item.prule.expr, port_role_map)+"</i>";
 			}
-			if(item.machineIds)
+			if(item.machineIds && item.machineIds.length)
 				html += "<div><b>Can run on: </b> " + 
 					Ext.Array.map(item.machineIds, function(item) {
 						return getLocalName(item);

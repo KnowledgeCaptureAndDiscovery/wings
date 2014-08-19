@@ -44,11 +44,11 @@ public class DomainController {
 		this.guid = guid;
 		this.config = config;
 		this.json = JsonHandler.createPrettyGson();
-		this.uploadScript = config.getContextRootPath() + "/upload";
+		this.uploadScript = config.getUserDomainUrl() + "/upload";
 		this.user_domains = new HashMap<String, DomainInfo>();
 		this.userConfigFile = config.getUserDir() + "/user.properties";
 		
-		this.initializeDomainList();
+		this.initializeDomainList(config.getDomainId());
 	}
 
 	public void show(PrintWriter out) {
@@ -177,7 +177,7 @@ public class DomainController {
 	
 	public String createDomain(String domName) {
 		Domain dom = 
-				Domain.createDefaultDomain(domName, this.config.getUserDir(), this.config.getUserUrl());
+				Domain.createDefaultDomain(domName, this.config.getUserDir(), this.config.getExportUserUrl());
 		DomainInfo dominfo = new DomainInfo(dom);
 		this.user_domains.put(dom.getDomainName(), dominfo);
 		this.saveUserConfig(this.userConfigFile);
@@ -245,10 +245,11 @@ public class DomainController {
 	 */
 	
 	@SuppressWarnings("unchecked")
-	private void initializeDomainList() {
+	private void initializeDomainList(String domname) {
 		PropertyListConfiguration config = this.getUserConfiguration();
 		List<SubnodeConfiguration> domnodes = config.configurationsAt("user.domains.domain");
-		String domname = config.getString("user.domain");
+		if(domname == null)
+		  domname= config.getString("user.domain");
 		for (SubnodeConfiguration domnode : domnodes) {
 			String domurl = domnode.getString("url");
 			Boolean isLegacy = domnode.getBoolean("legacy", false);
@@ -283,7 +284,7 @@ public class DomainController {
 	}
 	
 	private void createDefaultUserConfig(String configFile) {
-		this.domain = Domain.createDefaultDomain(this.defaultDomainName, config.getUserDir(), config.getUserUrl());
+		this.domain = Domain.createDefaultDomain(this.defaultDomainName, config.getUserDir(), config.getExportUserUrl());
 		DomainInfo dominfo = new DomainInfo(this.domain);
 		this.user_domains.put(this.domain.getDomainName(), dominfo);
 		this.saveUserConfig(configFile);

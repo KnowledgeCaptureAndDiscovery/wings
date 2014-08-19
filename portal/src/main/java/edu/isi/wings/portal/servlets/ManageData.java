@@ -37,17 +37,14 @@ public class ManageData extends HttpServlet {
 		if(!config.checkDomain(response))
 			return;
 
-		String path = request.getPathInfo();
-		if (path == null)
-			path = "/";
-		String[] args = path.split("\\/");
-		String op = args.length > 1 ? args[1] : null;
+		String[] args = config.getScriptArguments();
+		String op = args.length > 0 ? args[0] : null;
 
 		boolean loadExternal = false;
 		if(op != null && op.equals("external")) {
 			loadExternal = true;
 			config.setScriptPath(config.getScriptPath()+"/"+op);
-			op = args.length > 2 ? args[2] : null;
+			op = args.length > 1 ? args[1] : null;
 		}
 		
 		if (op != null && op.equals("intro")) {
@@ -158,8 +155,9 @@ public class ManageData extends HttpServlet {
 					out.print("OK");
 			} else if (op.equals("renameDataType")) {
 				String newid = request.getParameter("newid");
-				if (dv.renameDataType(dtype, newid))
-					out.print("OK");
+				if (!config.isSandboxed())
+				  if (dv.renameDataType(dtype, newid))
+				    out.print("OK");
 			} else if (op.equals("setDataLocation")) {
 				String location = request.getParameter("location");
 				if (dv.setDataLocation(dataid, location))

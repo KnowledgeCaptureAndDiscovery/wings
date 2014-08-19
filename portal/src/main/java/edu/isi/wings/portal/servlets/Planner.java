@@ -35,13 +35,10 @@ public class Planner extends HttpServlet {
 		if(!config.checkDomain(response))
 			return;
 
-		String path = request.getPathInfo();
-		if (path == null)
-			path = "/";
 		String op = request.getParameter("op");
-		String[] args = path.split("\\/");
+		String[] args = config.getScriptArguments();
 		if (op == null) {
-			op = args.length > 1 ? args[1] : null;
+			op = args.length > 0 ? args[0] : null;
 		}
 		
 		PlanController wp;

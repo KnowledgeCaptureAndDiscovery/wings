@@ -33,6 +33,10 @@ public class JSLoader {
 		HashMap<String, Object> jsvars = new HashMap<String, Object>();
 		jsvars.put("CONTEXT_ROOT", "'" + config.getContextRootPath() + "'");
 		jsvars.put("USER_ID", "'" + config.getUserId() + "'");
+		jsvars.put("VIEWER_ID", "'" + config.getViewerId() + "'");
+    jsvars.put("COM_ROOT", "'" +config.getCommunityPath() + "'");
+    jsvars.put("USER_ROOT", "'" +config.getUserPath() + "'");
+    jsvars.put("USERDOM_ROOT", "'" +config.getUserDomainUrl() + "'");
 		JSLoader.showScriptKeyVals(out, jsvars);
 	}
 

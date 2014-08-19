@@ -32,11 +32,8 @@ public class DescribeResources extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Config config = new Config(request);
 
-    String path = request.getPathInfo();
-    if (path == null)
-      path = "/";
-    String[] args = path.split("\\/");
-    String op = args.length > 1 ? args[1] : null;
+    String[] args = config.getScriptArguments();
+    String op = args.length > 0 ? args[0] : null;
     
     if (op != null && op.equals("intro")) {
       PrintWriter out = response.getWriter();

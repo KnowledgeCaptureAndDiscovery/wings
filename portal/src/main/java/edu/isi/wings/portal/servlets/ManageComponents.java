@@ -36,14 +36,12 @@ public class ManageComponents extends HttpServlet {
 			return;
 
 		boolean loadConcrete = true;
-		String path = request.getPathInfo();
-		if (path == null) path = "/";
-		String[] args = path.split("\\/");
-		String op = args.length > 1 ? args[1] : null;
+		String[] args = config.getScriptArguments();
+		String op = args.length > 0 ? args[0] : null;
 		if(op != null && op.equals("type")) {
 			loadConcrete = false;
 			config.setScriptPath(config.getScriptPath()+"/"+op);
-			op = args.length > 2 ? args[2] : null;
+			op = args.length > 1 ? args[1] : null;
 		}
 		
 		if (op != null && op.equals("intro")) {

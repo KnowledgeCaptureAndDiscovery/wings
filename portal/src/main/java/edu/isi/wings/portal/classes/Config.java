@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
+import org.apache.commons.lang.ArrayUtils;
 
 import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
@@ -55,21 +56,35 @@ public class Config {
 	private boolean isSandboxed = false;
 
 	// The following are set from the "request" variable
+	private String viewerId;
 	private String userId;
 	private String sessionId;
 	private String contextRootPath;
 	private String scriptPath;
+	private String[] scriptArguments;
 
 	private String communityRelativeDir = "common";
-	private String communityUrl;
+	private String communityPath;
 	private String communityDir;
+	private String exportCommunityUrl;
 	
 	// This following are user/domain specific properties
-	private String userUrl;
+	private String userPath;
 	private String userDir;
+	private String domainId;
 	private Domain domain;
+  private String userDomainUrl;
+  private String exportUserUrl;
 
-	public Config(HttpServletRequest request) {
+	public String getUserDomainUrl() {
+    return userDomainUrl;
+  }
+
+  public void setUserDomainUrl(String userDomainUrl) {
+    this.userDomainUrl = userDomainUrl;
+  }
+
+  public Config(HttpServletRequest request) {
 		// Initialize portal config
 		this.initializePortalConfig(request);
 
@@ -77,11 +92,47 @@ public class Config {
 		this.initializeUserConfig(request);
 	}
 	
+  public void getPermissions() {
+    // Check domain, user & viewerid
+    // Return Permissions (canRead=true/false, canWrite=true/false, canExecute=true/false)
+  }
+  
+  // TODO: Do a permissions check here as well (instead of just checkDomain)
 	public boolean checkDomain(HttpServletResponse response) {
-		String redirectUrl = this.contextRootPath+"/domain";
+	  
+    // TODO: Check that viewerId has permission for domainId from userId
+	  // - Check read, write & execute permission based on input
+    // For now, just checking that viewerId is the same as userId
+    /*if(this.userId != null &&
+        (this.viewerId == null || !this.viewerId.equals(this.userId))) {
+        response.setContentType("text/html");
+      try {
+        response.getWriter().println("No Permission !");
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }*/
+    String redirectUrl = this.getUserPath()+"/domain";
+    if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
+      response.setContentType("text/html");
+      response.setHeader("Refresh", "5; URL="+redirectUrl);
+      try {
+        response.getWriter().println("No such domain !<br/>"
+                + "See list of domains at <a href='"+redirectUrl+"'>"+redirectUrl+"</a>. "
+                + "Redirecting in 5 seconds");
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }
+    // Check that a domain is available (?) -- Is this necessary ?
+		/*String redirectUrl = this.getUserUrl()+"/domain";
 		if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
 			response.setContentType("text/html");
-			response.setHeader("Refresh", "5; URL="+this.contextRootPath+"/domain");
+			response.setHeader("Refresh", "5; URL="+redirectUrl);
 			try {
 				response.getWriter().println("No Domain selected. Please select a domain first !!<br/>"
 						+ "Redirecting in 5 seconds to <a href='"+redirectUrl+"'>"+redirectUrl+"</a>");
@@ -89,21 +140,48 @@ public class Config {
 				e.printStackTrace();
 			}
 			return false;
-		}
+		}*/
 		return true;
 	}
 
 	private void initializeUserConfig(HttpServletRequest request) {
-		this.userId = request.getRemoteUser();
-		if(this.userId == null)
-			return;
+	  // Set userid, domainid, viewerId
+	  this.userId = request.getParameter("userid");
+	  this.domainId = request.getParameter("domainid");
+    this.viewerId = request.getRemoteUser();
+    
+    // Set default script values
+    this.scriptPath = this.contextRootPath + request.getServletPath();
+    this.scriptArguments = new String[]{};
+    
+	  String path = request.getPathInfo();
+    if (path == null) path = "/";
+	  this.scriptArguments = path.split("/");
+	  if(this.scriptArguments.length > 0)
+	    this.scriptArguments = (String[]) ArrayUtils.remove(this.scriptArguments, 0);
+
+	  if(this.domainId != null) {
+	    this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir() 
+	        + "/" + this.getUserId() + "/" + this.getDomainId();
+	    this.scriptPath = this.userDomainUrl + request.getServletPath();
+	  }
+	  else if (this.userId != null) {
+	      this.scriptPath = this.contextRootPath + "/" + this.getUsersRelativeDir()
+	          + "/" + this.getUserId() + request.getServletPath();
+	  }
 		
 		this.sessionId = request.getSession().getId();
 
-		this.userUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
+    // If no userId specified, then set the viewer as the user
+    if(this.userId == null)
+      this.userId = this.viewerId;
+
+		this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
 				+ "/" + userId;
+    this.userPath = contextRootPath + "/" + usersRelativeDir + "/" + userId;
 		this.userDir = storageDirectory + File.separator + usersRelativeDir + File.separator + userId;
 
+    
 		// Create userDir (if it doesn't exist)
 		File uf = new File(this.userDir);
 		if (!uf.exists() && !uf.mkdirs())
@@ -112,12 +190,39 @@ public class Config {
 		// Get user's selected domain
 		DomainController dc = new DomainController(1, this);
 		this.domain = dc.getUserDomain();
+		
+		if(this.domain != null)
+		  this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir() 
+        + "/" + this.getUserId() + "/" + this.domain.getDomainName();
 	}
 
-	private void initializePortalConfig(HttpServletRequest request) {
-		this.contextRootPath = request.getContextPath();
-		this.scriptPath = this.contextRootPath + request.getServletPath();
+	public String getViewerId() {
+    return viewerId;
+  }
 
+  public void setViewerId(String viewerId) {
+    this.viewerId = viewerId;
+  }
+
+  public String[] getScriptArguments() {
+    return scriptArguments;
+  }
+
+  public void setScriptArguments(String[] scriptArguments) {
+    this.scriptArguments = scriptArguments;
+  }
+
+  public String getDomainId() {
+    return domainId;
+  }
+
+  public void setDomainId(String domainId) {
+    this.domainId = domainId;
+  }
+
+  private void initializePortalConfig(HttpServletRequest request) {
+		this.contextRootPath = request.getContextPath();
+		
 		PropertyListConfiguration serverConfig = getPortalConfiguration(request);
 		this.storageDirectory = serverConfig.getString("storage.local");
 		this.tdbDirectory = serverConfig.getString("storage.tdb");
@@ -129,8 +234,9 @@ public class Config {
 		this.executionOntologyUrl = serverConfig.getString("ontology.execution");
 		this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
 		
-    this.communityUrl = serverUrl + contextRootPath + exportServletPath + "/" 
+    this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/" 
         + communityRelativeDir;
+    this.communityPath = contextRootPath + "/" + communityRelativeDir;
     this.communityDir = storageDirectory + File.separator 
         + communityRelativeDir;
     // Create communityDir (if it doesn't exist)
@@ -263,8 +369,9 @@ public class Config {
 	
 	// Return Properties that are currently used by catalogs & planners
 	public Properties getProperties(Domain domain) {
+	  Properties props = new Properties();
 		if (domain != null) {
-			Properties props = domain.getProperties();
+			props = domain.getProperties();
 			if(domain.isLegacy())
 				return props;
 			
@@ -279,20 +386,22 @@ public class Config {
 			props.setProperty("ont.execution.url", this.getExecutionOntologyUrl());
 			if (domain.getUseSharedTripleStore())
 				props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
-
-      if(this.getResourceOntologyUrl() == null)
-        this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
-      props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
-      props.setProperty("lib.resource.url", this.getCommunityUrl()+"/resource/library.owl");
       
 			ExeEngine pengine = engines.get(domain.getPlanEngine());
 			ExeEngine sengine = engines.get(domain.getStepEngine());
 			props.putAll(pengine.getProperties());
 			props.putAll(sengine.getProperties());
-			
-			return props;
 		}
-		return null;
+		else {
+      props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
+		}
+		
+    if(this.getResourceOntologyUrl() == null)
+      this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
+    props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
+    props.setProperty("lib.resource.url", this.getExportCommunityUrl()+"/resource/library.owl");
+    
+    return props;
 	}
 
 	public PlanExecutionEngine getDomainExecutionEngine() {
@@ -411,8 +520,8 @@ public class Config {
 		this.userDir = userDir;
 	}
 
-	public void setUserUrl(String userUrl) {
-		this.userUrl = userUrl;
+	public void setExportUserUrl(String exportUserUrl) {
+		this.exportUserUrl = exportUserUrl;
 	}
 
 	public String getServerUrl() {
@@ -423,14 +532,22 @@ public class Config {
 		this.serverUrl = serverUrl;
 	}
 
-	public String getCommunityUrl() {
-    return communityUrl;
+	public String getCommunityPath() {
+    return communityPath;
   }
 
-  public void setCommunityUrl(String communityUrl) {
-    this.communityUrl = communityUrl;
+  public void setCommunityPath(String communityPath) {
+    this.communityPath = communityPath;
   }
 
+  public String getExportCommunityUrl() {
+    return exportCommunityUrl;
+  }
+
+  public void setExportCommunityUrl(String exportCommunityUrl) {
+    this.exportCommunityUrl = exportCommunityUrl;
+  }
+  
   public String getCommunityDir() {
     return communityDir;
   }
@@ -463,10 +580,18 @@ public class Config {
 		this.scriptPath = scriptPath;
 	}
 
-	public String getUserUrl() {
-		return userUrl;
+	public String getExportUserUrl() {
+		return exportUserUrl;
 	}
 
+  public String getUserPath() {
+    return userPath;
+  }
+  
+  public void setUserPath(String userPath) {
+    this.userPath = userPath;
+  }
+  
 	public String getTripleStoreDir() {
 		return tdbDirectory;
 	}
