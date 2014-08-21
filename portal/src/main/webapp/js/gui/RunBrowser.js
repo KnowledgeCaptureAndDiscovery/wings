@@ -132,7 +132,8 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 			if(!b.metadata)
 				b.metadata = {};
 			if(!b.metadata[pred])
-				b.metadata[pred] = cons.object;
+				b.metadata[pred] = [];
+			b.metadata[pred].push(cons.object);
 			vmaps[vid].b = b;
 		}
 	}

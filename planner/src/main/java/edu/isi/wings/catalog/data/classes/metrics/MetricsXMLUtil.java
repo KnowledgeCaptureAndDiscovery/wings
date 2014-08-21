@@ -1,6 +1,7 @@
 package edu.isi.wings.catalog.data.classes.metrics;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.TimeZone;
@@ -127,18 +128,19 @@ public class MetricsXMLUtil {
 		StringBuilder result = new StringBuilder();
 		result.append(HEADER);
 
-		HashMap<String, Metric> mmap = metrics.getMetrics();
+		HashMap<String, ArrayList<Metric>> mmap = metrics.getMetrics();
 		for (String prop : mmap.keySet()) {
-			Metric mm = mmap.get(prop);
-			String valdtype = null;
-			Object val = mm.getValue();
-			if (mm.getType() == Metric.LITERAL && val != null) {
-				if(mm.getDatatype() != null)
-					valdtype = mm.getDatatype();
-				else
-					valdtype = val.getClass().getSimpleName();
+			for(Metric mm : mmap.get(prop)) {
+  			String valdtype = null;
+  			Object val = mm.getValue();
+  			if (mm.getType() == Metric.LITERAL && val != null) {
+  				if(mm.getDatatype() != null)
+  					valdtype = mm.getDatatype();
+  				else
+  					valdtype = val.getClass().getSimpleName();
+  			}
+  			result.append(getMetricXML(prop, val.toString(), mm.getType(), valdtype));
 			}
-			result.append(getMetricXML(prop, val.toString(), mm.getType(), valdtype));
 		}
 		result.append(FOOTER);
 		return result.toString();

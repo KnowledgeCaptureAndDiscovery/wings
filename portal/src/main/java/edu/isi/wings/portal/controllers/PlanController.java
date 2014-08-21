@@ -19,6 +19,7 @@ import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
+import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
@@ -422,10 +423,12 @@ public class PlanController {
 				Metrics metrics = v.getBinding().getMetrics();
 				for(String key : metrics.getMetrics().keySet()) {
 					if(usermetrics.contains(key)) {
-						// FIXME: Assuming value is Integer
-						Integer val = 
-								Integer.valueOf(metrics.getMetrics().get(key).getValue().toString());
-						regressionVariables.put(key, val);
+					  for(Metric m : metrics.getMetrics().get(key)) {
+  						// FIXME: Assuming value is Integer
+  						Integer val = 
+  								Integer.valueOf(m.getValue().toString());
+  						regressionVariables.put(key, val);
+					  }
 					}
 				}
 			}

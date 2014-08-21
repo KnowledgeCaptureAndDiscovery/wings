@@ -17,8 +17,7 @@ public interface DataCreationAPI {
 	
 	DataTree getDatatypeHierarchy(); // Tree List of Datatypes
 
-	DataTree getMetricsHierarchy(); // Tree List of Metrics and Metric
-											// types
+	DataTree getMetricsHierarchy(); // Tree List of Metrics and Metric types
 
 	ArrayList<String> getAllDatatypeIds();
 

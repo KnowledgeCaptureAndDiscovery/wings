@@ -106,7 +106,7 @@ Template.prototype.initialize = function() {
 			continue;
 		var fromPort = null;
 		var toPort = null;
-		if (link.fromPort != null && link.fromPort.id) {
+		if (link.fromPort && link.fromPort.id) {
 			if (!this.ports[link.fromPort.id]) {
 				this.ports[link.fromPort.id] = new Port(this, link.fromPort.id, link.fromPort.role.roleid);
 				this.ports[link.fromPort.id].dim = parseInt(link.fromPort.role.dimensionality);
@@ -125,7 +125,7 @@ Template.prototype.initialize = function() {
 
 			fromPort = this.ports[link.fromPort.id];
 		}
-		if (link.toPort != null && link.toPort.id) {
+		if (link.toPort && link.toPort.id) {
 			if (!this.ports[link.toPort.id]) {
 				this.ports[link.toPort.id] = new Port(this, link.toPort.id, link.toPort.role.roleid);
 				this.ports[link.toPort.id].dim = parseInt(link.toPort.role.dimensionality);

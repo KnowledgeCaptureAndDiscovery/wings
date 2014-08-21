@@ -81,10 +81,16 @@ Port.prototype.getComponentPort = function(port) {
 		var v = port.partOf;
 		var links = this.tpl.getLinksWithVariable(v);
 		if(port.isInput) {
-			return links[0].toPort;
+			if(links[0].toPort)
+				return links[0].toPort;
+			else
+				return links[0].fromPort;
 		}
-		else {
-			return links[0].fromPort;
+		else if(port.isOutput) {
+			if(links[0].fromPort)
+				return links[0].fromPort;
+			else
+				return links[0].toPort;
 		}
 	}
 	else {

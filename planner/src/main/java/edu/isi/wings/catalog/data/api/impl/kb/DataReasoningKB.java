@@ -205,7 +205,7 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 	public String createDataIDFromMetrics(String id, String type, Metrics metrics) {
 		String nameformat = this.conceptNameFormat.get(type);
 		if (nameformat != null && metrics != null) {
-			HashMap<String, Metric> propValMap = metrics.getMetrics();
+			HashMap<String, ArrayList<Metric>> propValMap = metrics.getMetrics();
 			Pattern pat = Pattern.compile("\\[(.+?)\\]");
 			Matcher m = pat.matcher(nameformat);
 			StringBuffer sb = new StringBuffer();
@@ -214,11 +214,12 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 				if (key.equals("__ID")) {
 					m.appendReplacement(sb, id);
 				} else {
-					Metric tmp = propValMap.get(this.dcdomns + key);
-					if (tmp != null && tmp.getValue() != null)
-						m.appendReplacement(sb, MetricsXMLUtil.getValueString(tmp.getValue()));
-					else
-						m.appendReplacement(sb, "");
+					for(Metric tmp : propValMap.get(this.dcdomns + key)) {
+  					if (tmp != null && tmp.getValue() != null)
+  						m.appendReplacement(sb, MetricsXMLUtil.getValueString(tmp.getValue()));
+  					else
+  						m.appendReplacement(sb, "");
+					}
 				}
 			}
 			m.appendTail(sb);

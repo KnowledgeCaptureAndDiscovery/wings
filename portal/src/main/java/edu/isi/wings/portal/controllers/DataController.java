@@ -27,6 +27,7 @@ import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
 import edu.isi.wings.catalog.data.classes.DataTree;
+import edu.isi.wings.catalog.data.classes.DataTreeNode;
 import edu.isi.wings.catalog.data.classes.MetadataProperty;
 import edu.isi.wings.catalog.data.classes.MetadataValue;
 import edu.isi.wings.common.kb.KBUtils;
@@ -298,7 +299,19 @@ public class DataController {
       if(pvals.get("type") == null)
         return "Datatype not known";
       
-      String dtypeid = pvals.get("type").getAsString();
+      // Choose the most specific type
+      DataTree tree = dc.getDatatypeHierarchy();
+      String dtypeid = null;
+      for(JsonElement el : pvals.get("type").getAsJsonArray()) {
+        String tmpid = el.getAsString();
+        if(dtypeid == null)
+          dtypeid = tmpid;
+        else {
+          DataTreeNode dnode = tree.findNode(dtypeid);
+          if(dnode.hasChild(tree.findNode(tmpid), false))
+            dtypeid = tmpid;
+        }
+      }
       
       String dloc = dc.getDataLocation(dataid);
       if(dloc == null)
@@ -330,15 +343,17 @@ public class DataController {
 
       for(Entry<String, JsonElement> entry : pvals.entrySet()) {
         String pname = entry.getKey();
-        String value = entry.getValue().getAsString();
-        MetadataProperty pinfo = pinfos.get(pname);
-        if(pinfo != null) {
-          if (pinfo.isDatatypeProperty()) {
-            if (value.equals("") && !pinfo.getRange().contains("string"))
-              continue;
-            dc.addDatatypePropertyValue(newid, pinfo.getID(), value, pinfo.getRange());
-          } else {
-            dc.addObjectPropertyValue(newid, pinfo.getID(), this.domns + value.toString());
+        for(JsonElement el : entry.getValue().getAsJsonArray()) {
+          String value = el.getAsString();
+          MetadataProperty pinfo = pinfos.get(pname);
+          if(pinfo != null) {
+            if (pinfo.isDatatypeProperty()) {
+              if (value.equals("") && !pinfo.getRange().contains("string"))
+                continue;
+              dc.addDatatypePropertyValue(newid, pinfo.getID(), value, pinfo.getRange());
+            } else {
+              dc.addObjectPropertyValue(newid, pinfo.getID(), this.domns + value.toString());
+            }
           }
         }
       }

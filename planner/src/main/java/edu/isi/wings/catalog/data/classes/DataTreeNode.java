@@ -30,4 +30,16 @@ public class DataTreeNode {
 	public void removeChild(DataTreeNode node) {
 		this.children.remove(node);
 	}
+	
+  public boolean hasChild(DataTreeNode searchnode, boolean direct) {
+    if(searchnode == null)
+      return false;
+    for (DataTreeNode childnode : this.children) {
+      if (childnode == searchnode)
+        return true;
+      if (!direct && childnode.hasChild(searchnode, direct))
+        return true;
+    }
+    return false;
+  }
 }

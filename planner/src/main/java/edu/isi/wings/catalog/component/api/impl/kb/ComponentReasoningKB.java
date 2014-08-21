@@ -547,54 +547,56 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				if (var.getBinding() != null) {
 					// Convert Metrics to PC properties in order to run rules
 					Metrics metrics = var.getBinding().getMetrics();
-					HashMap<String, Metric> propValMap = metrics.getMetrics();
+					HashMap<String, ArrayList<Metric>> propValMap = metrics.getMetrics();
 					for (String propid : propValMap.keySet()) {
-						Metric tmp = propValMap.get(propid);
-						Object val = tmp.getValue();
-						int type = tmp.getType();
-						String dtype = tmp.getDatatype();
-						KBObject metricProp = this.kb.getProperty(propid);
-						if (metricProp != null) {
-							// System.out.println(propid + " : " +obj);
-							if (type == Metric.URI) {
-								// Object Property
-								KBObject valobj = this.kb.getResource(val.toString());
-								if (valobj == null) {
-									// TODO: Log and explain (make a utility
-									// function)
-									details.addExplanations("ERROR Cannot Recognize Metrics Value " + val);
-									continue;
-								}
-								// Copy over the object class into kb as well
-								// (except where the object itself is a class)
-								if (!metricProp.getID().equals(KBUtils.RDF + "type"))
-									valobj = this.copyObjectIntoKB(valobj.getID(), valobj, tkb,
-											null, null, true);
-								// Remove any existing values first
-								for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
-								  tkb.removeTriple(t);
-								// Add a Triple for the metric property value
-								tkb.addTriple(varobj, metricProp, valobj);
-							} else if (type == Metric.LITERAL && val != null) {
-								// Literal value
-								KBObject tobj = dtype != null ? tkb.createXSDLiteral(val.toString(), dtype) :
-													tkb.createLiteral(val);
-								if (tobj != null) {
-	                // Remove any existing values first
-	                for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
-	                  tkb.removeTriple(t);
-	                 // Add a Triple for the metric propertyvalue
-									tkb.addTriple(varobj, metricProp, tobj);
-								} else {
-									details.addExplanations("ERROR Cannot Convert Metrics Value " + val);
-									continue;
-								}
-							}
-						} else {
-							// TODO: Log and explain (make a utility function)
-							details.addExplanations("ERROR No Such Metrics Property Known to Component Catalog : "
-											+ propid);
-							continue;
+						for(Metric tmp : propValMap.get(propid)) {
+  						Object val = tmp.getValue();
+  						int type = tmp.getType();
+  						String dtype = tmp.getDatatype();
+  						KBObject metricProp = this.kb.getProperty(propid);
+  						if (metricProp != null) {
+  							// System.out.println(propid + " : " +obj);
+  							if (type == Metric.URI) {
+  								// Object Property
+  								KBObject valobj = this.kb.getResource(val.toString());
+  								if (valobj == null) {
+  									// TODO: Log and explain (make a utility
+  									// function)
+  									details.addExplanations("ERROR Cannot Recognize Metrics Value " + val);
+  									continue;
+  								}
+  								// Copy over the object class into kb as well
+  								// (except where the object itself is a class)
+  								if (!metricProp.getID().equals(KBUtils.RDF + "type")) {
+  									valobj = this.copyObjectIntoKB(valobj.getID(), valobj, tkb,
+  											null, null, true);
+  									// Remove any existing values first
+  									for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
+  									  tkb.removeTriple(t);
+  								}
+  								// Add a Triple for the metric property value
+  								tkb.addTriple(varobj, metricProp, valobj);
+  							} else if (type == Metric.LITERAL && val != null) {
+  								// Literal value
+  								KBObject tobj = dtype != null ? tkb.createXSDLiteral(val.toString(), dtype) :
+  													tkb.createLiteral(val);
+  								if (tobj != null) {
+  	                // Remove any existing values first
+  	                for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
+  	                  tkb.removeTriple(t);
+  	                 // Add a Triple for the metric propertyvalue
+  									tkb.addTriple(varobj, metricProp, tobj);
+  								} else {
+  									details.addExplanations("ERROR Cannot Convert Metrics Value " + val);
+  									continue;
+  								}
+  							}
+  						} else {
+  							// TODO: Log and explain (make a utility function)
+  							details.addExplanations("ERROR No Such Metrics Property Known to Component Catalog : "
+  											+ propid);
+  							continue;
+  						}
 						}
 					}
 
@@ -785,11 +787,12 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				  for(KBObject val : vals) {
 				    if(vals.size() > 1) {
 				      // If multiple values present, ignore value that is equal to current value
-				      Metric mval = curmetrics.getMetrics().get(metricProp.getID());
-				      if(!val.isLiteral() && val.getID().equals(mval.getValue()))
-				        continue;
-				      else if(val.isLiteral() && val.getValue().equals(mval.getValue()))
-				        continue;
+				      for(Metric mval : curmetrics.getMetrics().get(metricProp.getID())) {
+  				      if(!val.isLiteral() && val.getID().equals(mval.getValue()))
+  				        continue;
+  				      else if(val.isLiteral() && val.getValue().equals(mval.getValue()))
+  				        continue;
+				      }
 				    }
 				    // Add value
             if (val.isLiteral())

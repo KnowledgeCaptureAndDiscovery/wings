@@ -2284,20 +2284,21 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 		ArrayList<KBTriple> constraints = new ArrayList<KBTriple>();
 		KBObject varObject = tkb.getResource(varId);
 
-		HashMap<String, Metric> propm = metrics.getMetrics();
+		HashMap<String, ArrayList<Metric>> propm = metrics.getMetrics();
 		for (String propid : propm.keySet()) {
-			Metric m = propm.get(propid);
-			KBObject prop = tkb.getResource(propid);
-			KBObject val = null;
-			if (m.getType() == Metric.LITERAL && m.getValue() != null) {
-				if(m.getDatatype() != null)
-					val = tkb.createXSDLiteral(m.getValue().toString(), m.getDatatype());
-				else
-					val = ontfac.getDataObject(m.getValue());
+			for(Metric m : propm.get(propid)) {
+  			KBObject prop = tkb.getResource(propid);
+  			KBObject val = null;
+  			if (m.getType() == Metric.LITERAL && m.getValue() != null) {
+  				if(m.getDatatype() != null)
+  					val = tkb.createXSDLiteral(m.getValue().toString(), m.getDatatype());
+  				else
+  					val = ontfac.getDataObject(m.getValue());
+  			}
+  			else if (m.getType() == Metric.URI)
+  				val = tkb.getResource(m.getValue().toString());
+  			constraints.add(tkb.addTriple(varObject, prop, val));
 			}
-			else if (m.getType() == Metric.URI)
-				val = tkb.getResource(m.getValue().toString());
-			constraints.add(tkb.addTriple(varObject, prop, val));
 		}
 
 		return constraints;
