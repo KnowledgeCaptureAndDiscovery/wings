@@ -23,7 +23,8 @@ public class URLConfiguration extends HttpConfigurationProvider
    public Configuration getConfiguration(final ServletContext context)
    {
      ConfigurationBuilder config = ConfigurationBuilder.begin();
-     String[] scripts = new String[] {"data", "components", "workflows", "run", "plan", "upload"};
+     String[] scripts = new String[] {"data", "components", "workflows", "executions", 
+         "plan", "upload"};
      for(String script: scripts) {
        config.addRule()
            .when(Direction.isInbound().and(Path.matches("/users/{owner}/{domain}/"+script)))
@@ -36,11 +37,11 @@ public class URLConfiguration extends HttpConfigurationProvider
          .perform(Forward.to("/"+script+"/{ext}/{op}?userid={owner}&domainid={domain}"));
      }
     config.addRule()
-        .when(Direction.isInbound().and(Path.matches("/users/{owner}/domain")))
-        .perform(Forward.to("/domain?userid={owner}"));
+        .when(Direction.isInbound().and(Path.matches("/users/{owner}/domains")))
+        .perform(Forward.to("/domains?userid={owner}"));
     config.addRule()
-        .when(Direction.isInbound().and(Path.matches("/users/{owner}/domain/{op}")))
-        .perform(Forward.to("/domain/{op}?userid={owner}"));
-     return config;
+        .when(Direction.isInbound().and(Path.matches("/users/{owner}/domains/{op}")))
+        .perform(Forward.to("/domains/{op}?userid={owner}"));
+    return config;
   }
 }

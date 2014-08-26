@@ -1040,7 +1040,7 @@ ResourceViewer.prototype.createMainPanel = function() {
 					type : 'border'
 				},
 				items : [ this.treePanel, this.tabPanel,
-						getPortalHeader(CONTEXT_ROOT) ]
+						getPortalHeader() ]
 			});
 };
 

@@ -10,9 +10,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <title>Wings Portal</title>
 <%
-Config configx = new Config(request);
+  Config configx = new Config(request);
 PrintWriter outx = new PrintWriter(out);
-JSLoader.setContextInformation(outx, configx);
+JSLoader.loadConfigurationJS(outx, configx);
 JSLoader.loadLoginViewer(outx, configx.getContextRootPath());
 CSSLoader.loadLoginViewer(outx, configx.getContextRootPath());
 %><script>

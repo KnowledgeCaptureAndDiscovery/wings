@@ -1479,7 +1479,7 @@ TemplateBrowser.prototype.initialize = function(tid) {
 		items : []
 	});
 
-	this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
+	this.mainPanel.add(getPortalHeader());
 
 	if (this.store.components)
 		this.cmap = this.getChildComponentsMap(this.store.components.tree);

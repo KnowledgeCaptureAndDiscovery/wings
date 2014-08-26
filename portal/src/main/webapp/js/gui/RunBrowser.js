@@ -133,7 +133,8 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 				b.metadata = {};
 			if(!b.metadata[pred])
 				b.metadata[pred] = [];
-			b.metadata[pred].push(cons.object);
+			if(b.metadata[pred].push)
+				b.metadata[pred].push(cons.object);
 			vmaps[vid].b = b;
 		}
 	}
@@ -724,7 +725,7 @@ RunBrowser.prototype.initialize = function() {
 	var mainpanel = new Ext.Viewport({
 		layout : 'border',
 		items: [
-			getPortalHeader(CONTEXT_ROOT),
+			getPortalHeader(),
 			{
 				xtype:'panel',
 				region:'center',

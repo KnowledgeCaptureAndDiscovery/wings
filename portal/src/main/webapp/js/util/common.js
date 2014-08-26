@@ -102,7 +102,49 @@ function showWarning(msg) {
 	});
 }
 
-function getPortalHeader(path) {
+function getPortalHeader() {
+	var homepath = CONTEXT_ROOT;
+	var userpath = USER_ROOT;
+	var userdompath = USERDOM_ROOT;
+	var compath = COM_ROOT;
+	var html = "<div class=\"menu\"><ul>"
+		+ "<li class=\"first active\"><a href=\""+homepath+"\">Home</a></li>"
+		+ "<li><a href=\"#\">Analysis</a><ul>\n"
+		+ "<li class=\"first\"><a href=\""
+		+ userdompath
+		+ "/workflows/edit\">Edit Workflows</a></li>\n"
+		+ "<li><a href=\""
+		+ userdompath
+		+ "/workflows\">Run Workflows</a></li>\n"
+		+ "<li class=\"last\"><a href=\""
+		+ userdompath
+		+ "/executions\">Access Runs</a></li>\n"
+		+ "</ul></li>\n"
+		+ "<li><a href=\"#\">Advanced</a><ul>\n"
+		+ "<li class=\"first\"><a href=\""
+		+ userdompath
+		+ "/data\">Manage Data</a></li>\n"
+		+ "<li><a href=\""
+		+ userdompath
+		+ "/components/type\">Manage Component Types</a></li>\n"
+		+ "<li><a href=\""
+		+ userdompath
+		+ "/components\">Manage Components</a></li>\n"
+		+ "<li><a href=\""
+		+ compath
+		+ "/resources\">Describe Resources</a></li>\n"
+		+ "<li class=\"last\"><a href=\""
+		+ userpath
+		+ "/domains\">Manage Domain</a></li>\n"
+		+ "</ul></li>\n" 
+		+ (VIEWER_ID != 'null' ? "<li style='float:right'><a href=\""
+		+ homepath
+		+ "/jsp/logout.jsp\">Logout <span class='user'>"+VIEWER_ID+"</span></a></li>" : '')
+		+ (VIEWER_ID != USER_ID ? 
+				"<li style='float:right'>"
+				+ "<a style='color:pink'><i>Viewing "+USER_ID+" account</i></a></li>" : "") 
+		+ "</ul>"
+		+ "</div>\n";
 	return new Ext.Container(
 			{
 				id : "app-north",
@@ -124,7 +166,7 @@ function getPortalHeader(path) {
 								border : false,
 								xtype : "component",
 								id : "app-header-title",
-								html : "<a href=\""+path+"\">Wings Portal</a>",
+								html : "<a href=\""+homepath+"\">Wings Portal</a>",
 							} ]
 						},
 						{
@@ -132,44 +174,7 @@ function getPortalHeader(path) {
 							border : false,
 							xtype : "component",
 							height : 26,
-							html : "<div class=\"menu\"><ul>"
-									+ "<li class=\"first active\"><a href=\""+path+"\">Home</a></li>"
-									
-									+ "<li><a href=\"#\">Analysis</a><ul>\n"
-									+ "<li class=\"first\"><a href=\""
-									+ path
-									+ "/workflows/edit\">Edit Workflows</a></li>\n"
-									+ "<li><a href=\""
-									+ path
-									+ "/workflows\">Run Workflows</a></li>\n"
-									+ "<li class=\"last\"><a href=\""
-									+ path
-									+ "/run\">Access Runs</a></li>\n"
-									+ "</ul></li>\n"
-									+ "<li><a href=\"#\">Advanced</a><ul>\n"
-									+ "<li class=\"first\"><a href=\""
-									+ path
-									+ "/data\">Manage Data</a></li>\n"
-									+ "<li><a href=\""
-									+ path
-									+ "/components/type\">Manage Component Types</a></li>\n"
-									+ "<li><a href=\""
-									+ path
-									+ "/components\">Manage Components</a></li>\n"
-									+ "<li><a href=\""
-									+ path
-									+ "/common/resource\">Describe Resources</a></li>\n"
-									+ "<li class=\"last\"><a href=\""
-									+ path
-									+ "/domain\">Manage Domain</a></li>\n"
-									+ "</ul></li>\n" 
-									+ (VIEWER_ID != 'null' ? "<li style='float:right'><a href=\""
-									+ path
-									+ "/jsp/logout.jsp\">Logout <span class='user'>"+VIEWER_ID+"</span></a></li>" : '')
-									+ (VIEWER_ID != USER_ID ? 
-											"<li style='float:right'><a><i>Viewing "+USER_ID+" account</i></a></li>" : "") 
-									+ "</ul>"
-									+ "</div>\n"
+							html : html
 						}]
 			});
 }

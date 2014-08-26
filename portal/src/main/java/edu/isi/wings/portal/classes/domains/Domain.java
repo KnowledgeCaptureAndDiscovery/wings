@@ -49,6 +49,7 @@ public class Domain {
 	String stepEngine;
 	
 	boolean isLegacy = false;
+	ArrayList<Permission> permissions;
 	
 	static String fsep = File.separator;
 	static String usep = "/";
@@ -86,9 +87,12 @@ public class Domain {
 		
 		domain.useSharedTripleStore = true;
 		domain.isLegacy = false;
+		
 		domain.planEngine = "Local";
 		domain.stepEngine = "Local";
 		
+    domain.permissions = new ArrayList<Permission>();
+    
 		domain.saveDomain();
 		return domain; 
 	}
@@ -356,6 +360,7 @@ public class Domain {
 	private Domain(String domainName) {
 		this.domainName = domainName;
 		this.concreteComponentLibraries = new ArrayList<DomainLibrary>();
+		this.permissions = new ArrayList<Permission>();
 	}
 	
 	public Domain(DomainInfo info) {
@@ -418,6 +423,17 @@ public class Domain {
 				if(name.equals(concreteLibraryName))
 					this.concreteComponentLibrary = concreteLib;
 			}
+			
+			@SuppressWarnings("unchecked")
+			List<SubnodeConfiguration> perms = config.configurationsAt("permissions.permission");
+      for (SubnodeConfiguration perm : perms) {
+        String userid = perm.getString("userid");
+        boolean canRead = perm.getBoolean("canRead", false);
+        boolean canWrite = perm.getBoolean("canWrite", false);
+        boolean canExecute = perm.getBoolean("canExecute", false);
+        Permission permission = new Permission(userid, canRead, canWrite, canExecute);
+        this.permissions.add(permission);
+      }
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -523,6 +539,13 @@ public class Domain {
 			config.addProperty("components.libraries.library.storage", clib.getStorageDirectory());
 		}
 
+		for (Permission permission : this.permissions) {
+		  config.addProperty("permissions.permission(-1).userid", permission.getUserid());
+		  config.addProperty("permissions.permission.canRead", permission.canRead());
+		  config.addProperty("permissions.permission.canWrite", permission.canWrite());
+		  config.addProperty("permissions.permission.canExecute", permission.canExecute());
+		}
+		
 		if (this.domainDirectory != null) {
 			File domdir = new File(this.domainDirectory);
 			if (!domdir.exists() && !domdir.mkdirs())
@@ -686,5 +709,9 @@ public class Domain {
 
 	public void setLegacy(boolean isLegacy) {
 		this.isLegacy = isLegacy;
+	}
+
+	public ArrayList<Permission> getPermissions() {
+	  return this.permissions;
 	}
 }

@@ -61,7 +61,7 @@ public class ComponentController {
 		this.liburl = (String) props.get("lib.concrete.url");
 		
 		this.uploadScript = config.getUserDomainUrl() + "/upload";
-		this.resourceScript = config.getCommunityPath() + "/resource";
+		this.resourceScript = config.getCommunityPath() + "/resources";
 	}
 
 	public void show(PrintWriter out) {
@@ -72,7 +72,7 @@ public class ComponentController {
 			out.println("<html>");
 			out.println("<head>");
 			out.println("<title>Manage Component" + (this.loadConcrete ? "s" : " Types") + "</title>");
-			JSLoader.setContextInformation(out, config);
+			JSLoader.loadConfigurationJS(out, config);
 			CSSLoader.loadComponentViewer(out, config.getContextRootPath());
 			JSLoader.loadComponentViewer(out, config.getContextRootPath());
 			out.println("</head>");

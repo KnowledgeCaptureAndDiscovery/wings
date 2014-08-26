@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -71,8 +72,9 @@ public class Config {
 	// This following are user/domain specific properties
 	private String userPath;
 	private String userDir;
+	 private Domain domain;
 	private String domainId;
-	private Domain domain;
+	private String domainsListJSON;
   private String userDomainUrl;
   private String exportUserUrl;
 
@@ -114,7 +116,9 @@ public class Config {
       }
       return false;
     }*/
-    String redirectUrl = this.getUserPath()+"/domain";
+	  
+	  // Check that a domain is provided in the URL, or a default domain exists
+    String redirectUrl = this.getUserPath()+"/domains";
     if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
       response.setContentType("text/html");
       response.setHeader("Refresh", "5; URL="+redirectUrl);
@@ -128,19 +132,6 @@ public class Config {
       }
       return false;
     }
-    // Check that a domain is available (?) -- Is this necessary ?
-		/*String redirectUrl = this.getUserUrl()+"/domain";
-		if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
-			response.setContentType("text/html");
-			response.setHeader("Refresh", "5; URL="+redirectUrl);
-			try {
-				response.getWriter().println("No Domain selected. Please select a domain first !!<br/>"
-						+ "Redirecting in 5 seconds to <a href='"+redirectUrl+"'>"+redirectUrl+"</a>");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return false;
-		}*/
 		return true;
 	}
 
@@ -190,6 +181,7 @@ public class Config {
 		// Get user's selected domain
 		DomainController dc = new DomainController(1, this);
 		this.domain = dc.getUserDomain();
+		this.domainsListJSON = dc.getSimpleDomainsListJSON();
 		
 		if(this.domain != null)
 		  this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir() 
@@ -220,6 +212,10 @@ public class Config {
     this.domainId = domainId;
   }
 
+  public String getDomainsListJSON() {
+    return domainsListJSON;
+  }
+  
   private void initializePortalConfig(HttpServletRequest request) {
 		this.contextRootPath = request.getContextPath();
 		
@@ -631,6 +627,10 @@ public class Config {
 	public void setStorageDirectory(String storageDirectory) {
 		this.storageDirectory = storageDirectory;
 	}
+  
+  public Set<String> getEnginesList() {
+    return this.engines.keySet();
+  }
 }
 
 class ExeEngine {

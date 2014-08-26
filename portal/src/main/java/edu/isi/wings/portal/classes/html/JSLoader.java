@@ -29,7 +29,7 @@ public class JSLoader {
 
 	static String[] plupload_scripts = { "js/util/pluploadPanel.js", "lib/plupload/plupload.full.min.js" };
 
-	public static void setContextInformation(PrintWriter out, Config config) {
+	public static void loadConfigurationJS(PrintWriter out, Config config) {
 		HashMap<String, Object> jsvars = new HashMap<String, Object>();
 		jsvars.put("CONTEXT_ROOT", "'" + config.getContextRootPath() + "'");
 		jsvars.put("USER_ID", "'" + config.getUserId() + "'");
@@ -37,6 +37,7 @@ public class JSLoader {
     jsvars.put("COM_ROOT", "'" +config.getCommunityPath() + "'");
     jsvars.put("USER_ROOT", "'" +config.getUserPath() + "'");
     jsvars.put("USERDOM_ROOT", "'" +config.getUserDomainUrl() + "'");
+    jsvars.put("DOMAINS", config.getDomainsListJSON());
 		JSLoader.showScriptKeyVals(out, jsvars);
 	}
 

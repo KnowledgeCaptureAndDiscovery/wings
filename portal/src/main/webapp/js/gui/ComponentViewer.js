@@ -1341,6 +1341,6 @@ ComponentViewer.prototype.initialize = function() {
         },
         items: [leftPanel, this.tabPanel]
     });
-    this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
+    this.mainPanel.add(getPortalHeader());
     return this.mainPanel;
 };

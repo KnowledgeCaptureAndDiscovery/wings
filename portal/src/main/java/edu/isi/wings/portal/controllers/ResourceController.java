@@ -48,7 +48,7 @@ public class ResourceController {
       out.println("<html>");
       out.println("<head>");
       out.println("<title>Describe Resources</title>");
-      JSLoader.setContextInformation(out, config);
+      JSLoader.loadConfigurationJS(out, config);
       CSSLoader.loadResourceViewer(out, config.getContextRootPath());
       JSLoader.loadResourceViewer(out, config.getContextRootPath());
       out.println("</head>");

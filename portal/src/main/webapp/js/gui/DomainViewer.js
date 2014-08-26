@@ -45,7 +45,7 @@ DomainViewer.prototype.createLeftPanel = function() {
             },
             sorters: ['name']
         },
-        fields: ['name', 'directory', 'url', 'isLegacy'],
+        fields: ['name', 'engine', 'permissions', 'directory', 'url', 'isLegacy'],
         autoLoad: true,
         data: this.store.list,
         sorters: ['name']
@@ -101,7 +101,14 @@ DomainViewer.prototype.createLeftPanel = function() {
         	header: 'Domain',
         	flex: 1,
         	renderer: Ext.bind(This.formatDomainName, This)
-        }]
+        }, {
+        	dataIndex: 'engine',
+        	header: 'Execution Engine',
+        	flex: 1
+        }/*, {
+        	dataIndex: 'permissions',
+        	header: 'Permissions'
+        }*/]
     });
 };
 
@@ -248,11 +255,12 @@ DomainViewer.prototype.selectDomain = function(domname) {
         	domain: domname
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 //Ext.get(This.domainsGrid.getId()).unmask();
         	 try {
         		 if(response.responseText == "OK") {
-        			 This.store.selected = domname; 
-            		 This.domainsGrid.reconfigure();
+        			 window.location.reload();
+        			 //This.store.selected = domname; 
+            		 //This.domainsGrid.reconfigure();
         		 }
         		 else {
         			 _console(response.responseText);
@@ -317,8 +325,10 @@ DomainViewer.prototype.renameDomain = function(domname, newname) {
 			 if (response.responseText == "OK") {
 				var rec = This.domainsGrid.getStore().findRecord('name', domname);
 				rec.set("name", newname);
-				if(This.store.selected == domname)
+				if(This.store.selected == domname) {
 					This.store.selected = newname;
+					window.location.reload();
+				}
 				This.domainsGrid.reconfigure();
 			} else {
 				_console(response.responseText);
@@ -469,7 +479,7 @@ DomainViewer.prototype.createMainPanel = function() {
         },
         items: [this.domainsGrid, this.tabPanel]
     });
-    this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
+    this.mainPanel.add(getPortalHeader());
 };
 
 DomainViewer.prototype.initialize_bak = function() {
@@ -486,7 +496,7 @@ DomainViewer.prototype.initialize = function() {
     });
     this.mainPanel = new Ext.Viewport({
         layout: 'border',
-        items: [getPortalHeader(CONTEXT_ROOT), this.domainsGrid]
+        items: [getPortalHeader(), this.domainsGrid]
     });
     this.createListeners();
 };

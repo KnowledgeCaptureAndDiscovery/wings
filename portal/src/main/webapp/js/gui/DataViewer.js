@@ -1637,7 +1637,7 @@ DataViewer.prototype.createMainPanel = function() {
 	this.mainPanel.add(this.tabPanel);
 	
     if(!this.use_import_ui) {
-    	this.mainPanel.add(getPortalHeader(CONTEXT_ROOT));
+    	this.mainPanel.add(getPortalHeader());
     }
     else {
     	this.mainPanel.add({

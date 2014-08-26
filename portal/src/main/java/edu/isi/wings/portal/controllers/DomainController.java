@@ -43,7 +43,7 @@ public class DomainController {
 	public DomainController(int guid, Config config) {
 		this.guid = guid;
 		this.config = config;
-		this.json = JsonHandler.createPrettyGson();
+		this.json = JsonHandler.createGson();
 		this.uploadScript = config.getUserDomainUrl() + "/upload";
 		this.user_domains = new HashMap<String, DomainInfo>();
 		this.userConfigFile = config.getUserDir() + "/user.properties";
@@ -59,8 +59,8 @@ public class DomainController {
 			
 			out.println("<html>");
 			out.println("<head>");
-			out.println("<title>Manage Domain</title>");
-			JSLoader.setContextInformation(out, config);
+			out.println("<title>Manage Domains</title>");
+			JSLoader.loadConfigurationJS(out, config);
 			CSSLoader.loadDomainViewer(out, config.getContextRootPath());
 			JSLoader.loadDomainViewer(out, config.getContextRootPath());
 			out.println("</head>");
@@ -87,8 +87,13 @@ public class DomainController {
 	public String getDomainsListJSON() {
 		return "{ list: " + json.toJson(user_domains.values()) 
 				 + ", selected: "+ (domain != null ? json.toJson(domain.getDomainName()) : "null") 
-				 + "}";
+				 + ", engines: " + json.toJson(config.getEnginesList()) + "}";
 	}
+
+  public String getSimpleDomainsListJSON() {
+    return "{ list: " + json.toJson(user_domains.keySet()) + ", selected: "
+        + (domain != null ? json.toJson(domain.getDomainName()) : "null") + "}";
+  }
 	
 	public String getDomainJSON (String domain) {
 		DomainInfo dominfo = this.user_domains.get(domain);
@@ -254,9 +259,10 @@ public class DomainController {
 			String domurl = domnode.getString("url");
 			Boolean isLegacy = domnode.getBoolean("legacy", false);
 			String dname = domnode.getString("name");
+			Domain domain = new Domain(dname, domnode.getString("dir"), domurl, isLegacy);
 			if(dname.equals(domname)) 
-				this.domain = new Domain(dname, domnode.getString("dir"), domurl, isLegacy);
-			DomainInfo dominfo = new DomainInfo(dname, domnode.getString("dir"), domurl, isLegacy);
+				this.domain = domain;
+			DomainInfo dominfo = new DomainInfo(domain);
 			this.user_domains.put(dominfo.getName(), dominfo);
 		}
 	}

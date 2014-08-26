@@ -15,6 +15,7 @@ import org.gridkit.internal.com.jcraft.jsch.Session;
 import org.gridkit.nanocloud.Cloud;
 import org.gridkit.nanocloud.SimpleCloudFactory;
 import org.gridkit.nanocloud.telecontrol.ssh.SshSpiConf;
+import org.gridkit.vicluster.ViConf;
 import org.gridkit.vicluster.ViNode;
 
 public class Machine extends Resource {
@@ -169,18 +170,20 @@ public class Machine extends Resource {
     if(this.node != null)
       return this.node;
     
-    String name = this.getName();
+    String host = hostIP != null ? hostIP : hostName;
     this.cloud = SimpleCloudFactory.createSimpleSshCloud();
-    this.node = cloud.node(name);
-    node.setProp(SshSpiConf.SPI_SSH_TARGET_HOST, hostName);
-    node.setProp(SshSpiConf.SPI_SSH_TARGET_ACCOUNT, userId);
-    node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, userKey);
-    node.setProp(SshSpiConf.SPI_JAR_CACHE, storageFolder + "/nanocloud");
+    this.node = cloud.node(host);
+    
     String jhome = this.getEnvironmentValue("JAVA_HOME");
     String javaexec = "java";
     if(jhome != null && !jhome.equals(""))
       javaexec = jhome + "/bin/java";
-    node.setProp(SshSpiConf.SPI_BOOTSTRAP_JVM_EXEC, javaexec);
+    
+    node.setProp(ViConf.REMOTE_HOST, host);
+    node.setProp(ViConf.REMOTE_ACCOUNT, userId);
+    node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, userKey);
+    node.setProp(SshSpiConf.SPI_JAR_CACHE, storageFolder + "/nanocloud");
+    node.setProp(ViConf.JVM_EXEC_CMD, javaexec);
     node.touch();
     return node;
   }
@@ -262,7 +265,7 @@ public class Machine extends Resource {
     catch (Exception e) {
       details.setCanConnect(false);
       details.addError(e.getMessage());
-      //e.printStackTrace();
+      e.printStackTrace();
     }
     return details;
   }

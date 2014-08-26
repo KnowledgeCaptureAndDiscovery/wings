@@ -76,7 +76,7 @@ public class TemplateController {
 		this.wflowns = (String) props.get("ont.workflow.url") + "#";
 		
 		this.planScript = config.getUserDomainUrl() + "/plan";
-		this.runScript = config.getUserDomainUrl() + "/run";
+		this.runScript = config.getUserDomainUrl() + "/executions";
 		this.thisScript = config.getScriptPath();
 	}
 
@@ -89,7 +89,7 @@ public class TemplateController {
 			out.println("<html>");
 			out.println("<head>");
 			out.println("<title>Template "+(editor ? "Editor" : "Browser")+"</title>");
-			JSLoader.setContextInformation(out, config);
+			JSLoader.loadConfigurationJS(out, config);
 			CSSLoader.loadTemplateViewer(out, config.getContextRootPath());
 			JSLoader.loadTemplateViewer(out, config.getContextRootPath(), tellme);
 			out.println("</head>");
