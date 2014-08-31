@@ -101,18 +101,26 @@
     <servlet-name>DescribeResources</servlet-name>
     <url-pattern>/common/resources/*</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>ManageUsers</display-name>
+    <servlet-name>ManageUsers</servlet-name>
+    <servlet-class>edu.isi.wings.portal.servlets.ManageUsers</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ManageUsers</servlet-name>
+    <url-pattern>/common/users/*</url-pattern>
+  </servlet-mapping>
   
   <session-config>
     <session-timeout>43200</session-timeout>
   </session-config>
-  <!-- Roles -->
   <security-role>
     <role-name>WingsUser</role-name>
   </security-role>
   <security-role>
     <role-name>WingsAdmin</role-name>
   </security-role>
-  <!-- User pages -->
   <security-constraint>
     <display-name>SecurityConstraint</display-name>
     <web-resource-collection>
@@ -130,19 +138,18 @@
       <role-name>WingsUser</role-name>
     </auth-constraint>
   </security-constraint>
-  <!-- Admin pages -->
   <security-constraint>
     <display-name>SecurityConstraint</display-name>
     <web-resource-collection>
       <web-resource-name>Admin Application</web-resource-name>
       <url-pattern>/common/resources/*</url-pattern>
       <url-pattern>/sparql/*</url-pattern>
+      <url-pattern>/common/users/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>WingsAdmin</role-name>
     </auth-constraint>
   </security-constraint>
-  
   <login-config>
     <auth-method>BASIC</auth-method>
     <form-login-config>

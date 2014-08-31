@@ -27,6 +27,8 @@ import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
 import edu.isi.wings.portal.classes.domains.Domain;
+import edu.isi.wings.portal.classes.users.User;
+import edu.isi.wings.portal.classes.users.UsersDB;
 import edu.isi.wings.portal.controllers.DomainController;
 
 public class Config {
@@ -72,12 +74,15 @@ public class Config {
 	// This following are user/domain specific properties
 	private String userPath;
 	private String userDir;
-	 private Domain domain;
+	private boolean isAdminUser;
+  private Domain domain;
 	private String domainId;
 	private String domainsListJSON;
   private String userDomainUrl;
   private String exportUserUrl;
 
+  private UsersDB userapi;
+  
 	public String getUserDomainUrl() {
     return userDomainUrl;
   }
@@ -87,6 +92,9 @@ public class Config {
   }
 
   public Config(HttpServletRequest request) {
+    // Initialize UserDatabase
+    this.initializeUserDatabase();
+    
 		// Initialize portal config
 		this.initializePortalConfig(request);
 
@@ -99,9 +107,34 @@ public class Config {
     // Return Permissions (canRead=true/false, canWrite=true/false, canExecute=true/false)
   }
   
+  public boolean checkUser(HttpServletResponse response) {
+    /* Check that such a user exists */
+    try {
+      if(!this.userapi.hasUser(this.userId)) { 
+        if(response != null) {
+          // If userId is not present in server
+          response.setContentType("text/html");
+          response.getWriter().println("No such user: "+this.userId+" !");
+        }
+        return false;
+      }
+      // Get viewer roles
+      User viewer = this.userapi.getUser(this.viewerId);
+      if(viewer.getRoles().contains(UsersDB.WINGS_ADMIN_ROLE))
+        this.isAdminUser = true;
+      else
+        this.isAdminUser = false;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return true;
+  }
+  
   // TODO: Do a permissions check here as well (instead of just checkDomain)
 	public boolean checkDomain(HttpServletResponse response) {
-	  
+    if(!this.checkUser(response))
+      return false;
+    
     // TODO: Check that viewerId has permission for domainId from userId
 	  // - Check read, write & execute permission based on input
     // For now, just checking that viewerId is the same as userId
@@ -162,16 +195,18 @@ public class Config {
 	  }
 		
 		this.sessionId = request.getSession().getId();
-
+    
     // If no userId specified, then set the viewer as the user
     if(this.userId == null)
       this.userId = this.viewerId;
 
+    if(!this.checkUser(null))
+      return;
+    
 		this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
 				+ "/" + userId;
     this.userPath = contextRootPath + "/" + usersRelativeDir + "/" + userId;
 		this.userDir = storageDirectory + File.separator + usersRelativeDir + File.separator + userId;
-
     
 		// Create userDir (if it doesn't exist)
 		File uf = new File(this.userDir);
@@ -260,6 +295,10 @@ public class Config {
 	    }
 		}
 	}
+  
+  private void initializeUserDatabase() {
+    this.userapi = new UsersDB();
+  }
 
 	@SuppressWarnings("rawtypes")
 	private ExeEngine getExeEngine(SubnodeConfiguration node) {
@@ -516,7 +555,15 @@ public class Config {
 		this.userDir = userDir;
 	}
 
-	public void setExportUserUrl(String exportUserUrl) {
+	public boolean isAdminUser() {
+    return isAdminUser;
+  }
+
+  public void setAdminUser(boolean isAdminUser) {
+    this.isAdminUser = isAdminUser;
+  }
+
+  public void setExportUserUrl(String exportUserUrl) {
 		this.exportUserUrl = exportUserUrl;
 	}
 

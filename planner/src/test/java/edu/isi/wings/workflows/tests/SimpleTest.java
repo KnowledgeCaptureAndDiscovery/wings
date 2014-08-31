@@ -32,6 +32,6 @@ public class SimpleTest {
 	@Test
 	public void testSeedGeneration() throws IOException {
 		AWGUtil.testSeedGeneration(domdir, "http://www.isi.edu/DMDomain/seeds/Test2Seed.owl#Test2Seed", 
-				new Integer[] { 8, 2, 2, 2, 2, 2 });
+				new Integer[] { 8, 2, 1, 1, 1, 2 });
 	}
 }

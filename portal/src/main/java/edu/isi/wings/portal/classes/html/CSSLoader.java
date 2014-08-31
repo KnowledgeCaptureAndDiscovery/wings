@@ -17,10 +17,15 @@ public class CSSLoader {
 		showCssTags(out, path, extjs_css);
 	}
 
-	 public static void loadResourceViewer(PrintWriter out, String path) {
-	    showCssTags(out, path, site_css);
-	    showCssTags(out, path, extjs_css);
-	  }
+  public static void loadResourceViewer(PrintWriter out, String path) {
+    showCssTags(out, path, site_css);
+    showCssTags(out, path, extjs_css);
+  }
+  
+  public static void loadUserViewer(PrintWriter out, String path) {
+    showCssTags(out, path, site_css);
+    showCssTags(out, path, extjs_css);
+  }
 	 
 	public static void loadComponentViewer(PrintWriter out, String path) {
 		showCssTags(out, path, site_css);

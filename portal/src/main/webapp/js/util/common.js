@@ -104,8 +104,8 @@ function showWarning(msg) {
 
 function getPortalHeader() {
 	var homepath = CONTEXT_ROOT;
-	var userpath = USER_ROOT;
-	var userdompath = USERDOM_ROOT;
+	var userpath = USER_ID != 'null' ? USER_ROOT : CONTEXT_ROOT;
+	var userdompath = USER_ID != 'null' ? USERDOM_ROOT : CONTEXT_ROOT;
 	var compath = COM_ROOT;
 	var html = "<div class=\"menu\"><ul>"
 		+ "<li class=\"first active\"><a href=\""+homepath+"\">Home</a></li>"
@@ -130,12 +130,15 @@ function getPortalHeader() {
 		+ "<li><a href=\""
 		+ userdompath
 		+ "/components\">Manage Components</a></li>\n"
-		+ "<li><a href=\""
-		+ compath
-		+ "/resources\">Describe Resources</a></li>\n"
 		+ "<li class=\"last\"><a href=\""
 		+ userpath
 		+ "/domains\">Manage Domain</a></li>\n"
+		+ "<li><a href=\""
+		+ compath
+		+ "/resources\">Describe Resources</a></li>\n"
+		+ "<li><a href=\""
+		+ compath
+		+ "/users\">Manage Users</a></li>\n"
 		+ "</ul></li>\n" 
 		+ (VIEWER_ID != 'null' ? "<li style='float:right'><a href=\""
 		+ homepath
