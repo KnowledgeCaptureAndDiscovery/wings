@@ -42,18 +42,20 @@ public class ManageUsers extends HttpServlet {
     if (op != null && op.equals("intro")) {
       PrintWriter out = response.getWriter();
       out.println("<div class='x-toolbar x-toolbar-default highlightIcon' "
-          + "style='padding:10px;font-size:1.5em;border-width:0px 0px 1px 0px'>Community</div>\n"
+          + "style='padding:10px;font-size:1.5em;border-width:0px 0px 1px 0px'>Manage Users</div>\n"
           + "<div style='padding:5px; line-height:1.5em'>\n"
           + "With this interface, you can:\n" + "<ul>\n"
           + "   <li>View User information</li>\n"
-          + "   <li>Edit your own information</li>\n" + "</ul>\n" + "</div>\n");
+          + "   <li>Edit user information</li>\n"
+          + "   <li>Add new users</li>\n"
+          + "   <li>Remove existing users</li>\n"
+          + "</ul>\n" + "</div>\n");
       return;
     }
 
     int guid = 1;
 
     UserController uc = new UserController(guid, config);
-
     String userid = request.getParameter("userid");
 
     PrintWriter out = response.getWriter();
@@ -70,6 +72,14 @@ public class ManageUsers extends HttpServlet {
     if (op.equals("saveUserJSON")) {
       String uservals_json = request.getParameter("json");
       if (uc.saveUserJSON(userid, uservals_json))
+        out.print("OK");
+    }
+    else if(op.equals("addUser")) {
+      if(uc.addUser(userid))
+        out.print("OK");
+    }
+    else if(op.equals("removeUser")) {
+      if(uc.removeUser(userid))
         out.print("OK");
     }
   }

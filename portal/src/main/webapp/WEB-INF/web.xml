@@ -132,7 +132,7 @@
       <url-pattern>/workflows/*</url-pattern>
       <url-pattern>/executions/*</url-pattern>
       <url-pattern>/upload/*</url-pattern>
-      <url-pattern>/plan/*</url-pattern>
+      <url-pattern>/plan/*</url-pattern>      
     </web-resource-collection>
     <auth-constraint>
       <role-name>WingsUser</role-name>
@@ -143,8 +143,8 @@
     <web-resource-collection>
       <web-resource-name>Admin Application</web-resource-name>
       <url-pattern>/common/resources/*</url-pattern>
-      <url-pattern>/sparql/*</url-pattern>
       <url-pattern>/common/users/*</url-pattern>
+      <url-pattern>/sparql/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>WingsAdmin</role-name>

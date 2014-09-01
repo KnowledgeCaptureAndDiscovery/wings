@@ -23,8 +23,10 @@ UserViewer.prototype.createStoreModels = function() {
 UserViewer.prototype.getProfileHTML = function(userStore) {
     var html = "<div class='profile'>";
     html += "<h1>"+userStore.id+"</h1>";
-    html += "<div class='profile_detail'>FullName: <a href='"+userStore.site+"'>"+userStore.site+"</a></div>";
-    html += "<div class='profile_detail'>Admin: "+userStore.isAdmin+"</div>";
+    if(userStore.fullname)
+    	html += "<div class='profile_detail'>FullName: "+userStore.fullname+"</div>";
+    if(userStore.isAdmin)
+    	html += "<div class='profile_detail'>[ Administrator ]</div>";
     html += "<div style='clear:both'></div>";
     html += "</div>";
     return html;
@@ -37,7 +39,7 @@ UserViewer.prototype.openUserEditor = function(args) {
     var mainPanel;
     var This = this;
     
-    var editable = (USER_ID==getLocalName(id));
+    var editable = (USER_ID==getLocalName(id)) || this.is_admin;
     
     var editbtn = new Ext.Button({
     	text: 'Edit',
@@ -115,6 +117,25 @@ UserViewer.prototype.openUserEditor = function(args) {
     	}
     });
     
+    var items = [ {
+		name : 'fullname',
+		fieldLabel : 'Full Name',
+		value: userStore.fullname
+	},{
+		inputType : 'password',
+		name : 'password',
+		fieldLabel : 'Password',
+		value : userStore.password
+	}];
+    if(this.is_admin) {
+    	items.push({
+    		xtype : 'checkbox',
+    		name : 'isAdmin',
+    		fieldLabel : 'Is Admin ?',
+    		checked : userStore.isAdmin
+    	});
+    }
+    
 	var form = {
 		xtype : 'form',
 		frame : true,
@@ -126,15 +147,7 @@ UserViewer.prototype.openUserEditor = function(args) {
 			flex: 1,
 			anchor: '100%'
 		},
-		items : [ {
-			name : 'fullname',
-			fieldLabel : 'Full Name',
-			value: userStore.fullname
-		},{
-			name : 'isAdmin',
-			fieldLabel : 'Is Admin',
-			value: userStore.isAdmin
-		} ],
+		items : items,
 		listeners: {
 			dirtychange: function(item, dirty, opts) {
 				if(dirty) {
@@ -157,11 +170,119 @@ UserViewer.prototype.openUserEditor = function(args) {
     tab.add(mainPanel);
 };
 
+UserViewer.prototype.confirmAndDeleteUser = function(node) {
+    var This = this;
+    var userid = node.data.id;
+    Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + userid, function(b) {
+        if (b == "yes") {
+            var url = This.op_url + '/removeUser';
+            Ext.get(This.tabPanel.getId()).mask("Deleting..");
+            Ext.Ajax.request({
+                url: url,
+                params: {
+                    userid: userid
+                },
+                success: function(response) {
+                    Ext.get(This.tabPanel.getId()).unmask();
+                    if (response.responseText == "OK") {
+                        node.parentNode.removeChild(node);
+                        if(This.tabPanel.getActiveTab().title == userid)
+                        	This.tabPanel.remove(This.tabPanel.getActiveTab());
+                    } else {
+                        _console(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    Ext.get(This.tabPanel.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    });
+};
+
+UserViewer.prototype.addUser = function() {
+    var This = this;
+
+    Ext.Msg.prompt("Add a User", "Enter id for new user :", function(btn, text) {
+        if (btn == 'ok' && text) {
+            var userid = getRDFID(text);
+            var enode = This.leftPanel.getStore().getNodeById(userid);
+            if (enode) {
+                showError(getRDFID(text) + ' already exists ! Choose a different name.');
+                return;
+            }
+            var url = This.op_url + '/addUser';
+            Ext.get(This.tabPanel.getId()).mask("Adding User..");
+            Ext.Ajax.request({
+                url: url,
+                params: {
+                    userid: userid
+                },
+                success: function(response) {
+                	Ext.get(This.tabPanel.getId()).unmask();
+                    if (response.responseText == "OK") {
+                        var tmp = This.leftPanel.getRootNode().appendChild({
+                	            text: userid,
+                	            id: userid,
+                	            iconCls: 'userIcon',
+                	            leaf: true
+                            });
+                        This.leftPanel.getStore().sort('text', 'ASC');
+                    } else 
+                    	_console(response.responseText);
+                },
+                failure: function(response) {
+                	Ext.get(This.tabPanel.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    });
+};
+
+UserViewer.prototype.getAddUserMenuItem = function() {
+    var This = this;
+    return {
+        text: 'Add',
+        iconCls: 'addIcon',
+        handler: function() {
+            This.addUser();
+        }
+    };
+};
+
+UserViewer.prototype.getDeleteUserMenuItem = function() {
+    var This = this;
+    return {
+        text: 'Delete',
+        iconCls: 'delIcon',
+        handler: function() {
+            var nodes = This.leftPanel.getSelectionModel().getSelection();
+            if (!nodes || !nodes.length || !nodes[0].parentNode)
+                return;
+            var node = nodes[0];
+            This.confirmAndDeleteUser(node);
+        }
+    };
+};
+
+UserViewer.prototype.onUserItemContextMenu = function(view, node, item, index, e, eOpts) {
+    var This = this;
+    e.stopEvent();
+    if (!this.menu) {
+        this.menu = Ext.create('Ext.menu.Menu', {
+            items: [This.getDeleteUserMenuItem()]
+            });
+    }
+    if(this.is_admin) 
+	    this.menu.showAt(e.getXY());
+};
 
 UserViewer.prototype.createLeftPanel = function() {
 	var This = this;
 
-	this.leftPanel = {
+	this.leftPanel = Ext.create({
 		xtype : 'treepanel',
 		width : '20%',
 		region : 'west',
@@ -181,6 +302,7 @@ UserViewer.prototype.createLeftPanel = function() {
 	        root: This.getTree(This.store.users),
 	        sorters: ['text']
 	    }),
+	    tbar : [This.getAddUserMenuItem(), This.getDeleteUserMenuItem()],
 		listeners : {
 			itemclick : function(view, rec, item, ind, event) {
 				var id = rec.data.id;
@@ -234,9 +356,14 @@ UserViewer.prototype.createLeftPanel = function() {
 		            this.up('treepanel').selectPath(tab.path, 'text');
 		        else
 		            this.up('treepanel').getSelectionModel().deselectAll();
-		    }
+		    },
+		    
+            itemcontextmenu: {
+                fn: This.onUserItemContextMenu,
+                scope: this
+            }
 		}
-	};
+	});
 };
 
 UserViewer.prototype.openNewIconTab = function(tabname, iconCls) {
@@ -262,7 +389,7 @@ UserViewer.prototype.getTree = function(users) {
 		var user = users[i];
 		var userid = user.id;
 	    root.children.push({
-	            text: getLocalName(userid),
+	            text: userid,
 	            id: userid,
 	            iconCls: 'userIcon',
 	            leaf: true
@@ -284,7 +411,7 @@ UserViewer.prototype.createTabPanel = function() {
 		// tabWidth: 135,
 		items : [ {
 			layout : 'fit',
-			title : 'User Community',
+			title : 'Manage Users',
 			autoLoad : {
 				url : this.op_url + '/intro'
 			}

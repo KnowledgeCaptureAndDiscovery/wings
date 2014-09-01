@@ -1,6 +1,5 @@
 package edu.isi.wings.portal.classes.users;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.catalina.Role;
@@ -9,27 +8,25 @@ public class User {
   String id;
   String password;
   String fullname;
-  ArrayList<String> roles;
+  boolean isAdmin;
   
   public User(String id, String password, String fullname) {
     super();
     this.id = id;
     this.password = password;
     this.fullname = fullname;
-    this.roles = new ArrayList<String>();
+    this.isAdmin = false;
   }
   
   public User(org.apache.catalina.User user) {
     this.id = user.getUsername();
     this.fullname = user.getFullName();
-    //this.password = user.getPassword();
-    this.password = "*****";
-    this.roles = new ArrayList<String>();
+    this.password = user.getPassword();
+    this.isAdmin = false;
     for(Iterator<Role> roleiter = user.getRoles(); roleiter.hasNext(); ) {
       String rolename = roleiter.next().getRolename();
-      if(rolename.equals(UsersDB.WINGS_USER_ROLE) 
-          || rolename.equals(UsersDB.WINGS_ADMIN_ROLE))
-        this.roles.add(rolename);
+      if(rolename.equals(UsersDB.WINGS_ADMIN_ROLE))
+        this.isAdmin = true;
     }
   }
 
@@ -57,12 +54,12 @@ public class User {
     this.fullname = fullname;
   }
 
-  public ArrayList<String> getRoles() {
-    return roles;
+  public boolean isAdmin() {
+    return isAdmin;
   }
 
-  public void setRoles(ArrayList<String> roles) {
-    this.roles = roles;
+  public void setAdmin(boolean isAdmin) {
+    this.isAdmin = isAdmin;
   }
 
 }

@@ -65,14 +65,15 @@ public class UsersDB {
       return false;
     org.apache.catalina.User dbuser = this.udb.findUser(user.getId());
     if(dbuser != null) {
-      if(user.getPassword() != null && !user.getPassword().equals(""))
+      if(user.getPassword() != null)
         dbuser.setPassword(user.getPassword());
       dbuser.setFullName(user.getFullname());
-      for(String rolename : user.getRoles()) {
-        Role role = this.udb.findRole(rolename);
-        if(role != null && !dbuser.isInRole(role))
-          dbuser.addRole(role);
-      }
+
+      // Reset all roles
+      dbuser.removeRoles();
+      this.setUserRole(user.getId());
+      if(user.isAdmin())
+        this.setUserAdminRole(user.getId());
     }
     User curuser = this.getUser(user.getId());
     if(curuser != null) 

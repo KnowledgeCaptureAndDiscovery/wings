@@ -133,13 +133,17 @@ function getPortalHeader() {
 		+ "<li class=\"last\"><a href=\""
 		+ userpath
 		+ "/domains\">Manage Domain</a></li>\n"
-		+ "<li><a href=\""
-		+ compath
-		+ "/resources\">Describe Resources</a></li>\n"
-		+ "<li><a href=\""
-		+ compath
-		+ "/users\">Manage Users</a></li>\n"
-		+ "</ul></li>\n" 
+		+ "</ul></li>\n"
+		+ (ISADMIN ? 
+			"<li><a href=\"#\">Admin</a><ul>\n"
+			+ "<li><a href=\""
+			+ compath
+			+ "/users\">Manage Users</a></li>\n"
+			+ "<li><a href=\""
+			+ compath
+			+ "/resources\">Describe Resources</a></li>\n"
+			+ "</ul></li>\n"
+			: "")
 		+ (VIEWER_ID != 'null' ? "<li style='float:right'><a href=\""
 		+ homepath
 		+ "/jsp/logout.jsp\">Logout <span class='user'>"+VIEWER_ID+"</span></a></li>" : '')

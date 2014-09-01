@@ -74,7 +74,7 @@ public class Config {
 	// This following are user/domain specific properties
 	private String userPath;
 	private String userDir;
-	private boolean isAdminUser;
+	private boolean isAdminViewer;
   private Domain domain;
 	private String domainId;
 	private String domainsListJSON;
@@ -120,10 +120,7 @@ public class Config {
       }
       // Get viewer roles
       User viewer = this.userapi.getUser(this.viewerId);
-      if(viewer.getRoles().contains(UsersDB.WINGS_ADMIN_ROLE))
-        this.isAdminUser = true;
-      else
-        this.isAdminUser = false;
+      this.isAdminViewer = viewer.isAdmin();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -555,12 +552,12 @@ public class Config {
 		this.userDir = userDir;
 	}
 
-	public boolean isAdminUser() {
-    return isAdminUser;
+	public boolean isAdminViewer() {
+    return isAdminViewer;
   }
 
-  public void setAdminUser(boolean isAdminUser) {
-    this.isAdminUser = isAdminUser;
+  public void setAdminViewer(boolean isAdminViewer) {
+    this.isAdminViewer = isAdminViewer;
   }
 
   public void setExportUserUrl(String exportUserUrl) {

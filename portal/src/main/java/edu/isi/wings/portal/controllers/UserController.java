@@ -36,7 +36,7 @@ public class UserController {
       
       out.println("<html>");
       out.println("<head>");
-      out.println("<title>Community</title>");
+      out.println("<title>Manage Users</title>");
       JSLoader.loadConfigurationJS(out, config);
       CSSLoader.loadUserViewer(out, config.getContextRootPath());
       JSLoader.loadUserViewer(out, config.getContextRootPath());
@@ -49,7 +49,7 @@ public class UserController {
               + "users: " + json.toJson(users)
             + " }, " 
             + "'" + config.getScriptPath() + "', "
-            + config.isAdminUser()
+            + config.isAdminViewer()
             + ");\n"
             + "userViewer_" + guid + ".initialize();\n"
           + "});");
@@ -63,7 +63,10 @@ public class UserController {
 
   public String getUserJSON(String userid) {
     try {
-      return json.toJson(api.getUser(userid));
+      User user = api.getUser(userid);
+      if(user.getPassword() != null)
+        user.setPassword(user.getPassword().replaceAll(".", "*"));
+      return json.toJson(user);
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -77,13 +80,53 @@ public class UserController {
 
     try {
       User user = json.fromJson(uservals_json, User.class);
-      if(!this.config.getUserId().equals(user.getId()))
+      // Can only save your own information, or if the viewer is admin
+      if(!this.config.getViewerId().equals(user.getId())
+          && !this.config.isAdminViewer())
         return false;
-      return this.api.saveUser(user) && this.api.save();
+      
+      // If the password is all "*" (i.e. shadowed), then set to null
+      if(user.getPassword().matches("\\**"))
+        user.setPassword(null);
+      
+      // A non-admin user cannot set itself to be admin
+      if(!config.isAdminViewer())
+        user.setAdmin(false);
+      
+      return this.api.saveUser(user) 
+          && this.api.save();
+      
     } catch (Exception e) {
       e.printStackTrace();
       return false;
-    } finally {
     }
+  }
+  
+  public boolean addUser(String userid) {
+    try {
+      User user = api.getUser(userid);
+      if(user != null)
+        return false;
+      return this.api.addUser(userid, null, null)
+          && this.api.save();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+  
+  public boolean removeUser(String userid) {
+    try {
+      User user = api.getUser(userid);
+      if(user == null)
+        return false;
+      return this.api.removeUser(userid)
+          && this.api.save();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
   }
 }
