@@ -118,6 +118,8 @@ public class UserController {
   
   public boolean removeUser(String userid) {
     try {
+      if(config.getViewerId().equals(userid))
+        return false;
       User user = api.getUser(userid);
       if(user == null)
         return false;

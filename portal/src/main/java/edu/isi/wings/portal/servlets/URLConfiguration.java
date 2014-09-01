@@ -27,6 +27,9 @@ public class URLConfiguration extends HttpConfigurationProvider
          "plan", "upload"};
      for(String script: scripts) {
        config.addRule()
+         .when(Direction.isInbound().and(Path.matches("/users/{owner}/"+script)))
+         .perform(Forward.to("/"+script+"?userid={owner}"));
+       config.addRule()
            .when(Direction.isInbound().and(Path.matches("/users/{owner}/{domain}/"+script)))
            .perform(Forward.to("/"+script+"?userid={owner}&domainid={domain}"));
        config.addRule()
@@ -36,12 +39,12 @@ public class URLConfiguration extends HttpConfigurationProvider
          .when(Direction.isInbound().and(Path.matches("/users/{owner}/{domain}/"+script+"/{ext}/{op}")))
          .perform(Forward.to("/"+script+"/{ext}/{op}?userid={owner}&domainid={domain}"));
      }
-    config.addRule()
+     config.addRule()
         .when(Direction.isInbound().and(Path.matches("/users/{owner}/domains")))
         .perform(Forward.to("/domains?userid={owner}"));
-    config.addRule()
+     config.addRule()
         .when(Direction.isInbound().and(Path.matches("/users/{owner}/domains/{op}")))
         .perform(Forward.to("/domains/{op}?userid={owner}"));
-    return config;
-  }
+     return config;
+   }
 }

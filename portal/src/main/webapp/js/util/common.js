@@ -133,25 +133,51 @@ function getPortalHeader() {
 		+ "<li class=\"last\"><a href=\""
 		+ userpath
 		+ "/domains\">Manage Domain</a></li>\n"
-		+ "</ul></li>\n"
-		+ (ISADMIN ? 
-			"<li><a href=\"#\">Admin</a><ul>\n"
+		+ "</ul></li>\n";
+	if(ISADMIN) {
+		html +=  "<li><a href=\"#\">Admin</a><ul>\n"
 			+ "<li><a href=\""
 			+ compath
 			+ "/users\">Manage Users</a></li>\n"
 			+ "<li><a href=\""
 			+ compath
 			+ "/resources\">Describe Resources</a></li>\n"
-			+ "</ul></li>\n"
-			: "")
-		+ (VIEWER_ID != 'null' ? "<li style='float:right'><a href=\""
-		+ homepath
-		+ "/jsp/logout.jsp\">Logout <span class='user'>"+VIEWER_ID+"</span></a></li>" : '')
-		+ (VIEWER_ID != USER_ID ? 
-				"<li style='float:right'>"
-				+ "<a style='color:pink'><i>Viewing "+USER_ID+" account</i></a></li>" : "") 
-		+ "</ul>"
-		+ "</div>\n";
+			+ "</ul></li>\n";
+	}
+	if(VIEWER_ID != 'null') {
+		html += "<li style='float:right'><a href=\""
+			+ homepath
+			+ "/jsp/logout.jsp\">Logout <span class='user'>"
+			+ VIEWER_ID
+			+ "</span></a></li>";
+	}
+	var style = "";
+	if(VIEWER_ID != USER_ID)
+		style = "color:pink;";
+	
+	html += "<li style='float:right'>"
+		+ "<a href='#' style='" + style + "'>User: "+ USER_ID + "</a><ul>";
+	for(var i=0; i<USERS.length; i++) {
+		var userid = USERS[i];
+//		var userurl = CONTEXT_ROOT + "/users/" + userid + "/domains";
+//		userurl = userurl.replace("/" + DOMAIN_ID, "");
+		var userurl = SCRIPT_PATH.replace(USER_ID, userid);
+		userurl = userurl.replace(DOMAIN_ID, "blank");
+		html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
+	}
+	html += "</ul></li>";
+	
+	html += "<li style='float:right'>"
+		+ "<a href='#' style='" + style + "'>Domain: "+ DOMAIN_ID + "</a><ul>";
+	for(var i=0; i<DOMAINS.length; i++) {
+		var domid = DOMAINS[i];
+		var udomurl = SCRIPT_PATH.replace(DOMAIN_ID, domid);
+		html += "<li class=\"first\"><a href='" + udomurl + "'>" + domid + "</a></li>";
+	}
+	html += "</ul></li>";
+	
+	html += "</ul></div>";
+
 	return new Ext.Container(
 			{
 				id : "app-north",

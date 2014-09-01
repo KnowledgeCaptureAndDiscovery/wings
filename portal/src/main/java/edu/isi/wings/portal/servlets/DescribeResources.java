@@ -51,37 +51,45 @@ public class DescribeResources extends HttpServlet {
     
     int guid = 1;
 
+    ResourceController rc = null;
     synchronized (WriteLock.Lock) {
-      ResourceController rc = new ResourceController(guid, config);
-      String resid = request.getParameter("resid");
-      PrintWriter out = response.getWriter();
-      
-      // Reader functions
-      if (op == null || op.equals("")) {
-        response.setContentType("text/html");
-        rc.show(out);
-        return;
-      } 
-      else if (op.equals("getMachineJSON")) {
-        out.println(rc.getMachineJSON(resid));
-      }
-      else if (op.equals("getSoftwareJSON")) {
-        out.println(rc.getSoftwareJSON(resid));
-      }
-      else if (op.equals("getSoftwareVersionJSON")) {
-        out.println(rc.getSoftwareVersionJSON(resid));
-      }
-      else if (op.equals("getAllSoftwareVersions")) {
+      rc = new ResourceController(guid, config);
+    }
+
+    String resid = request.getParameter("resid");
+    PrintWriter out = response.getWriter();
+
+    // Reader functions
+    if (op == null || op.equals("")) {
+      response.setContentType("text/html");
+      rc.show(out);
+      return;
+    } 
+    else if (op.equals("getMachineJSON")) {
+      out.println(rc.getMachineJSON(resid));
+    }
+    else if (op.equals("getSoftwareJSON")) {
+      out.println(rc.getSoftwareJSON(resid));
+    }
+    else if (op.equals("getSoftwareVersionJSON")) {
+      out.println(rc.getSoftwareVersionJSON(resid));
+    }
+    else if (op.equals("getAllSoftwareVersions")) {
+      synchronized(WriteLock.Lock) {
         out.println(rc.getAllSoftwareVersions());
       }
-      else if (op.equals("getAllSoftwareEnvironment")) {
+    }
+    else if (op.equals("getAllSoftwareEnvironment")) {
+      synchronized(WriteLock.Lock) {
         out.println(rc.getAllSoftwareEnvironment());
       }
-      else if (op.equals("checkMachine")) {
-        out.println(rc.checkMachine(resid));
-      }
+    }
+    else if (op.equals("checkMachine")) {
+      out.println(rc.checkMachine(resid));
+    }
       
-      // Writer functions
+    // Writer functions
+    synchronized (WriteLock.Lock) {
       if (op.equals("addMachine")) {
         if (rc.addMachine(resid))
           out.print("OK");

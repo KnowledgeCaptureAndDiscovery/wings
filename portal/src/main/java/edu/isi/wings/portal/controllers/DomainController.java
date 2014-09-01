@@ -91,8 +91,7 @@ public class DomainController {
 	}
 
   public String getSimpleDomainsListJSON() {
-    return "{ list: " + json.toJson(user_domains.keySet()) + ", selected: "
-        + (domain != null ? json.toJson(domain.getDomainName()) : "null") + "}";
+    return json.toJson(user_domains.keySet());
   }
 	
 	public String getDomainJSON (String domain) {

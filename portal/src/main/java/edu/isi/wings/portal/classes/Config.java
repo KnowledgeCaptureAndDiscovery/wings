@@ -74,6 +74,7 @@ public class Config {
 	// This following are user/domain specific properties
 	private String userPath;
 	private String userDir;
+	private String usersListJSON;
 	private boolean isAdminViewer;
   private Domain domain;
 	private String domainId;
@@ -214,10 +215,13 @@ public class Config {
 		DomainController dc = new DomainController(1, this);
 		this.domain = dc.getUserDomain();
 		this.domainsListJSON = dc.getSimpleDomainsListJSON();
+		this.usersListJSON = this.userapi.getUsersListJSON();
 		
-		if(this.domain != null)
+		if(this.domain != null) {
 		  this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir() 
         + "/" + this.getUserId() + "/" + this.domain.getDomainName();
+		  this.domainId = this.domain.getDomainName();
+		}
 	}
 
 	public String getViewerId() {
@@ -248,6 +252,10 @@ public class Config {
     return domainsListJSON;
   }
   
+  public String getUsersListJSON() {
+    return usersListJSON;
+  }
+
   private void initializePortalConfig(HttpServletRequest request) {
 		this.contextRootPath = request.getContextPath();
 		

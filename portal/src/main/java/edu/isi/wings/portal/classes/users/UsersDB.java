@@ -9,6 +9,10 @@ import javax.naming.InitialContext;
 import org.apache.catalina.Role;
 import org.apache.catalina.UserDatabase;
 
+import com.google.gson.Gson;
+
+import edu.isi.wings.portal.classes.JsonHandler;
+
 /**
  * Requires the following markup in server.xml for this to work:
  * 
@@ -25,10 +29,12 @@ public class UsersDB {
   
   private UserDatabase udb;
   private ArrayList<User> users;
+  private Gson json;
   
   public UsersDB() {
     this.initializeUserDatabase();
     this.initializeUserIds();
+    json = JsonHandler.createGson();
   }
   
   public boolean save() {
@@ -125,6 +131,14 @@ public class UsersDB {
     if(this.udb == null)
       return null;
     return this.users;
+  }
+  
+  public String getUsersListJSON() {
+    ArrayList<String> userids = new ArrayList<String>();
+    for(User user : this.users) {
+      userids.add(user.getId());
+    }
+    return json.toJson(userids);
   }
   
   private void initializeUserDatabase() {

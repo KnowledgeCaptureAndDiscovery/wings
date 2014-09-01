@@ -173,6 +173,10 @@ UserViewer.prototype.openUserEditor = function(args) {
 UserViewer.prototype.confirmAndDeleteUser = function(node) {
     var This = this;
     var userid = node.data.id;
+    if(userid == VIEWER_ID) {
+    	showError("Cannot delete your own id");
+    	return;
+    }
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + userid, function(b) {
         if (b == "yes") {
             var url = This.op_url + '/removeUser';

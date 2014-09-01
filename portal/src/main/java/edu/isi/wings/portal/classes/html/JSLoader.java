@@ -39,7 +39,10 @@ public class JSLoader {
     jsvars.put("USER_ROOT", "'" +config.getUserPath() + "'");
     jsvars.put("USERDOM_ROOT", "'" +config.getUserDomainUrl() + "'");
     jsvars.put("DOMAINS", config.getDomainsListJSON());
+    jsvars.put("DOMAIN_ID", "'" +config.getDomainId() + "'");
+    jsvars.put("USERS", config.getUsersListJSON());
     jsvars.put("ISADMIN", config.isAdminViewer());
+    jsvars.put("SCRIPT_PATH", "'" +config.getScriptPath() + "'");
 		JSLoader.showScriptKeyVals(out, jsvars);
 	}
 
