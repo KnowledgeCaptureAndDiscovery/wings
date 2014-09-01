@@ -155,26 +155,28 @@ function getPortalHeader() {
 	if(VIEWER_ID != USER_ID)
 		style = "color:pink;";
 	
-	html += "<li style='float:right'>"
-		+ "<a href='#' style='" + style + "'>User: "+ USER_ID + "</a><ul>";
-	for(var i=0; i<USERS.length; i++) {
-		var userid = USERS[i];
-//		var userurl = CONTEXT_ROOT + "/users/" + userid + "/domains";
-//		userurl = userurl.replace("/" + DOMAIN_ID, "");
-		var userurl = SCRIPT_PATH.replace(USER_ID, userid);
-		userurl = userurl.replace(DOMAIN_ID, "blank");
-		html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
+	if(USERS != null) {
+		html += "<li style='float:right'>"
+			+ "<a href='#' style='" + style + "'>User: "+ USER_ID + "</a><ul>";
+		for(var i=0; i<USERS.length; i++) {
+			var userid = USERS[i];
+			var userurl = SCRIPT_PATH.replace(USER_ID, userid);
+			userurl = userurl.replace(DOMAIN_ID, "blank");
+			html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
+		}
+		html += "</ul></li>";
 	}
-	html += "</ul></li>";
 	
-	html += "<li style='float:right'>"
-		+ "<a href='#' style='" + style + "'>Domain: "+ DOMAIN_ID + "</a><ul>";
-	for(var i=0; i<DOMAINS.length; i++) {
-		var domid = DOMAINS[i];
-		var udomurl = SCRIPT_PATH.replace(DOMAIN_ID, domid);
-		html += "<li class=\"first\"><a href='" + udomurl + "'>" + domid + "</a></li>";
+	if(DOMAINS != null) {
+		html += "<li style='float:right'>"
+			+ "<a href='#' style='" + style + "'>Domain: "+ DOMAIN_ID + "</a><ul>";
+		for(var i=0; i<DOMAINS.length; i++) {
+			var domid = DOMAINS[i];
+			var udomurl = SCRIPT_PATH.replace(DOMAIN_ID, domid);
+			html += "<li class=\"first\"><a href='" + udomurl + "'>" + domid + "</a></li>";
+		}
+		html += "</ul></li>";
 	}
-	html += "</ul></li>";
 	
 	html += "</ul></div>";
 

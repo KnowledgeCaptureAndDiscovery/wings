@@ -132,7 +132,8 @@
       <url-pattern>/workflows/*</url-pattern>
       <url-pattern>/executions/*</url-pattern>
       <url-pattern>/upload/*</url-pattern>
-      <url-pattern>/plan/*</url-pattern>      
+      <url-pattern>/plan/*</url-pattern>
+      <url-pattern>/common/resources/*</url-pattern>   
     </web-resource-collection>
     <auth-constraint>
       <role-name>WingsUser</role-name>
@@ -142,7 +143,6 @@
     <display-name>SecurityConstraint</display-name>
     <web-resource-collection>
       <web-resource-name>Admin Application</web-resource-name>
-      <url-pattern>/common/resources/*</url-pattern>
       <url-pattern>/common/users/*</url-pattern>
       <url-pattern>/sparql/*</url-pattern>
     </web-resource-collection>
@@ -151,7 +151,7 @@
     </auth-constraint>
   </security-constraint>
   <login-config>
-    <auth-method>BASIC</auth-method>
+    <auth-method>FORM</auth-method>
     <form-login-config>
       <form-login-page>/jsp/login.jsp</form-login-page>
       <form-error-page>/jsp/login_failed.jsp</form-error-page>
