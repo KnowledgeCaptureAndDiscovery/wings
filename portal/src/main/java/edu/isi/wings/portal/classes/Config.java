@@ -214,7 +214,7 @@ public class Config {
 		// Get user's selected domain
 		DomainController dc = new DomainController(1, this);
 		this.domain = dc.getUserDomain();
-		this.domainsListJSON = dc.getSimpleDomainsListJSON();
+		this.domainsListJSON = dc.getReadableDomainsList();
 		this.usersListJSON = this.userapi.getUsersListJSON();
 		
 		if(this.domain != null) {

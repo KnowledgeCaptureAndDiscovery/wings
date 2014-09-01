@@ -90,7 +90,8 @@ public class DomainController {
 				 + ", engines: " + json.toJson(config.getEnginesList()) + "}";
 	}
 
-  public String getSimpleDomainsListJSON() {
+  public String getReadableDomainsList() {
+    // TODO: Check read-permissions to get allowed domains
     return json.toJson(user_domains.keySet());
   }
 	

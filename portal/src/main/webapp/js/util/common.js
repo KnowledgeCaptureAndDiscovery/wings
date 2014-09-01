@@ -145,11 +145,7 @@ function getPortalHeader() {
 			+ "</ul></li>\n";
 	}
 	if(VIEWER_ID != 'null') {
-		html += "<li style='float:right'><a href=\""
-			+ homepath
-			+ "/jsp/logout.jsp\">Logout <span class='user'>"
-			+ VIEWER_ID
-			+ "</span></a></li>";
+
 	}
 	var style = "";
 	if(VIEWER_ID != USER_ID)
@@ -157,13 +153,21 @@ function getPortalHeader() {
 	
 	if(USERS != null) {
 		html += "<li style='float:right'>"
-			+ "<a href='#' style='" + style + "'>User: "+ USER_ID + "</a><ul>";
+			+ "<a href='#'>User: <span class='user' style='"+style+"'>"
+			+ USER_ID + "</span></a><ul>";
 		for(var i=0; i<USERS.length; i++) {
 			var userid = USERS[i];
+			if(userid == USER_ID)
+				continue;
 			var userurl = SCRIPT_PATH.replace(USER_ID, userid);
 			userurl = userurl.replace(DOMAIN_ID, "blank");
 			html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
 		}
+		html += "<li style='float:right'><a href=\""
+			+ homepath
+			+ "/jsp/logout.jsp\">Logout <span class='user'>"
+			+ VIEWER_ID
+			+ "</span></a></li>";
 		html += "</ul></li>";
 	}
 	
@@ -172,6 +176,8 @@ function getPortalHeader() {
 			+ "<a href='#' style='" + style + "'>Domain: "+ DOMAIN_ID + "</a><ul>";
 		for(var i=0; i<DOMAINS.length; i++) {
 			var domid = DOMAINS[i];
+			if(domid == DOMAIN_ID)
+				continue;
 			var udomurl = SCRIPT_PATH.replace(DOMAIN_ID, domid);
 			html += "<li class=\"first\"><a href='" + udomurl + "'>" + domid + "</a></li>";
 		}
