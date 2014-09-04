@@ -1097,7 +1097,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
     this.dataTreePanel.on("itemclick", Ext.Function.bind(this.handleTreeClick, this));
 
     this.dataTreePanel.getStore().on('move', function(node, oldp, newp) {
-        This.moveDatatypeTo(node.data.id, oldp.data.id, newp.data.id);
+        This.moveDataitemTo(node.data.id, node.data.isClass, oldp.data.id, newp.data.id);
     });
 };
 
@@ -1559,17 +1559,22 @@ DataViewer.prototype.deleteDatatype = function(treeNode, delChildren) {
     });
 };
 
-DataViewer.prototype.moveDatatypeTo = function(dtype, fromtype, totype) {
+DataViewer.prototype.moveDataitemTo = function(ditem, isClass, fromtype, totype) {
     var This = this;
-    var url = this.op_url + '/moveDatatypeTo';
+    var url = this.op_url + (isClass ? "/moveDatatypeTo" : "/moveDataTo");
+    var params = { 
+    		from_parent_type: fromtype,
+    		to_parent_type: totype
+    };
+    if(isClass)
+    	params.data_type = ditem;
+    else
+    	params.data_id = ditem;
+
     Ext.get(this.dataTreePanel.getId()).mask('Moving..');
     Ext.Ajax.request({
         url: url,
-        params: {
-            data_type: dtype,
-            from_parent_type: fromtype,
-            to_parent_type: totype
-        },
+        params: params,
         success: function(response) {
             Ext.get(This.dataTreePanel.getId()).unmask();
         },

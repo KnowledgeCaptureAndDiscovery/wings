@@ -851,15 +851,27 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 
 
     var mainPanelItems = [ tab.ioEditor ];
-    mainPanelItems.push(This.getRulesTab('Rules', 'rules', compStore.rules, 
-    		editable, tab, savebtn));
-    mainPanelItems.push(This.getRulesTab('Inherited Rules', 'inhrules', 
-    		compStore.inheritedRules, false, tab, savebtn));
+    var rulesPanel = This.getRulesTab('Component Rules', 'rules', compStore.rules, 
+    		editable, tab, savebtn);
+    var inhRulesPanel = This.getRulesTab('Inherited Rules', 'inhrules', 
+    		compStore.inheritedRules, false, tab, savebtn);
+    mainPanelItems.push({
+    	xtype: 'tabpanel',
+    	title: 'Rules',
+        iconCls: 'inferIcon',
+    	items: [rulesPanel, inhRulesPanel]
+    });
     mainPanelItems.push(This.getDocumentationTab('doc', compStore.documentation,
      		editable, tab, savebtn));
     if(c.concrete)
     	mainPanelItems.push(This.getDependenciesTab('Dependencies', 
     		compStore.requirement, editable, tab, savebtn));
+    
+    mainPanelItems.push({
+    	xtype: 'panel',
+    	title: 'Provenance',
+    	iconCls: 'provIcon'
+    });
     
     var mainPanel = new Ext.Panel({
         region: 'center',
@@ -1022,7 +1034,6 @@ ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, edita
     
    return new Ext.Panel({
         title: 'Rules',
-        iconCls: 'inferIcon',
         layout: 'fit',
         border: false,
         items: rulesArea,

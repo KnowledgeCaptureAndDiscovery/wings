@@ -510,7 +510,7 @@ public class Domain {
 		config.addProperty(prefix + ".map", urlmap.getMapping());
 	}
 
-	public void saveDomain() {
+	public boolean saveDomain() {
 		PropertyListConfiguration config = new PropertyListConfiguration();
 		config.addProperty("name", this.domainName);
 		config.addProperty("useSharedTripleStore", this.useSharedTripleStore);
@@ -553,9 +553,11 @@ public class Domain {
 		}
 		try {
 			config.save(this.domainConfigFile);
+			return true;
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}
+		return false;
 	}
 
 	public void prepareDomainForExport() {

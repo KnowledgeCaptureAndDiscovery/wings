@@ -245,6 +245,19 @@ public class DomainController {
 		return true;
 	}
 	
+  public boolean setDomainExecutionEngine(String domain, String engine) {
+    DomainInfo dominfo = this.user_domains.get(domain);
+    if (dominfo == null)
+      return false;
+    
+    Domain dom = new Domain(dominfo);
+    if(config.getEnginesList().contains(engine)) {
+      dom.setPlanEngine(engine);
+      dom.setStepEngine(engine);
+    }
+    return dom.saveDomain();
+  }
+	 
 	/*
 	 * Private functions
 	 */

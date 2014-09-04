@@ -143,7 +143,13 @@ public class ManageData extends HttpServlet {
 				if (!config.isSandboxed())
 					if (dv.moveDatatypeTo(dtype, fromtype, totype))
 						out.print("OK");
-			} else if (op.equals("addDataForType")) {
+			} else if (op.equals("moveDataTo")) {
+        String fromtype = request.getParameter("from_parent_type");
+        String totype = request.getParameter("to_parent_type");
+        if (!config.isSandboxed())
+          if (dv.moveDataTo(dataid, fromtype, totype))
+            out.print("OK");
+      } else if (op.equals("addDataForType")) {
 				if (dv.addDataForDatatype(dataid, dtype))
 					out.print("OK");
 			} else if (op.equals("delData")) {

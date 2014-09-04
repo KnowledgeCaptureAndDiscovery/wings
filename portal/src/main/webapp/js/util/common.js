@@ -107,6 +107,7 @@ function getPortalHeader() {
 	var userpath = USER_ID != 'null' ? USER_ROOT : CONTEXT_ROOT;
 	var userdompath = USER_ID != 'null' ? USERDOM_ROOT : CONTEXT_ROOT;
 	var compath = COM_ROOT;
+
 	var html = "<div class=\"menu\"><ul>"
 		+ "<li class=\"first active\"><a href=\""+homepath+"\">Home</a></li>"
 		+ "<li><a href=\"#\">Analysis</a><ul>\n"
@@ -134,6 +135,7 @@ function getPortalHeader() {
 		+ userpath
 		+ "/domains\">Manage Domain</a></li>\n"
 		+ "</ul></li>\n";
+
 	if(ISADMIN) {
 		html +=  "<li><a href=\"#\">Admin</a><ul>\n"
 			+ "<li><a href=\""

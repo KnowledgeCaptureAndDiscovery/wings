@@ -4,7 +4,10 @@ import java.io.PrintWriter;
 
 public class CSSLoader {
 	static String theme = "classic";
-	static String[] site_css = { "css/menu.css", "css/app.css" };
+	static String[] site_css = { "css/menu.css", "css/app.css" 
+	  , "css/fontello/css/wings-icons.css"
+	  //, "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" 
+	  };
 	static String[] extjs_css = { "lib/extjs/resources/ext-theme-"+theme+"/ext-theme-"+theme+"-all.css" };
 
 	public static void loadLoginViewer(PrintWriter out, String path) {
@@ -49,7 +52,10 @@ public class CSSLoader {
 
 	private static void showCssTags(PrintWriter out, String path, String[] css) {
 		for (String href : css) {
-			out.println("<link rel=\"stylesheet\" href=\"" + path + "/" + href + "\"/>");
+		  String url = path + "/" + href;
+		  if(href.matches("http:.*"))
+		    url = href;
+			out.println("<link rel=\"stylesheet\" href=\"" + url + "\"/>");
 		}
 	}
 }

@@ -24,6 +24,26 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	opacity: 0.8;
 }
 
+.wings-fa {
+	top: 1px !important;
+	font-size: 1.33333333em;
+	line-height: .75em;
+	vertical-align: -15%;
+}
+.fa-green { color: green; }
+.fa-maroon { color: maroon;	}
+.fa-red { color: red;	}
+.fa-orange { color: orange;	}
+.fa-navy { color: navy;	}
+.fa-blue { color: blue;	}
+.fa-yellow { color: yellow;	}
+.fa-grey { color: grey;	}
+.fa-brown { color: brown; }
+
+.provIcon {
+	background-image: url(../images/provenance.png) !important
+}
+
 .userIcon {
 	background-image: url(../images/user.png) !important
 }

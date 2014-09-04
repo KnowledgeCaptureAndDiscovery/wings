@@ -51,6 +51,24 @@ DomainViewer.prototype.createLeftPanel = function() {
         sorters: ['name']
 	});
 	
+	var execMenu = [];
+	for(var i=0; i<this.store.engines.length; i++) {
+		var engine = this.store.engines[i];
+		execMenu.push({
+	    	text: engine,
+	    	iconCls: 'runIcon',
+	    	handler: function() {
+	    		var sels = This.domainsGrid.getSelectionModel().getSelection();
+	    		if(!sels.length) {
+	    			showError("Select a domain first");
+	    			return;
+	    		}
+	    		var domain = sels[0];
+	    		This.setDomainExecutionEngine(domain, this.text);
+	    	}
+		})
+	}
+
     this.domainsGrid = new Ext.grid.Panel({
         region: 'west',
         width: '25%',
@@ -80,8 +98,12 @@ DomainViewer.prototype.createLeftPanel = function() {
         	    }]
         	}, {
         		itemId: 'selectbutton',
-        		text: 'Use',
+        		text: 'Set Default',
         		iconCls: 'default_domain'
+        	}, {
+        	    text: 'Use Execution Engine',
+        	    iconCls: 'runIcon',
+        	    menu: execMenu
         	}, {
         		itemId: 'delbutton',
         		text: 'Delete',
@@ -105,17 +127,44 @@ DomainViewer.prototype.createLeftPanel = function() {
         	dataIndex: 'engine',
         	header: 'Execution Engine',
         	flex: 1
-        }/*, {
+        }, {
         	dataIndex: 'permissions',
-        	header: 'Permissions'
-        }*/]
+        	header: 'Permissions',
+        	flex: 1,
+        	renderer: Ext.bind(This.formatPermissions, This)
+        }]
     });
 };
 
 DomainViewer.prototype.formatDomainName = function(name, item, rec) {
-	var cls = this.store.selected == name ? 'default_domain' : 'domain';
-	var isLegacy = rec.get('isLegacy');
-	return "<div class='"+cls+"'>"+name+"</div>";
+	var extra = '';
+	var iconstyle = 'color:grey';
+	if(this.store.selected == name) { 
+		extra = '<i class="icon-select-alt" style="color:green"></i>';
+		iconstyle = 'color:green';
+		name = '<b>' + name + '</b>';
+	}
+	return "<i class='icon-dropbox wings-fa' style='"+iconstyle+"'></i> " 
+		+ name + " " + extra;
+};
+
+DomainViewer.prototype.formatPermissions = function(name, item, rec) {
+	var perms = rec.get('permissions');
+	var users = [];
+	for(var i=0; i<perms.length; i++) {
+		var perm = perms[i];
+		var userid = perm.userid;
+		if(userid=="*") userid = "All";
+		users.push(userid);
+	}
+	if(users.length) {
+		var userstr = users.join(", ");
+		return "<i class='icon-unlockAlt' style='color:green'></i>"
+			+ " Unlocked for "+userstr;
+	}
+	else
+		return "<i class='icon-lock' style='color:maroon'></i>"
+			+ " Locked";
 };
 
 DomainViewer.prototype.getDomainDetails = function(store) {
@@ -329,6 +378,40 @@ DomainViewer.prototype.renameDomain = function(domname, newname) {
 					This.store.selected = newname;
 					window.location.reload();
 				}
+				This.domainsGrid.reconfigure();
+			} else {
+				_console(response.responseText);
+			}
+        },
+        failure: function(response) {
+        	Ext.get(This.domainsGrid.getId()).unmask();
+        	_console(response.responseText);
+        }
+        
+    });
+};
+
+DomainViewer.prototype.setDomainExecutionEngine = function(domrec, engine) {
+	var This = this;
+	var curengine = domrec.get('engine');
+	if(curengine == engine) {
+		showError('The domain engine is already set to '+engine);
+		return;
+	}
+	var domname = domrec.get('name');
+	
+    var url = This.op_url + '/setDomainExecutionEngine';
+    Ext.get(This.domainsGrid.getId()).mask("Setting Execution Engine..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+        	domain: domname,
+        	engine: engine
+        },
+        success: function(response) {
+        	 Ext.get(This.domainsGrid.getId()).unmask();
+			 if (response.responseText == "OK") {
+				domrec.set("engine", engine);
 				This.domainsGrid.reconfigure();
 			} else {
 				_console(response.responseText);

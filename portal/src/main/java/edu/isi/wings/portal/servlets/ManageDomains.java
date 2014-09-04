@@ -101,7 +101,17 @@ public class ManageDomains extends HttpServlet {
 			else if (op.equals("importDomain")) {
 				String location = request.getParameter("location");
 				out.println(dc.importDomain(domain, location));
-			} 
+			}
+			else if (op.equals("setDomainExecutionEngine")) {
+        String engine = request.getParameter("engine");
+        if(dc.setDomainExecutionEngine(domain, engine))
+          out.print("OK");
+      }
+			else if (op.equals("setDomainPermissions")) {
+        //String permissions_json = request.getParameter("permissions_json");
+        //if(dc.setPermissions(domain, permissions_json))
+			  // out.print("OK");
+      }
 		}
 	}
 

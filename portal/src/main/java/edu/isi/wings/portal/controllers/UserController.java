@@ -121,6 +121,8 @@ public class UserController {
       if(config.getViewerId().equals(userid))
         return false;
       User user = api.getUser(userid);
+      // TODO: Remove user domains
+      // TODO: Remove user directory
       if(user == null)
         return false;
       return this.api.removeUser(userid)

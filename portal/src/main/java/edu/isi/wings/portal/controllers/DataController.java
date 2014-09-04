@@ -489,7 +489,7 @@ public class DataController {
 	}
 
 	public synchronized boolean moveDatatypeTo(String dtype, String fromtype, String totype) {
-		if(dtype == null || dtype == null || totype == null)
+		if(dtype == null || fromtype == null || totype == null)
 			return false;
 		try {
 			return dc.moveDatatypeParent(dtype, fromtype, totype) 
@@ -504,6 +504,22 @@ public class DataController {
 		}
 	}
 
+  public synchronized boolean moveDataTo(String dataid, String fromtype, String totype) {
+    if(dataid == null || fromtype == null || totype == null)
+      return false;
+    try {
+      return dc.moveDataParent(dataid, fromtype, totype) 
+          && dc.save();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    finally {
+      dc.end();
+    }
+  }
+  
 	public synchronized boolean delDatatypes(String[] dtypes) {
 		try {
 			for (String dtypeid : dtypes) {

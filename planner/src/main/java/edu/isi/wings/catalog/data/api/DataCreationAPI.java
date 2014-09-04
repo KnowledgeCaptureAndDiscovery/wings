@@ -46,6 +46,8 @@ public interface DataCreationAPI {
 
 	boolean moveDatatypeParent(String dtypeid, String fromtypeid, String totypeid);
 
+	boolean moveDataParent(String dataid, String fromtypeid, String totypeid);
+	
 	boolean addData(String dataid, String dtypeid);
 
 	boolean renameData(String newdataid, String olddataid);
