@@ -17,7 +17,7 @@ RunBrowser.prototype.formatRunListItem = function(value, meta, record, rowind, c
 	var icon = 'icon-spin6 fa animate-spin fa-grey'
 	if(rstat == 'SUCCESS') 
 		icon = 'icon-select-alt fa-big fa-green';
-	else if(rstat == 'FAILED')
+	else if(rstat == 'FAILURE')
 		icon = 'icon-cancel-alt fa-big fa-red';
 
 	var tmpl = "<i style='float:left;padding:5px' class='"+icon+"'></i>" +
