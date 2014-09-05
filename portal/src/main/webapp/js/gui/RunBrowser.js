@@ -13,8 +13,18 @@ RunBrowser.prototype.formatRunListItem = function(value, meta, record, rowind, c
 	var d = record.data;
 	var tid = getLocalName(d.id).replace(/^(.+?)\-[0-9a-f]+\-[0-9a-f]+.*$/, '$1');
 	var rstat = d.status;
-	var tmpl = "<div class='status_{0}'><div class='runtitle'>{1}</div>";
-	tmpl += "<div class='runtime'>Run ID:{2}</div></div>";
+	
+	var icon = 'icon-spin6 fa animate-spin fa-grey'
+	if(rstat == 'SUCCESS') 
+		icon = 'icon-select-alt fa-big fa-green';
+	else if(rstat == 'FAILED')
+		icon = 'icon-cancel-alt fa-big fa-red';
+
+	var tmpl = "<i style='float:left;padding:5px' class='"+icon+"'></i>" +
+			"<div>" +
+			"<div class='runtitle'>{1}</div>" +
+			"<div class='runtime'>Run ID:{2}</div>" +
+			"</div>";
 	return Ext.String.format(tmpl, rstat, tid, getLocalName(d.id));
 };
 
@@ -65,7 +75,7 @@ RunBrowser.prototype.formatBinding = function(b, meta, record, runid) {
 RunBrowser.prototype.formatSave = function(b, meta, record, runid) {
 	var str = "";
 	if (record.data.type != "Input") {
-		str += "<a class='smSaveIcon' href='#'>Save</a>";
+		str += "<a class='icon-save fa-small fa-grey' href='#'>Save</a>";
 	}	
 	return str;
 };
@@ -380,7 +390,7 @@ RunBrowser.prototype.getRunLogPanel = function(data) {
 		title : 'Run Log',
 		layout : 'border',
 		border : false,
-		iconCls : 'runIcon',
+		iconCls : 'icon-run fa-title fa-blue',
 		items : {
 			region : 'center',
 			border : false,
@@ -398,7 +408,7 @@ RunBrowser.prototype.getRunDataPanel = function(tBrowser) {
 		title : 'Data',
 		layout : 'fit',
 		border : false,
-		iconCls : 'dataIcon',
+		iconCls : 'icon-file-alt fa-title fa-blue',
 		/*tbar : [
 		{
 				text : 'Get HTML',
@@ -464,12 +474,12 @@ RunBrowser.prototype.openRunDetails = function(runid, status, tab) {
 		var tab = new Ext.Panel({
 			layout : 'fit',
 			closable : true,
-			iconCls : 'runIcon',
+			iconCls : 'icon-run fa-title fa-brown',
 			border: false,
 			title : tabName,
 			items : []
 		});
-	   this.tabPanel.add(tab);
+		this.tabPanel.add(tab);
 		tab.runid = runid;
 		tab.status = status;
 		this.tabPanel.setActiveTab(tab);
@@ -604,7 +614,7 @@ RunBrowser.prototype.getRunList = function() {
 		tbar : [
 				{
 					text : 'Delete',
-					iconCls : 'delIcon',
+					iconCls : 'icon-del fa fa-red',
 					disabled : true,
 					id : 'delButton',
 					handler : function() {
@@ -617,7 +627,7 @@ RunBrowser.prototype.getRunList = function() {
 				},
 				{
 					text : 'Stop',
-					iconCls : 'stopIcon',
+					iconCls : 'icon-cancel fa fa-red',
 					id : 'stopButton',
 					disabled : true,
 					handler : function() {
@@ -630,7 +640,7 @@ RunBrowser.prototype.getRunList = function() {
 					xtype : 'tbfill'
 				}, '-', {
 					text : 'Reload',
-					iconCls : 'reloadIcon',
+					iconCls : 'icon-reload fa fa-green',
 					handler : function() {
 						wRunStore.load();
 					}

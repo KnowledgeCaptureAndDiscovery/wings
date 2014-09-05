@@ -137,7 +137,7 @@ TemplateBrowser.prototype.createNewTemplate = function() {
 						var tn = {
 							id : tid,
 							text : tname,
-							iconCls : 'wflowIcon',
+							iconCls : 'icon-wflow-alt fa fa-blue',
 							leaf : true
 						};
 						var tnode = This.treePanel.getRootNode()
@@ -298,7 +298,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 		tmp.push({
 			id : templateList[i],
 			text : getLocalName(templateList[i]),
-			iconCls : 'wflowIcon',
+			iconCls : 'icon-wflow-alt fa fa-blue',
 			leaf : true
 		});
 	}
@@ -308,7 +308,9 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 			text : 'Templates',
 			expanded : true,
 			children : tmp,
-			iconCls : 'dtypeIcon'
+			//iconCls : 'dtypeIcon'
+	        iconCls: 'icon-folder fa fa-orange',
+	        expIconCls: 'icon-folder-open fa fa-orange'
 		},
 		folderSort : true,
 		sorters : [ 'text' ]
@@ -322,7 +324,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 			items : [
 					{
 						text : 'New Template',
-						iconCls : 'addIcon',
+						iconCls : 'icon-add fa fa-green',
 						handler : function() {
 							This.createNewTemplate();
 						}
@@ -330,7 +332,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 					'-',
 					{
 						text : 'Delete Template',
-						iconCls : 'delIcon',
+						iconCls : 'icon-del fa fa-red',
 						handler : function() {
 							var nodes = This.treePanel.getSelectionModel()
 									.getSelection();
@@ -363,7 +365,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 		autoScroll : true,
 		rootVisible : false,
 		bodyCls : !This.editor_mode ? 'x-docked-noborder-top' : '',
-		iconCls : 'wflowIcon',
+		iconCls : 'icon-wflow-alt fa-title fa-blue',
 		containerScroll : true,
 		preventHeader : true,
 		store : treeStore,
@@ -475,7 +477,7 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 					border : false,
 					layout : 'border',
 					id : docid,
-					iconCls : 'docsIcon',
+					iconCls : 'icon-docs fa-title fa-blue',
 					items : [
 							{
 								region : 'north',
@@ -1000,7 +1002,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
 		plugins : [ editorPlugin ],
 		tbar : [ {
 			text : 'Add Constraint',
-			iconCls : 'addIcon',
+			iconCls : 'icon-add fa fa-green',
 			handler : function() {
 				// access the Record constructor through the grid's store
 				var p = new Triple({
@@ -1019,7 +1021,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
 		}, '-', {
 			text : 'Delete Constraint',
 			itemId : 'delConstraint',
-			iconCls : 'delIcon',
+			iconCls : 'icon-del fa fa-red',
 			disabled : true,
 			handler : function() {
 				editorPlugin.cancelEdit();
@@ -1092,7 +1094,7 @@ TemplateBrowser.prototype.renderTemplateEditor = function(templatePanel,
 			title : 'Documentation',
 			id : docid,
 			layout : 'border',
-			iconCls : 'docsIcon',
+			iconCls : 'icon-docs fa-title fa-blue',
 			border : false,
 			items : docEditor
 		});
@@ -1277,7 +1279,7 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 					var node = {
 						id : tid,
 						text : tname,
-						iconCls : 'wflowIcon',
+						iconCls : 'icon-wflow-alt fa fa-blue',
 						leaf : true
 					};
 					This.treePanel.getRootNode().appendChild(node);
@@ -1366,7 +1368,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 			items : [
 					{
 						text : 'Save',
-						iconCls : 'saveIcon',
+						iconCls : 'icon-save fa fa-blue',
 						cls : 'highlightIcon',
 						handler : function() {
 							This.saveActiveTemplate();
@@ -1374,7 +1376,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 					},
 					{
 						text : 'Save As',
-						iconCls : 'saveAsIcon',
+						iconCls : 'icon-save fa fa-blue',
 						handler : function() {
 							This.saveActiveTemplateAs();
 						}
@@ -1382,7 +1384,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 					'-',
 					{
 						text : 'Elaborate Template',
-						iconCls : 'inferIcon',
+						iconCls : 'icon-run fa fa-brown',
 						handler : function() {
 							This.inferElaboratedTemplate();
 						}
@@ -1392,7 +1394,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 						xtype : 'tbfill'
 					},
 					{
-						iconCls : 'reloadIcon',
+						iconCls : 'icon-reload fa fa-green',
 						text : 'Reload',
 						handler : function() {
 							var fetchOp = This.editor_mode ? 'getEditorJSON'
@@ -1426,7 +1428,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 		var lowerTabs = new Ext.TabPanel({
 			plain : true,
 			border : true,
-			iconCls : 'wflowIcon',
+			iconCls : 'icon-wflow-alt fa-title fa-blue',
 			closable : !This.opts.hide_selector,
 			region : 'center',
 			title : tabname,
@@ -1452,7 +1454,7 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 			layout : 'fit',
 			region : 'center',
 			title : tabname,
-			iconCls : 'wflowIcon',
+			iconCls : 'icon-wflow-alt fa-title fa-blue',
 			closable : !This.opts.hide_selector
 		});
 		if (toolbar != null)

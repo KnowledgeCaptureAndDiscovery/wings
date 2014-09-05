@@ -8,6 +8,7 @@ public class CSSLoader {
 	  , "css/fontello/css/wings-icons.css"
 	  //, "http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" 
 	  };
+	static String[] animation_css = { "css/fontello/css/animation.css" };
 	static String[] extjs_css = { "lib/extjs/resources/ext-theme-"+theme+"/ext-theme-"+theme+"-all.css" };
 
 	public static void loadLoginViewer(PrintWriter out, String path) {
@@ -42,6 +43,7 @@ public class CSSLoader {
 
 	public static void loadRunViewer(PrintWriter out, String path) {
 		showCssTags(out, path, site_css);
+		showCssTags(out, path, animation_css);
 		showCssTags(out, path, extjs_css);
 	}
 

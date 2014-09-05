@@ -49,7 +49,7 @@ Ext.ux.TemplateGraphPanel = Ext
 							tbar
 									.push({
 										text : 'Add Component',
-										iconCls : 'addIcon',
+										iconCls : 'icon-add fa fa-green',
 										handler : function() {
 											Ext.MessageBox
 													.show({
@@ -64,7 +64,7 @@ Ext.ux.TemplateGraphPanel = Ext
 							tbar.push('-');
 							tbar.push({
 								text : 'Delete Selected',
-								iconCls : 'delIcon',
+								iconCls : 'icon-del fa fa-red',
 								handler : function() {
 								},
 								handler : function() {
@@ -84,14 +84,14 @@ Ext.ux.TemplateGraphPanel = Ext
 						}
 						tbar.push({
 							text : 'Layout',
-							iconCls : 'layoutIcon',
+							iconCls : 'icon-wflow fa-small fa-blue',
 							handler : function() {
 								me.editor.layout();
 							}
 						});
 						tbar.push({
 							// text : 'Zoom In',
-							iconCls : 'zoomInIcon',
+							iconCls : 'icon-zoomIn fa-small fa-blue',
 							handler : function() {
 								me.editor.zoom(1.2);
 								me.doLayout();
@@ -99,7 +99,7 @@ Ext.ux.TemplateGraphPanel = Ext
 						});
 						tbar.push({
 							// text : 'Zoom Out',
-							iconCls : 'zoomOutIcon',
+							iconCls : 'icon-zoomOut fa-small fa-blue',
 							handler : function() {
 								me.editor.zoom(1 / 1.2);
 							}
@@ -107,7 +107,7 @@ Ext.ux.TemplateGraphPanel = Ext
 						tbar.push('-');
 						tbar.push({
 							text : 'Grab Image',
-							iconCls : 'snapshotIcon',
+							iconCls : 'icon-snapshot fa-small fa-blue',
 							handler : function() {
 								me.editor.saveImage();
 							}

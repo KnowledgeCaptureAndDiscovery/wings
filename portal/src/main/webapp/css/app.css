@@ -24,21 +24,41 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	opacity: 0.8;
 }
 
-.wings-fa {
-	top: 1px !important;
-	font-size: 1.33333333em;
-	line-height: .75em;
-	vertical-align: -15%;
+.fa,
+.fa-menu,
+.fa-title
+{
+	top: -1px !important;
+	font-size: 14px !important;
+	/*text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;*/
 }
-.fa-green { color: green; }
+.fa-small {
+	top: 0px !important;
+	font-size: 12px !important;
+}
+.fa-big {
+	top: 0px !important;
+	font-size: 18px !important;
+}
+.fa-menu {
+	top: 5px !important;
+	font-size: 12px !important;
+}
+.fa-title {
+	font-size: 12px !important;
+	top: -2px !important;
+}
+.fa-green { color: seagreen; }
 .fa-maroon { color: maroon;	}
-.fa-red { color: red;	}
-.fa-orange { color: orange;	}
+.fa-red { color: indianred;	}
+.fa-orange { color: #EEBB88;	}
 .fa-navy { color: navy;	}
-.fa-blue { color: blue;	}
-.fa-yellow { color: yellow;	}
-.fa-grey { color: grey;	}
-.fa-brown { color: brown; }
+.fa-blue { color: steelblue; }
+.fa-yellow { color: #E2C77C; }
+.fa-grey { color: #999999;	}
+.fa-brown { color: peru; }
 
 .provIcon {
 	background-image: url(../images/provenance.png) !important

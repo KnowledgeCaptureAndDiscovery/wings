@@ -103,7 +103,8 @@ ComponentViewer.prototype.getComponentTreeByIO = function(item, isInput) {
     			id: type,
     			cls: type,
     			leaf: false,
-    			iconCls: 'dtypeIcon',
+    			iconCls: 'icon-folder fa fa-yellow',
+    			expIconCls: 'icon-folder-open fa fa-yellow',
     			expanded: true,
     			children: []
     	};
@@ -126,7 +127,9 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
             id: (setid ? cls.id: null),
             cls: cls.id,
             leaf: (item.children && item.children.length ? false: true),
-            iconCls: 'ctypeIcon',
+            //iconCls: 'ctypeIcon',
+            iconCls: 'icon-folder fa fa-yellow',
+            expIconCls: 'icon-folder-open fa fa-yellow',
             expanded: true,
             children: []
             };
@@ -150,7 +153,8 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
         id: (setid ? c.id: null),
         cls: cls.id,
         leaf: (item.children && item.children.length ? false: true),
-        iconCls: (c.type == 2 ? (c.location ? 'compIcon': 'noCompIcon') : 'absCompIcon'),
+        iconCls: 'icon-component fa ' + 
+        	(c.type == 2 ? (c.location ? 'fa-orange': 'fa-red') : 'fa-grey'),
         component: {
             id: c.id,
             cls: cls.id,
@@ -168,17 +172,19 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
 
 ComponentViewer.prototype.getComponentListTree = function(enableDrag) {
     var tmp = this.getComponentTree(this.store.tree);
-    return this.getComponentTreePanel(tmp, 'Tree', (this.load_concrete ? 'compIcon': 'absCompIcon'), enableDrag);
+    return this.getComponentTreePanel(tmp, 'Tree',
+    		'icon-component fa-title ' + 
+    		(this.load_concrete ? 'fa-orange': 'fa-grey'), enableDrag);
 };
 
 ComponentViewer.prototype.getComponentInputsTree = function(enableDrag) {
     var tmp = this.getComponentTreeByIO(this.store.tree, true);
-    return this.getComponentTreePanel(tmp, 'Inputs', 'inputIcon', enableDrag);
+    return this.getComponentTreePanel(tmp, 'Inputs', 'icon-input fa-title fa-blue', enableDrag);
 };
 
 ComponentViewer.prototype.getComponentOutputsTree = function(enableDrag) {
     var tmp = this.getComponentTreeByIO(this.store.tree, false);
-    return this.getComponentTreePanel(tmp, 'Outputs', 'outputIcon', enableDrag);
+    return this.getComponentTreePanel(tmp, 'Outputs', 'icon-output fa-title fa-brown', enableDrag);
 };
 
 ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, savebtn, editable) {
@@ -187,7 +193,7 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
     var mainPanel = new Ext.Panel({
         region: 'center',
         title: 'I/O',
-        iconCls: 'paramIcon',
+        iconCls: 'icon-list fa-title fa-blue',
         border: false,
         defaults: {
             border: false,
@@ -369,7 +375,7 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
         if (editable) {
             tbar = [{
                 text: 'Add',
-                iconCls: 'addIcon',
+                iconCls: 'icon-add fa fa-green',
                 roletype: i,
                 handler: function() {
                     var role;
@@ -397,7 +403,7 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
                     });
                 }
             }, {
-                iconCls: 'delIcon',
+                iconCls: 'icon-del fa fa-red',
                 text: 'Delete',
                 roletype: i,
                 handler: function() {
@@ -414,14 +420,22 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
             }];
         }
 
+        var titleicon =  "<i class='" + (i == 0 ? 'icon-input fa fa-blue': 
+        	(i == 1 ? 'icon-param fa': 
+    		'icon-output fa fa-brown')) + "'></i>";
+        
+        var title = titleicon + ' ' + (i == 0 ? 
+        		'Input Data': (i == 1 
+        				? 'Input Parameters': 'Output Data')); 
         var gridPanel = new Ext.grid.GridPanel({
             columnLines: true,
             autoHeight: true,
             border: false,
             // forceFit: true,
-            title: (i == 0 ? 'Input Data': (i == 1 ? 'Input Parameters': 'Output Data')),
-            iconCls: (i == 0 ? 'inputIcon': (i == 1 ? 'paramIcon': 'outputIcon')),
+            title: title,
             columns: columns,
+            margin: 5,
+            frame: true,
             selModel: sm,
             selType: 'cellmodel',
             plugins: plugins,
@@ -625,7 +639,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-blue',
         disabled: true,
         handler: function() {
             var mainPanel = tab.ioEditor;
@@ -752,7 +766,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     var addcompbtn = {
             xtype: 'button',
             text: 'Upload/Set Path',
-            iconCls: 'addIcon',
+            iconCls: 'icon-add fa fa-green',
             handler: function() {
                 var win = new Ext.Window({
                     xtype: 'panel',
@@ -777,7 +791,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                         }, {
                             xtype: 'button',
                             text: 'Submit',
-                            iconCls: 'addIcon',
+                            iconCls: 'icon-add fa fa-green',
                             handler: function() {
                             	var panel = this.up('panel');
                             	var loc = this.prev().value;
@@ -796,10 +810,10 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                         	border: false,
                         	multipart_params: {type: 'component', id: c.id},
                             url: This.upload_url,
-                            addButtonCls: 'addIcon',
-                            deleteButtonCls: 'delIcon',
-                            uploadButtonCls: 'uploadIcon',
-                            cancelButtonCls: 'delIcon',
+                            addButtonCls: 'icon-add fa fa-green',
+                            deleteButtonCls: 'icon-del fa fa-red',
+                            uploadButtonCls: 'icon-upload fa fa-blue',
+                            cancelButtonCls: 'icon-del fa fa-red',
                             listeners : {
                             	"uploadcomplete" : function(item, files) {
                             		// Just check the first file (only one file upload allowed here)
@@ -821,7 +835,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     if(editable)
     	tbar.push(savebtn);
 	tbar.push({
-		iconCls : 'reloadIcon',
+		iconCls : 'icon-reload fa fa-green',
 		text : 'Reload',
 		handler : function() {
 			tab.getLoader().load();
@@ -837,7 +851,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 		});
 		tbar.push(addcompbtn);
 		tbar.push({
-			iconCls : 'downloadIcon',
+			iconCls : 'icon-download fa fa-blue',
 			itemId : 'downloadComponent',
 			text : 'Download',
 			disabled : !c.location,
@@ -858,7 +872,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     mainPanelItems.push({
     	xtype: 'tabpanel',
     	title: 'Rules',
-        iconCls: 'inferIcon',
+        iconCls: 'icon-runAlt fa-title fa-blue',
     	items: [rulesPanel, inhRulesPanel]
     });
     mainPanelItems.push(This.getDocumentationTab('doc', compStore.documentation,
@@ -870,7 +884,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     mainPanelItems.push({
     	xtype: 'panel',
     	title: 'Provenance',
-    	iconCls: 'provIcon'
+    	iconCls: 'icon-list-alt fa-title fa-blue'
     });
     
     var mainPanel = new Ext.Panel({
@@ -906,8 +920,8 @@ ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, s
                 store.location = clocation;
                 var node = This.treePanel.getStore().getNodeById(cid);
                 tab.down('#downloadComponent').setDisabled(false);
-                tab.setIconCls('compIcon');
-                node.set('iconCls', 'compIcon');
+                tab.setIconCls('icon-component fa-title fa-orange');
+                node.set('iconCls', 'icon-component fa fa-orange');
                 win.close();
             } else {
                 _console(response.responseText);
@@ -957,7 +971,9 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
         // Fetch Store via Ajax
         var url = This.op_url + '/getComponentJSON?cid=' + escape(c.id);
 
-        var tab = This.openNewIconTab(tabName, (c.concrete ? (c.location ? 'compIcon': 'noCompIcon') : 'absCompIcon'));
+        var tab = This.openNewIconTab(tabName, 'icon-component fa-title ' + 
+        		(c.concrete ? (c.location ? 'fa-orange': 
+        			'fa-red') : 'fa-grey'));
         Ext.apply(tab, {
             path: path,
             guifn: This.openComponentEditor,
@@ -1046,7 +1062,7 @@ ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab,
 	if(!editable) {
 		return new Ext.Panel({
 	        title: 'Documentation',
-	        iconCls: 'docsIcon',
+	        iconCls: 'icon-docs fa-title fa-blue',
 	        layout: 'fit',
 	        border: false,
 	        bodyPadding: 10,
@@ -1059,7 +1075,7 @@ ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab,
 		var docArea = new Ext.form.HtmlEditor({
 			itemId: id,
 			title: 'Documentation',
-			iconCls: 'docsIcon',
+			iconCls: 'icon-docs fa-title fa-blue',
 			layout: 'fit',
 			region : 'center',
 			border : false,
@@ -1130,7 +1146,7 @@ ComponentViewer.prototype.getDependenciesTab =
 	var form = {
 		xtype : 'form',
 		title : title,
-		iconCls : 'softwareIcon',
+		iconCls : 'icon-dropbox fa-title fa-blue',
 		bodyStyle : 'padding:5px',
 		autoScroll : true,
 		defaults : {
@@ -1254,7 +1270,7 @@ ComponentViewer.prototype.initialize = function() {
     var This = this;
     var delbtn = new Ext.Button({
         text: 'Delete',
-        iconCls: 'delIcon',
+        iconCls: 'icon-del fa fa-red',
         handler: function() {
             var nodes = This.treePanel.getSelectionModel().getSelection();
             if (!nodes || !nodes.length)
@@ -1305,7 +1321,7 @@ ComponentViewer.prototype.initialize = function() {
     if (this.advanced_user) {
         tbar = [{
             text: 'Add ' + (this.load_concrete ? 'Component': 'Type'),
-            iconCls: 'addIcon',
+            iconCls: 'icon-add fa fa-green',
             handler: function() {
                 var nodes = This.treePanel.getSelectionModel().getSelection();
                 var parentNode = (nodes && nodes.length) ? nodes[0] : null;
@@ -1315,7 +1331,7 @@ ComponentViewer.prototype.initialize = function() {
         if (!this.load_concrete) {
             tbar.push({
                 text: 'Add Category',
-                iconCls: 'dtypeIcon',
+                iconCls: 'icon-folder-open fa fa-yellow',
                 handler: function() {
                     var nodes = This.treePanel.getSelectionModel().getSelection();
                     var parentNode = (nodes && nodes.length) ? nodes[0] : null;

@@ -267,7 +267,7 @@ function showWingsBindings(data, title, formItems, type) {
         }),
         tbar: [{
             text: 'Use Selected ' + (type == 'param' ? 'Parameters' : 'Data'),
-            iconCls: 'selectIcon',
+            iconCls: 'icon-select-alt fa fa-green',
             handler: function() {
                 var recs = bindingsGrid.getSelectionModel().getSelection();
                 if (!recs || !recs.length) {
@@ -350,7 +350,7 @@ function showWingsRanMessage(tid, runid, results_url) {
             xtype: 'button',
             region: 'south',
             text: 'Or CLICK HERE to Monitor Execution',
-            iconCls: 'status_SUCCESS',
+            iconCls: 'icon-select-alt fa-big fa-green',
             handler: function() {
                 var w = window.open(results_url + '?run_id=' + escape(runid), '_accessResults');
                 win.close();
@@ -454,7 +454,7 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
         }),
         tbar: [{
             text: 'Run Selected Workflow',
-            iconCls: 'runIcon',
+            iconCls: 'icon-run fa fa-brown',
             handler: function() {
                 var recs = alternativesGrid.getSelectionModel().getSelection();
                 if (!recs || !recs.length) {

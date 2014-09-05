@@ -11,12 +11,7 @@ UserViewer.prototype.createStoreModels = function() {
 	if (!Ext.ModelManager.isRegistered('UserRecord'))
 		Ext.define('UserRecord', {
 			extend : 'Ext.data.Model',
-			fields : [ 'text' ]
-		});
-	if (!Ext.ModelManager.isRegistered('UserContribution'))
-		Ext.define('UserContribution', {
-			extend : 'Ext.data.Model',
-			fields : [ 'softwareId', 'propertyId', 'value', 'timestamp' ]
+			fields : [ 'text', 'isAdmin' ]
 		});
 };
 
@@ -43,7 +38,7 @@ UserViewer.prototype.openUserEditor = function(args) {
     
     var editbtn = new Ext.Button({
     	text: 'Edit',
-    	iconCls: 'docsIcon',
+    	iconCls: 'icon-docs fa fa-blue',
     	handler: function(btn) {
     		btn.up('panel').up('panel').getLayout().setActiveItem(1);
     	}
@@ -64,7 +59,7 @@ UserViewer.prototype.openUserEditor = function(args) {
     
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-blue',
         disabled: true,
         handler: function(btn) {
         	var form = tab.down('form');
@@ -229,7 +224,7 @@ UserViewer.prototype.addUser = function() {
                         var tmp = This.leftPanel.getRootNode().appendChild({
                 	            text: userid,
                 	            id: userid,
-                	            iconCls: 'userIcon',
+                	            iconCls: 'icon-user fa fa-green',
                 	            leaf: true
                             });
                         This.leftPanel.getStore().sort('text', 'ASC');
@@ -249,7 +244,7 @@ UserViewer.prototype.getAddUserMenuItem = function() {
     var This = this;
     return {
         text: 'Add',
-        iconCls: 'addIcon',
+        iconCls: 'icon-add fa fa-green',
         handler: function() {
             This.addUser();
         }
@@ -260,7 +255,7 @@ UserViewer.prototype.getDeleteUserMenuItem = function() {
     var This = this;
     return {
         text: 'Delete',
-        iconCls: 'delIcon',
+        iconCls: 'icon-del fa fa-red',
         handler: function() {
             var nodes = This.leftPanel.getSelectionModel().getSelection();
             if (!nodes || !nodes.length || !nodes[0].parentNode)
@@ -328,7 +323,7 @@ UserViewer.prototype.createLeftPanel = function() {
 		        // Fetch Store via Ajax
 		        var url = This.op_url + '/getUserJSON?userid=' + escape(id);
 		        var guifn = This.openUserEditor;
-		        var icon = 'userIcon';
+		        var icon = 'icon-user fa-title fa-green';
 
 		        var tab = This.openNewIconTab(tabName, icon);
 		        Ext.apply(tab, {
@@ -395,7 +390,7 @@ UserViewer.prototype.getTree = function(users) {
 	    root.children.push({
 	            text: userid,
 	            id: userid,
-	            iconCls: 'userIcon',
+	            iconCls: 'icon-user fa fa-green',
 	            leaf: true
 	        });
 	}

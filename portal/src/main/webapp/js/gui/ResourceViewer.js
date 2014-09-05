@@ -58,7 +58,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
     
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-blue',
         disabled: true,
         handler: function(btn) {
         	var form = tab.down('form');
@@ -105,7 +105,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
     Ext.Ajax.timeout = 300000;
     var checkbtn = new Ext.Button({
         text: 'Get Machine Details',
-        iconCls: 'runIcon',
+        iconCls: 'icon-run fa fa-brown',
         handler: function(btn) {
         	Ext.get(This.tabPanel.getId()).mask("Connecting and checking..<br/>"+
         			"This may take some time for first-time connections");
@@ -416,7 +416,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
     
     var savebtn = new Ext.Button({
         text: 'Save',
-        iconCls: 'saveIcon',
+        iconCls: 'icon-save fa fa-blue',
         disabled: true,
         handler: function(btn) {
         	var software = {id: id, environmentVariables: [],
@@ -496,7 +496,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
         	mode:'SINGLE', allowDeselect: true});
         tbar1 = [{
 	            text: 'Add',
-	            iconCls: 'addIcon',
+	            iconCls: 'icon-add fa fa-green',
 	            handler: function(item) {
 	            	var grid = item.up('grid');
 	                var pos = grid.getStore().getCount();
@@ -511,7 +511,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
 	        },
 	        {
 	            text: 'Delete',
-	            iconCls: 'delIcon',
+	            iconCls: 'icon-del fa fa-red',
 	            handler: function(item) {
 	                var grid = item.up('grid');
 	                var plugin = grid.findPlugin('cellediting');
@@ -525,7 +525,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
 	    ];
         tbar2 = [{
 	            text: 'Add',
-	            iconCls: 'addIcon',
+	            iconCls: 'icon-add fa fa-green',
 	            handler: function(item) {
 	            	var grid = item.up('grid');
 	                var pos = grid.getStore().getCount();
@@ -540,7 +540,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
 	        },
 	        {
 	            text: 'Delete',
-	            iconCls: 'delIcon',
+	            iconCls: 'icon-del fa fa-red',
 	            handler: function(item) {
 	                var grid = item.up('grid');
 	                var plugin = grid.findPlugin('cellediting');
@@ -559,7 +559,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
 	        '-',
 	        {
 	            text: 'Up',
-	            iconCls: 'upIcon',
+	            iconCls: 'icon-up fa fa-blue',
 	            handler: function(item) {
 	                var grid = item.up('grid');
 	                var plugin = grid.findPlugin('cellediting');
@@ -577,7 +577,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
 	        },
 	        {
 	            text: 'Down',
-	            iconCls: 'downIcon',
+	            iconCls: 'icon-down fa fa-blue',
 	            handler: function(item) {
 	                var grid = item.up('grid');
 	                var plugin = grid.findPlugin('cellediting');
@@ -758,7 +758,7 @@ ResourceViewer.prototype.getAddMachineMenuItem = function() {
     var This = this;
     return {
         text: 'Add Machine',
-        iconCls: 'machineIcon',
+        iconCls: 'icon-machine fa-menu fa-blue',
         handler: function() {
             This.addResource("Machine");
         }
@@ -769,7 +769,7 @@ ResourceViewer.prototype.getAddSoftwareMenuItem = function() {
     var This = this;
     return {
         text: 'Add Software',
-        iconCls: 'softwareIcon',
+        iconCls: 'icon-dropbox fa-menu fa-blue',
         handler: function() {
             This.addResource("Software");
         }
@@ -780,7 +780,7 @@ ResourceViewer.prototype.getDeleteMenuItem = function() {
     var This = this;
     return {
         text: 'Delete',
-        iconCls: 'delIcon',
+        iconCls: 'icon-del fa-menu fa-red',
         handler: function() {
             var nodes = This.treePanel.getSelectionModel().getSelection();
             if (!nodes || !nodes.length || !nodes[0].parentNode)
@@ -817,14 +817,18 @@ ResourceViewer.prototype.getDeleteMenuItem = function() {
 
 ResourceViewer.prototype.createResourceTreeToolbar = function() {
 	var This = this;
+	var delItem = This.getDeleteMenuItem();
+	delItem.iconCls = 'icon-del fa fa-red';
     return {
         dock: 'top',
         items: [{
             text: 'Add',
-            iconCls: 'addIcon',
+            iconCls: 'icon-add fa fa-green',
             menu: [This.getAddMachineMenuItem(), This.getAddSoftwareMenuItem()]
-            }, '-', This.getDeleteMenuItem()]
-        };
+        }, 
+        '-', 
+        delItem ]
+    };
 };
 
 ResourceViewer.prototype.onResourceItemContextMenu = function(view, node, item, index, e, eOpts) {
@@ -897,7 +901,8 @@ ResourceViewer.prototype.createLeftPanel = function() {
 		        // Fetch Store via Ajax
 		        var type = rec.raw.type;
 		        var url = This.op_url + '/get'+type+'JSON?resid=' + escape(id);
-		        var icon = type.toLowerCase() + 'Icon';
+		        var icon = (type == 'Machine' ? 'icon-machine fa-title fa-blue' :
+		        	'icon-dropbox fa-title fa-blue');
 		        var guifn = (type == 'Machine' ? 
 		        		This.openMachineEditor :
 		        		This.openSoftwareEditor);
@@ -959,12 +964,16 @@ ResourceViewer.prototype.getTree = function(store) {
 	var root = {
 	        text: "Resources",
 	        id: "_resources",
+			iconCls: 'icon-folder fa fa-yellow',
+			expIconCls: 'icon-folder-open fa fa-yellow',
 	        expanded: true,
 	        children: []
 	};
 	var machines = {
 			text: "Machines",
 			id: "_machines",
+			iconCls: 'icon-folder fa fa-yellow',
+			expIconCls: 'icon-folder-open fa fa-yellow',
 			//iconCls: "machineIcon",
 			expanded: true,
 			children: []
@@ -972,6 +981,8 @@ ResourceViewer.prototype.getTree = function(store) {
 	var softwares = {
 			text: "Software",
 			id: "_software",
+			iconCls: 'icon-folder fa fa-yellow',
+			expIconCls: 'icon-folder-open fa fa-yellow',
 			//iconCls: "softwareIcon",
 			expanded: true,
 			children: []
@@ -983,7 +994,7 @@ ResourceViewer.prototype.getTree = function(store) {
 			text: getLocalName(machineId),
 			id: machineId,
 			type: "Machine",
-			iconCls: 'machineIcon',
+			iconCls: 'icon-machine fa fa-blue',
 			leaf: true
 		});
 	}
@@ -994,7 +1005,7 @@ ResourceViewer.prototype.getTree = function(store) {
 				text: getLocalName(softwareId),
 				id: softwareId,
 				type: "Software",
-				iconCls: 'softwareIcon',
+				iconCls: 'icon-dropbox fa fa-blue',
 				expanded: true,
 				children: []
 		};

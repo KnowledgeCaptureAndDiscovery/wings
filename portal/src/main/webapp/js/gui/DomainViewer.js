@@ -56,7 +56,7 @@ DomainViewer.prototype.createLeftPanel = function() {
 		var engine = this.store.engines[i];
 		execMenu.push({
 	    	text: engine,
-	    	iconCls: 'runIcon',
+	    	iconCls: 'icon-run fa-menu fa-brown',
 	    	handler: function() {
 	    		var sels = This.domainsGrid.getSelectionModel().getSelection();
 	    		if(!sels.length) {
@@ -84,38 +84,38 @@ DomainViewer.prototype.createLeftPanel = function() {
         	items: [ 
         	{
         	    text: 'Add',
-        	    iconCls: 'addIcon',
+        	    iconCls: 'icon-add fa fa-green',
         	    menu:[
         	    {
         	    	itemId: 'createbutton',
         	    	text: 'Add Domain',
-        	    	iconCls: 'addIcon'
+        	    	iconCls: 'icon-add fa-menu fa-green'
         	    },
         	    {
         	    	itemId: 'importbutton',
         	    	text: 'Import Domain',
-        	    	iconCls: 'importIcon'
+        	    	iconCls: 'icon-download-cloud fa-menu fa-blue'
         	    }]
         	}, {
         		itemId: 'selectbutton',
         		text: 'Set Default',
-        		iconCls: 'default_domain'
+        		iconCls: 'icon-select fa fa-green'
         	}, {
         	    text: 'Use Execution Engine',
-        	    iconCls: 'runIcon',
+        	    iconCls: 'icon-run fa fa-brown',
         	    menu: execMenu
         	}, {
         		itemId: 'delbutton',
         		text: 'Delete',
-        		iconCls: 'delIcon'
+        		iconCls: 'icon-del fa fa-red'
         	}, {
         		itemId: 'renamebutton',
         		text: 'Rename',
-        		iconCls: 'docsIcon'
+        		iconCls: 'icon-edit fa fa-blue'
         	}, {
         		itemId: 'downloadbutton',
         		text: 'Download',
-        		iconCls: 'downloadIcon'
+        		iconCls: 'icon-download fa fa-blue'
         	}]
         }],
         columns: [{
@@ -138,13 +138,13 @@ DomainViewer.prototype.createLeftPanel = function() {
 
 DomainViewer.prototype.formatDomainName = function(name, item, rec) {
 	var extra = '';
-	var iconstyle = 'color:grey';
+	var color = 'fa-grey';
 	if(this.store.selected == name) { 
-		extra = '<i class="icon-select-alt" style="color:green"></i>';
-		iconstyle = 'color:green';
+		extra = '<i class="icon-select-alt fa-green"></i>';
+		color = 'fa-green';
 		name = '<b>' + name + '</b>';
 	}
-	return "<i class='icon-dropbox wings-fa' style='"+iconstyle+"'></i> " 
+	return "<i class='icon-box fa "+color+"'></i> " 
 		+ name + " " + extra;
 };
 
@@ -159,11 +159,11 @@ DomainViewer.prototype.formatPermissions = function(name, item, rec) {
 	}
 	if(users.length) {
 		var userstr = users.join(", ");
-		return "<i class='icon-unlockAlt' style='color:green'></i>"
+		return "<i class='icon-unlockAlt fa-green'></i>"
 			+ " Unlocked for "+userstr;
 	}
 	else
-		return "<i class='icon-lock' style='color:maroon'></i>"
+		return "<i class='icon-lock fa-maroon'></i>"
 			+ " Locked";
 };
 
@@ -178,7 +178,8 @@ DomainViewer.prototype.getDomainDetails = function(store) {
 
 DomainViewer.prototype.openDomain = function(name) {
 	var This = this;
-	var cls = this.store.selected == name ? 'default_domain' : 'domain';
+	var cls = this.store.selected == name ? 'icon-box fa fa-green' : 
+		'icon-box fa fa-grey';
 	var items = this.tabPanel.items.items;
 	for(var i=0; i<items.length; i++) {
 		if(items[i].title == name) {
@@ -449,7 +450,7 @@ DomainViewer.prototype.showImportDomainDialog = function() {
             }, {
                 xtype: 'button',
                 text: 'Submit',
-                iconCls: 'addIcon',
+                iconCls: 'icon-add fa fa-green',
                 handler: function() {
                 	var panel = this.up('panel');
                 	var loc = this.prev().value;
@@ -471,10 +472,10 @@ DomainViewer.prototype.showImportDomainDialog = function() {
             	border: false,
             	multipart_params: {type: 'domain'},
                 url: This.upload_url,
-                addButtonCls: 'addIcon',
-                deleteButtonCls: 'delIcon',
-                uploadButtonCls: 'uploadIcon',
-                cancelButtonCls: 'delIcon',
+                addButtonCls: 'icon-add fa fa-green',
+                deleteButtonCls: 'icon-del fa fa-red',
+                uploadButtonCls: 'icon-upload fa fa-blue',
+                cancelButtonCls: 'icon-del fa fa-red',
                 listeners : {
                 	"uploadcomplete" : function(item, files) {
                 		// Just check the first file (only one file upload allowed here)

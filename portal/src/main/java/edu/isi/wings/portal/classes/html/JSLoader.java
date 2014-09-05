@@ -7,7 +7,7 @@ import edu.isi.wings.portal.classes.Config;
 
 public class JSLoader {
 	static String[] common_scripts = { "lib/extjs/ext-all.js", "js/util/common.js",
-			"js/gui/WingsMessages.js" };
+			"js/gui/WingsMessages.js", "js/util/TreeMod.js" };
 	static String[] component_scripts = { "js/gui/ComponentViewer.js" };
 	static String[] domain_scripts = { "js/gui/DomainViewer.js" };
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };

@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'wings-icons';
-  src: url('../font/wings-icons.eot?51407136');
-  src: url('../font/wings-icons.eot?51407136#iefix') format('embedded-opentype'),
-       url('../font/wings-icons.woff?51407136') format('woff'),
-       url('../font/wings-icons.ttf?51407136') format('truetype'),
-       url('../font/wings-icons.svg?51407136#wings-icons') format('svg');
+  src: url('../font/wings-icons.eot?60028687');
+  src: url('../font/wings-icons.eot?60028687#iefix') format('embedded-opentype'),
+       url('../font/wings-icons.woff?60028687') format('woff'),
+       url('../font/wings-icons.ttf?60028687') format('truetype'),
+       url('../font/wings-icons.svg?60028687#wings-icons') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'wings-icons';
-    src: url('../font/wings-icons.svg?51407136#wings-icons') format('svg');
+    src: url('../font/wings-icons.svg?60028687#wings-icons') format('svg');
   }
 }
 */
@@ -117,3 +117,4 @@
 .icon-folder:before { content: '\e840'; } /* '' */
 .icon-folder-open:before { content: '\e841'; } /* '' */
 .icon-save:before { content: '\e842'; } /* '' */
+.icon-spin6:before { content: '\e844'; } /* '' */

@@ -107,7 +107,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
         Ext.apply(this, {
             tbar: [{
                 text: 'Suggest Data',
-                iconCls: 'suggestIcon',
+                iconCls: 'icon-help fa fa-blue',
                 cls: 'highlightIcon',
                 handler: function() {
                     op = 'getData';
@@ -141,7 +141,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 }
             }, '-', {
                 text: 'Suggest Parameters',
-                iconCls: 'suggestIcon',
+                iconCls: 'icon-help fa fa-blue',
                 cls: 'highlightIcon',
                 handler: function() {
                     op = 'getParameters';
@@ -202,7 +202,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
 					'-',*/
             {
                 text: 'Plan Workflow',
-                iconCls: 'runIcon',
+                iconCls: 'icon-run fa fa-brown',
                 cls: 'highlightIcon',
                 handler: function() {
                     op = 'getExpansions';
@@ -240,7 +240,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 xtype: 'tbfill'
             }, {
                 text: 'Clear',
-                iconCls: 'clearIcon',
+                iconCls: 'icon-trash fa fa-grey',
                 handler: function() {
                     for (var i = 0; i < me.flatItems.length; i++) {
                         var item = me.flatItems[i];
@@ -250,7 +250,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 }
             }, {
                 text: 'Reload',
-                iconCls: 'reloadIcon',
+                iconCls: 'icon-reload fa fa-green',
                 handler: function() {
                     var fetchOp = 'getViewerJSON';
                     var url = me.op_url + '/' + fetchOp + '?template_id=' + me.template_id;
