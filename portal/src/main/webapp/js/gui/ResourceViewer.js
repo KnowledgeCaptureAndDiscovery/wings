@@ -883,6 +883,10 @@ ResourceViewer.prototype.createLeftPanel = function() {
             },
 			itemclick : function(view, rec, item, ind, event) {
 				var id = rec.data.id;
+		        var type = rec.raw.type;
+		        if(!type)
+		        	return;
+		        
 		        var path = getTreePath(rec, 'text');
 		        var tabName = getLocalName(id);
 
@@ -899,7 +903,6 @@ ResourceViewer.prototype.createLeftPanel = function() {
 		        }
 
 		        // Fetch Store via Ajax
-		        var type = rec.raw.type;
 		        var url = This.op_url + '/get'+type+'JSON?resid=' + escape(id);
 		        var icon = (type == 'Machine' ? 'icon-machine fa-title fa-blue' :
 		        	'icon-dropbox fa-title fa-blue');
