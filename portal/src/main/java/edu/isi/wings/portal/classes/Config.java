@@ -120,10 +120,13 @@ public class Config {
         return false;
       }
       // Get viewer roles
+      if(this.viewerId == null)
+        return false;
       User viewer = this.userapi.getUser(this.viewerId);
       this.isAdminViewer = viewer.isAdmin();
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
     return true;
   }
@@ -194,6 +197,9 @@ public class Config {
 		
 		this.sessionId = request.getSession().getId();
     
+		if(this.viewerId == null)
+		  return;
+		
     // If no userId specified, then set the viewer as the user
     if(this.userId == null)
       this.userId = this.viewerId;

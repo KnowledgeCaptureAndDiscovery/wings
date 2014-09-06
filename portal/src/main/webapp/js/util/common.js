@@ -172,6 +172,11 @@ function getPortalHeader() {
 			+ "</span></a></li>";
 		html += "</ul></li>";
 	}
+	else {
+		html += "<li style='float:right'><a href=\""
+			+ userpath
+			+ "/domains\">Login</a></li>";
+	}
 	
 	if(DOMAINS != null) {
 		html += "<li style='float:right'>"
