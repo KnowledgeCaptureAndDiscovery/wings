@@ -34,7 +34,7 @@ public class ManageData extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Config config = new Config(request);
-		if(!config.checkDomain(response))
+		if(!config.checkDomain(request, response))
 			return;
 
 		String[] args = config.getScriptArguments();

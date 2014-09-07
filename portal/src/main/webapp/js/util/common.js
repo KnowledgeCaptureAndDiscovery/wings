@@ -104,8 +104,8 @@ function showWarning(msg) {
 
 function getPortalHeader() {
 	var homepath = CONTEXT_ROOT;
-	var userpath = USER_ID != 'null' ? USER_ROOT : CONTEXT_ROOT;
-	var userdompath = USER_ID != 'null' ? USERDOM_ROOT : CONTEXT_ROOT;
+	var userpath = USER_ID ? USER_ROOT : CONTEXT_ROOT;
+	var userdompath = USER_ID ? USERDOM_ROOT : CONTEXT_ROOT;
 	var compath = COM_ROOT;
 
 	var html = "<div class=\"menu\"><ul>"
@@ -147,14 +147,12 @@ function getPortalHeader() {
 			+ "/resources\">Describe Resources</a></li>\n"
 			+ "</ul></li>\n";
 	}
-	if(VIEWER_ID != 'null') {
 
-	}
 	var style = "";
 	if(VIEWER_ID != USER_ID)
 		style = "color:pink;";
 	
-	if(USERS != null) {
+	if(USERS != null && USERS.length) {
 		html += "<li style='float:right'>"
 			+ "<a href='#'>User: <span class='user' style='"+style+"'>"
 			+ USER_ID + "</span></a><ul>";
@@ -178,7 +176,7 @@ function getPortalHeader() {
 			+ "/domains\">Login</a></li>";
 	}
 	
-	if(DOMAINS != null) {
+	if(DOMAINS != null && DOMAINS.length) {
 		html += "<li style='float:right'>"
 			+ "<a href='#' style='" + style + "'>Domain: "+ DOMAIN_ID + "</a><ul>";
 		for(var i=0; i<DOMAINS.length; i++) {

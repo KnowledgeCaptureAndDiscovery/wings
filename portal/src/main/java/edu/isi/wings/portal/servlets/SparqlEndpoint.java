@@ -77,7 +77,7 @@ public class SparqlEndpoint extends HttpServlet {
 		Query query = QueryFactory.create(queryString);
 		if(query.isSelectType()) {
 			Config config = new Config(request);
-			if(!config.checkDomain(response))
+			if(!config.checkDomain(request, response))
 				return;
 			ResultsFormat fmt = ResultsFormat.lookup(request.getParameter("format"));
 			
@@ -100,7 +100,7 @@ public class SparqlEndpoint extends HttpServlet {
 	private void updateDataset(String updateString, HttpServletRequest request, HttpServletResponse response) 
 			throws IOException {
 		Config config = new Config(request);
-		if(!config.checkDomain(response))
+		if(!config.checkDomain(request, response))
 			return;
 		Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
 		UpdateRequest update = UpdateFactory.create(updateString);

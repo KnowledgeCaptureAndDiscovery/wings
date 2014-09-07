@@ -40,7 +40,7 @@ public class HandleUpload extends HttpServlet {
 			throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
 		Config config = new Config(request);
-		if(!config.checkDomain(response))
+		if(!config.checkDomain(request, response))
 			return;
 		
 		Domain dom = config.getDomain();

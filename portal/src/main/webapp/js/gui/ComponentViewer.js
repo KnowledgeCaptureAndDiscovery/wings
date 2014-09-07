@@ -872,6 +872,9 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     mainPanelItems.push({
     	xtype: 'tabpanel',
     	title: 'Rules',
+    	border: true,
+    	plain: true,
+    	margin: 5,
         iconCls: 'icon-runAlt fa-title fa-blue',
     	items: [rulesPanel, inhRulesPanel]
     });

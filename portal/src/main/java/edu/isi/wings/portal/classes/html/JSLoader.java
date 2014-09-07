@@ -3,7 +3,10 @@ package edu.isi.wings.portal.classes.html;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
+import com.google.gson.Gson;
+
 import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.JsonHandler;
 
 public class JSLoader {
 	static String[] common_scripts = { "lib/extjs/ext-all.js", "js/util/common.js",
@@ -32,17 +35,20 @@ public class JSLoader {
 
 	public static void loadConfigurationJS(PrintWriter out, Config config) {
 		HashMap<String, Object> jsvars = new HashMap<String, Object>();
-		jsvars.put("CONTEXT_ROOT", "'" + config.getContextRootPath() + "'");
-		jsvars.put("USER_ID", "'" + config.getUserId() + "'");
-		jsvars.put("VIEWER_ID", "'" + config.getViewerId() + "'");
-    jsvars.put("COM_ROOT", "'" +config.getCommunityPath() + "'");
-    jsvars.put("USER_ROOT", "'" +config.getUserPath() + "'");
-    jsvars.put("USERDOM_ROOT", "'" +config.getUserDomainUrl() + "'");
-    jsvars.put("DOMAINS", config.getDomainsListJSON());
-    jsvars.put("DOMAIN_ID", "'" +config.getDomainId() + "'");
-    jsvars.put("USERS", config.getUsersListJSON());
+    jsvars.put("DOMAIN_ID", config.getDomainId());
+    jsvars.put("USER_ID",  config.getUserId());
+    jsvars.put("VIEWER_ID",  config.getViewerId());
+    
+    jsvars.put("CONTEXT_ROOT",  config.getContextRootPath());
+    jsvars.put("COM_ROOT", config.getCommunityPath());
+    jsvars.put("USER_ROOT", config.getUserPath());
+    jsvars.put("USERDOM_ROOT", config.getUserDomainUrl());
+    jsvars.put("SCRIPT_PATH", config.getScriptPath());
+    
+    jsvars.put("DOMAINS", config.getDomainsList());
+    jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
-    jsvars.put("SCRIPT_PATH", "'" +config.getScriptPath() + "'");
+    
 		JSLoader.showScriptKeyVals(out, jsvars);
 	}
 
@@ -100,10 +106,11 @@ public class JSLoader {
 	}
 
 	public static void showScriptKeyVals(PrintWriter out, HashMap<String, Object> map) {
+	  Gson json = JsonHandler.createGson();
 		out.println("<script>");
 		for (String key : map.keySet()) {
 			Object val = map.get(key);
-			out.println("var " + key + " = " + val + ";");
+			out.println("var " + key + " = " + json.toJson(val) + ";");
 		}
 		out.println("</script>");
 	}

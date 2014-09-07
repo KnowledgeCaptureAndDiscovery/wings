@@ -2,7 +2,7 @@ package edu.isi.wings.portal.classes;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -76,11 +76,12 @@ public class Config {
 	// This following are user/domain specific properties
 	private String userPath;
 	private String userDir;
-	private String usersListJSON;
+	private ArrayList<String> usersList;
 	private boolean isAdminViewer;
+	
   private Domain domain;
 	private String domainId;
-	private String domainsListJSON;
+	private ArrayList<String> domainsList;
   private String userDomainUrl;
   private String exportUserUrl;
 
@@ -133,12 +134,31 @@ public class Config {
     return true;
   }
   
-	public boolean checkDomain(HttpServletResponse response) {
+  public void showError(HttpServletRequest request, 
+      HttpServletResponse response, String message) {
+    try {
+      request.setAttribute("message", message);
+      request.setAttribute("nohome", true);
+      request.getRequestDispatcher("index.jsp").forward(request, response);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+	public boolean checkDomain(HttpServletRequest request, 
+	    HttpServletResponse response) {
     if(!this.checkUser(response))
       return false;
 
     try {
-  	  // Check that a domain is provided in the URL, or a default domain exists
+      // For a non-owner viewer, if there is no domain available, 
+      // then return a message
+      if(this.domain == null && !this.viewerId.equals(this.userId)) {
+        this.showError(request, response, "No Shared Domains by "+userId+" !");
+        return false;
+      }
+      
+      // Check that a domain is provided in the URL, or a default domain exists      
       String redirectUrl = this.getUserPath()+"/domains";
       if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
         response.setContentType("text/html");
@@ -156,8 +176,7 @@ public class Config {
         //       For now: all or none permissions
         Permission perm = this.domain.getPermissionForUser(this.viewerId);
         if(!perm.canRead()) {
-          response.setContentType("text/html");
-          response.getWriter().println("No Permission !");
+          this.showError(request, response, "No Permission !");
           return false;
         }
       }
@@ -218,17 +237,21 @@ public class Config {
 		
 		// Get domain and user list
 		DomainController dc = new DomainController(1, this);
-    Collection<String> domList = dc.getReadableDomainsList();
-    this.domainsListJSON = JsonHandler.createGson().toJson(domList);
-		this.usersListJSON = this.userapi.getUsersListJSON();
+		this.domainsList = dc.getReadableDomainsList();
+		this.usersList = this.userapi.getUsersList();
 		
     // Get user's selected domain
     this.domain = dc.getUserDomain();
+
     // If the domain isn't a part of the readable domain list, 
     // then choose the first one
-    if(domList.size() > 0 
-        && !domList.contains(this.domain.getDomainName())) 
-      this.domain = dc.getDomain(domList.iterator().next());
+    if(this.domain == null ||
+        !domainsList.contains(this.domain.getDomainName())) {
+      if(domainsList.size() > 0)
+          this.domain = dc.getDomain(domainsList.get(0));
+      else
+        this.domain = null;
+    }
 
 		if(this.domain != null) {
 		  this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir() 
@@ -261,12 +284,12 @@ public class Config {
     this.domainId = domainId;
   }
 
-  public String getDomainsListJSON() {
-    return domainsListJSON;
+  public ArrayList<String> getDomainsList() {
+    return domainsList;
   }
   
-  public String getUsersListJSON() {
-    return usersListJSON;
+  public ArrayList<String> getUsersList() {
+    return usersList;
   }
 
   private void initializePortalConfig(HttpServletRequest request) {

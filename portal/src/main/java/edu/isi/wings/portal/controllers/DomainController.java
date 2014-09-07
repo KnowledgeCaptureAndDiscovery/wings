@@ -112,17 +112,21 @@ public class DomainController {
         + ", engines: " + json.toJson(config.getEnginesList()) + "}";
 	}
 
-  public Collection<String> getReadableDomainsList() {
-    String viewerid = config.getViewerId();
-    if(viewerid.equals(config.getUserId()))
-      return user_domains.keySet();
-    
+  public ArrayList<String> getReadableDomainsList() {
     ArrayList<String> domains = new ArrayList<String>();
-    for(DomainInfo dominfo : this.user_domains.values()) {
-      Domain dom = new Domain(dominfo);
-      Permission perm = dom.getPermissionForUser(viewerid);
-      if(perm.canRead()) {
-        domains.add(dom.getDomainName());
+    
+    String viewerid = config.getViewerId();
+    if(viewerid.equals(config.getUserId())) {
+      for(String domname : user_domains.keySet())
+        domains.add(domname);
+    }
+    else {
+      for(DomainInfo dominfo : this.user_domains.values()) {
+        Domain dom = new Domain(dominfo);
+        Permission perm = dom.getPermissionForUser(viewerid);
+        if(perm.canRead()) {
+          domains.add(dom.getDomainName());
+        }
       }
     }
     return domains;

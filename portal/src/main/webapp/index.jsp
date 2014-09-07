@@ -16,7 +16,8 @@ JSLoader.loadConfigurationJS(outx, configx);
 JSLoader.loadLoginViewer(outx, configx.getContextRootPath());
 CSSLoader.loadLoginViewer(outx, configx.getContextRootPath());
 %><script>
-var message="<%=request.getParameter("message")%>";
+var message="<%=request.getAttribute("message")%>";
+var nohome="<%=request.getAttribute("nohome")%>";
 Ext.onReady(function() {
 	var mainpanel = new Ext.Viewport({
 		layout : 'border',
@@ -29,13 +30,18 @@ Ext.onReady(function() {
 				border: false,
 				autoScroll: true,
 				listeners: {
-					'render': function(comp) {
-						Ext.Ajax.request({
-							url: CONTEXT_ROOT + "/jsp/home.jsp",
-							success: function(response) {
-								comp.update(response.responseText);
-							}
-						});
+					'afterrender': function(comp) {
+						if(nohome == "null") {
+							Ext.Ajax.request({
+								url: CONTEXT_ROOT + "/jsp/home.jsp",
+								success: function(response) {
+									comp.update(response.responseText);
+								}
+							});
+						}
+						else if (message != "null") {
+							comp.update(message);
+						}
 					}
 				}
 			}
