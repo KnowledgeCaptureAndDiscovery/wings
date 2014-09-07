@@ -14,20 +14,28 @@ Installation
 2. Move the war file to a Servlet container (Tomcat)
 	- $ mv /path/to/wings-portal-<version>.war /path/to/tomcat/webapps/wings-portal.war
 
-3. Setup users in /path/to/tomcat/conf/tomcat-users.xml
-	- Wings users need to have the "WingsUser" role
+3. Setup an admin user in /path/to/tomcat/conf/tomcat-users.xml
+	- Wings admin users need to have the "WingsUser" and "WingsAdmin" roles
 
-4. Start tomcat
+4. Add the following in /path/to/tomcat/conf/server.xml
+<Context docBase="wings-portal" path="/wings-portal">
+	<ResourceLink name="users" global="UserDatabase"/>
+</Context>
+  
+5. In /path/to/tomcat/conf/server.xml, add 'readonly="false"' to the UserDatabase Resource 
+<Resource name="UserDatabase" ...  readonly="false"/>
+
+6. Start tomcat
 	- $ /path/to/tomcat/bin/startup.sh
 
-5. Login to http://<your-server-name>:8080/wings-portal
+7. Login to http://<your-server-name>:8080/wings-portal
 
-6. After first Login, go to $HOME/.wings directory and open portal.properties
+8. After first Login, go to $HOME/.wings directory and open portal.properties
 	- Change path to graphviz
 	- Check that the server name is set correctly
 	- (Optional) Change any other settings if needed
 
-7. To see a list of Domains to download, please go to http://www.wings-workflows.org/domains/
+9. To see a list of Domains to download, please go to http://www.wings-workflows.org/domains/
 	- To Import a domain: From the "Manage Domains" interface, do the following:
 		- Add -> Import Domain
 		- Enter Domain Location: the url (or path) to the domain zip file

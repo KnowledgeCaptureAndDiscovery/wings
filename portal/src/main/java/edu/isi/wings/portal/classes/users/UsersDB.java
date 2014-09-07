@@ -147,7 +147,7 @@ public class UsersDB {
       this.udb = (UserDatabase) ic.lookup("java:comp/env/users");
     }
     catch(Exception e) {
-      //e.printStackTrace();
+      e.printStackTrace();
       System.err.println("Could not initialize UserDB");
     }
   }

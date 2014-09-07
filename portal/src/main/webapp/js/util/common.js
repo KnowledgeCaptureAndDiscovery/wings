@@ -152,10 +152,18 @@ function getPortalHeader() {
 	if(VIEWER_ID != USER_ID)
 		style = "color:pink;";
 	
-	if(USERS != null && USERS.length) {
+	if(USER_ID != null) {
 		html += "<li style='float:right'>"
 			+ "<a href='#'>User: <span class='user' style='"+style+"'>"
 			+ USER_ID + "</span></a><ul>";
+	}
+	else {
+		html += "<li style='float:right'><a href=\""
+			+ userpath
+			+ "/domains\">Login</a></li>";
+	}
+	
+	if(USERS != null) {
 		for(var i=0; i<USERS.length; i++) {
 			var userid = USERS[i];
 			if(userid == USER_ID)
@@ -163,18 +171,15 @@ function getPortalHeader() {
 			var userurl = homepath + "/users/" + userid + "/domains";
 			html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
 		}
+	}
+	if(VIEWER_ID != null) {
 		html += "<li style='float:right'><a href=\""
 			+ homepath
 			+ "/jsp/logout.jsp\">Logout <span class='user'>"
 			+ VIEWER_ID
 			+ "</span></a></li>";
-		html += "</ul></li>";
 	}
-	else {
-		html += "<li style='float:right'><a href=\""
-			+ userpath
-			+ "/domains\">Login</a></li>";
-	}
+	html += "</ul></li>";
 	
 	if(DOMAINS != null && DOMAINS.length) {
 		html += "<li style='float:right'>"

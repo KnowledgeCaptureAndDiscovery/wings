@@ -154,7 +154,7 @@ public class Config {
       // For a non-owner viewer, if there is no domain available, 
       // then return a message
       if(this.domain == null && !this.viewerId.equals(this.userId)) {
-        this.showError(request, response, "No Shared Domains by "+userId+" !");
+        this.showError(request, response, "No Domains shared by "+userId+" !");
         return false;
       }
       
