@@ -33,7 +33,8 @@ if(!Ext.ModelManager.isRegistered('TellMe.HistoryRecord')) {
 TellMe.HistoryTree = Ext.extend(Ext.tree.Panel, {
 	initComponent : function() {
 		Ext.apply(this, {
-			root: {id:this.rootId, text:this.rootText, iconCls:'wflowIcon', leaf:true},
+			root: {id:this.rootId, text:this.rootText, 
+				iconCls:'icon-wflow-alt fa fa-blue', leaf:true},
 			border:false,
 			autoScroll: true,
 			bodyCssClass:'hrefTree'

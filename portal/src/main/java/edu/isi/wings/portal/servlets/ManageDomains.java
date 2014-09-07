@@ -80,13 +80,17 @@ public class ManageDomains extends HttpServlet {
 		if(op.equals("getDomainDetails")) {
 			out.println(dc.getDomainJSON(domain));
 		}
-		else if(op.equals("selectDomain")) {
-			if(dc.selectDomain(domain))
-				out.print("OK");
-		}
+		
+		// Domain write functions only for owner viewers
+		if(!config.getViewerId().equals(config.getUserId()))
+		  return;
 		
 		synchronized (WriteLock.Lock) {
-			if (op.equals("createDomain")) {
+	    if(op.equals("selectDomain")) {
+	      if(dc.selectDomain(domain))
+	        out.print("OK");
+	    }
+	    else if (op.equals("createDomain")) {
 				out.println(dc.createDomain(domain));
 			} 
 			else if (op.equals("deleteDomain")) {
@@ -108,9 +112,9 @@ public class ManageDomains extends HttpServlet {
           out.print("OK");
       }
 			else if (op.equals("setDomainPermissions")) {
-        //String permissions_json = request.getParameter("permissions_json");
-        //if(dc.setPermissions(domain, permissions_json))
-			  // out.print("OK");
+			  String permissions_json = request.getParameter("permissions_json");
+			  if(dc.setDomainPermissions(domain, permissions_json))
+			    out.print("OK");
       }
 		}
 	}

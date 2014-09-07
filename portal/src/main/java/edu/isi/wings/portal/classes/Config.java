@@ -2,6 +2,7 @@ package edu.isi.wings.portal.classes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -27,6 +28,7 @@ import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
 import edu.isi.wings.portal.classes.domains.Domain;
+import edu.isi.wings.portal.classes.domains.Permission;
 import edu.isi.wings.portal.classes.users.User;
 import edu.isi.wings.portal.classes.users.UsersDB;
 import edu.isi.wings.portal.controllers.DomainController;
@@ -131,40 +133,37 @@ public class Config {
     return true;
   }
   
-  // TODO: Do a permissions check here as well (instead of just checkDomain)
 	public boolean checkDomain(HttpServletResponse response) {
     if(!this.checkUser(response))
       return false;
-    
-    // TODO: Check that viewerId has permission for domainId from userId
-	  // - Check read, write & execute permission based on input
-    // For now, just checking that viewerId is the same as userId
-    /*if(this.userId != null &&
-        (this.viewerId == null || !this.viewerId.equals(this.userId))) {
+
+    try {
+  	  // Check that a domain is provided in the URL, or a default domain exists
+      String redirectUrl = this.getUserPath()+"/domains";
+      if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
         response.setContentType("text/html");
-      try {
-        response.getWriter().println("No Permission !");
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-      return false;
-    }*/
-	  
-	  // Check that a domain is provided in the URL, or a default domain exists
-    String redirectUrl = this.getUserPath()+"/domains";
-    if(this.domain == null && !this.scriptPath.equals(redirectUrl)) {
-      response.setContentType("text/html");
-      response.setHeader("Refresh", "5; URL="+redirectUrl);
-      try {
+        response.setHeader("Refresh", "5; URL="+redirectUrl);
         response.getWriter().println("No such domain !<br/>"
-                + "See list of domains at <a href='"+redirectUrl+"'>"+redirectUrl+"</a>. "
-                + "Redirecting in 5 seconds");
+            + "See list of domains at <a href='"+redirectUrl+"'>"+redirectUrl+"</a>. "
+            + "Redirecting in 5 seconds");
+        return false;
       }
-      catch (IOException e) {
-        e.printStackTrace();
+      else if(this.domain != null 
+          && !this.scriptPath.equals(redirectUrl)
+          && !this.viewerId.equals(this.userId)) {
+        // Check domain permissions
+        // TODO: Check read, write & execute permission based on input
+        //       For now: all or none permissions
+        Permission perm = this.domain.getPermissionForUser(this.viewerId);
+        if(!perm.canRead()) {
+          response.setContentType("text/html");
+          response.getWriter().println("No Permission !");
+          return false;
+        }
       }
-      return false;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
     }
 		return true;
 	}
@@ -217,12 +216,20 @@ public class Config {
 		if (!uf.exists() && !uf.mkdirs())
 			System.err.println("Cannot create user directory : " + uf.getAbsolutePath());
 		
-		// Get user's selected domain
+		// Get domain and user list
 		DomainController dc = new DomainController(1, this);
-		this.domain = dc.getUserDomain();
-		this.domainsListJSON = dc.getReadableDomainsList();
+    Collection<String> domList = dc.getReadableDomainsList();
+    this.domainsListJSON = JsonHandler.createGson().toJson(domList);
 		this.usersListJSON = this.userapi.getUsersListJSON();
 		
+    // Get user's selected domain
+    this.domain = dc.getUserDomain();
+    // If the domain isn't a part of the readable domain list, 
+    // then choose the first one
+    if(domList.size() > 0 
+        && !domList.contains(this.domain.getDomainName())) 
+      this.domain = dc.getDomain(domList.iterator().next());
+
 		if(this.domain != null) {
 		  this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir() 
         + "/" + this.getUserId() + "/" + this.domain.getDomainName();

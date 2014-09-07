@@ -50,6 +50,7 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	font-size: 12px !important;
 	top: -2px !important;
 }
+.fa-white { color: white; }
 .fa-green { color: seagreen; }
 .fa-maroon { color: maroon;	}
 .fa-red { color: indianred;	}

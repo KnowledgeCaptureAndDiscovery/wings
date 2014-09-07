@@ -1,4 +1,8 @@
 var TodoListParser = function(paraphrases, mapping) {
+	if(!paraphrases)
+		paraphrases = {};
+	if(!mapping)
+		mapping = {};
 	this._todo_entries     = [];
 	this._paraphrases      = paraphrases;
 	this._paraphrases.io   = this.createIOParaphrases(paraphrases);
@@ -39,6 +43,8 @@ TodoListParser.prototype.createIOParaphrases = function(paraphrases) {
 	var ioParaphrases = {};
 	var reg1 =  new RegExp("\\\+(\\\w+)");
 	var reg2 = new RegExp("\\\+\\\w+\\\[(.+)=(.+)\\\]");
+	if(!paraphrases)
+		return ioParaphrases;
 	for(var taskFrame in paraphrases.component) {
 		var paras = paraphrases.component[taskFrame];
 		while(paras.length > 0) {

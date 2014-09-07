@@ -1,6 +1,7 @@
 package edu.isi.wings.portal.controllers;
 
 import java.io.BufferedReader;
+import java.io.File;
 //import java.io.File;
 //import java.io.FileNotFoundException;
 //import java.util.Scanner;
@@ -12,6 +13,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.mindswap.pellet.utils.FileUtils;
 
 import com.google.gson.Gson;
 
@@ -106,8 +109,8 @@ public class TemplateController {
 							+ ", components: { tree: " + json.toJson(cc.getComponentHierarchy(editor).getRoot()) + "}"
 							+ (editor ? ", propvals: "+ json.toJson(this.getConstraintProperties()) : "") 
 							+ (editor ? ", data: { tree: " + json.toJson(dc.getDatatypeHierarchy().getRoot()) + "}" : "")
-//							+ (tellme ? ", beamer_paraphrases: " + this.getBeamerParaphrasesJSON() : "")
-//							+ (tellme ? ", beamer_mappings: " + this.getBeamerMappingsJSON() : "")
+							+ (tellme ? ", beamer_paraphrases: " + this.getBeamerParaphrasesJSON() : "")
+							+ (tellme ? ", beamer_mappings: " + this.getBeamerMappingsJSON() : "")
 					+ " }, "
 					+ editor + ", "
 					+ tellme + ", "
@@ -168,7 +171,31 @@ public class TemplateController {
 			tc.end();
 		}
 	}
+	
+	private String getBeamerParaphrasesJSON() {
+	  try {
+      String beamerDir = 
+          config.getDomain().getDomainDirectory() + File.separator + "beamer";
+      return FileUtils.readFile(beamerDir + File.separator + "paraphrases.json");
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	  }
+	  return "{}";
+	}
 
+	private String getBeamerMappingsJSON() {
+	  try {
+	    String beamerDir = 
+	        config.getDomain().getDomainDirectory() + File.separator + "beamer";
+	    return FileUtils.readFile(beamerDir + File.separator + "mappings.json");
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	  }
+	  return "{}";
+	}
+	
 	public synchronized String saveTemplateJSON(String tplid, String templatejson, String consjson) {
 		Template tpl = null;
 		try {

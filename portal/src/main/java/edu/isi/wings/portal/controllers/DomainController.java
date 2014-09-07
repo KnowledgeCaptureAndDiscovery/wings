@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,12 +20,15 @@ import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.io.FileUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
+import edu.isi.wings.portal.classes.domains.Permission;
 import edu.isi.wings.portal.classes.html.CSSLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 
@@ -85,16 +90,49 @@ public class DomainController {
 	}
 
 	public String getDomainsListJSON() {
-		return "{ list: " + json.toJson(user_domains.values()) 
-				 + ", selected: "+ (domain != null ? json.toJson(domain.getDomainName()) : "null") 
-				 + ", engines: " + json.toJson(config.getEnginesList()) + "}";
+    String viewerid = config.getViewerId();
+    Collection<DomainInfo> dominfos = new ArrayList<DomainInfo>();
+    String selected = "null";
+    if(viewerid.equals(config.getUserId())) {
+      dominfos = user_domains.values();
+      selected = (domain != null ? json.toJson(domain.getDomainName()) : "null");
+	  }
+    else {
+      for(DomainInfo dominfo : this.user_domains.values()) {
+        Domain dom = new Domain(dominfo);
+        Permission perm = dom.getPermissionForUser(viewerid);
+        if(perm.canRead()) {
+          dominfos.add(dominfo);
+        }
+      }
+      selected = "null";
+    }
+    return "{ list: " + json.toJson(dominfos) 
+        + ", selected: "+ selected 
+        + ", engines: " + json.toJson(config.getEnginesList()) + "}";
 	}
 
-  public String getReadableDomainsList() {
-    // TODO: Check read-permissions to get allowed domains
-    return json.toJson(user_domains.keySet());
+  public Collection<String> getReadableDomainsList() {
+    String viewerid = config.getViewerId();
+    if(viewerid.equals(config.getUserId()))
+      return user_domains.keySet();
+    
+    ArrayList<String> domains = new ArrayList<String>();
+    for(DomainInfo dominfo : this.user_domains.values()) {
+      Domain dom = new Domain(dominfo);
+      Permission perm = dom.getPermissionForUser(viewerid);
+      if(perm.canRead()) {
+        domains.add(dom.getDomainName());
+      }
+    }
+    return domains;
   }
-	
+
+  public Domain getDomain (String domain) {
+    DomainInfo dominfo = this.user_domains.get(domain);
+    return new Domain(dominfo);
+  }
+  
 	public String getDomainJSON (String domain) {
 		DomainInfo dominfo = this.user_domains.get(domain);
 		Domain dom = new Domain(dominfo);
@@ -255,6 +293,23 @@ public class DomainController {
       dom.setPlanEngine(engine);
       dom.setStepEngine(engine);
     }
+    return dom.saveDomain();
+  }
+
+  public boolean setDomainPermissions(String domain, String permissions_json) {
+    DomainInfo dominfo = this.user_domains.get(domain);
+    if (dominfo == null)
+      return false;
+
+    ArrayList<Permission> permissions = new ArrayList<Permission>();
+    JsonParser parser = new JsonParser();
+    JsonElement perms = parser.parse(permissions_json);
+    for(JsonElement el : perms.getAsJsonArray()) {
+      permissions.add(json.fromJson(el, Permission.class));
+    }
+    
+    Domain dom = new Domain(dominfo);
+    dom.setPermissions(permissions);
     return dom.saveDomain();
   }
 	 

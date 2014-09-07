@@ -69,16 +69,9 @@ DomainViewer.prototype.createLeftPanel = function() {
 		})
 	}
 
-    this.domainsGrid = new Ext.grid.Panel({
-        region: 'west',
-        width: '25%',
-        split: true,
-        /*margins: '5 0 5 5',
-        cmargins: '5 5 5 5',*/
-        margins: 5,
-        store: domainStore,
-        bodyCls:'multi-line-grid',
-        dockedItems: [{
+	var toolbar = null;
+	if (VIEWER_ID == USER_ID) {
+		toolbar = [{
         	xtype: 'toolbar',
         	dock: 'top',
         	items: [ 
@@ -101,10 +94,6 @@ DomainViewer.prototype.createLeftPanel = function() {
         		text: 'Set Default',
         		iconCls: 'icon-select fa fa-green'
         	}, {
-        	    text: 'Use Execution Engine',
-        	    iconCls: 'icon-run fa fa-brown',
-        	    menu: execMenu
-        	}, {
         		itemId: 'delbutton',
         		text: 'Delete',
         		iconCls: 'icon-del fa fa-red'
@@ -113,11 +102,31 @@ DomainViewer.prototype.createLeftPanel = function() {
         		text: 'Rename',
         		iconCls: 'icon-edit fa fa-blue'
         	}, {
+        	    text: 'Execution Engine',
+        	    iconCls: 'icon-run fa fa-brown',
+        	    menu: execMenu
+        	}, {
+        		itemId: 'permissionsbutton',
+        	    text: 'Set Permissions',
+        	    iconCls: 'icon-unlockAlt fa fa-blue'
+        	}, {
         		itemId: 'downloadbutton',
         		text: 'Download',
         		iconCls: 'icon-download fa fa-blue'
         	}]
-        }],
+        }];
+	}
+	
+    this.domainsGrid = new Ext.grid.Panel({
+        region: 'west',
+        width: '25%',
+        split: true,
+        /*margins: '5 0 5 5',
+        cmargins: '5 5 5 5',*/
+        margins: 5,
+        store: domainStore,
+        bodyCls:'multi-line-grid',
+        dockedItems: toolbar,
         columns: [{
         	dataIndex: 'name',
         	header: 'Domain',
@@ -554,7 +563,111 @@ DomainViewer.prototype.createListeners = function() {
 	        }
 	    }, This, false, domain.get('name'));
 	});
+	this.domainsGrid.down('#permissionsbutton').on("click", function() {
+		// Delete domain
+		var sels = This.domainsGrid.getSelectionModel().getSelection();
+		if(!sels.length) {
+			showError("Click on a domain first");
+			return;
+		}
+		var domain = sels[0];
+		This.openPermissionsEditor(domain);
+	});
 };
+
+DomainViewer.prototype.setDomainPermissions = function(domname, permissions) {
+	var This = this;
+	
+    var url = This.op_url + '/setDomainPermissions';
+    Ext.get(This.domainsGrid.getId()).mask("Setting Domain Permissions..");
+    Ext.Ajax.request({
+        url: url,
+        params: {
+        	domain: domname,
+        	permissions_json: Ext.encode(permissions)
+        },
+        success: function(response) {
+        	 Ext.get(This.domainsGrid.getId()).unmask();
+			 if (response.responseText == "OK") {
+				var rec = This.domainsGrid.getStore().findRecord('name', domname);
+				rec.set("permissions", permissions);
+				This.domainsGrid.reconfigure();
+			} else {
+				_console(response.responseText);
+			}
+        },
+        failure: function(response) {
+        	Ext.get(This.domainsGrid.getId()).unmask();
+        	_console(response.responseText);
+        }
+        
+    });
+};
+
+DomainViewer.prototype.openPermissionsEditor = function(domain) {
+	var This = this;
+	var domname = domain.get('name');
+	var permissions = domain.get('permissions');
+	
+	var userdata = [];
+	userdata.push({"name":"All (*)", "value":"*"});
+	for(var i=0; i<USERS.length; i++) {
+		var userid = USERS[i];
+		if(userid != USER_ID)
+			userdata.push({name:userid, value:userid});
+	}
+	var userstore = Ext.create('Ext.data.Store', {
+	    fields: ['name', 'value'],
+	    data : userdata
+	});
+	
+	var permval = [];
+	for(var i=0; i<permissions.length; i++) {
+		permval.push(permissions[i].userid);
+	}
+	
+    var win = new Ext.Window({
+        layout: 'fit',
+        title: 'Permissions for '+domname,
+        border: false,
+        items: [{
+        	xtype: 'form',
+            bodyStyle: 'padding:5px',
+        	items: [{
+        		xtype: 'combo',
+        		fieldLabel: 'Select Users who have permission',
+        		queryMode: 'local',
+        		multiSelect: true,
+        		displayField: 'name',
+        		valueField: 'value',
+        		value: permval,
+        		store: userstore
+        	}, {
+        		xtype: 'button',
+        		iconCls: 'icon-select-alt fa fa-green',
+        		text: 'Submit',
+        		handler: function() {
+        			var combo = this.up('form').down('combo');
+        			var permusers = combo.getValue();
+        			if(Ext.Array.contains(permusers, "*"))
+        				permusers = ["*"]
+        			var newpermissions = [];
+        			for(var i=0; i<permusers.length; i++) {
+        				newpermissions.push({
+        					userid: permusers[i],
+        					canRead: true, canWrite: true, canExecute: true
+        				})
+        			}
+        			This.setDomainPermissions(domname, newpermissions);
+        			win.close();
+        		}
+        	}]
+        }],
+        autoWidth:true,
+        autoHeight:true
+    });
+    win.show();
+}
 
 DomainViewer.prototype.createMainPanel = function() {
     this.mainPanel = new Ext.Viewport({
@@ -582,5 +695,6 @@ DomainViewer.prototype.initialize = function() {
         layout: 'border',
         items: [getPortalHeader(), this.domainsGrid]
     });
-    this.createListeners();
+    if(USER_ID == VIEWER_ID)
+    	this.createListeners();
 };

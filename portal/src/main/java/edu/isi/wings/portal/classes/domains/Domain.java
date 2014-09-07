@@ -130,6 +130,10 @@ public class Domain {
 		File srcCodeDir = new File(PropertiesHelper.getCodeDirectory());
 		File destCodeDir = new File(domain.getDomainDirectory() + fsep
 				+ domain.getConcreteComponentLibrary().getStorageDirectory());
+    File srcBeamerDir = new File(PropertiesHelper.getOntologyDir() + fsep
+        + "beamer");
+    File destBeamerDir = new File(domain.getDomainDirectory() + fsep
+        + "beamer");
 		try {
 			if(srcDataDir.isDirectory())
 				FileUtils.copyDirectory(srcDataDir, destDataDir);
@@ -140,6 +144,8 @@ public class Domain {
 					f.setExecutable(true);
 				}
 			}
+	     if(srcBeamerDir.isDirectory())
+	        FileUtils.copyDirectory(srcBeamerDir, destBeamerDir);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -185,6 +191,10 @@ public class Domain {
 				+ fromdom.getConcreteComponentLibrary().getStorageDirectory());
 		File destCodeDir = new File(todom.getDomainDirectory() + fsep
 				+ todom.getConcreteComponentLibrary().getStorageDirectory());
+    File srcBeamerDir = new File(fromdom.getDomainDirectory() + fsep
+        + "beamer");
+    File destBeamerDir = new File(todom.getDomainDirectory() + fsep
+        + "beamer");
 		try {
 			if(srcDataDir.isDirectory())
 				FileUtils.copyDirectory(srcDataDir, destDataDir);
@@ -195,6 +205,8 @@ public class Domain {
 					f.setExecutable(true);
 				}
 			}
+	     if(srcBeamerDir.isDirectory())
+	        FileUtils.copyDirectory(srcBeamerDir, destBeamerDir);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -242,6 +254,10 @@ public class Domain {
 				+ fromdom.getConcreteComponentLibrary().getStorageDirectory());
 		File destCodeDir = new File(todom.getDomainDirectory() + fsep
 				+ todom.getConcreteComponentLibrary().getStorageDirectory());
+    File srcBeamerDir = new File(fromdom.getDomainDirectory() + fsep
+        + "beamer");
+    File destBeamerDir = new File(todom.getDomainDirectory() + fsep
+        + "beamer");
 		try {
 			if(srcDataDir.isDirectory())
 				FileUtils.copyDirectory(srcDataDir, destDataDir);
@@ -252,6 +268,8 @@ public class Domain {
 					f.setExecutable(true);
 				}
 			}
+      if(srcBeamerDir.isDirectory())
+        FileUtils.copyDirectory(srcBeamerDir, destBeamerDir);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -559,6 +577,14 @@ public class Domain {
 		}
 		return false;
 	}
+	
+	public Permission getPermissionForUser(String userid) {
+	  for(Permission perm : this.getPermissions()) {
+	    if(perm.getUserid().equals("*") || perm.getUserid().equals(userid))
+	      return perm;
+	  }
+	  return new Permission(userid, false, false, false);
+	}
 
 	public void prepareDomainForExport() {
 		// TODO: If useSharedTripleStore, then create owl files into map paths
@@ -715,5 +741,9 @@ public class Domain {
 
 	public ArrayList<Permission> getPermissions() {
 	  return this.permissions;
+	}
+
+	public void setPermissions(ArrayList<Permission> permissions) {
+	  this.permissions = permissions;
 	}
 }

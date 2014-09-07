@@ -109,7 +109,8 @@ function getPortalHeader() {
 	var compath = COM_ROOT;
 
 	var html = "<div class=\"menu\"><ul>"
-		+ "<li class=\"first active\"><a href=\""+homepath+"\">Home</a></li>"
+		+ "<li class=\"first active\">"
+		+ "<a href=\""+homepath+"\"><i class=\"icon-home\"></i> Home</a></li>"
 		+ "<li><a href=\"#\">Analysis</a><ul>\n"
 		+ "<li class=\"first\"><a href=\""
 		+ userdompath
@@ -161,8 +162,7 @@ function getPortalHeader() {
 			var userid = USERS[i];
 			if(userid == USER_ID)
 				continue;
-			var userurl = SCRIPT_PATH.replace(USER_ID, userid);
-			userurl = userurl.replace(DOMAIN_ID, "blank");
+			var userurl = homepath + "/users/" + userid + "/domains";
 			html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
 		}
 		html += "<li style='float:right'><a href=\""
@@ -186,6 +186,8 @@ function getPortalHeader() {
 			if(domid == DOMAIN_ID)
 				continue;
 			var udomurl = SCRIPT_PATH.replace(DOMAIN_ID, domid);
+			if(udomurl == SCRIPT_PATH) 
+				udomurl = userpath + "/" + domid + "/workflows";
 			html += "<li class=\"first\"><a href='" + udomurl + "'>" + domid + "</a></li>";
 		}
 		html += "</ul></li>";

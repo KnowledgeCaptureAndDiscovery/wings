@@ -217,7 +217,7 @@ function getTellMePanel(guid, tid, tname, tabPanel, mainPanel, opts, store, run_
 	var panel = new Ext.Panel({
 		title: 'TellMe',
 		border: false,
-		iconCls: 'chatIcon',
+		iconCls: 'icon-chat fa-title fa-blue',
 		layout: 'border'
 	});
 	
@@ -307,13 +307,13 @@ function filterTree(tn) {
 	node.id = tn.data.id;
 	node.cls = tn.data.cls;
 	node.iconCls = tn.data.iconCls;
-	if(node.iconCls == 'chatIcon') {
+	if(node.iconCls == 'icon-chat fa fa-blue') {
 		node.status = tn.data.status;
 		node.student = tn.data.student;
 		node.teacher = tn.data.teacher;
 		node.text = tn.data.text;
 	}
-	if(node.iconCls == 'wflowIcon' && tn.data.template) {
+	if(node.iconCls == 'icon-wflow fa fa-blue' && tn.data.template) {
 		var t = tn.data.template.createCopy();
 		node.template = cloneObj(t.store);
 	}
@@ -400,7 +400,7 @@ function addToHistory(hpTree, hpDetail, curT, teacher, student, log, templates, 
 	var curTxid = curT.txid + "." + (curNode.childNodes.length+1);
 
 	var curText = curNode.data.text;
-	var utObj = {id:curTxid+".utterance", iconCls: icon?icon:'chatIcon', 
+	var utObj = {id:curTxid+".utterance", iconCls: icon?icon:'icon-chat fa fa-blue', 
 							cls: 'tellmestudent_'+status,
 							text:teacher, teacher:teacher, student:student, log:log, 
 							status:status, expanded:true};
@@ -416,7 +416,8 @@ function addToHistory(hpTree, hpDetail, curT, teacher, student, log, templates, 
 			t = templates[i-1];
 			var txid = curTxid+"."+i;
 			var tObj = {teacher:teacher, student:student, log:log, status:status,
-								text:curText+"."+i, id:txid, template:t, leaf:true, iconCls: 'wflowIcon'};
+								text:curText+"."+i, id:txid, template:t, leaf:true, 
+								iconCls: 'icon-wflow fa fa-blue'};
 			t.txid = txid;
 			tNode = utNode.appendChild(tObj);
 			if(i==1) {
