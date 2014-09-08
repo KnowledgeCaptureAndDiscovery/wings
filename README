@@ -11,13 +11,17 @@ Installation
 1. $ mvn install
 	- This will create a wings-portal-<version>.war file in portal/target
 
-2. Move the war file to a Servlet container (Tomcat)
+2. Move the war file to a Servlet container (Tomcat) and rename to wings-portal.war
 	- $ mv /path/to/wings-portal-<version>.war /path/to/tomcat/webapps/wings-portal.war
 
 3. Setup an admin user in /path/to/tomcat/conf/tomcat-users.xml
 	- Wings admin users need to have the "WingsUser" and "WingsAdmin" roles
+	Example: (The following needs to go inside the <tomcat-users ..> Section.
+		<user name="adminUser" password="adminPassword" 
+		roles="WingsUser,WingsAdmin" />
 
-4. Add the following in /path/to/tomcat/conf/server.xml
+4. Add the following in /path/to/tomcat/conf/server.xml. The following Context section 
+   should go inside the <Host..> Section.
 <Context docBase="wings-portal" path="/wings-portal">
 	<ResourceLink name="users" global="UserDatabase"/>
 </Context>
@@ -28,10 +32,12 @@ Installation
 6. Start tomcat
 	- $ /path/to/tomcat/bin/startup.sh
 
-7. Login to http://<your-server-name>:8080/wings-portal
+7. Login to http://<your-server-name>:8080/wings-portal/common/users
+	- From this UI, you can add or remove more users.
+	- Note: 8080 is the default Tomcat port, but this can be changed in server.xml
 
 8. After first Login, go to $HOME/.wings directory and open portal.properties
-	- Change path to graphviz
+	- Change /path/to/dot (graphviz) if it is set incorrectly
 	- Check that the server name is set correctly
 	- (Optional) Change any other settings if needed
 
