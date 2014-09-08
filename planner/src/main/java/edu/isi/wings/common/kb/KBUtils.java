@@ -39,6 +39,12 @@ public class KBUtils {
 			name = "a" + name;
 		return name;
 	}
+	
+	public static String getLocalName(String id) {
+	  if(id == null)
+	    return null;
+	  return id.replaceAll("^.*#", "");
+	}
 
 	public static void removeAllTriplesWith(KBAPI kb, String id, boolean prop) {
 		KBObject obj = kb.getResource(id);
@@ -90,7 +96,41 @@ public class KBUtils {
 		}
 	}
 	
-	private static KBObject renameKBObjectNamespace(KBAPI kb, KBObject item, String oldns, String newns) {
+	public static void removeTriplesWithPrefix(KBAPI kb, String prefix) {
+	  ArrayList<KBTriple> triples = kb.genericTripleQuery(null, null, null);
+	  for (KBTriple t : triples) {
+	    boolean remove = false;
+	    if(t.getSubject().getID() != null 
+	        && t.getSubject().getID().startsWith(prefix))
+	      remove = true;
+      if(t.getPredicate().getID() != null 
+          && t.getPredicate().getID().startsWith(prefix))
+	      remove = true;
+      if(t.getObject().getID() != null 
+          && t.getObject().getID().startsWith(prefix)) {
+        // Also remove all related objects ?
+        removeAllTriplesWith(kb, t.getObject().getID(), false);
+        remove = true;
+      }
+	    if(remove)
+	      kb.removeTriple(t);
+	  }
+	}
+	
+	public static void renameTriplesWithPrefix(KBAPI kb, 
+	    String oldPrefix, String newPrefix) {
+	  ArrayList<KBTriple> triples = kb.genericTripleQuery(null, null, null);
+	  for (KBTriple t : triples) {
+      kb.removeTriple(t);
+      t.setSubject(renameKBObjectPrefix(kb, t.getSubject(), oldPrefix, newPrefix));
+      t.setPredicate(renameKBObjectPrefix(kb, t.getPredicate(), oldPrefix, newPrefix));
+      t.setObject(renameKBObjectPrefix(kb, t.getObject(), oldPrefix, newPrefix));
+      kb.addTriple(t);
+	  }
+	}
+	 
+	private static KBObject renameKBObjectNamespace(KBAPI kb, KBObject item, 
+	    String oldns, String newns) {
 		if(item.isLiteral())
 			return item;
 		if(item.isAnonymous())
@@ -101,5 +141,19 @@ public class KBUtils {
 			return kb.getResource(newns + item.getName());
 		}
 		return item;
+	}
+	
+	private static KBObject renameKBObjectPrefix(KBAPI kb, KBObject item, 
+	    String oldprefix, String newprefix) {
+	  if(item.isLiteral())
+	    return item;
+	  if(item.isAnonymous())
+	    return item;
+	  if(item.getNamespace() == null)
+	    return item;
+	  if(item.getID().startsWith(oldprefix)) {
+	    return kb.getResource(item.getID().replace(oldprefix, newprefix));
+	  }
+	  return item;
 	}
 }

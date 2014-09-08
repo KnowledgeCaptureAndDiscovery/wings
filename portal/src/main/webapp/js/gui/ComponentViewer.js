@@ -55,9 +55,109 @@ ComponentViewer.prototype.getComponentTreePanel = function(root, title, iconCls,
         // bodyCls: 'nonBoldTree',
         title: title,
         store: treeStore,
-        url: This.op_url
+        url: This.op_url,
+        listeners: {
+            itemcontextmenu: {
+                fn: This.onComponentItemContextMenu,
+                scope: this
+            }
+        }
     });
     return treePanel;
+};
+
+ComponentViewer.prototype.getAddMenuItem = function() {
+    var This = this;
+	return {
+        text: 'Add ' + (this.load_concrete ? 'Component': 'Type'),
+        iconCls: 'icon-add fa fa-green',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            var parentNode = (nodes && nodes.length) ? nodes[0] : null;
+            This.addComponent(parentNode);
+        }
+    };
+};
+
+ComponentViewer.prototype.getAddCategoryMenuItem = function() {
+    var This = this;
+	return {
+        text: 'Add Category',
+        iconCls: 'icon-folder-open fa fa-yellow',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            var parentNode = (nodes && nodes.length) ? nodes[0] : null;
+            This.addCategory(parentNode);
+        }
+    };
+};
+
+ComponentViewer.prototype.getDeleteMenuItem = function() {
+    var This = this;
+	return {
+        text: 'Delete',
+        iconCls: 'icon-del fa fa-red',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            if (!nodes || !nodes.length)
+                return;
+            var node = nodes[0];
+            This.confirmAndDelete(node);
+        }
+    };
+};
+
+ComponentViewer.prototype.createTreeToolbar = function() {
+    var This = this;
+    if (this.advanced_user) {
+        var items = [];
+    	var additem = This.getAddMenuItem();
+    	var addcatitem = This.getAddCategoryMenuItem()
+    	var delitem = This.getDeleteMenuItem();
+        items.push(additem);
+        if (!this.load_concrete) {
+            items.push(addcatitem);
+        }
+        items.push(delitem);
+        var toolbar = Ext.create('Ext.toolbar.Toolbar', {
+            dock: 'top',
+            items: items
+        });
+        This.treePanel.addDocked(toolbar);
+        This.treePanel.doComponentLayout();
+    }
+};
+
+ComponentViewer.prototype.onComponentItemContextMenu = 
+		function(view, node, item, index, e, eOpts) {
+    var This = this;
+    e.stopEvent();
+    if (!this.menu && this.advanced_user) {
+    	var additem = This.getAddMenuItem();
+    	var addcatitem = This.getAddCategoryMenuItem()
+    	var delitem = This.getDeleteMenuItem();
+    	additem.iconCls = 'icon-add fa-menu fa-green';
+    	addcatitem.iconCls = 'icon-folder-open fa-menu fa-yellow';
+    	delitem.iconCls = 'icon-del fa-menu fa-red';
+    	
+        var items = [additem];
+        if (!this.load_concrete) {
+            items.push(addcatitem);
+        }
+        items.push(delitem);
+        
+        var roitems = [additem];
+        this.menu = Ext.create('Ext.menu.Menu', {
+            items: items });
+        this.readmenu = Ext.create('Ext.menu.Menu', {
+            items: roitems });
+    }
+    if(this.advanced_user) {
+	    if (node.data.component.concrete || !this.load_concrete)
+	        this.menu.showAt(e.getXY());
+	    else
+	        this.readmenu.showAt(e.getXY());
+    }
 };
 
 ComponentViewer.prototype.getComponentTree = function(item) {
@@ -607,6 +707,47 @@ ComponentViewer.prototype.addCategory = function(parentNode) {
             });
         }
     }, window, false);
+};
+
+
+ComponentViewer.prototype.confirmAndDelete = function(node) {
+	var This = this;
+    var c = node.data.component;
+    var cls = node.data.cls;
+    if (!c.concrete && This.load_concrete) {
+        Ext.MessageBox.show({
+            title: 'Cannot delete',
+            msg: 'Cannot delete component types from this interface. Go to "Manage Component Types" instead',
+            buttons: Ext.Msg.OK
+        });
+        return;
+    }
+    Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls), function(yesno) {
+        if (yesno == "yes") {
+            var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');
+            Ext.get(This.treePanel.getId()).mask("Deleting..");
+            Ext.Ajax.request({
+                url: url,
+                params: {
+                    cid: c.id ? c.id: cls
+                },
+                success: function(response) {
+                    Ext.get(This.treePanel.getId()).unmask();
+                    if (response.responseText == "OK") {
+                        node.parentNode.removeChild(node);
+                        if (c.id)
+                            This.tabPanel.remove(This.tabPanel.getActiveTab());
+                    } else {
+                        _console(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    Ext.get(This.treePanel.getId()).unmask();
+                    _console(response.responseText);
+                }
+            });
+        }
+    });
 };
 
 ComponentViewer.prototype.refreshInactiveTabs = function() {
@@ -1269,81 +1410,7 @@ ComponentViewer.prototype.initialize = function() {
         });
 
     this.treePanel = this.getComponentListTree();
-    
-    var This = this;
-    var delbtn = new Ext.Button({
-        text: 'Delete',
-        iconCls: 'icon-del fa fa-red',
-        handler: function() {
-            var nodes = This.treePanel.getSelectionModel().getSelection();
-            if (!nodes || !nodes.length)
-                return;
-            var node = nodes[0];
-            var c = node.data.component;
-            var cls = node.data.cls;
-            if (!c.concrete && This.load_concrete) {
-                Ext.MessageBox.show({
-                    title: 'Cannot delete',
-                    msg: 'Cannot delete component types from this interface. Go to "Manage Component Types" instead',
-                    buttons: Ext.Msg.OK
-                });
-                return;
-            }
-            Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls), function(yesno) {
-                if (yesno == "yes") {
-                    var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');
-                    Ext.get(This.treePanel.getId()).mask("Deleting..");
-                    Ext.Ajax.request({
-                        url: url,
-                        params: {
-                            cid: c.id ? c.id: cls
-                        },
-                        success: function(response) {
-                            Ext.get(This.treePanel.getId()).unmask();
-                            if (response.responseText == "OK") {
-                                node.parentNode.removeChild(node);
-                                if (c.id)
-                                    This.tabPanel.remove(This.tabPanel.getActiveTab());
-                            } else {
-                                if (window.console)
-                                    window.console.log(response.responseText);
-                            }
-                        },
-                        failure: function(response) {
-                            Ext.get(This.treePanel.getId()).unmask();
-                            if (window.console)
-                                window.console.log(response.responseText);
-                        }
-                    });
-                }
-            });
-        }
-    });
-
-    var tbar = null;
-    if (this.advanced_user) {
-        tbar = [{
-            text: 'Add ' + (this.load_concrete ? 'Component': 'Type'),
-            iconCls: 'icon-add fa fa-green',
-            handler: function() {
-                var nodes = This.treePanel.getSelectionModel().getSelection();
-                var parentNode = (nodes && nodes.length) ? nodes[0] : null;
-                This.addComponent(parentNode);
-            }
-        }];
-        if (!this.load_concrete) {
-            tbar.push({
-                text: 'Add Category',
-                iconCls: 'icon-folder-open fa fa-yellow',
-                handler: function() {
-                    var nodes = This.treePanel.getSelectionModel().getSelection();
-                    var parentNode = (nodes && nodes.length) ? nodes[0] : null;
-                    This.addCategory(parentNode);
-                }
-            });
-        }
-        tbar.push(delbtn);
-    }
+    this.createTreeToolbar();
 
     var leftPanel = new Ext.TabPanel({
         region: 'west',
@@ -1351,8 +1418,7 @@ ComponentViewer.prototype.initialize = function() {
         split: true,
         plain: true,
         margins: '5 0 5 5',
-        activeTab: 0,
-        tbar: tbar
+        activeTab: 0
     });
     var libname = (this.libname == "library" ? "Default": this.libname);
     Ext.apply(this.treePanel, {

@@ -25,6 +25,10 @@ import edu.isi.wings.catalog.component.classes.ComponentRole;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
+import edu.isi.wings.catalog.provenance.ProvenanceFactory;
+import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
+import edu.isi.wings.catalog.provenance.classes.ProvActivity;
+import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 //import edu.isi.wings.classes.kb.PropertiesHelper;
@@ -46,7 +50,8 @@ public class TemplateController {
 	private DataCreationAPI dc;
 	private ComponentCreationAPI cc;
 	private TemplateCreationAPI tc;
-
+	private ProvenanceAPI prov;
+	
 	private Config config;
 
 	private Gson json;
@@ -71,6 +76,7 @@ public class TemplateController {
 		tc = TemplateFactory.getCreationAPI(props);
 		cc = ComponentFactory.getCreationAPI(props, true);
 		dc = DataFactory.getCreationAPI(props);
+		prov = ProvenanceFactory.getAPI(props);
 
 		this.wliburl = (String) props.get("domain.workflows.dir.url");
 		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";
@@ -137,6 +143,7 @@ public class TemplateController {
 			dc.end();
 			cc.end();
 			tc.end();
+			prov.end();
 		}
 	}
 	
@@ -154,6 +161,7 @@ public class TemplateController {
 			dc.end();
 			cc.end();
 			tc.end();
+			prov.end();
 		}
 	}
 	
@@ -169,6 +177,7 @@ public class TemplateController {
 			dc.end();
 			cc.end();
 			tc.end();
+			prov.end();
 		}
 	}
 	
@@ -199,6 +208,10 @@ public class TemplateController {
 	public synchronized String saveTemplateJSON(String tplid, String templatejson, String consjson) {
 		Template tpl = null;
 		try {
+      String provlog = "Updating template";
+      Provenance p = new Provenance(tplid);
+      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+      
 			tpl = JsonHandler.getTemplateFromJSON(this.json, templatejson, consjson);
 			
 			if(!tpl.getMetadata().getContributors().contains(this.config.getUserId()))
@@ -210,7 +223,7 @@ public class TemplateController {
 					ok = this.tc.saveTemplate(tpl);
 				else
 					ok = this.tc.saveTemplateAs(tpl, tplid);
-				if(ok) 
+				if(ok && prov.addProvenance(p) && prov.save()) 
 					return "OK";
 			}
 			return "";
@@ -221,6 +234,7 @@ public class TemplateController {
 			dc.end();
 			cc.end();
 			tc.end();
+			prov.end();
 		}
 	}
 	
@@ -229,7 +243,8 @@ public class TemplateController {
 		try {
 			tpl = this.tc.getTemplate(tplid);
 			if(tpl != null) {
-				if(this.tc.removeTemplate(tpl))
+				if(this.tc.removeTemplate(tpl) 
+				    && prov.removeAllProvenance(tplid) && prov.save())
 					return "OK";
 			}
 			return "";
@@ -240,15 +255,20 @@ public class TemplateController {
 			dc.end();
 			cc.end();
 			tc.end();
+			prov.end();
 		}
 	}
 	
 	public synchronized String newTemplate(String tplid) {
 		Template tpl = null;
 		try {
+      String provlog = "Creating new template";
+      Provenance p = new Provenance(tplid);
+      p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
 			tpl = this.tc.createTemplate(tplid);
 			if(tpl != null) {
-				if(this.tc.saveTemplate(tpl))
+				if(this.tc.saveTemplate(tpl) 
+				    && prov.addProvenance(p) && prov.save())
 					return "OK";
 			}
 			return "";
@@ -259,6 +279,7 @@ public class TemplateController {
 			dc.end();
 			cc.end();
 			tc.end();
+			prov.end();
 		}
 	}
 	

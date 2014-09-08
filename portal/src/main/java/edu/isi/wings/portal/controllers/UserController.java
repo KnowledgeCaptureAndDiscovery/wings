@@ -1,12 +1,17 @@
 package edu.isi.wings.portal.controllers;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
+
 import com.google.gson.Gson;
 
+import edu.isi.wings.catalog.provenance.ProvenanceFactory;
+import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
@@ -121,12 +126,26 @@ public class UserController {
       if(config.getViewerId().equals(userid))
         return false;
       User user = api.getUser(userid);
-      // TODO: Remove user domains
-      // TODO: Remove user directory
       if(user == null)
         return false;
-      return this.api.removeUser(userid)
-          && this.api.save();
+      
+      if(this.api.removeUser(userid)) {
+        // Remove user domains
+        config.setUserId(userid);
+        config.setViewerId(userid);
+        DomainController dc = new DomainController(this.guid, this.config);
+        for(String domain : dc.getDomainsList()) {
+          dc.deleteDomain(domain);
+        }
+        // Remove user directory
+        FileUtils.deleteDirectory(new File(config.getUserDir()));
+        
+        ProvenanceAPI prov = ProvenanceFactory.getAPI(config.getProperties());
+        prov.removeUser(userid);
+        prov.save();
+        
+        return this.api.save();
+      }
     }
     catch (Exception e) {
       e.printStackTrace();

@@ -475,7 +475,13 @@ public class Config {
     if(this.getResourceOntologyUrl() == null)
       this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
     props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
-    props.setProperty("lib.resource.url", this.getExportCommunityUrl()+"/resource/library.owl");
+    props.setProperty("lib.resource.url", 
+        this.getExportCommunityUrl()+"/resource/library.owl");
+    props.setProperty("lib.provenance.url", 
+        this.getExportCommunityUrl()+"/provenance/library.owl");
+    
+    props.setProperty("viewer.id", this.viewerId);
+    props.setProperty("user.id", this.userId);
     
     return props;
 	}
@@ -585,6 +591,16 @@ public class Config {
 	}
 
 	public void setUserId(String userId) {
+	  if(userDomainUrl != null)
+	    this.userDomainUrl = this.userDomainUrl.replace(this.userId, userId);
+	  if(scriptPath != null)
+	    this.scriptPath = this.scriptPath.replace(this.userId, userId);
+	  if(exportUserUrl != null)
+	    this.exportUserUrl = this.exportUserUrl.replace(this.userId, userId);
+	  if(userPath != null)
+	    this.userPath = this.userPath.replace(this.userId, userId);
+	  if(userDir != null)
+	    this.userDir = this.userDir.replace(this.userId, userId);
 		this.userId = userId;
 	}
 

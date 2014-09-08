@@ -23,6 +23,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
+import edu.isi.wings.catalog.provenance.ProvenanceFactory;
+import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
@@ -112,21 +114,27 @@ public class DomainController {
         + ", engines: " + json.toJson(config.getEnginesList()) + "}";
 	}
 
-  public ArrayList<String> getReadableDomainsList() {
+  public ArrayList<String> getDomainsList() {
     ArrayList<String> domains = new ArrayList<String>();
-    
     String viewerid = config.getViewerId();
     if(viewerid.equals(config.getUserId())) {
       for(String domname : user_domains.keySet())
         domains.add(domname);
     }
-    else {
-      for(DomainInfo dominfo : this.user_domains.values()) {
-        Domain dom = new Domain(dominfo);
-        Permission perm = dom.getPermissionForUser(viewerid);
-        if(perm.canRead()) {
-          domains.add(dom.getDomainName());
-        }
+    return domains;
+  }
+  
+  public ArrayList<String> getReadableDomainsList() {
+    String viewerid = config.getViewerId();
+    if(viewerid.equals(config.getUserId())) 
+      return this.getDomainsList();
+
+    ArrayList<String> domains = new ArrayList<String>();
+    for(DomainInfo dominfo : this.user_domains.values()) {
+      Domain dom = new Domain(dominfo);
+      Permission perm = dom.getPermissionForUser(viewerid);
+      if(perm.canRead()) {
+        domains.add(dom.getDomainName());
       }
     }
     return domains;
@@ -246,6 +254,10 @@ public class DomainController {
 			Domain dom = new Domain(dominfo);
 			if(!Domain.deleteDomain(dom, config, true))
 				return false;
+			
+			ProvenanceAPI prov = ProvenanceFactory.getAPI(config.getProperties());
+			prov.removeAllDomainProvenance(dom.getDomainUrl());
+			prov.save();
 		}
 		if(this.saveUserConfig(this.userConfigFile))
 			return true;
@@ -264,6 +276,10 @@ public class DomainController {
 			this.user_domains.put(newname, newdominfo);
 			if(this.domain.getDomainName().equals(domain))
 				this.domain = newdom;
+			
+			ProvenanceAPI prov = ProvenanceFactory.getAPI(config.getProperties());
+			prov.renameAllDomainProvenance(dom.getDomainUrl(), newdom.getDomainUrl());
+			prov.save();
 		}
 		if(this.saveUserConfig(this.userConfigFile))
 			return true;

@@ -30,6 +30,10 @@ import edu.isi.wings.catalog.data.classes.DataTree;
 import edu.isi.wings.catalog.data.classes.DataTreeNode;
 import edu.isi.wings.catalog.data.classes.MetadataProperty;
 import edu.isi.wings.catalog.data.classes.MetadataValue;
+import edu.isi.wings.catalog.provenance.ProvenanceFactory;
+import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
+import edu.isi.wings.catalog.provenance.classes.ProvActivity;
+import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
@@ -46,6 +50,8 @@ public class DataController {
 	private String uploadScript;
 
 	private DataCreationAPI dc;
+	private ProvenanceAPI prov;
+	
 	private boolean isSandboxed;
 	private boolean loadExternal;
 	private Config config;
@@ -64,7 +70,8 @@ public class DataController {
 		dc = DataFactory.getCreationAPI(props);
 		if(this.loadExternal)
 			dc = dc.getExternalCatalog();
-
+		prov = ProvenanceFactory.getAPI(props);
+		
 		this.dcns = (String) props.get("ont.data.url") + "#";
 		this.domns = (String) props.get("ont.domain.data.url") + "#";
 		this.libns = (String) props.get("lib.domain.data.url") + "#";
@@ -109,8 +116,9 @@ public class DataController {
 			out.println("</html>");
 		}
 		finally {
-			if(dc != null)
+			if(dc != null) 
 				dc.end();
+			prov.end();
 		}
 	}
 
@@ -142,6 +150,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
@@ -164,6 +173,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
@@ -240,6 +250,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
@@ -277,8 +288,10 @@ public class DataController {
 					dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
 				}
 			}
-			dc.save();
-			return true;
+			String provlog = "Updating metadata";
+			Provenance p = new Provenance(dataid);
+			p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+			return prov.addProvenance(p) && dc.save() &&  prov.save();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -286,6 +299,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
@@ -366,6 +380,7 @@ public class DataController {
     }
     finally {
       dc.end();
+      prov.end();
     }
 	}
 
@@ -457,8 +472,14 @@ public class DataController {
 							+ eprop.getDomains());
 				}
 			}
-			if(errors.size() == 0)
-				dc.save();
+			if(errors.size() == 0) {
+	      String provlog = "Updating datatype properties";
+	      Provenance p = new Provenance(dtypeid);
+	      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+	      if(prov.addProvenance(p) && dc.save() &&  prov.save()) {
+	        errors.add("Could not add provenance");
+	      }
+			}
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -466,6 +487,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 		HashMap<String, Object> retobj = new HashMap<String, Object>();
 		retobj.put("errors", errors);
@@ -477,23 +499,31 @@ public class DataController {
 		if(ptype == null || dtype == null)
 			return false;
 		try {
-			return dc.addDatatype(dtype, ptype)
-				&& dc.save();
+      String provlog = "Creating datatype with parent "+KBUtils.getLocalName(ptype);
+      Provenance p = new Provenance(dtype);
+      p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+			return dc.addDatatype(dtype, ptype) && prov.addProvenance(p)
+				&& dc.save() && prov.save();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
-	public synchronized boolean moveDatatypeTo(String dtype, String fromtype, String totype) {
-		if(dtype == null || fromtype == null || totype == null)
+	public synchronized boolean moveDatatypeTo(String dtypeid, String fromtype, String totype) {
+		if(dtypeid == null || fromtype == null || totype == null)
 			return false;
 		try {
-			return dc.moveDatatypeParent(dtype, fromtype, totype) 
-					&& dc.save();
+      String provlog = "Moving Datatype from " + KBUtils.getLocalName(fromtype) + 
+          " to " + KBUtils.getLocalName(totype);
+      Provenance p = new Provenance(dtypeid);
+      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+			return dc.moveDatatypeParent(dtypeid, fromtype, totype) && prov.addProvenance(p)
+					&& dc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -501,6 +531,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
@@ -508,8 +539,12 @@ public class DataController {
     if(dataid == null || fromtype == null || totype == null)
       return false;
     try {
-      return dc.moveDataParent(dataid, fromtype, totype) 
-          && dc.save();
+      String provlog = "Moving Data from " + KBUtils.getLocalName(fromtype) + 
+          " to " + KBUtils.getLocalName(totype);
+      Provenance p = new Provenance(dataid);
+      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+      return dc.moveDataParent(dataid, fromtype, totype) && prov.addProvenance(p)
+          && dc.save() && prov.save();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -517,6 +552,7 @@ public class DataController {
     }
     finally {
       dc.end();
+      prov.end();
     }
   }
   
@@ -535,13 +571,17 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
 	public synchronized boolean addDataForDatatype(String dataid, String dtypeid) {
 		try {
-			return dc.addData(dataid, dtypeid)
-				&& dc.save();
+		  String provlog = "Creating data of type "+KBUtils.getLocalName(dtypeid);
+      Provenance p = new Provenance(dataid);
+      p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+			return dc.addData(dataid, dtypeid) && prov.addProvenance(p)
+				&& dc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -549,6 +589,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
@@ -569,13 +610,14 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 
 	public synchronized boolean delData(String dataid) {
 		try {
-			return dc.removeData(dataid)
-				&& dc.save();
+			return dc.removeData(dataid) && prov.removeAllProvenance(dataid)
+				&& dc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -583,13 +625,18 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
 	public synchronized boolean renameData(String dataid, String newid) {
 		try {
-			return dc.renameData(newid, dataid)
-				&& dc.save();
+		  String provlog = "Renaming " + KBUtils.getLocalName(dataid) 
+		      + " to " + KBUtils.getLocalName(newid);
+      Provenance p = new Provenance(dataid);
+      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+			return dc.renameData(newid, dataid) && prov.addProvenance(p)
+				&& dc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -597,13 +644,17 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
 	public synchronized boolean setDataLocation(String dataid, String location) {
 		try {
-			return dc.setDataLocation(dataid, location)
-				&& dc.save();
+      String provlog = "Setting location";
+      Provenance p = new Provenance(dataid);
+      p.addActivity(new ProvActivity(ProvActivity.UPLOAD, provlog));
+			return dc.setDataLocation(dataid, location) && prov.addProvenance(p)
+				&& dc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -611,13 +662,18 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
 	public synchronized boolean renameDataType(String dtypeid, String newid) {
 		try {
-			return dc.renameDatatype(newid, dtypeid)
-				&& dc.save();
+      String provlog = "Renaming " + KBUtils.getLocalName(dtypeid) 
+          + " to " + KBUtils.getLocalName(newid);
+      Provenance p = new Provenance(dtypeid);
+      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+			return dc.renameDatatype(newid, dtypeid) && prov.addProvenance(p)
+				&& dc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -625,6 +681,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
@@ -665,6 +722,7 @@ public class DataController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 }

@@ -20,6 +20,10 @@ import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
+import edu.isi.wings.catalog.provenance.ProvenanceFactory;
+import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
+import edu.isi.wings.catalog.provenance.classes.ProvActivity;
+import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.PropertiesHelper;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
@@ -39,6 +43,8 @@ public class ComponentController {
 
 	private ComponentCreationAPI cc;
 	private DataCreationAPI dc;
+	private ProvenanceAPI prov;
+	
 	private boolean isSandboxed;
 	private boolean loadConcrete;
 	private Config config;
@@ -55,7 +61,8 @@ public class ComponentController {
 
 		cc = ComponentFactory.getCreationAPI(props, this.loadConcrete);
 		dc = DataFactory.getCreationAPI(props);
-
+		prov = ProvenanceFactory.getAPI(props);
+		
 		this.pcdomns = (String) props.get("ont.domain.component.ns");
 		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";
 		this.liburl = (String) props.get("lib.concrete.url");
@@ -103,6 +110,7 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 
@@ -113,6 +121,7 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 	
@@ -137,6 +146,7 @@ public class ComponentController {
 		}
 		finally {
 			dc.end();
+			prov.end();
 		}
 	}
 	
@@ -147,10 +157,13 @@ public class ComponentController {
 		if (this.cc == null)
 			return false;
 
+		String provlog = "Updating component";
 		try {
 			Component comp = json.fromJson(comp_json, Component.class);
-			return this.cc.updateComponent(comp)
-					&& this.cc.save();
+			Provenance p = new Provenance(comp.getID());
+			p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+			return this.cc.updateComponent(comp) && prov.addProvenance(p)
+					&& this.cc.save() && prov.save();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -159,6 +172,7 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 
@@ -166,16 +180,20 @@ public class ComponentController {
 		try {
 			int type = this.loadConcrete ? Component.CONCRETE : Component.ABSTRACT;
 			Component comp = this.cc.getComponent(pid, true);
+			String provlog = "New component";
 			if (comp == null) {
 				// No parent component (probably because of it being a category
 				// or top node)
 				comp = new Component(cid, type);
 			} else {
+			  provlog += " from "+comp.getName(); 
 				comp.setID(cid);
 				comp.setType(type);
 			}
-			return this.cc.addComponent(comp, ptype)
-					&& this.cc.save();
+			Provenance p = new Provenance(cid);
+			p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+			return this.cc.addComponent(comp, ptype) && prov.addProvenance(p) 
+					&& this.cc.save() && prov.save();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -184,13 +202,17 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 
 	public synchronized boolean setComponentLocation(String cid, String location) {
 		try {
-			return this.cc.setComponentLocation(cid, location) 
-					&& this.cc.save();
+		  String provlog = "Setting location";
+      Provenance p = new Provenance(cid);
+      p.addActivity(new ProvActivity(ProvActivity.UPLOAD, provlog));
+			return this.cc.setComponentLocation(cid, location) && prov.addProvenance(p) 
+					&& this.cc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -199,6 +221,7 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 	
@@ -214,14 +237,15 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 
 	public synchronized boolean delComponent(String cid) {
 		try {
-			String holderid = this.cc.getComponentHolderId(cid);
-			return this.cc.removeComponent(cid, true, true)
-					&& this.cc.save();
+			return this.cc.removeComponent(cid, true, true) 
+			    && prov.removeAllProvenance(cid)
+					&& this.cc.save() && prov.save();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -230,6 +254,7 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+      prov.end();
 		}
 	}
 
@@ -245,6 +270,7 @@ public class ComponentController {
 		finally {
 			cc.end();
 			dc.end();
+			prov.end();
 		}
 	}
 }
