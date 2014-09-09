@@ -32,6 +32,7 @@ public class ResourceKB implements ResourceAPI {
   
   HashMap<String, SoftwareVersion> swcache;
   HashMap<String, Machine> mcache;
+  ArrayList<String> machineWhiteList;
 
   public ResourceKB(Properties props) {
     this.onturl = props.getProperty("ont.resource.url");
@@ -321,9 +322,13 @@ public class ResourceKB implements ResourceAPI {
     for(String machineId : mcache.keySet()) {
       Machine machine = mcache.get(machineId);
 
+      if(this.machineWhiteList != null && !this.machineWhiteList.contains(machineId))
+        continue;
+      
       // Check that the machine is "healthy" - could be fetched live ?
       if(!machine.isHealthy())
         continue;
+      
       // The machine's memory/storage - could be live information ?
       if(req.getMemoryGB() > machine.getMemoryGB())
         continue;
@@ -486,6 +491,11 @@ public class ResourceKB implements ResourceAPI {
     return true;
   }
 
+  @Override
+  public void setMachineWhitelist(ArrayList<String> whitelist) {
+    this.machineWhiteList = whitelist;
+  }
+  
   @Override
   public boolean save() {
     if (this.libkb != null)

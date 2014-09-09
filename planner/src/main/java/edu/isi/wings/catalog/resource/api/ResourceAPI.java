@@ -47,6 +47,8 @@ public interface ResourceAPI {
   
   boolean saveSoftwareVersion(SoftwareVersion machine);
   
+  void setMachineWhitelist(ArrayList<String> whitelist);
+  
   // Sync/Save
   boolean save();
 

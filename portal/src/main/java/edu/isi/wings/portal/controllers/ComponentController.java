@@ -40,6 +40,7 @@ public class ComponentController {
 	
 	private String uploadScript;
 	private String resourceScript;
+	private String provScript;
 
 	private ComponentCreationAPI cc;
 	private DataCreationAPI dc;
@@ -69,6 +70,7 @@ public class ComponentController {
 		
 		this.uploadScript = config.getUserDomainUrl() + "/upload";
 		this.resourceScript = config.getCommunityPath() + "/resources";
+		this.provScript = config.getCommunityPath() + "/provenance";
 	}
 
 	public void show(PrintWriter out) {
@@ -94,6 +96,7 @@ public class ComponentController {
 					+ "'" + config.getScriptPath() + "', "
 					+ "'" + this.resourceScript + "', "
 					+ "'" + this.uploadScript + "', "
+					+ "'" + this.provScript + "', "
 					+ "'" + this.pcdomns + "', "
 					+ "'" + this.dcdomns + "', " 
 					+ "'" + this.liburl + "', " 

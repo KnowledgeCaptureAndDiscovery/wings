@@ -26,7 +26,7 @@ public class ProvenanceKB implements ProvenanceAPI {
   private String viewerid;
   
   private String onturl = "http://www.w3.org/ns/prov-o";
-  //private String ontns = "http://www.w3.org/ns/prov#";
+  private String ontns = "http://www.w3.org/ns/prov#";
   
   private HashMap<String, KBObject> propmap;
   private HashMap<String, KBObject> cmap;
@@ -67,15 +67,13 @@ public class ProvenanceKB implements ProvenanceAPI {
     this.propmap = new HashMap<String, KBObject>();
     this.cmap = new HashMap<String, KBObject>();
 
-    for (KBObject prop : this.kb.getAllObjectProperties()) {
-      this.propmap.put(prop.getName(), prop);
-    }
-    for (KBObject prop : this.kb.getAllDatatypeProperties()) {
-      this.propmap.put(prop.getName(), prop);
-    }
-    for (KBObject con : this.kb.getAllClasses()) {
-      this.cmap.put(con.getName(), con);
-    }
+    String[] props = new String[] {"wasGeneratedBy", 
+        "wasAttributedTo", "startedAtTime", "endedAtTime" };
+    String[] concepts = new String[] {"Agent", "Entity", "Activity"};
+    for (String propid : props) 
+      this.propmap.put(propid, this.kb.getProperty(this.ontns + propid));
+    for (String conceptid : concepts) 
+      this.cmap.put(conceptid, this.kb.getConcept(this.ontns + conceptid));
   }
   
   @Override
@@ -181,13 +179,15 @@ public class ProvenanceKB implements ProvenanceAPI {
     ArrayList<ProvActivity> acts = new ArrayList<ProvActivity>();
     KBObject agentobj = this.kb.getIndividual(this.libns + userId);
     if(agentobj != null) {
-      for(KBTriple t : 
-        this.kb.genericTripleQuery(null, propmap.get("wasAttributedTo"), agentobj)) {
+      for(KBTriple t : this.kb.genericTripleQuery(null, propmap.get("wasAttributedTo"), 
+          agentobj)) {
         KBObject actobj = t.getSubject();
         ProvActivity act = this.getActivity(actobj);
-        for(KBTriple t2 : 
-          this.kb.genericTripleQuery(null, propmap.get("wasGeneratedBy"), actobj)) 
+        for(KBTriple t2 :  this.kb.genericTripleQuery(null, propmap.get("wasGeneratedBy"), 
+            actobj)) {
           act.setObjectId(t2.getSubject().getID());
+        }
+        acts.add(act);
       }
     }
     return acts;

@@ -1,11 +1,12 @@
 function ComponentViewer(guid, store, op_url, res_url, 
-		upload_url, pcdomns, dcdomns, liburl, 
+		upload_url, prov_url, pcdomns, dcdomns, liburl, 
 		load_concrete, advanced_user) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
     this.res_url = res_url;
     this.upload_url = upload_url;
+    this.prov_url = prov_url;
     this.liburl = liburl;
     this.libname = liburl.replace(/.+\//, '').replace(/\.owl$/, '');
     this.load_concrete = load_concrete;
@@ -16,6 +17,7 @@ function ComponentViewer(guid, store, op_url, res_url,
     this.ns['dcdom'] = dcdomns;
     this.ns['xsd'] = "http://www.w3.org/2001/XMLSchema#";
 
+    this.provenanceViewer = new ProvenanceViewer(guid, prov_url);
     this.treePanel = null;
     this.tabPanel = null;
     this.leftPanel = null;
@@ -1025,11 +1027,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     	mainPanelItems.push(This.getDependenciesTab('Dependencies', 
     		compStore.requirement, editable, tab, savebtn));
     
-    mainPanelItems.push({
-    	xtype: 'panel',
-    	title: 'Provenance',
-    	iconCls: 'icon-list-alt fa-title fa-blue'
-    });
+    mainPanelItems.push(This.provenanceViewer.createItemProvenanceGrid(c.id));
     
     var mainPanel = new Ext.Panel({
         region: 'center',
@@ -1041,6 +1039,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
         	xtype: 'tabpanel',
         	margin: 5,
         	plain: true,
+            autoScroll: true,
         	//tbar: editable ? [ savebtn ] : null,
         	items: mainPanelItems
         }

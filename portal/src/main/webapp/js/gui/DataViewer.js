@@ -1,11 +1,12 @@
 function DataViewer(guid, store, 
-		op_url, upload_url, 
+		op_url, upload_url, prov_url,
 		dcns, ontns, libns, 
 		advanced_user, use_import_ui, has_external_catalog) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
     this.upload_url = upload_url;
+    this.prov_url = prov_url;
     this.advanced_user = advanced_user;
     this.use_import_ui = use_import_ui;
     if(this.use_import_ui)
@@ -16,6 +17,7 @@ function DataViewer(guid, store,
     this.ontns = ontns;
     this.libns = libns;
 
+    this.provenanceViewer = new ProvenanceViewer(guid, prov_url);
     this.dataTreePanel = null;
     this.metricsTreePanel = null;
     this.tabPanel = null;
@@ -220,8 +222,8 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 
     // DataType's NameFormat field
     var nameFormatField = new Ext.form.field.Text({
-        width: '100%',
-        fieldStyle: 'border:1px solid #EEE',
+        width: '95%',
+        //fieldStyle: 'border:1px solid #EEE',
         value: store.name_format
     });
 
@@ -359,12 +361,12 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             }
     };
     
-    var tbar;
+    var mainTbar;
     if(!This.use_import_ui) {
-    	tbar = [];
+    	mainTbar = [];
         if(This.advanced_user)
-        	tbar.push(savebtn);
-		tbar.push({
+        	mainTbar.push(savebtn);
+		mainTbar.push({
 			iconCls : 'icon-reload fa fa-green',
 			text : 'Reload',
 			handler : function() {
@@ -373,11 +375,11 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 				tab.setTitle(tab.title.replace(/^\*/, ''));
 			}
 		});
-        tbar.push('-');
-        tbar.push({xtype: 'tbfill'});
-        tbar.push(uploadfilesbtn);
+        mainTbar.push('-');
+        mainTbar.push({xtype: 'tbfill'});
+        mainTbar.push(uploadfilesbtn);
 		if (this.has_external_catalog)
-			tbar.push({
+			mainTbar.push({
 				iconCls: 'icon-download-cloud fa fa-blue',
 				text : 'Import from External Catalog',
 				handler: function() {
@@ -423,16 +425,10 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 			});
     }
     
-    var mainPanel = new Ext.Panel({
-        region: 'center',
-        border: false,
-        autoScroll: true,
-        defaults: {
-            padding: 4
-        },
-        tbar: tbar
+    var typeTabPanel = new Ext.tab.Panel({
+        plain: true,
+        margin: 5
     });
-
 
     var tbar = null;
     var plugins = [];
@@ -477,7 +473,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             disabled: true,
             handler: function() {
                 editorPlugin.cancelEdit();
-                var s = mainPanel.gridPanel.getSelectionModel().getSelection();
+                var s = typeTabPanel.gridPanel.getSelectionModel().getSelection();
                 for (var i = 0, r; r = s[i]; i++) {
                     var prop = (r.modified && r.modified.hasOwnProperty('prop')) ? r.modified.prop: r.get('prop');
                     if (prop == null) {
@@ -519,10 +515,18 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         border: true,
         tbar: tbar
     });
-
-    mainPanel.add(gridPanel);
-    mainPanel.gridPanel = gridPanel;
-
+    
+    var typePropsPanel = new Ext.Panel({
+        border: false,
+        title: 'Metadata Properties',
+        defaults: {
+            padding: 4
+        },
+        items: gridPanel
+    });
+    
+    typeTabPanel.gridPanel = gridPanel;
+    
     // Show inherited Properties
     if (inhProperties.length) {
         // Store for the inherited properties
@@ -549,16 +553,41 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             border: true,
             store: inhStore
         });
-        mainPanel.add(inhGridPanel);
+        typePropsPanel.add(inhGridPanel);
     }
+    
+    typeTabPanel.add(typePropsPanel);
+    
     if(!This.use_import_ui)
-    	mainPanel.add({
+    	typeTabPanel.add({
     		xtype: 'panel',
     		title: 'Name Format',
-    		margins: '5 5 5 5',
-    		items: nameFormatField
+    		defaults: {
+        		margin: 5,
+        		border: false
+    		},
+    		items: [nameFormatField, 
+    		{
+    			html: "Add a NameFormat for files produced of this data type. Examples:<ul>" +
+    				"<li>gene_[hasGeneId].txt (hasGeneID would be a Metadata Property " +
+    				"for this Datatype)</li>" +
+    				"<li>[__ID].txt (__ID is an inbuilt keyword signifying a generated " +
+    				"unique id)</li>" +
+    				"<li>[hasGeneId]_[__ID].csv (combination of Metadata Property and __ID)</li>" +
+    				"</ul>"
+    		}]
     	});
 
+    typeTabPanel.add(This.provenanceViewer.createItemProvenanceGrid(id));
+    typeTabPanel.setActiveTab(0);
+    
+    var mainPanel = new Ext.Panel({
+        region: 'center',
+        border: false,
+        tbar: mainTbar,
+        autoScroll: true,
+        items: typeTabPanel
+    });
     tab.add(mainPanel);
 };
 
@@ -805,7 +834,7 @@ DataViewer.prototype.openDataEditor = function(args) {
         columnLines: true,
         nameColumnWidth: '50%',
         customEditors: customEditors,
-        title: 'Metadata for ' + getLocalName(id),
+        title: 'Metadata', // for ' + getLocalName(id),
         listeners: { 'beforeedit': function (e) { return !This.use_import_ui; } },
         //tbar: This.use_import_ui ? null : [savebtn]
     });
@@ -933,11 +962,18 @@ DataViewer.prototype.openDataEditor = function(args) {
     	}];
     }
     
+    var provGrid = This.provenanceViewer.createItemProvenanceGrid(id);
+    
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
         tbar: tbar,
-        items: gridPanel
+        items: {
+        	xtype: 'tabpanel',
+        	plain: true,
+        	margin: 5,
+        	items: [gridPanel, provGrid]
+        }
     });
     tab.add(mainPanel);
 };

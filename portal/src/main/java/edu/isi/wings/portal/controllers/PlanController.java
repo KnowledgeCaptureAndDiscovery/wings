@@ -23,8 +23,10 @@ import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
+import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
+import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.Config;
@@ -58,6 +60,7 @@ public class PlanController {
 	private String dclibns;
 	private String pcdomns;
 	private String wflowns;
+	private String resontns;
 	
 	public PlanController(Config config, PrintWriter out) {
 		this.config = config;
@@ -69,6 +72,7 @@ public class PlanController {
 		cc = ComponentFactory.getReasoningAPI(props);
 		dc = DataFactory.getReasoningAPI(props);
 		rc = ResourceFactory.getAPI(props);
+		  
 		wg = new WorkflowGenerationKB(props, dc, cc, rc, UuidGen.generateAUuid(""));
 
 		this.wliburl = (String) props.get("domain.workflows.dir.url");
@@ -76,6 +80,18 @@ public class PlanController {
 		this.dclibns = (String) props.get("lib.domain.data.url") + "#";
 		this.pcdomns = (String) props.get("ont.domain.component.ns");
 		this.wflowns = (String) props.get("ont.workflow.url") + "#";
+		this.resontns = (String) props.get("ont.resource.url") + "#";
+		
+    this.setMachineWhitelist();
+	}
+	
+	private void setMachineWhitelist() {
+    if(config.getDomainExecutionEngine().getClass().
+        equals(LocalExecutionEngine.class)) {
+  	  ArrayList<String> machineWhiteList = new ArrayList<String>();
+  	  machineWhiteList.add(this.resontns + "Localhost");
+  	  this.rc.setMachineWhitelist(machineWhiteList);
+    }
 	}
 	
 	@SuppressWarnings("rawtypes")

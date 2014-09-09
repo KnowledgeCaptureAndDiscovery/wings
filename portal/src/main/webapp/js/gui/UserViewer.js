@@ -1,9 +1,11 @@
-function UserViewer(guid, store, op_url, is_admin) {
+function UserViewer(guid, store, op_url, prov_url, is_admin) {
 	this.guid = guid;
 	this.store = store;
 	this.op_url = op_url;
 	this.is_admin = is_admin;
+	this.prov_url = prov_url;
 
+	this.provenanceViewer = new ProvenanceViewer(guid, prov_url);
 	this.leftPanel = null;
 }
 
@@ -43,6 +45,13 @@ UserViewer.prototype.openUserEditor = function(args) {
     		btn.up('panel').up('panel').getLayout().setActiveItem(1);
     	}
     });
+    
+    var usergrid = This.provenanceViewer.createUserActivityGrid(id);
+    Ext.apply(usergrid, {
+    	region: 'center',
+    	iconCls: null,
+    	title: '<i class="icon-list-alt fa-title fa-blue"></i> Provenance'
+    });
     var viewerpanel = {
     	xtype: 'panel',
 		frame : true,
@@ -53,7 +62,7 @@ UserViewer.prototype.openUserEditor = function(args) {
 			region: 'north',
 			html: This.getProfileHTML(userStore),
 			margin: '5 0 5 0'
-		}],
+		}, usergrid ],
     	tbar: editable ? [ editbtn ] : null
     };
     

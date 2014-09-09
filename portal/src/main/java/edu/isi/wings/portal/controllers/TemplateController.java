@@ -65,6 +65,7 @@ public class TemplateController {
 	
 	private String planScript;
 	private String runScript;
+	private String provScript;
 	private String thisScript;
 	
 	public TemplateController(int guid, Config config) {
@@ -86,6 +87,7 @@ public class TemplateController {
 		
 		this.planScript = config.getUserDomainUrl() + "/plan";
 		this.runScript = config.getUserDomainUrl() + "/executions";
+		this.provScript = config.getCommunityPath() + "/provenance";
 		this.thisScript = config.getScriptPath();
 	}
 
@@ -124,6 +126,7 @@ public class TemplateController {
 					+ "'" + this.planScript + "', "
 					+ "'" + this.runScript + "', "
 					+ "'" + this.runScript + "', "
+					+ "'" + this.provScript + "', "
 					+ "'" + this.wliburl + "', "
 					+ "'" + this.dcdomns + "', "
 					+ "'" + this.dclibns + "', "

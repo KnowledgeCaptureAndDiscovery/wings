@@ -1,5 +1,5 @@
 function TemplateBrowser(guid, opts, store, editor, tellme, op_url, plan_url,
-		run_url, results_url, wliburl, dcdomns, dclibns, pcdomns, wflowns) {
+		run_url, results_url, prov_url, wliburl, dcdomns, dclibns, pcdomns, wflowns) {
 	this.guid = guid;
 	this.opts = opts;
 	this.store = store;
@@ -7,6 +7,7 @@ function TemplateBrowser(guid, opts, store, editor, tellme, op_url, plan_url,
 	this.plan_url = plan_url;
 	this.run_url = run_url;
 	this.results_url = results_url;
+	this.prov_url = prov_url;
 
 	if (editor)
 		this.reasoner = new Reasoner(store);
@@ -22,6 +23,7 @@ function TemplateBrowser(guid, opts, store, editor, tellme, op_url, plan_url,
 	};
 	this.editor_mode = editor ? (tellme ? "tellme" : "editor") : "";
 
+	this.provenanceViewer = new ProvenanceViewer(guid, prov_url);
 	this.mainPanel = null;
 	this.leftPanel = null;
 	this.tabPanel = null;
@@ -479,7 +481,7 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 					id : docid,
 					iconCls : 'icon-docs fa-title fa-blue',
 					items : [
-							{
+							/*{
 								region : 'north',
 								border : true,
 								bodyStyle : 'border-left:0px;border-right:0px;border-top:0px',
@@ -488,7 +490,7 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 								html : ("<b>Author:</b> " + meta.contributors
 										+ "<br/><b>Last Updated:</b> " + This
 										.parseXSDDateString(meta.lastUpdate))
-							}, {
+							},*/ {
 								region : 'center',
 								border : false,
 								bodyPadding : 10,
@@ -499,6 +501,7 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 				});
 		templatePanel.mainTab.add(docViewerPanel);
 	}
+	templatePanel.mainTab.add(This.provenanceViewer.createItemProvenanceGrid(tid));
 	templatePanel.add(mainPanel);
 };
 
@@ -1542,7 +1545,8 @@ TemplateBrowser.prototype.initialize = function(tid) {
 
 	if (this.editor_mode) {
 		var cv = new ComponentViewer(this.guid, this.store.components,
-				this.op_url, null, null, this.nsmap.pcdom, this.nsmap.dcdom,
+				this.op_url, null, null, this.prov_url, 
+				this.nsmap.pcdom, this.nsmap.dcdom,
 				this.nsmap.dclib, true, false);
 		var cTree = cv.getComponentListTree(true);
 	    var cInputsTree = cv.getComponentInputsTree(true);

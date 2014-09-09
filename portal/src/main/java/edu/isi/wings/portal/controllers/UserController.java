@@ -26,6 +26,7 @@ public class UserController {
   private Properties props;
   private Gson json;
   private UsersDB api;
+  private String provScript;
 
   public UserController(int guid, Config config) {
     this.guid = guid;
@@ -33,6 +34,7 @@ public class UserController {
     json = JsonHandler.createDataGson();
     this.props = config.getProperties();
     this.api = new UsersDB();
+    this.provScript = config.getCommunityPath() + "/provenance";
   }
 
   public void show(PrintWriter out) {
@@ -54,6 +56,7 @@ public class UserController {
               + "users: " + json.toJson(users)
             + " }, " 
             + "'" + config.getScriptPath() + "', "
+            + "'" + this.provScript + "', "
             + config.isAdminViewer()
             + ");\n"
             + "userViewer_" + guid + ".initialize();\n"

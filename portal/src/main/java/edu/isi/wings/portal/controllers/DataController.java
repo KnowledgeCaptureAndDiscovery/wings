@@ -48,6 +48,7 @@ public class DataController {
 	private String libns;
 	
 	private String uploadScript;
+	private String provScript;
 
 	private DataCreationAPI dc;
 	private ProvenanceAPI prov;
@@ -77,6 +78,7 @@ public class DataController {
 		this.libns = (String) props.get("lib.domain.data.url") + "#";
 		
 		this.uploadScript = config.getUserDomainUrl() + "/upload";
+		this.provScript = config.getCommunityPath() + "/provenance";
 	}
 
 	public void show(PrintWriter out) {
@@ -102,6 +104,7 @@ public class DataController {
 						+ " }, " 
 						+ "'" + config.getScriptPath() + "', "
 						+ "'" + this.uploadScript + "', "
+						+ "'" + this.provScript + "', "
 						+ "'" + this.dcns + "', " 
 						+ "'" + this.domns + "', " 
 						+ "'" + this.libns + "', " 

@@ -10,7 +10,7 @@ import edu.isi.wings.portal.classes.JsonHandler;
 
 public class JSLoader {
 	static String[] common_scripts = { "lib/extjs/ext-all.js", "js/util/common.js",
-			"js/gui/WingsMessages.js", "js/util/TreeMod.js" };
+			"js/gui/WingsMessages.js", "js/util/TreeMod.js", "js/gui/ProvenanceViewer.js" };
 	static String[] component_scripts = { "js/gui/ComponentViewer.js" };
 	static String[] domain_scripts = { "js/gui/DomainViewer.js" };
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };
