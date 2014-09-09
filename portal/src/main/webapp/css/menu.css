@@ -38,7 +38,7 @@
 
 .rightmenu li a:hover, .rightmenu ul li:hover a,
 .menu li a:hover,.menu ul li:hover a {
-	background: #429ADE; /* url("../images/hover.gif") bottom center no-repeat;*/
+	background: #429ADE;
 	color: #FFFFFF;
 	text-decoration: none;
 }
@@ -71,6 +71,9 @@
 	padding: 0px;
 	width: 175px;
 }
+.rightmenu li li {
+	background: url('../images/sub_sep_r.gif') bottom right no-repeat;
+}
 
 .rightmenu li:hover li a,
 .menu li:hover li a {
@@ -90,7 +93,7 @@
 
 .rightmenu li ul a:hover,.rightmenu li ul li:hover a
 .menu li ul a:hover,.menu li ul li:hover a {
-	background: #429ADE; /* url('../images/hover_sub.gif') center left no-repeat;*/
+	background: #429ADE;
 	border: 0px;
 	color: #ffffff;
 	text-decoration: none;

@@ -191,7 +191,7 @@ public class TemplateController {
       return FileUtils.readFile(beamerDir + File.separator + "paraphrases.json");
 	  }
 	  catch (Exception e) {
-	    e.printStackTrace();
+	    //e.printStackTrace();
 	  }
 	  return "{}";
 	}
@@ -203,7 +203,7 @@ public class TemplateController {
 	    return FileUtils.readFile(beamerDir + File.separator + "mappings.json");
 	  }
 	  catch (Exception e) {
-	    e.printStackTrace();
+	    //e.printStackTrace();
 	  }
 	  return "{}";
 	}

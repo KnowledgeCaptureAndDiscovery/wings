@@ -158,6 +158,7 @@ function getPortalHeader() {
 		style = "color:pink;";
 	
 	if(DOMAINS != null && DOMAINS.length) {
+		DOMAINS.sort();
 		html += "<li>"
 			+ "<a href='#' style='" + style + "'>"
 			+ "<i class='icon-box'></i> "+ DOMAIN_ID + "</a>";
