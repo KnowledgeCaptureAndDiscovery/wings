@@ -31,8 +31,10 @@ public class QueryProvenance extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Config config = new Config(request);
-    if(!config.checkDomain(request, response))
+    if(!config.checkDomain(request, response, false)) {
+      response.getWriter().print("[]");
       return;
+    }
 
     String[] args = config.getScriptArguments();
     String op = args.length > 0 ? args[0] : null;

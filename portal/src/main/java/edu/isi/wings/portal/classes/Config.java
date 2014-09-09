@@ -139,14 +139,19 @@ public class Config {
     try {
       request.setAttribute("message", message);
       request.setAttribute("nohome", true);
-      request.getRequestDispatcher("index.jsp").forward(request, response);
+      request.getRequestDispatcher("index.jsp").include(request, response);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
+
+  public boolean checkDomain(HttpServletRequest request, 
+      HttpServletResponse response) {
+    return this.checkDomain(request, response, true);
+  }
   
 	public boolean checkDomain(HttpServletRequest request, 
-	    HttpServletResponse response) {
+	    HttpServletResponse response, boolean show_error) {
     if(!this.checkUser(response))
       return false;
 
@@ -154,7 +159,8 @@ public class Config {
       // For a non-owner viewer, if there is no domain available, 
       // then return a message
       if(this.domain == null && !this.viewerId.equals(this.userId)) {
-        this.showError(request, response, "No Domains shared by "+userId+" !");
+        if(show_error)
+          this.showError(request, response, "No Domains shared by "+userId+" !");
         return false;
       }
       
@@ -176,7 +182,8 @@ public class Config {
         //       For now: all or none permissions
         Permission perm = this.domain.getPermissionForUser(this.viewerId);
         if(!perm.canRead()) {
-          this.showError(request, response, "No Permission !");
+          if(show_error)
+            this.showError(request, response, "No Permission !");
           return false;
         }
       }

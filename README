@@ -32,16 +32,22 @@ Installation
 6. Start tomcat
 	- $ /path/to/tomcat/bin/startup.sh
 
-7. Login to http://<your-server-name>:8080/wings-portal/common/users
+7. If using Tomcat version 6.x, 
+   then edit /path/to/tomcat/webapps/wings-portal/WEB_INF/web.xml
+   	- If the wings-portal folder doesn't exist, wait for the tomcat server to start
+   	- In web.xml, uncomment the commented section at the end with the heading:
+   		- <!-- URL Rewriter (Uncomment for Tomcat 6.x) -->
+
+8. Login to http://<your-server-name>:8080/wings-portal/common/users
 	- From this UI, you can add or remove more users.
 	- Note: 8080 is the default Tomcat port, but this can be changed in server.xml
 
-8. After first Login, go to $HOME/.wings directory and open portal.properties
+9. After first Login, go to $HOME/.wings directory and open portal.properties
 	- Change /path/to/dot (graphviz) if it is set incorrectly
 	- Check that the server name is set correctly
 	- (Optional) Change any other settings if needed
 
-9. To see a list of Domains to download, please go to http://www.wings-workflows.org/domains/
+10. To see a list of Domains to download, please go to http://www.wings-workflows.org/domains/
 	- To Import a domain: From the "Manage Domains" interface, do the following:
 		- Add -> Import Domain
 		- Enter Domain Location: the url (or path) to the domain zip file

@@ -3,16 +3,13 @@
 	border: 0px;
 	margin: 0px;
 	padding: 0px;
-	font: 67.5% "Lucida Sans Unicode", "Bitstream Vera Sans",
-		"Trebuchet Unicode MS", "Lucida Grande", Verdana, Helvetica,
-		sans-serif;
 	font-size: 12px;
 	font-weight: bold;
 }
 
 .menu ul {
 	background: #333333;
-	height: 26px;
+	height: 24px;
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -29,15 +26,15 @@
 	color: #cccccc;
 	display: block;
 	font-weight: normal;
-	line-height: 26px;
+	line-height: 24px;
 	margin: 0px;
-	padding: 0px 15px;
+	padding: 0px 13px;
 	text-align: center;
 	text-decoration: none;
 }
 
 .menu li a:hover,.menu ul li:hover a {
-	background: #429ADE url("../images/hover.gif") bottom center no-repeat;
+	background: #429ADE; /* url("../images/hover.gif") bottom center no-repeat;*/
 	color: #FFFFFF;
 	text-decoration: none;
 }
@@ -76,16 +73,16 @@
 
 .menu li ul a {
 	display: block;
-	height: 26px;
+	height: 24px;
 	font-size: 11px;
 	font-style: normal;
 	margin: 0px;
-	padding: 0px 10px 0px 12px;
+	/*padding: 0px 10px 0px 12px;*/
 	text-align: left;
 }
 
 .menu li ul a:hover,.menu li ul li:hover a {
-	background: #429ADE url('../images/hover_sub.gif') center left no-repeat;
+	background: #429ADE; /* url('../images/hover_sub.gif') center left no-repeat;*/
 	border: 0px;
 	color: #ffffff;
 	text-decoration: none;

@@ -162,10 +162,33 @@
     </auth-constraint>
   </security-constraint>
   <login-config>
-    <auth-method>BASIC</auth-method>
+    <auth-method>FORM</auth-method>
     <form-login-config>
       <form-login-page>/jsp/login.jsp</form-login-page>
       <form-error-page>/jsp/login_failed.jsp</form-error-page>
     </form-login-config>
   </login-config>
+  
+  <!-- URL Rewriter (Uncomment for Tomcat 6.x)
+  <listener>
+    <listener-class>org.ocpsoft.rewrite.servlet.impl.RewriteServletRequestListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>org.ocpsoft.rewrite.servlet.impl.RewriteServletContextListener</listener-class>
+  </listener>
+  <filter>
+    <filter-name>OCPsoft Rewrite Filter</filter-name>
+    <filter-class>org.ocpsoft.rewrite.servlet.RewriteFilter</filter-class>
+    <async-supported>true</async-supported>
+  </filter>
+  <filter-mapping>
+    <filter-name>OCPsoft Rewrite Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>FORWARD</dispatcher>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>INCLUDE</dispatcher>
+    <dispatcher>ASYNC</dispatcher>
+    <dispatcher>ERROR</dispatcher>
+  </filter-mapping>
+  -->
 </web-app>

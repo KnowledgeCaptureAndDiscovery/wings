@@ -202,7 +202,7 @@ function getPortalHeader() {
 			{
 				id : "app-north",
 				region : 'north',
-				height : 76,
+				height : 74,
 				layout : {
 					type : "vbox",
 					align : "stretch"
@@ -226,7 +226,7 @@ function getPortalHeader() {
 							id : "app-menu",
 							border : false,
 							xtype : "component",
-							height : 26,
+							height : 24,
 							html : html
 						}]
 			});
