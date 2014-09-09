@@ -501,7 +501,13 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 				});
 		templatePanel.mainTab.add(docViewerPanel);
 	}
-	templatePanel.mainTab.add(This.provenanceViewer.createItemProvenanceGrid(tid));
+	if (!This.opts.hide_documentation) {
+		var provid = This.guid + "_" + tid + "_prov";
+		templatePanel.mainTab.remove(provid);
+		var provgrid = This.provenanceViewer.createItemProvenanceGrid(tid);
+		Ext.apply(provgrid, {id: provid, border: false});
+		templatePanel.mainTab.add(provgrid);
+	}
 	templatePanel.add(mainPanel);
 };
 

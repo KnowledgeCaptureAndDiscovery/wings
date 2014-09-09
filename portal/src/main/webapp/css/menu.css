@@ -1,3 +1,4 @@
+.rightmenu,
 .menu {
 	border: none;
 	border: 0px;
@@ -7,6 +8,7 @@
 	font-weight: bold;
 }
 
+.rightmenu ul,
 .menu ul {
 	background: #333333;
 	height: 24px;
@@ -20,6 +22,7 @@
 	padding: 0px;
 }
 
+.rightmenu li a,
 .menu li a {
 	background: #333333 url("../images/seperator.gif") bottom right
 		no-repeat;
@@ -33,12 +36,14 @@
 	text-decoration: none;
 }
 
+.rightmenu li a:hover, .rightmenu ul li:hover a,
 .menu li a:hover,.menu ul li:hover a {
 	background: #429ADE; /* url("../images/hover.gif") bottom center no-repeat;*/
 	color: #FFFFFF;
 	text-decoration: none;
 }
 
+.rightmenu li ul,
 .menu li ul {
 	background: #333333;
 	display: none;
@@ -47,40 +52,43 @@
 	margin: 0px;
 	border: 0px;
 	position: absolute;
-	width: 225px;
+	width: 175px;
 	z-index: 200;
 	opacity: 0.95;
-	/*top:1em;
-		/*left:0;*/
 }
 
+.rightmenu li:hover ul,
 .menu li:hover ul {
 	display: block;
 }
 
+.rightmenu li li,
 .menu li li {
 	background: url('../images/sub_sep.gif') bottom left no-repeat;
 	display: block;
 	float: none;
 	margin: 0px;
 	padding: 0px;
-	width: 225px;
+	width: 175px;
 }
 
+.rightmenu li:hover li a,
 .menu li:hover li a {
 	background: none;
 }
 
+.rightmenu li ul a,
 .menu li ul a {
 	display: block;
 	height: 24px;
 	font-size: 11px;
 	font-style: normal;
 	margin: 0px;
-	/*padding: 0px 10px 0px 12px;*/
+	padding: 0px 12px 0px 12px;
 	text-align: left;
 }
 
+.rightmenu li ul a:hover,.rightmenu li ul li:hover a
 .menu li ul a:hover,.menu li ul li:hover a {
 	background: #429ADE; /* url('../images/hover_sub.gif') center left no-repeat;*/
 	border: 0px;
@@ -88,6 +96,38 @@
 	text-decoration: none;
 }
 
+.rightmenu p,
 .menu p {
 	clear: left;
+}
+
+.rightmenu {
+	float:right;
+	position:absolute;
+	right:0;
+	top:0;
+}
+.rightmenu ul li {
+	display: block;
+	position: relative;
+	float: left;
+	z-index: 200;
+}
+.rightmenu li ul {
+	display: none;
+    position:absolute;
+    right:0;
+}
+.rightmenu ul li a {
+	display: block;
+	white-space: nowrap;
+	text-align: right;
+}
+.rightmenu li:hover ul {
+	display: block;
+	position: absolute;
+}
+.rightmenu li:hover li {
+	float: none;
+	font-size: 11px;
 }

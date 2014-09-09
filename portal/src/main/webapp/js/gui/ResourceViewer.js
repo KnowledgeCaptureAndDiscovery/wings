@@ -687,7 +687,8 @@ ResourceViewer.prototype.addResource = function(type, parentNode) {
             var url = This.op_url + '/add'+type;
             Ext.get(This.tabPanel.getId()).mask("Adding "+type+"..");
             var params = {resid: newid};
-            var iconCls = type.toLowerCase() + "Icon";
+	        var iconCls = (type == 'Machine' ? 'icon-machine fa fa-blue' :
+        		'icon-dropbox fa fa-blue');
             Ext.Ajax.request({
                 url: url,
                 params: params,

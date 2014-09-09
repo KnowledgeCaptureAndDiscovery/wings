@@ -828,7 +828,6 @@ DataViewer.prototype.openDataEditor = function(args) {
     var gridPanel = new Ext.grid.property.Grid({
         autoScroll: true,
         border: true,
-        padding: 5,
         source: propVals,
         propertyNames: propertyNames,
         columnLines: true,

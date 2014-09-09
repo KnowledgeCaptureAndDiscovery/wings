@@ -147,43 +147,21 @@ function getPortalHeader() {
 			+ "/resources\">Describe Resources</a></li>\n"
 			+ "</ul></li>\n";
 	}
+	html += "</ul></div>";
+	// End of Left menu
+	
+	// Start of Right menu
+	html += "<div class='rightmenu'><ul>";
 
 	var style = "";
 	if(VIEWER_ID != USER_ID)
 		style = "color:pink;";
 	
-	if(USER_ID != null) {
-		html += "<li style='float:right'>"
-			+ "<a href='#'>User: <span class='user' style='"+style+"'>"
-			+ USER_ID + "</span></a><ul>";
-	}
-	else {
-		html += "<li style='float:right'><a href=\""
-			+ userpath
-			+ "/domains\">Login</a></li>";
-	}
-	
-	if(USERS != null) {
-		for(var i=0; i<USERS.length; i++) {
-			var userid = USERS[i];
-			if(userid == USER_ID)
-				continue;
-			var userurl = homepath + "/users/" + userid + "/domains";
-			html += "<li class=\"first\"><a href='" + userurl + "'>" + userid + "</a></li>";
-		}
-	}
-	if(VIEWER_ID != null) {
-		html += "<li style='float:right'><a href=\""
-			+ homepath
-			+ "/jsp/logout.jsp\">Logout <span class='user'>"
-			+ VIEWER_ID
-			+ "</span></a></li>";
-	}
-	html += "</ul></li>";
-	
 	if(DOMAINS != null && DOMAINS.length) {
-		html += "<li style='float:right'>"
-			+ "<a href='#' style='" + style + "'>Domain: "+ DOMAIN_ID + "</a><ul>";
+		html += "<li>"
+			+ "<a href='#' style='" + style + "'>"
+			+ "<i class='icon-box'></i> "+ DOMAIN_ID + "</a>";
+		html += "<ul>";
 		for(var i=0; i<DOMAINS.length; i++) {
 			var domid = DOMAINS[i];
 			if(domid == DOMAIN_ID)
@@ -194,6 +172,37 @@ function getPortalHeader() {
 			html += "<li class=\"first\"><a href='" + udomurl + "'>" + domid + "</a></li>";
 		}
 		html += "</ul></li>";
+	}
+	
+	if(USER_ID != null && VIEWER_ID != null) {
+		html += "<li><a href='#'><i class='icon-user'></i> "
+			+ "<span class='user' style='"+style+"'>"
+			+ USER_ID + "</span></a>";
+		
+		html += "<ul>";
+		html += "<li class=\"first\"><a href=\""
+			+ homepath
+			+ "/jsp/logout.jsp\">Logout <span class='user'>"
+			+ VIEWER_ID
+			+ "</span></a></li>";
+		
+		if(USERS != null) {
+			USERS.sort();
+			for(var i=0; i<USERS.length; i++) {
+				var userid = USERS[i];
+				if(userid == USER_ID)
+					continue;
+				var uclass= (userid == VIEWER_ID ? "user" : "");
+				var userurl = homepath + "/users/" + userid + "/domains";
+				html += "<li><a href='" + userurl + "'><span class='" + uclass + "'>" + userid + "</span></a></li>";
+			}
+		}
+		html += "</ul></li>";
+	}
+	else {
+		html += "<li><a href=\""
+			+ userpath
+			+ "/domains\">Login</a></li>";
 	}
 	
 	html += "</ul></div>";
