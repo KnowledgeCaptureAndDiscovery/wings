@@ -565,9 +565,9 @@ public class DataController {
 				if(!dc.removeDatatype(dtypeid)) {
 					return false;
 				}
+	      prov.removeAllProvenance(dtypeid);
 			}
-			dc.save();
-			return true;
+			return dc.save() && prov.save();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
