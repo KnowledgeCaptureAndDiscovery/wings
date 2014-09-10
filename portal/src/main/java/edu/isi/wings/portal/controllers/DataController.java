@@ -479,7 +479,7 @@ public class DataController {
 	      String provlog = "Updating datatype properties";
 	      Provenance p = new Provenance(dtypeid);
 	      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
-	      if(prov.addProvenance(p) && dc.save() &&  prov.save()) {
+	      if(!prov.addProvenance(p) || !dc.save() || !prov.save()) {
 	        errors.add("Could not add provenance");
 	      }
 			}
