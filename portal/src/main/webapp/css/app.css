@@ -1,21 +1,3 @@
-/*div.list-ct ul li.x-boundlist-item {
-	border-bottom: 1px solid #ddd
-}
-
-.hrefTree a.x-tree-node-anchor,.nonBoldTree a.x-tree-node-anchor {
-	font-weight: normal;
-}
-
-.hrefTree a.x-tree-node-anchor:hover {
-	text-decoration: underline;
-}
-
-.hrefTree .x-tree-selected a.x-tree-node-anchor,.nonBoldTree .x-tree-selected a.x-tree-node-anchor
-	{
-	font-weight: bold;
-}
-*/
-
 div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cell div.x-grid-cell-inner {
 	color: #888
 }
@@ -61,173 +43,6 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 .fa-grey { color: #999999;	}
 .fa-brown { color: peru; }
 
-.provIcon {
-	background-image: url(../images/provenance.png) !important
-}
-
-.userIcon {
-	background-image: url(../images/user.png) !important
-}
-
-.dtypeIcon {
-	background-image: url(../images/datatype.gif) !important
-}
-
-.dataIcon {
-	background-image: url(../images/file.png) !important
-}
-
-.addIcon {
-	background-image: url(../images/add.png) !important
-}
-
-.wflowIcon {
-	background-image: url(../images/workflow.gif) !important
-}
-
-.delIcon {
-	background-image: url(../images/delete.png) !important
-}
-
-.saveIcon {
-	background-image: url(../images/Save.png) !important
-}
-
-.saveAsIcon {
-	background-image: url(../images/SaveAs.png) !important
-}
-
-.downloadIcon {
-	background-image: url(../images/download_yellow.gif) !important
-}
-
-.uploadIcon {
-	background-image: url(../images/arrow_up.png) !important
-}
-
-.upIcon {
-	background-image: url(../images/arrow_up.png) !important
-}
-.downIcon {
-	background-image: url(../images/arrow_down.png) !important
-}
-
-.compIcon {
-	background-image: url(../images/component_concrete.png) !important
-}
-
-.absCompIcon {
-	background-image: url(../images/component_abstract.png) !important
-}
-
-.noCompIcon {
-	background-image: url(../images/component_missing.png) !important
-}
-
-.ctypeIcon {
-	background-image: url(../images/datatype.gif) !important
-}
-
-.zoomInIcon {
-	background-image: url(../images/zoomin.png) !important
-}
-
-.zoomOutIcon {
-	background-image: url(../images/zoomout.png) !important
-}
-
-.snapshotIcon {
-	background-image: url(../images/snapshot.gif) !important
-}
-
-.inferIcon {
-	background-image: url(../images/infer.gif) !important
-}
-
-.suggestIcon {
-	background-image: url(../images/help_icon.gif) !important
-}
-
-.runIcon {
-	background-image: url(../images/run.gif) !important
-}
-
-.stopIcon {
-	background-image: url(../images/cancel.png) !important
-}
-
-.docsIcon {
-	background-image: url(../images/docs.png) !important
-}
-
-.clearIcon {
-	background-image: url(../images/clean.gif) !important
-}
-
-.selectIcon {
-	background-image: url(../images/select.gif) !important
-}
-
-.inputIcon {
-	background-image: url(../images/input.png) !important
-}
-
-.outputIcon {
-	background-image: url(../images/output.png) !important
-}
-
-.paramIcon {
-	background-image: url(../images/param.png) !important
-}
-
-.reloadIcon {
-	background-image: url(../images/reload.png) !important
-}
-
-.chatIcon {
-	background-image: url(../images/chat.png) !important
-}
-
-.layoutIcon {
-	background-image: url(../images/layout.gif) !important
-}
-
-.TOPIcon {
-	background-image: url(../images/TOP.png) !important
-}
-
-.importIcon {
-	background-image: url(../images/import.png) !important
-}
-
-.setDefaultIcon {
-	background-image: url(../images/star.png) !important
-}
-
-.defIcon {
-	background-image: url(../images/radio_selected.png) !important
-}
-
-.undefIcon {
-	background-image: url(../images/radio.png) !important
-}
-
-.rundefIcon {
-	background-image:url(../images/run_default.gif) !important
-}
-
-.machineIcon {
-	background-image:url(../images/computer.png) !important
-}
-
-.softwareIcon {
-	background-image:url(../images/package.png) !important
-}
-
-.versionIcon {
-	background-image:url(../images/version.png) !important
-}
-
 .connect_false {
 	color: red;
 	font-weight: bold;
@@ -240,42 +55,6 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 
 .user {
 	color: #9ADE42;
-}
-
-.domain {
-	padding-left: 20px;
-	background: url(../images/domain.png) center left no-repeat !important;
-}
-
-.default_domain {
-	padding-left: 20px;
-	font-weight: bold;
-	background: url(../images/default_domain.png) center left no-repeat
-		!important
-}
-
-.user_domain {
-	padding-left: 20px;
-	background: url(../images/star_disabled.png) center left no-repeat
-		!important
-}
-
-.user_default_domain {
-	padding-left: 20px;
-	background: url(../images/star.png) center left no-repeat !important
-}
-
-.highlightIcon {
-	font-weight: bold !important;
-	/*color: maroon !important;*/
-	color: #1659ac !important;
-}
-
-.smSaveIcon {
-	background: url(../images/smsave.gif) center left no-repeat !important;
-	font-weight: normal;
-	color: #666;
-	padding-left: 16px
 }
 
 span.runtime {
@@ -325,22 +104,6 @@ div.runtitle {
 	font-weight: bold
 }
 
-.status_QUEUED {
-	background: url(../images/queued.gif) center left no-repeat !important
-}
-
-.status_RUNNING {
-	background: url(../images/loading.gif) center left no-repeat !important
-}
-
-.status_SUCCESS {
-	background: url(../images/tick.png) center left no-repeat !important
-}
-
-.status_FAILURE {
-	background: url(../images/cross.png) center left no-repeat !important
-}
-
 div.smallPropertyGrid input.x-form-field {
 	font-size: 11px !important;
 }
@@ -377,27 +140,6 @@ div.disabledCanvas {
 	background: url(../images/square.gif)
 	/*background-color : rgba(255, 255, 255, 1);*/
 }
-
-/*div.docsDiv ul,div.docsDiv ol {
-	margin: 1em 0px 1em 0px;
-	padding-left: 40px
-}
-
-div.docsDiv ul {
-	list-style: disc
-}
-
-div.docsDiv ul ul {
-	list-style: circle
-}
-
-div.docsDiv ol {
-	list-style: decimal
-}
-
-div.docsDiv ol ol {
-	list-style: lower-roman
-}*/
 
 li.active a {
 	color: #4ca9ea
@@ -461,10 +203,6 @@ pre.tellmelog {
 	margin-top: 5px;
 }
 
-/*.x-border-layout-ct {
-	background-color: transparent !important;
-}*/
-
 #app-header {
 	background-image: -webkit-gradient(linear, 50% 0, 50% 100%, color-stop(0%, #1659ac),
 		color-stop(100%, #429ADE));
@@ -510,14 +248,11 @@ pre.tellmelog {
 .prule_op, .prule_op tspan {
 	fill: #339 !important;
 	color: #339 !important;
-    font-weight: bold;
+	font-weight: bold;
 }
 
 /* User Profile */
 .profile {
-	/*background-color: white;
-	border: 1px solid #999;
-	border-top: 0px;*/
 	padding: 10px;
 }
 
