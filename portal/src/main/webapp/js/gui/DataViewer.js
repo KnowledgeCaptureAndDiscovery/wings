@@ -479,7 +479,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                     if (prop == null) {
                         // This property was just added, don't mark it as a
                         // deletedProperty for the server
-                        } else {
+                    } else if (prop != "") {
                         propmods.deletedProperties[This.ontns + prop] = 1;
                     }
                     dataTypeStore.remove(r);
@@ -493,7 +493,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         columnLines: true,
         autoHeight: true,
         plugins: plugins,
-        title: 'Metadata Properties for ' + name,
+        //title: 'Metadata Properties for ' + name,
         columns: [{
             dataIndex: 'prop',
             flex: 1,
@@ -536,6 +536,8 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         });
         var inhGridPanel = new Ext.grid.GridPanel({
             title: "Inherited Metadata Properties",
+            margin: "5 0 0 0",
+            bodyCls: 'upDownBorder',
             columns: [{
                 dataIndex: 'prop',
                 header: 'Property',
@@ -584,6 +586,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     var mainPanel = new Ext.Panel({
         region: 'center',
         border: false,
+        layout: 'fit',
         tbar: mainTbar,
         autoScroll: true,
         items: typeTabPanel
@@ -967,6 +970,7 @@ DataViewer.prototype.openDataEditor = function(args) {
         region: 'center',
         border: false,
         tbar: tbar,
+        layout: 'fit',
         items: {
         	xtype: 'tabpanel',
         	plain: true,
