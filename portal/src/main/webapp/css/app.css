@@ -104,6 +104,12 @@ div.runtitle {
 	font-weight: bold
 }
 
+.highlightIcon {
+	font-weight: bold !important;
+	/*color: maroon !important;*/
+	color: #1659ac !important;
+}
+
 div.smallPropertyGrid input.x-form-field {
 	font-size: 11px !important;
 }

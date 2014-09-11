@@ -4,19 +4,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-
-import org.gridkit.internal.com.jcraft.jsch.ChannelSftp;
-import org.gridkit.internal.com.jcraft.jsch.JSch;
-import org.gridkit.internal.com.jcraft.jsch.JSchException;
-import org.gridkit.internal.com.jcraft.jsch.Session;
-import org.gridkit.nanocloud.Cloud;
-import org.gridkit.nanocloud.SimpleCloudFactory;
-import org.gridkit.nanocloud.telecontrol.ssh.SshSpiConf;
-import org.gridkit.vicluster.ViConf;
-import org.gridkit.vicluster.ViNode;
 
 public class Machine extends Resource {
   private static final long serialVersionUID = 5211295601774494163L;
@@ -36,9 +25,6 @@ public class Machine extends Resource {
   private ArrayList<EnvironmentValue> environmentValues;
   private ArrayList<String> softwareIds;
   private String osid;
-  
-  private transient ViNode node;
-  private transient Cloud cloud;
   
   public Machine(String id) {
     super(id);
@@ -62,6 +48,10 @@ public class Machine extends Resource {
     this.hostName = hostName;
   }
 
+  public String getHostString() {
+    return this.hostIP != null ? this.hostIP : this.hostName;
+  }
+  
   public String getUserId() {
     return userId;
   }
@@ -166,106 +156,20 @@ public class Machine extends Resource {
     this.osid = osid;
   }
 
-  public ViNode getCallableNode() throws Exception {
-    if(this.node != null)
-      return this.node;
-    
-    String host = hostIP != null ? hostIP : hostName;
-    this.cloud = SimpleCloudFactory.createSimpleSshCloud();
-    this.node = cloud.node(host);
-    
-    String jhome = this.getEnvironmentValue("JAVA_HOME");
-    String javaexec = "java";
-    if(jhome != null && !jhome.equals(""))
-      javaexec = jhome + "/bin/java";
-    
-    node.setProp(ViConf.REMOTE_HOST, host);
-    node.setProp(ViConf.REMOTE_ACCOUNT, userId);
-    node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, userKey);
-    node.setProp(SshSpiConf.SPI_JAR_CACHE, storageFolder + "/nanocloud");
-    node.setProp(ViConf.JVM_EXEC_CMD, javaexec);
-    node.touch();
-    return node;
-  }
-  
-  public void shutdown() {
-    if(this.node != null)
-      this.node.shutdown();
-    if(this.cloud != null)
-      this.cloud.shutdown();
-    this.node = null;
-    this.cloud = null;
-  }
-  
-  private Session getSSHSession() 
-      throws JSchException {
-    JSch ssh = new JSch();
-    if (this.getUserKey() != null)
-      ssh.addIdentity(this.getUserKey());
-    Session ssh_session = ssh.getSession(this.getUserId(), this.getHostName());
-    java.util.Properties config = new java.util.Properties();
-    config.put("StrictHostKeyChecking", "no");
-    ssh_session.setConfig(config);
-    ssh_session.connect();
-    return ssh_session;
-  }
-  
-  public boolean uploadFiles(HashMap<String, String> localRemoteMap) {
-    try {
-      Session ssh_session = this.getSSHSession();
-      if(ssh_session.isConnected()) {
-        ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
-        sftpChannel.connect();
-        for(String local: localRemoteMap.keySet()) {
-          String remote = localRemoteMap.get(local);
-          sftpChannel.put(local, remote);
-        }
-        sftpChannel.disconnect();
-        ssh_session.disconnect();
-        return true;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return false;
-  }
-  
-  public boolean downloadFiles(HashMap<String, String> localRemoteMap) {
-    try {
-      Session ssh_session = this.getSSHSession();
-      if(ssh_session.isConnected()) {
-        ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
-        sftpChannel.connect();
-        for(String local: localRemoteMap.keySet()) {
-          String remote = localRemoteMap.get(local);
-          try {
-            sftpChannel.get(remote, local);
-          }
-          catch (Exception e) {
-            // Ignore
-          }
-        }
-        sftpChannel.disconnect();
-        ssh_session.disconnect();
-        return true;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return false;
-  }
-  
   public MachineDetails getMachineDetails() {
     MachineDetails details = new MachineDetails();
     try {      
       MachineDetailsGrabber mdg = new MachineDetailsGrabber(this);
-      Future<MachineDetails> job = this.getCallableNode().submit(mdg);
+      Future<MachineDetails> job = GridkitCloud.getNode(this).submit(mdg);
       details = job.get();
     }
     catch (Exception e) {
       details.setCanConnect(false);
       details.addError(e.getMessage());
       e.printStackTrace();
+    }
+    finally {
+      //GridkitCloud.resetNode(this);
     }
     return details;
   }

@@ -7,6 +7,7 @@ import java.util.Properties;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.EnvironmentValue;
+import edu.isi.wings.catalog.resource.classes.GridkitCloud;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareEnvironment;
@@ -134,6 +135,7 @@ public class ResourceKB implements ResourceAPI {
 
   @Override
   public boolean removeMachine(String machineid) {
+    Machine m = this.getMachine(machineid);
     KBObject mobj = this.kb.getIndividual(machineid);
     if(mobj == null)
       return false;
@@ -144,6 +146,7 @@ public class ResourceKB implements ResourceAPI {
         this.libkb.removeTriple(t);
     }
     KBUtils.removeAllTriplesWith(this.libkb, machineid, false);
+    GridkitCloud.resetNode(m);
     return true;
   }
 

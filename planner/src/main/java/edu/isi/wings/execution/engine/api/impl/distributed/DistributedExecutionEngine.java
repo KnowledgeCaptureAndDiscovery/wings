@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import edu.isi.wings.catalog.resource.classes.EnvironmentValue;
+import edu.isi.wings.catalog.resource.classes.GridkitCloud;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
@@ -166,7 +167,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
 
           // Logon to machine, and check the list of upload files
           // to see which ones really need to be uploaded
-          this.uploadFiles = machine.getCallableNode().exec(
+          this.uploadFiles = GridkitCloud.getNode(machine).exec(
               new MachineUploadLister(this.uploadFiles));
           
           // Upload the required files (if any)
@@ -176,7 +177,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
             for(String[] fobj : this.uploadFiles) {
               uploadMap.put(fobj[0], fobj[1]);
             }
-            machine.uploadFiles(uploadMap);
+            GridkitCloud.uploadFiles(machine, uploadMap);
           }
           
           exe.onUpdate(this.logger, "Running on "+machine.getName());
@@ -189,7 +190,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
           }
           MachineCodeRunner mcr = new MachineCodeRunner(planexe.getName(), 
               exe.getName(), codebin, args, outfilepath, environment);
-          this.job = machine.getCallableNode().submit(mcr);
+          this.job = GridkitCloud.getNode(machine).submit(mcr);
           
           ProcessStatus status = this.job.get();
           exe.onUpdate(this.logger, status.getLog());
@@ -205,7 +206,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
               downloadMap.put(fp+".met", newfp+".met"); // Also download .met files
             }
             exe.onUpdate(this.logger, "Downloading output files from "+machine.getName());
-            machine.downloadFiles(downloadMap);
+            GridkitCloud.downloadFiles(machine, downloadMap);
             exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
           }
           else {
@@ -224,7 +225,7 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
           e.printStackTrace();
         }
         finally {
-          machine.shutdown();
+          //GridkitCloud.resetNode(machine);
           this.planEngine.onStepEnd(planexe);
         }
       }
