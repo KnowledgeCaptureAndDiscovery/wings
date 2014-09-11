@@ -43,8 +43,9 @@ public class GridkitCloud {
   }
   
   public static void resetNode(Machine m) {
-    for(ViNode node : cloud.listNodes(m.getHostString())) {
-      node.shutdown();
+    if(m.getHostString() != null ) {
+      for(ViNode node : cloud.listNodes(m.getHostString()))
+        node.shutdown();
     }
     ((ViManager)cloud).resetDeadNode();
   }
