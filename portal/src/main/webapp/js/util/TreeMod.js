@@ -71,4 +71,4 @@ Ext.tree.Column.prototype.treeRenderer =
 			childCls: me.getChildCls ? me.getChildCls() + ' ' : '',
 					value: renderer ? renderer.apply(me.origScope, arguments) : value
 		});
-}
+};

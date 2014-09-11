@@ -105,4 +105,4 @@ ProvenanceViewer.prototype.createUserActivityGrid = function(userid) {
         	flex: 1
         }]
     });
-}
+};

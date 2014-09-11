@@ -1375,8 +1375,8 @@ ComponentViewer.prototype.showEnvironmentVariables = function(tab, mstore) {
 		var sw = field.get('softwareGroupId');
 		var vr = field.get('variable');
 		if(!swversions[sw] || !mstore.softwareIds) return;
-		var int = Ext.Array.intersect(mstore.softwareIds, swversions[sw]);
-		if(int.length)
+		var num = Ext.Array.intersect(mstore.softwareIds, swversions[sw]);
+		if(num.length)
 			evars.push("$"+vr);
 	});
 	if(evars.length)
