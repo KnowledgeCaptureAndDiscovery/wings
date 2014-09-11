@@ -106,10 +106,14 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 		var step = steps[i];
 		for(var j=0; j<step.inputFiles.length; j++) {
 			var file = step.inputFiles[j];
+			for(var key in file.metadata)
+				file.metadata[key] = [file.metadata[key]];
 			filedata[file.id] = file;
 		}
 		for(var j=0; j<step.outputFiles.length; j++) {
 			var file = step.outputFiles[j];
+			for(var key in file.metadata)
+				file.metadata[key] = [file.metadata[key]];
 			filedata[file.id] = file;
 		}
 	}
