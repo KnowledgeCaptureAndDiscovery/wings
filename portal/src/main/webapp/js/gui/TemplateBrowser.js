@@ -371,7 +371,9 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 		containerScroll : true,
 		preventHeader : true,
 		store : treeStore,
-		url : This.op_url
+		url : This.op_url,
+	    useArrows: true,
+        viewConfig:{stripeRows:true},
 	});
 
 	if (toolbar != null) {

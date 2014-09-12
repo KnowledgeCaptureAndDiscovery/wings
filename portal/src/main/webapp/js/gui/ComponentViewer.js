@@ -43,6 +43,7 @@ ComponentViewer.prototype.getComponentTreePanel = function(root, title, iconCls,
         autoScroll: true,
         hideHeaders: true,
         rootVisible: false,
+	    useArrows: true,
         viewConfig: {
             plugins: {
                 ptype: 'treeviewdragdrop',
@@ -50,7 +51,8 @@ ComponentViewer.prototype.getComponentTreePanel = function(root, title, iconCls,
                 ddGroup: This.guid + '_ComponentTree',
                 enableDrop: false,
                 dragText: 'Drag the Component to the Canvas'
-            }
+            },
+            stripeRows: true
         },
         iconCls: iconCls,
         bodyCls: 'x-docked-noborder-top',

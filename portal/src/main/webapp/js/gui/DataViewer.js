@@ -1111,6 +1111,7 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
         containerScroll: true,
         store: This.dataTreeStore,
         url: This.op_url,
+	    useArrows: true,
         viewConfig: {
             plugins: {
                 ptype: 'treeviewdragdrop',
@@ -1124,7 +1125,8 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
                     fn: This.onDataItemContextMenu,
                     scope: this
                 }
-            }
+            },
+            stripeRows: true
         },
         });
 
@@ -1665,7 +1667,7 @@ DataViewer.prototype.createLeftPanel = function() {
         region: 'west',
         // collapsible: true,
         // collapseMode: 'mini',
-        width: '20%',
+        width: '25%',
         plain: true,
         split: true,
         margins: '5 0 5 5',

@@ -877,6 +877,8 @@ ResourceViewer.prototype.createLeftPanel = function() {
 	        root: This.getTree(This.store),
 	        sorters: ['text']
 	    }),
+	    useArrows: true,
+        viewConfig:{stripeRows:true},
 		listeners : {
             itemcontextmenu: {
                 fn: This.onResourceItemContextMenu,

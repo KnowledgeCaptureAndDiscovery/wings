@@ -302,6 +302,8 @@ UserViewer.prototype.createLeftPanel = function() {
         bodyCls: 'x-docked-noborder-top',
 		border : true,
 		autoScroll : true,
+	    useArrows: true,
+        viewConfig:{stripeRows:true},
 		title : 'Users',
 		//iconCls: 'userIcon',
 		url : This.op_url,
