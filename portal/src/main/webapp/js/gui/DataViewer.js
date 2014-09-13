@@ -522,6 +522,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         defaults: {
             padding: 4
         },
+        autoScroll: true,
         items: gridPanel
     });
     
@@ -568,6 +569,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         		margin: 5,
         		border: false
     		},
+            autoScroll: true,
     		items: [nameFormatField, 
     		{
     			html: "Add a NameFormat for files produced of this data type. Examples:<ul>" +
@@ -588,7 +590,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         border: false,
         layout: 'fit',
         tbar: mainTbar,
-        autoScroll: true,
+        //autoScroll: true,
         items: typeTabPanel
     });
     tab.add(mainPanel);
