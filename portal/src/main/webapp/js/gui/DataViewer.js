@@ -1082,13 +1082,20 @@ DataViewer.prototype.onDataItemContextMenu = function(dataview, node, item, inde
             items: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem(), '-', 
                     This.getRenameMenuItem(), delitem]
             });
+        this.datamenu = Ext.create('Ext.menu.Menu', {
+            items: [This.getRenameMenuItem(), delitem]
+            });
         this.topmenu = Ext.create('Ext.menu.Menu', {
             items: [This.getAddDatatypeMenuItem(), This.getAddDataMenuItem()]
             });
     }
     if(this.advanced_user) {
-	    if (node.parentNode)
-	        this.menu.showAt(e.getXY());
+	    if (node.parentNode) {
+	    	if(node.data.isClass)
+	    		this.menu.showAt(e.getXY());
+	    	else
+	    		this.datamenu.showAt(e.getXY());
+	    }
 	    else
 	        this.topmenu.showAt(e.getXY());
     }
@@ -1287,8 +1294,8 @@ DataViewer.prototype.addDataForType = function(parentNode) {
         showError('Please select a Datatype from below to add data for');
         return;
     }
-    if (parentNode.data.type == 2) {
-        showError('Please select a Datatype from below to add data for. You have current selected Data');
+    if (!parentNode.data.isClass) {
+        showError('Please select a Datatype from below to add data for');
         return;
     }
     var dtype = parentNode.data.id;
@@ -1455,6 +1462,9 @@ DataViewer.prototype.addDatatype = function(parentNode) {
     var This = this;
     if (!parentNode) {
         parentNode = this.dataTreePanel.getRootNode();
+    }
+    if(!parentNode.data.isClass) {
+    	return showError("Select a datatype to add the subtype for");
     }
     var parentType = parentNode.data.id;
 
