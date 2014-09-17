@@ -222,8 +222,9 @@ pre.tellmelog {
 }
 
 #app-header-title {
-	padding: 15px 10px 10px 55px;
-	background: url(../images/logo.png) no-repeat 10px 6px;
+	padding: 8px 5px 5px 45px;
+	background: url(../images/logo.png) no-repeat 5px 5px;
+	background-size: 30px 30px;
 }
 
 #app-header-title a {
