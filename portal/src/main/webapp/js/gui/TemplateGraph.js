@@ -984,8 +984,8 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			var oh = this.canvasDom.height;
 			this.canvasDom.width = ow*2;
 			this.canvasDom.height = oh*2;
-			this.canvasDom.style.width = this.canvasDom.width/2;
-			this.canvasDom.style.height = this.canvasDom.height/2;
+			this.canvasDom.style.width = ow + 'px';
+			this.canvasDom.style.height = oh + 'px';
 			this.canvas.getCtx().scale(2, 2);
 		}
 	},
