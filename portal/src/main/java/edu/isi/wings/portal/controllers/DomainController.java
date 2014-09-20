@@ -32,6 +32,7 @@ import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.classes.domains.Permission;
 import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 
 public class DomainController {
@@ -63,8 +64,7 @@ public class DomainController {
 		try {
 			String list = this.getDomainsListJSON();
 			//System.out.println(list);
-			
-			out.println("<html>");
+			HTMLLoader.printHeader(out);
 			out.println("<head>");
 			out.println("<title>Manage Domains</title>");
 			JSLoader.loadConfigurationJS(out, config);
@@ -84,7 +84,7 @@ public class DomainController {
 						+ "domainViewer_" + guid + ".initialize();\n"
 					+ "});");
 			out.println("</script>");
-			out.println("</html>");
+			HTMLLoader.printFooter(out);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

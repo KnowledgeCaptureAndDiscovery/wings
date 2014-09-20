@@ -33,6 +33,7 @@ import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 //import edu.isi.wings.classes.kb.PropertiesHelper;
 import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
@@ -97,7 +98,7 @@ public class TemplateController {
 			String tree = json.toJson(tc.getTemplateList());
 			String optionstr = json.toJson(options);
 			
-			out.println("<html>");
+			HTMLLoader.printHeader(out);
 			out.println("<head>");
 			out.println("<title>Template "+(editor ? "Editor" : "Browser")+"</title>");
 			JSLoader.loadConfigurationJS(out, config);
@@ -140,7 +141,7 @@ public class TemplateController {
 			
 			out.println("</script>");
 	
-			out.println("</html>");
+			HTMLLoader.printFooter(out);
 		}
 		finally {
 			dc.end();

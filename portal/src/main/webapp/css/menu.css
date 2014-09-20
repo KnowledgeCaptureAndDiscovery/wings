@@ -36,8 +36,10 @@
 	text-decoration: none;
 }
 
-.rightmenu li a:hover, .rightmenu ul li:hover a,
-.menu li a:hover,.menu ul li:hover a {
+.rightmenu li a:hover, 
+.rightmenu ul li:hover a,
+.menu li a:hover,
+.menu ul li:hover a {
 	background: #429ADE;
 	color: #FFFFFF;
 	text-decoration: none;
@@ -91,8 +93,10 @@
 	text-align: left;
 }
 
-.rightmenu li ul a:hover,.rightmenu li ul li:hover a
-.menu li ul a:hover,.menu li ul li:hover a {
+.rightmenu li ul a:hover, 
+.rightmenu li ul li:hover a, 
+.menu li ul a:hover, 
+.menu li ul li:hover a {
 	background: #429ADE;
 	border: 0px;
 	color: #ffffff;
@@ -116,7 +120,6 @@
 	z-index: 200;
 }
 .rightmenu li ul {
-	display: none;
     position:absolute;
     right:0;
 }

@@ -4,11 +4,12 @@ import java.io.PrintWriter;
 
 public class HTMLLoader {
 
-	public static void loadHeader(PrintWriter out) {
+	public static void printHeader(PrintWriter out) {
+	  out.println("<!DOCTYPE html>");
 		out.println("<html>");
 	}
 
-	public static void loadFooter(PrintWriter out) {
+	public static void printFooter(PrintWriter out) {
 		out.println("</html>");
 	}
 }

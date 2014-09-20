@@ -81,7 +81,6 @@ ProvenanceViewer.prototype.createUserActivityGrid = function(userid) {
     	title: 'Provenance',
     	iconCls: 'icon-list-alt fa-title fa-blue',
         bodyCls:'multi-line-grid',
-        dockedItems: toolbar,
         columns: [{
         	dataIndex: 'objectId',
         	header: 'Item',

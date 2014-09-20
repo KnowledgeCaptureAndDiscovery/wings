@@ -29,6 +29,7 @@ import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 
 @SuppressWarnings("unused")
@@ -78,7 +79,7 @@ public class ComponentController {
 		try {
 			String tree = json.toJson(cc.getComponentHierarchy(false).getRoot());
 			String types = json.toJson(dc.getAllDatatypeIds());
-			out.println("<html>");
+			HTMLLoader.printHeader(out);
 			out.println("<head>");
 			out.println("<title>Manage Component" + (this.loadConcrete ? "s" : " Types") + "</title>");
 			JSLoader.loadConfigurationJS(out, config);
@@ -108,7 +109,7 @@ public class ComponentController {
 					);
 			out.println("</script>");
 	
-			out.println("</html>");
+			HTMLLoader.printFooter(out);
 		}
 		finally {
 			cc.end();

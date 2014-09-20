@@ -38,6 +38,7 @@ import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 
 public class DataController {
@@ -87,7 +88,7 @@ public class DataController {
 			String tree = this.getDataHierarchyJSON();
 			String metrics = this.getMetricsHierarchyJSON();
 	
-			out.println("<html>");
+			HTMLLoader.printHeader(out);
 			out.println("<head>");
 			out.println("<title>Manage Data</title>");
 			JSLoader.loadConfigurationJS(out, config);
@@ -116,7 +117,7 @@ public class DataController {
 					+ "});");
 			out.println("</script>");
 	
-			out.println("</html>");
+			HTMLLoader.printFooter(out);
 		}
 		finally {
 			if(dc != null) 

@@ -27,6 +27,7 @@ import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
@@ -57,7 +58,7 @@ public class RunController {
 	public void show(PrintWriter out, String runid) {
 		// Get Hierarchy
 		try {
-			out.println("<html>");
+		  HTMLLoader.printHeader(out);
 			out.println("<head>");
 			out.println("<title>Access Run Results</title>");
 			JSLoader.loadConfigurationJS(out, config);
@@ -78,7 +79,7 @@ public class RunController {
 			      + "runViewer_" + guid + ".initialize();\n"
 					+ "});");
 			out.println("</script>");
-			out.println("</html>");
+			HTMLLoader.printFooter(out);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

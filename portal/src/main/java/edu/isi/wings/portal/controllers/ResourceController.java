@@ -14,6 +14,7 @@ import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
+import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
 
 public class ResourceController {
@@ -45,7 +46,7 @@ public class ResourceController {
     try {
       ArrayList<String> machineIds = api.getMachineIds();
       ArrayList<String> softwareIds = api.getSoftwareIds();
-      out.println("<html>");
+      HTMLLoader.printHeader(out);
       out.println("<head>");
       out.println("<title>Describe Resources</title>");
       JSLoader.loadConfigurationJS(out, config);
@@ -70,7 +71,7 @@ public class ResourceController {
           );
       out.println("</script>");
       
-      out.println("</html>");
+      HTMLLoader.printFooter(out);
     } finally {
       api.end();
     }
