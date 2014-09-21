@@ -64,6 +64,13 @@
 			<version>${rewrite.version}</version>
 		</dependency>
 
+		<!-- Mime type detection -->
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>1.6</version>
+		</dependency>
+					
 		<!-- Servlet (only for compilation, not in WAR file) -->
 		<dependency>
 			<groupId>javax.servlet</groupId>

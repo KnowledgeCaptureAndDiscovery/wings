@@ -19,6 +19,8 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.io.FileUtils;
+import org.apache.tika.Tika;
 import org.apache.xerces.util.URI;
 
 import com.google.gson.Gson;
@@ -106,13 +108,17 @@ public class HandleUpload extends HttpServlet {
 		
 		if(chunks == 0 || chunk == chunks - 1) {
 			// Done upload
-			File partUpload = new File(storageDir + "/" + name + ".part");
-			File finalUpload = new File(storageDir + "/" + name);
+			File partUpload = new File(storageDir + File.separator + name + ".part");
+			File finalUpload = new File(storageDir + File.separator + name);
 			partUpload.renameTo(finalUpload);
 			
+      String mime = new Tika().detect(finalUpload);
+      if(mime.equals("application/x-sh") || mime.startsWith("text/"))
+        FileUtils.writeLines(finalUpload, FileUtils.readLines(finalUpload));
+
 			// Check if this is a zip file and unzip if needed
 			String location = finalUpload.getAbsolutePath();
-			if(isComponent && name.endsWith(".zip")) {
+			if(isComponent && mime.equals("application/zip")) {
 				String dirname = new URI(id).getFragment();
 				location = StorageHandler.unzipFile(finalUpload, dirname, storageDir);
 				finalUpload.delete();

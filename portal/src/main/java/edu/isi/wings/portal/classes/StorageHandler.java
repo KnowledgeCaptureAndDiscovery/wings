@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 
 public class StorageHandler {
 	
@@ -73,7 +74,6 @@ public class StorageHandler {
 			FileUtils.deleteDirectory(new File(toDirectory + File.separator + todirname));
 
 			// Unzip file(s) into toDirectory/todirname
-			byte[] buffer = new byte[1024];
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(f));
 			ZipEntry ze = zis.getNextEntry();
 			while (ze != null) {
@@ -100,11 +100,13 @@ public class StorageHandler {
 				try {
 					// Copy file
 					FileOutputStream fos = new FileOutputStream(newFile);
-					int len;
-					while ((len = zis.read(buffer)) > 0) {
-						fos.write(buffer, 0, len);
-					}
+					IOUtils.copy(zis, fos);
 					fos.close();
+					
+					String mime = new Tika().detect(newFile);
+					if(mime.equals("application/x-sh") || mime.startsWith("text/"))
+					  FileUtils.writeLines(newFile, FileUtils.readLines(newFile));
+
 					// Set all files as executable for now
 					newFile.setExecutable(true);
 				}
