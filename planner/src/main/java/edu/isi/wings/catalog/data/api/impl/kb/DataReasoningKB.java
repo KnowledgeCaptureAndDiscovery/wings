@@ -214,12 +214,17 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 				if (key.equals("__ID")) {
 					m.appendReplacement(sb, id);
 				} else {
-					for(Metric tmp : propValMap.get(this.dcdomns + key)) {
-  					if (tmp != null && tmp.getValue() != null)
-  						m.appendReplacement(sb, MetricsXMLUtil.getValueString(tmp.getValue()));
-  					else
-  						m.appendReplacement(sb, "");
-					}
+				  if(propValMap.containsKey(this.dcdomns + key)) {
+  					for(Metric tmp : propValMap.get(this.dcdomns + key)) {
+    					if (tmp != null && tmp.getValue() != null)
+    						m.appendReplacement(sb, MetricsXMLUtil.getValueString(tmp.getValue()));
+    					else
+    						m.appendReplacement(sb, "");
+  					}
+				  }
+				  else {
+				    m.appendReplacement(sb, "");
+				  }
 				}
 			}
 			m.appendTail(sb);
