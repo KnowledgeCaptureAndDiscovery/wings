@@ -323,7 +323,6 @@ TellMe.prototype.getTellMeHistory = function(panel) {
 	froot.selected = (sels && sels.length) ? sels[0].data.id : null;
 
 	var str = Ext.JSON.encode(froot);
-	console.log(str)
 	return str;
 }
 

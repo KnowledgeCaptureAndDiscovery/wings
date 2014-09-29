@@ -363,8 +363,13 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	tabPanel.insert(0, logPanel);
 	tabPanel.insert(0, dataPanel);
 	
+	dataPanel.on("afterrender", function() {
+		Ext.get(dataPanel.getId()).mask('Loading...');
+	});
+	
 	var tpanel = tBrowser.openTemplate(xtid, 'Expanded Template', null, true);
 	tpanel.getLoader().on("load", function() {
+		Ext.get(dataPanel.getId()).unmask();
 		var tstore = tpanel.graph.editor.store;
 		dataPanel.add(This.getIODataGrid(data, tstore, runid));
 	});
