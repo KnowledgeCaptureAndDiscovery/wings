@@ -1,13 +1,12 @@
 Ext.ns('TellMe');
 
-
 /**
  * TellMe.HistoryStore
  * @extends Ext.data.Store
  * Record defintion:
  *  - teacher
  *  - student
- *  - student_detail
+ *  - log
  *  - templates
  *  - status
  */
@@ -36,6 +35,8 @@ TellMe.HistoryTree = Ext.extend(Ext.tree.Panel, {
 			root: {id:this.rootId, text:this.rootText, 
 				iconCls:'icon-wflow-alt fa fa-blue', leaf:true},
 			border:false,
+			useArrows: true,
+	        viewConfig:{stripeRows:true},
 			autoScroll: true,
 			bodyCssClass:'hrefTree'
 		});
@@ -53,7 +54,7 @@ TellMe.HistoryDetail = Ext.extend(Ext.Panel, {
 	tplMarkup1: [
 		'<div class="tellmeteacher">&gt; {teacher}</div>',
 		'<div class="tellmestudent tellmestudent_{status}">&lt; {student}</div>',
-		'<pre class="tellmelog"><h4>Log:</h4>{log}</pre>'
+		'<pre class="tellmelog"><div class="tellmetitle">Log:</div>{log}</pre>'
 	],
 	// startingMarup as a new property
 	//startingMarkup: 'Select a history item from above to see additional details',
@@ -88,10 +89,15 @@ TellMe.HistoryDetail = Ext.extend(Ext.Panel, {
  *
  */
 TellMe.HistoryPanel = Ext.extend(Ext.Panel, {
+	tellme: null,
+	
+	constructor: function(config) {
+	    this.tellme = config.tellme;
+	    this.superclass.constructor.call(this, config);
+	},
+	
 	// override initComponent
 	initComponent: function() {
-		// used applyIf rather than apply so user could
-		// override the defaults
 		Ext.applyIf(this, {
 			//frame: true,
 			title: 'History',
@@ -117,34 +123,19 @@ TellMe.HistoryPanel = Ext.extend(Ext.Panel, {
 				})
 			]
 		});
-		// call the superclass's initComponent implementation
 		TellMe.HistoryPanel.superclass.initComponent.apply(this, arguments);
 	},
 	// override initEvents
 	initEvents: function() {
-		// call the superclass's initEvents implementation
 		TellMe.HistoryPanel.superclass.initEvents.call(this);
-
-		// now add application specific events
-		// notice we use the selectionmodel's rowselect event rather
-		// than a click event from the grid to provide key navigation
-		// as well as mouse navigation
 		var tree = this.getComponent('tellmeHistoryTreePanel');
-		/*var gridSm = this.getComponent('tellmeHistoryTreePanel').getSelectionModel();*/
 		tree.on('itemclick', this.onNodeSelect, this);
-		/*grid.store.on('update', this.onStoreUpdate, this);*/
 	},
-	// add a method called onRowSelect
-	// This matches the method signature as defined by the 'rowselect'
-	// event defined in Ext.grid.RowSelectionModel
 	onNodeSelect: function(view, rec, item, ind, e) {
-		// getComponent will retrieve itemId's or id's. Note that itemId's
-		// are scoped locally to this instance of a component to avoid
-		// conflicts with the ComponentMgr
 		var detailPanel = this.getComponent('tellmeHistoryDetailPanel');
 		var data = rec.data.template ? rec.data : rec.raw;
 		if(data.template) 
-			showTemplate(data.template, true);
+			this.tellme.showTemplate(data.template, true);
 		detailPanel.updateDetail(data);
 		return true;
 	},

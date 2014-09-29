@@ -28,8 +28,9 @@ function TemplateBrowser(guid, opts, store, editor, tellme, op_url, plan_url,
 	this.leftPanel = null;
 	this.tabPanel = null;
 	this.treePanel = null;
-	this.tellMePanel = null;
+	
 	this.cmap = null;
+	this.tellMe = null;
 }
 
 TemplateBrowser.prototype.getTemplateGraph = function(template_id, tstore,
@@ -396,16 +397,16 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 		else
 			This.treePanel.getSelectionModel().deselectAll();
 
-		if (This.tellMePanel) {
-			var layout = This.tellMePanel.histories.getLayout();
+		if (This.tellMe) {
+			var layout = This.tellMe.historyPanel.getLayout();
 			if (tab.tellMeHistory)
 				layout.setActiveItem(tab.tellMeHistory.getId());
 		}
 	});
 
 	This.tabPanel.on('remove', function(tp, tab) {
-		if (This.tellMePanel && tab.tellMeHistory) {
-			This.tellMePanel.histories.remove(tab.tellMeHistory);
+		if (This.tellMe && tab.tellMeHistory) {
+			This.tellMe.historyPanel.remove(tab.tellMeHistory);
 		}
 	});
 };
@@ -1118,30 +1119,30 @@ TemplateBrowser.prototype.renderTemplateEditor = function(templatePanel,
 
 	if (This.editor_mode == "tellme") {
 		var tellme = tstore.template.metadata.tellme;
-		var tellMePanel = templatePanel.tellMePanel;
-		if (!tellMePanel)
+		if (!This.tellMe)
 			return;
-		tellMePanel.leftTabPanel.setActiveTab(tellMePanel);
+		This.leftPanel.setActiveTab(This.tellMe.mainPanel);
 
-		var layout = tellMePanel.histories.getLayout();
+		var layout = This.tellMe.historyPanel.getLayout();
 		if (typeof (layout) == "string")
 			return;
 		var history = new TellMe.HistoryPanel({
 			region : 'center',
 			border : false,
 			tid : tid,
-			tname : tname
+			tname : tname,
+			tellme : This.tellMe
 		});
 		history.templatePanel = templatePanel;
 
-		tellMePanel.histories.add(history);
+		This.tellMe.historyPanel.add(history);
 		layout.setActiveItem(history.getId());
 
 		templatePanel.mainTab.tellMeHistory = history;
 
-		if (tellme && tellMePanel) {
+		if (tellme && This.tellMe) {
 			var tree = Ext.decode(tellme);
-			This.loadTellMeHistory(tellMePanel, tree);
+			This.tellMe.loadTellMeHistory(tree);
 		}
 	}
 };
@@ -1252,11 +1253,11 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 	if (!store)
 		return;
 
-	if (This.tellMePanel) {
+	if (This.tellMe) {
 		if (store.metadata)
-			store.metadata.tellme = getTellMeHistory(tellMePanel);
+			store.metadata.tellme = this.tellMe.getTellMeHistory();
 		else
-			store.tellme = getTellMeHistory(tellMePanel);
+			store.tellme = this.tellMe.getTellMeHistory();
 	}
 
 	// Move constraints out of store
@@ -1417,8 +1418,8 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 							tpanel.getLoader().load({
 								url : url
 							});
-							if (This.tellMePanel)
-								This.tellMePanel.clear();
+							if (This.tellMe)
+								This.tellMe.clear();
 						}
 					} ]
 		});
@@ -1474,8 +1475,8 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 		This.tabPanel.add(templatePanel);
 		templatePanel.mainTab = templatePanel;
 	}
-	if (this.tellMePanel) {
-		templatePanel.tellMePanel = this.tellMePanel;
+	if (this.tellMe) {
+		templatePanel.tellMePanel = this.tellMe.mainPanel;
 	}
 	return templatePanel;
 };
@@ -1535,11 +1536,11 @@ TemplateBrowser.prototype.initialize = function(tid) {
 	}
 	// Add the TellMe Panel
 	if (this.editor_mode == 'tellme') {
-		this.tellMePanel = getTellMePanel(this.guid, this.tid, this.tname,
+		this.tellMe = new TellMe(this.guid, this.tid, this.tname,
 				this.tabPanel, this.mainPanel, this.opts, this.store,
-				this.plan_url, this.op_url);
-		this.tellMePanel.leftTabPanel = this.leftPanel;
-		this.leftPanel.add(this.tellMePanel);
+				this.plan_url, this.op_url, this.nsmap);
+		this.tellMe.initialize();
+		this.leftPanel.add(this.tellMe.mainPanel);
 	}
 
 	// Add the template tree list to the leftPanel

@@ -10,6 +10,7 @@ public class Metadata implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public String lastUpdate;
 	public transient XSDDateTime lastUpdateTime;
+	public String tellme;
 	public String documentation;
 	public ArrayList<String> contributors = new ArrayList<String>();
 	public ArrayList<String> createdFrom = new ArrayList<String>();
@@ -61,4 +62,12 @@ public class Metadata implements Serializable {
 	public ArrayList<String> getCreationSources() {
 		return this.createdFrom;
 	}
+
+  public String getTellme() {
+    return tellme;
+  }
+
+  public void setTellme(String tellme) {
+    this.tellme = tellme;
+  }
 }

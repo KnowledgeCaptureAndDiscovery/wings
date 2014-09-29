@@ -1,7 +1,8 @@
-function _console(msg) {
+function _console(msg, trace) {
 	if (window.console) {
 		window.console.log(msg);
-		window.console.trace();
+		if(trace)
+			window.console.trace();
 	}	
 }
 

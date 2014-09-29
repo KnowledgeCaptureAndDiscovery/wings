@@ -203,7 +203,10 @@ public class TemplateKB extends URIEntity implements Template {
     if(!propertyObjMap.containsKey("breakPoint"))
       propertyObjMap.put("breakPoint", kb.createDatatypeProperty(this.wflowns+"breakPoint"));
     if(!propertyObjMap.containsKey("isInactive"))
-      propertyObjMap.put("breakPoint", kb.createDatatypeProperty(this.wflowns+"isInactive"));
+      propertyObjMap.put("isInactive", kb.createDatatypeProperty(this.wflowns+"isInactive"));
+    if(!propertyObjMap.containsKey("tellmeData"))
+      propertyObjMap.put("tellmeData", kb.createDatatypeProperty(this.wflowns+"tellmeData"));
+    
 		if(!conceptObjMap.containsKey("ReduceDimensionality"))
 			conceptObjMap.put("ReduceDimensionality", kb.createClass(this.wflowns+"ReduceDimensionality"));
 		if(!conceptObjMap.containsKey("Shift"))
@@ -706,6 +709,10 @@ public class TemplateKB extends URIEntity implements Template {
 		val = kb.getPropertyValue(mobj, propertyObjMap.get("hasDocumentation"));
 		if (val != null)
 			m.documentation = (String) val.getValue();
+		
+    val = kb.getPropertyValue(mobj, propertyObjMap.get("tellmeData"));
+    if (val != null)
+      m.tellme = (String) val.getValue();
 
 		ArrayList<KBObject> crs = kb.getPropertyValues(mobj, propertyObjMap.get("hasContributor"));
 		for (KBObject cr : crs) {
@@ -1877,6 +1884,10 @@ public class TemplateKB extends URIEntity implements Template {
 			if (tmp != null)
 				tkb.addPropertyValue(mobj, propertyObjMap.get("hasContributor"),
 						ontologyFactory.getDataObject(tmp));
+		
+		if(m.tellme != null)
+		  tkb.setPropertyValue(mobj, propertyObjMap.get("tellmeData"),
+          ontologyFactory.getDataObject(m.tellme));
 	}
 
 	protected void writeRules(KBAPI tkb, KBObject tobj, Rules rules) {

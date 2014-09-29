@@ -1,8 +1,105 @@
-function typeSubsumesType(type1, type2, dtparents) {
+function TellMe(guid, tid, tname, tabPanel, mainPanel, opts, store, 
+		run_url, op_url, nsmap) {
+	this.guid = guid;
+	this.tid = tid;
+	this.tname = tname;
+	this.tabPanel = tabPanel;
+	this.mainPanel = mainPanel;
+	this.opts = opts;
+	this.store = store;
+	this.run_url = run_url;
+	this.op_url = op_url;
+	this.nsmap = nsmap;
+	
+	this.mainPanel = null;
+	this.tellmeCombo = null;
+	this.historyPanel = null;
+	this.beamer = null;
+	this.complist = {};
+	this.datalist = {};
+	this.dtparents = {};
+	
+	this.cutoff = 10;
+}
+
+TellMe.prototype.initialize = function() {
+	this.beamer = new TodoListParser(this.store.beamer_paraphrases, 
+			this.store.beamer_mappings);
+	this.complist = this.flattenComponents(this.store.components.tree);
+	this.datalist = this.flattenData(this.store.data.tree);
+	this.dtparents = this.getDatatypeParentMap(this.store.data.tree);
+
+	var comboStore = new Ext.data.Store({fields:['name']});
+	this.tellmeCombo = new Ext.form.ComboBox({
+		region:'north', 
+		border:false, 
+		displayField:'name', 
+		store:comboStore, 
+		enableKeyEvents:true, 
+		hideTrigger:true, 
+		queryMode: 'local',
+		listeners: {
+			blur: function() {
+				//this.focus();
+			},
+			specialkey: function(cb, e) {
+				if(!This.beamer) return;
+				if(e.getKey() == e.DOWN) {
+					var text = this.getRawValue();
+					if(This.beamer.curtext != text) {
+						This.loadBeamerPossibleSentences(text, this.store);
+					}
+				}
+			},
+			keypress: function(cb, e) {
+				if(!This.beamer) return;
+				if(e.getKey() == e.ENTER) {
+					This.parseTellMeInstruction(e); 
+				}
+			},
+			change: function(cb, newval, oldval) {
+				if(!This.beamer) return;
+				if(!oldval || newval[newval.length-1] == ' ') {
+					This.loadBeamerPossibleSentences(newval, this.store);
+				}
+			}
+		}
+	});
+	
+	var This = this;
+	this.historyPanel = new Ext.Panel({
+		layout:'card', 
+		region: 'center', 
+		border:false, 
+		layoutOnCardChange:true, 
+		tellme: This
+	});
+	
+	this.mainPanel = new Ext.Panel({
+		title: 'TellMe',
+		border: false,
+		iconCls: 'icon-chat fa-title fa-blue',
+		layout: 'border',
+		items: [ This.tellmeCombo, This.historyPanel ]
+	});
+	return this.mainPanel;
+}
+
+TellMe.prototype.clear = function() {
+	var hp = this.historyPanel.getLayout().activeItem;
+	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
+	var hpDetail = hp.getComponent('tellmeHistoryDetailPanel');
+	while(hpTree.root.firstChild) {
+		hpTree.root.removeChild(hpTree.root.firstChild);
+	}
+	hpDetail.updateDetail({teacher:'', student:'', log:''});
+}
+
+TellMe.prototype.typeSubsumesType = function(type1, type2) {
 	type1 = getLocalName(type1);
 	type2 = getLocalName(type2);
 	if(type1==type2) return true;
-	var parents = dtparents[type2];
+	var parents = this.dtparents[type2];
 	if(!parents) return false;
 	for(var i=0; i<parents.length; i++) {
 		if(parents[i] == type1) return true;
@@ -10,7 +107,7 @@ function typeSubsumesType(type1, type2, dtparents) {
 	return false;
 }
 
-function matchComponentRoles(rs, roles, isInput, dtparents) {
+TellMe.prototype.matchComponentRoles = function(rs, roles, isInput) {
 	var tmp = roles.concat();
 	for(var i=0; i<rs.length; i++) {
 		var r = rs[i];
@@ -21,9 +118,9 @@ function matchComponentRoles(rs, roles, isInput, dtparents) {
 			var type = tmp[j].type;
 			if(!match) {
 				var typeMatch = true;
-				if(isInput && !typeSubsumesType(type, r, dtparents)) 
+				if(isInput && !this.typeSubsumesType(type, r)) 
 					typeMatch = false;
-				else if(!isInput && !typeSubsumesType(r, type, dtparents)) 
+				else if(!isInput && !this.typeSubsumesType(r, type)) 
 					typeMatch = false;
 				match = typeMatch;
 				if(match) tmp2.pop();
@@ -37,29 +134,29 @@ function matchComponentRoles(rs, roles, isInput, dtparents) {
 	return true;
 }
 
-function findMatchingComponents(comps, inputs, outputs, dtparents) {
+TellMe.prototype.findMatchingComponents = function(comps, inputs, outputs) {
 	var clist = [];
 	for(var cid in comps) {
 		var c = comps[cid];
-		if(!matchComponentRoles(inputs, c.inputs, true, dtparents)) continue;
-		if(!matchComponentRoles(outputs, c.outputs, false, dtparents)) continue;
+		if(!this.matchComponentRoles(inputs, c.inputs, true)) continue;
+		if(!this.matchComponentRoles(outputs, c.outputs, false)) continue;
 		clist.push(cid);
 	}
 	return clist;
 }
 
-function checkComponentIO(comps, cid, inputs, outputs, dtparents) {
+TellMe.prototype.checkComponentIO = function(comps, cid, inputs, outputs) {
 	var c = comps[cid];
 	var rank = 0;
 	if(c) {
-		if(!matchComponentRoles(inputs, c.inputs, true, dtparents)) return {rank:0, comps:[]};
-		if(!matchComponentRoles(outputs, c.outputs, false, dtparents)) return {rank:0, comps:[]};
+		if(!this.matchComponentRoles(inputs, c.inputs, true)) return {rank:0, comps:[]};
+		if(!this.matchComponentRoles(outputs, c.outputs, false)) return {rank:0, comps:[]};
 		rank = 1;
 	}
 	return {rank:rank, comps:[cid]};
 }
 
-function fillDataDetails(matches, data) {
+TellMe.prototype.fillDataDetails = function(matches, data) {
 	for(var i=0; i<matches.length; i++) {
 		var m = matches[i];
 		for(var j=0; j<m.tasks.length; j++) {
@@ -76,7 +173,7 @@ function fillDataDetails(matches, data) {
 	return matches;
 }
 
-function fillMissingComponents(matches, comps, dtparents) {
+TellMe.prototype.fillMissingComponents = function(matches, comps) {
 	var nmatches = [];
 	for(var i=0; i<matches.length; i++) {
 		var m = matches[i];
@@ -93,11 +190,11 @@ function fillMissingComponents(matches, comps, dtparents) {
 				}
 			}
 			if(!t._component) {
-				t._component = findMatchingComponents(comps, inputs, outputs, dtparents);
+				t._component = this.findMatchingComponents(comps, inputs, outputs);
 				m.rank++;
 			}
 			else {
-				var c = checkComponentIO(comps, t._component, inputs, outputs, dtparents);
+				var c = this.checkComponentIO(comps, t._component, inputs, outputs);
 				m.rank += c.rank;
 				t._component = c.comps;
 			}
@@ -111,7 +208,7 @@ function fillMissingComponents(matches, comps, dtparents) {
 	return nmatches;
 }
 
-function flattenComponents(comptree) {
+TellMe.prototype.flattenComponents = function(comptree) {
 	var comps = {};
 	var tmp = comptree.children.concat();
 	while(tmp.length) {
@@ -125,7 +222,7 @@ function flattenComponents(comptree) {
 	return comps;
 }
 
-function flattenData(data_root) {
+TellMe.prototype.flattenData = function(data_root) {
 	var data = {};
 	var tmp = [data_root];
 	while(tmp.length) {
@@ -141,7 +238,7 @@ function flattenData(data_root) {
 }
 
 
-function getDatatypeParentMap(data_root, parents) {
+TellMe.prototype.getDatatypeParentMap = function(data_root, parents) {
 	var parentmap = {};
 	var id = getLocalName(data_root.item.id);
 	if(!parents) parents = [];
@@ -151,59 +248,62 @@ function getDatatypeParentMap(data_root, parents) {
 		for(var i=0; i<children.length; i++) {
 			var cparents = parents.concat(); // duplicate
 			cparents.push(id);
-			var cmap = getDatatypeParentMap(children[i], cparents);
+			var cmap = this.getDatatypeParentMap(children[i], cparents);
 			for(var cid in cmap) parentmap[cid] = cmap[cid];
 		}
 	}
 	return parentmap;
 }
 
-function loadBeamerPossibleSentences(beamer, text, cutoff, comboStore) {
+TellMe.prototype.loadBeamerPossibleSentences = function(text, comboStore) {
 	var spindex = text.lastIndexOf(' ') + 1;
 	if(spindex) text = text.substr(0, spindex);
-	beamer.curtext = text;
-	var values = beamer.getPossibleSentences(text, cutoff);
+	this.beamer.curtext = text;
+	var values = this.beamer.getPossibleSentences(text, this.cutoff);
 
 	var opts = [];
 	for(var i=0; i<values.length; i++) opts[i] = {name:values[i]};
 	comboStore.loadData(opts);
 }
 
-function parseTellMeInstruction(panel, datalist, complist, dtparents, e) {
-	var tp = panel.histories.getLayout().activeItem;
+TellMe.prototype.parseTellMeInstruction = function(e) {
+	var tp = this.historyPanel.getLayout().activeItem;
 	var done = false;
 	var code = e.getCharCode();
 	var c = String.fromCharCode(code);
-	var otext = panel.tellme.getRawValue();
-	var text = panel.tellme.getRawValue() + c;
+	var otext = this.tellmeCombo.getRawValue();
+	var text = this.tellmeCombo.getRawValue() + c;
 	var gp = tp.templatePanel.mainTab.graphPanel;
-	text = panel.tellme.getRawValue();
+	text = this.tellmeCombo.getRawValue();
 	if(!text) return;
-
+	
 	// Mix in current template variables
 	var tdatalist = {};
-	for(var d in datalist) tdatalist[d] = datalist[d];
+	for(var d in this.datalist) tdatalist[d] = this.datalist[d];
 	for(var v in gp.editor.template.variables) 
 		tdatalist[getLocalName(v)] = {name:v, type:'Variable'};
 
-	panel.getEl().mask('Trying to understand what you said ...', 'x-mask-loading');
+	this.mainPanel.getEl().mask(
+			'Trying to understand what you said ...', 'x-mask-loading');
+	
+	var This = this;
 	Ext.Function.defer(function() {
-		if(panel.tellme.beamer.isEnd(text)) {
-			elaborateTemplate(text, panel, tabPanel, gp.editor, op_url);
-			panel.getEl().unmask();
+		if(This.beamer.isEnd(text)) {
+			This.elaborateTemplate(text, gp.editor);
+			This.mainPanel.getEl().unmask();
 			return;
 		}
-		var matches = panel.tellme.beamer.findMatches(text);
+		var matches = This.beamer.findMatches(text);
 		// Fill details of the data from data symbols (variables, datatypes, data instances)
-		matches = fillDataDetails(matches, tdatalist);
+		matches = This.fillDataDetails(matches, tdatalist);
 		// If steps are missing components, then get matching components
-		matches = fillMissingComponents(matches, complist, dtparents);
+		matches = This.fillMissingComponents(matches, This.complist);
 		// Normalize any multiple component matches that may have been found in the previous step
-		matches = panel.tellme.beamer.normalizeComponentMatches(matches);
+		matches = This.beamer.normalizeComponentMatches(matches);
 		// Apply the matches
-		applyBeamerMatches(text, matches, complist, tdatalist, dtparents, panel, gp, gp.editor);
-		panel.getEl().unmask();
-		this.focus();
+		This.applyBeamerMatches(text, matches, This.complist, tdatalist, gp, gp.editor);
+		This.mainPanel.getEl().unmask();
+		This.tellmeCombo.focus();
 		//if(window.console) window.console.log(matches);
 	}, 100, this);
 
@@ -213,114 +313,40 @@ function parseTellMeInstruction(panel, datalist, complist, dtparents, e) {
 }
 
 
-function getTellMePanel(guid, tid, tname, tabPanel, mainPanel, opts, store, run_url, op_url) {
-	var panel = new Ext.Panel({
-		title: 'TellMe',
-		border: false,
-		iconCls: 'icon-chat fa-title fa-blue',
-		layout: 'border'
-	});
-	
-	var comboStore = new Ext.data.Store({fields:['name']});
-	panel.tellme = new Ext.form.ComboBox({region:'north', border:false, displayField:'name', store:comboStore, 
-									enableKeyEvents:true, hideTrigger:true, queryMode: 'local'});
-	panel.tellme.beamer = new TodoListParser(store.beamer_paraphrases, store.beamer_mappings);
-
-	var complist = flattenComponents(store.components.tree);
-	var datalist = flattenData(store.data.tree);
-	var dtparents = getDatatypeParentMap(store.data.tree);
-
-	panel.histories = new Ext.Panel({layout:'card', region: 'center', border:false, layoutOnCardChange:true});
-	panel.add(panel.tellme);
-	panel.add(panel.histories);
-
-	var cutoff = 10;
-
-	panel.tellme.on("blur", function() {
-		this.focus();
-	});
-	panel.tellme.on("specialkey", function(cb, e) {
-		if(!this.beamer) return;
-		if(e.getKey() == e.DOWN) {
-			var text = this.getRawValue();
-			if(this.beamer.curtext != text) {
-				loadBeamerPossibleSentences(this.beamer, text, cutoff, comboStore);
-			}
-		}
-	});
-	panel.tellme.on("keypress", function(cb, e) {
-		if(!this.beamer) return;
-		if(e.getKey() == e.ENTER) {
-			parseTellMeInstruction(panel, datalist, complist, dtparents, e); 
-		}
-	});
-	panel.tellme.on("change", function(cb, newval, oldval) {
-		if(!this.beamer) return;
-		if(!oldval || newval[newval.length-1] == ' ') {
-			loadBeamerPossibleSentences(this.beamer, newval, cutoff, comboStore);
-		}
-	});
-
-	panel.clear = function() {
-		var hp = this.histories.getLayout().activeItem;
-		var hpTree = hp.getComponent('tellmeHistoryTreePanel');
-		var hpDetail = hp.getComponent('tellmeHistoryDetailPanel');
-		while(hpTree.root.firstChild) {
-			hpTree.root.removeChild(hpTree.root.firstChild);
-		}
-		hpDetail.updateDetail({teacher:'', student:'', log:''});
-	};
-
-	/*panel.tellme.on("select", function(cb, rec, ind) {
-		var text = rec.data.field1;
-		var gp = mainPanel.templatePanel.mainTab.graphPanel;
-		var ed = gp.editor;
-		beamerSelectionHandler(gp, ed, text, bdata['actions'], bdata['cbyid'], panel);
-	});
-	panel.tellme.on("keypress", function(cb, e) {
-		if(e.getCharCode() == 13) {
-			var text = panel.tellme.getRawValue();
-			var gp = mainPanel.templatePanel.mainTab.graphPanel;
-			var ed = gp.editor;
-			beamerSelectionHandler(gp, ed, text, bdata['actions'], bdata['cbyid'], panel);
-		}
-	});*/
-	return panel;
-}
-
-
-function getTellMeHistory(panel) {
-	var hp = panel.histories.getLayout().activeItem;
+TellMe.prototype.getTellMeHistory = function(panel) {
+	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	var root = hpTree.getRootNode();
-	var froot = filterTree(root);
+	var froot = this.filterTree(root);
 
 	var sels = hpTree.getSelectionModel().getSelection();
 	froot.selected = (sels && sels.length) ? sels[0].data.id : null;
 
 	var str = Ext.JSON.encode(froot);
+	console.log(str)
 	return str;
 }
 
-function filterTree(tn) {
+TellMe.prototype.filterTree = function(tn) {
 	var node = {};
-	node.id = tn.data.id;
-	node.cls = tn.data.cls;
-	node.iconCls = tn.data.iconCls;
+	var data = tn.data.template ? tn.data : tn.raw;
+	node.id = data.id;
+	node.cls = data.cls;
+	node.iconCls = data.iconCls;
 	if(node.iconCls == 'icon-chat fa fa-blue') {
-		node.status = tn.data.status;
-		node.student = tn.data.student;
-		node.teacher = tn.data.teacher;
-		node.text = tn.data.text;
+		node.status = data.status;
+		node.student = data.student;
+		node.teacher = data.teacher;
+		node.text = data.text;
 	}
-	if(node.iconCls == 'icon-wflow fa fa-blue' && tn.data.template) {
-		var t = tn.data.template.createCopy();
+	if(node.iconCls == 'icon-wflow-alt fa fa-blue' && data.template) {
+		var t = data.template.createCopy();
 		node.template = cloneObj(t.store);
 	}
 	if(tn.childNodes.length) {
 		node.children = [];
 		for(var i=0; i<tn.childNodes.length; i++) {
-			node.children.push(filterTree(tn.childNodes[i]));
+			node.children.push(this.filterTree(tn.childNodes[i]));
 		}
 	} else {
 		node.leaf = true;
@@ -328,30 +354,30 @@ function filterTree(tn) {
 	return node;
 }
 
-function getTellMeRoot(panel) {
-	var hp = panel.histories.getLayout().activeItem;
+TellMe.prototype.getTellMeRoot = function(panel) {
+	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	return hpTree.getRootNode();
 }
 
-function setTellMeRoot(panel, root) {
-	var hp = panel.histories.getLayout().activeItem;
+TellMe.prototype.setTellMeRoot = function(panel, root) {
+	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	hpTree.setRootNode(root);
 	hpTree.render();
 	root.expand();
 }
 
-function loadTellMeHistory(panel, tree) {
+TellMe.prototype.loadTellMeHistory = function(tree) {
 	if(!tree) tree = {};
-	var hp = panel.histories.getLayout().activeItem;
+	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	var root = hpTree.getStore().getRootNode();
 	while(root.firstChild) {
 		root.removeChild(root.firstChild);
 	}
 	var gp = hp.templatePanel.mainTab.graphPanel;
-	loadTellMeTree(tree, null, root, gp.editor);
+	this.loadTellMeTree(tree, null, root, gp.editor);
 	root.expand();
 
 	if(tree.selected) {
@@ -361,7 +387,7 @@ function loadTellMeHistory(panel, tree) {
 }
 
 
-function loadTellMeTree(tn, p, pn, ed) {
+TellMe.prototype.loadTellMeTree = function(tn, p, pn, ed) {
 	var node;
 	var nodeObj;
 	if(p) {
@@ -370,7 +396,8 @@ function loadTellMeTree(tn, p, pn, ed) {
 			if(p) t = new Template(tn.id, tn.template, ed);
 
 			nodeObj = {teacher:p?p.teacher:'', student:p?p.student:'', log:'', 
-						status:p?p.status:'', text:tn.id, id:tn.id, template:t, 
+						status:p?p.status:'', text:getLocalName(tn.id), id:tn.id, 
+						template:t, 
 						leaf:tn.children?true:false, iconCls: tn.iconCls, expanded:true};
 		}
 		else {
@@ -388,13 +415,13 @@ function loadTellMeTree(tn, p, pn, ed) {
 	if(node && tn.children) {
 		for(var i=0; i<tn.children.length; i++) {
 			var cn = tn.children[i];
-			loadTellMeTree(cn, tn, node, ed);
+			this.loadTellMeTree(cn, tn, node, ed);
 		}
 	}
 }
 
 
-function addToHistory(hpTree, hpDetail, curT, teacher, student, log, templates, status, icon) {
+TellMe.prototype.addToHistory = function(hpTree, hpDetail, curT, teacher, student, log, templates, status, icon) {
 	var rn = hpTree.getRootNode();
 	var curNode = rn.data.id==curT.txid ? rn : rn.findChild('id', curT.txid, true);
 	var curTxid = curT.txid + "." + (curNode.childNodes.length+1);
@@ -417,7 +444,7 @@ function addToHistory(hpTree, hpDetail, curT, teacher, student, log, templates, 
 			var txid = curTxid+"."+i;
 			var tObj = {teacher:teacher, student:student, log:log, status:status,
 								text:curText+"."+i, id:txid, template:t, leaf:true, 
-								iconCls: 'icon-wflow fa fa-blue'};
+								iconCls: 'icon-wflow-alt fa fa-blue'};
 			t.txid = txid;
 			tNode = utNode.appendChild(tObj);
 			if(i==1) {
@@ -427,19 +454,21 @@ function addToHistory(hpTree, hpDetail, curT, teacher, student, log, templates, 
 		}
 	}
 	if(tNode && t) {
-		hpTree.selectPath(getTreePath(firstNode));
-		hpDetail.updateDetail(firstNode.data);
-		showTemplate(firstTemplate, true);
+		hpTree.selectPath(getTreePath(firstNode, 'text'), 'text');
+		var data = firstNode.data.template ? firstNode.data : firstNode.raw;
+		hpDetail.updateDetail(data);
+		this.showTemplate(firstTemplate, true);
 	}
 	else {
-		hpTree.selectPath(getTreePath(utNode));
-		hpDetail.updateDetail(utNode.data);
+		hpTree.selectPath(getTreePath(utNode, 'text'), 'text');
+		var data = utNode.data.template ? utNode.data : utNode.raw;
+		hpDetail.updateDetail(data);
 	}
 	curNode.expand();
 	return utNode;
 }
 
-function copyCompVarBindings(t1, t2) {
+TellMe.prototype.copyCompVarBindings = function(t1, t2) {
 	t2.compBindings = {};
 	t2.varBindings = {};
 	t2.editorActions = [];
@@ -448,17 +477,17 @@ function copyCompVarBindings(t1, t2) {
 	for(var i in t1.editorActions) t2.editorActions[i] = t1.editorActions[i];
 }
 
-function getPortNameForDatatype(datatype, roles, dtparents) {
+TellMe.prototype.getPortNameForDatatype = function(datatype, roles) {
 	for(var i=0; i<roles.length; i++) {
 		var r = roles[i];
 		if(r.param) continue;
-		if(typeSubsumesType(r.type, datatype, dtparents)) 
+		if(this.typeSubsumesType(r.type, datatype)) 
 			return r.role;
 	}
 	return null;
 };
 
-function getPortDatatype(portname, roles) {
+TellMe.prototype.getPortDatatype = function(portname, roles) {
 	for(var i=0; i<roles.length; i++) {
 		var r = roles[i];
 		if(r.param) continue;
@@ -467,7 +496,7 @@ function getPortDatatype(portname, roles) {
 	return null;
 };
 
-function getDataPortByIndex(roles, index) {
+TellMe.prototype.getDataPortByIndex = function(roles, index) {
 	var count = 0;
 	for(var i=0; i<roles.length; i++) {
 		var r = roles[i];
@@ -479,14 +508,14 @@ function getDataPortByIndex(roles, index) {
 	return null;
 }
 
-function searchForMatchingInputVariables(n, opvars, ipvars, template, dtype, dtparents) {
+TellMe.prototype.searchForMatchingInputVariables = function(n, opvars, ipvars, template, dtype) {
 	var vs = {};
 	var vlist = [];
 	for (var i=opvars.length-1; i>=0; i--) {
 		var v = template.variables[opvars[i]];
 		if(!v) continue;
 		var vtype = template.getVariableType(v);
-		if(!vs[v.id] && (!dtype || typeSubsumesType(dtype, vtype, dtparents))) {
+		if(!vs[v.id] && (!dtype || this.typeSubsumesType(dtype, vtype))) {
 			vs[v.id] = true;
 			vlist.push(v);
 		}
@@ -495,7 +524,7 @@ function searchForMatchingInputVariables(n, opvars, ipvars, template, dtype, dtp
 		var v = template.variables[ipvars[i]];
 		if(!v) continue;
 		var vtype = template.getVariableType(v);
-		if(!vs[v.id] && (!dtype || typeSubsumesType(dtype, vtype, dtparents))) {
+		if(!vs[v.id] && (!dtype || this.typeSubsumesType(dtype, vtype))) {
 			vs[v.id] = true;
 			vlist.push(v);
 		}
@@ -505,7 +534,7 @@ function searchForMatchingInputVariables(n, opvars, ipvars, template, dtype, dtp
 		var v = tvars[vid];
 		if(v.type != "DATA") continue;
 		var vtype = template.getVariableType(v);
-		if(!vs[v.id] && (!dtype || typeSubsumesType(dtype, vtype, dtparents))) {
+		if(!vs[v.id] && (!dtype || this.typeSubsumesType(dtype, vtype))) {
 			vs[v.id] = true;
 			vlist.push(v);
 		}
@@ -513,9 +542,9 @@ function searchForMatchingInputVariables(n, opvars, ipvars, template, dtype, dtp
 	return vlist;
 }
 
-function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv, ind) {
+TellMe.prototype.addNodeIOToTemplate = function(n, data, isInput, template, cbyid, datalist, ipvars, opvars, seln, selv, ind) {
 	var port;
-	var c = cbyid[getLocalName(n.component.id)];
+	var c = cbyid[getLocalName(n.binding.id)];
 	if(!c) return null;
 
 	var roles = isInput ? c.inputs : c.outputs;
@@ -532,7 +561,7 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 			dtype = template.getVariableType(v);
 		}
 		if(!dtype) return null;
-		var pname = getPortNameForDatatype(dtype, roles, dtparents);
+		var pname = this.getPortNameForDatatype(dtype, roles);
 		if(!pname) return null;
 		port = isInput ? n.getInputPortByName(pname) : n.getOutputPortByName(pname);
 	} else if(data.role == 'Plain') {
@@ -541,7 +570,7 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 	if(!port && data.role == 'Plain') {
 		ind = ind ? ind: 0;
 		//if(window.console) window.console.log("Warning: Underspecified data "+data.name+". Trying to use port "+ind);
-		var pname = getDataPortByIndex(roles, ind);
+		var pname = this.getDataPortByIndex(roles, ind);
 		if(!pname) return null;
 		port = isInput ? n.getInputPortByName(pname) : n.getOutputPortByName(pname);
 	}
@@ -552,7 +581,7 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 		template.editorActions.push("Using existing variable "+v.id);
 	} 
 	else if (isInput && data.type.match(/^Specified/)) {
-		var vlist = searchForMatchingInputVariables(n, opvars, ipvars, template, dtype, dtparents);
+		var vlist = this.searchForMatchingInputVariables(n, opvars, ipvars, template, dtype);
 		if(vlist.length) {
 			v = vlist[0];
 			// FIXME: Just picking the first match for now ! Should create template copies here
@@ -571,7 +600,7 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 
 		if(data.role=='Plain') v.setIsUnknown(true);
 
-		template.editorActions.push("Creating new variable "+v.id);
+		template.editorActions.push("Creating new variable "+getLocalName(v.id));
 		if(data.type.match(/Collection/)) {
 			v.setDimensionality(1);
 			template.editorActions.push("Marking the variable as a collection");
@@ -583,7 +612,8 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 	if(!v) return null;
 
 	if(data.prop && data.val) {
-		template.setVariablePropertyValue(v, data.prop, data.val);
+		var propid = this.nsmap['dcdom'] + data.prop;
+		template.setVariablePropertyValue(v, propid, data.val);
 	}
 
 	if(newvariable) {
@@ -591,13 +621,13 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 		if(data.role == 'Datatype') 
 			template.setVariableType(v, datalist[data.name].name);
 		else 
-			template.setVariableType(v, getPortDatatype(port.name, roles));
+			template.setVariableType(v, this.getPortDatatype(port.name, roles));
 	} else {
 		var vtype = template.getVariableType(v);
-		var ptype = getPortDatatype(port.name, roles);
-		if(ptype && isInput && !typeSubsumesType(ptype, vtype, dtparents))
+		var ptype = this.getPortDatatype(port.name, roles);
+		if(ptype && isInput && !this.typeSubsumesType(ptype, vtype))
 			return null;
-		if(ptype && !isInput && !typeSubsumesType(vtype, ptype, dtparents))
+		if(ptype && !isInput && !this.typeSubsumesType(vtype, ptype))
 			return null;
 
 		var ls = template.getLinksWithVariable(v);
@@ -612,15 +642,15 @@ function addNodeIOToTemplate(n, data, isInput, template, cbyid, datalist, dtpare
 	return v;
 }
 
-function addNodeInputToTemplate(n, ip, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv, ind) {
-	return addNodeIOToTemplate(n, ip, true, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv, ind); 
+TellMe.prototype.addNodeInputToTemplate = function(n, ip, template, cbyid, datalist, ipvars, opvars, seln, selv, ind) {
+	return this.addNodeIOToTemplate(n, ip, true, template, cbyid, datalist, ipvars, opvars, seln, selv, ind); 
 }
 
-function addNodeOutputToTemplate(n, op, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv, ind) {
-	return addNodeIOToTemplate(n, op, false, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv, ind); 
+TellMe.prototype.addNodeOutputToTemplate = function(n, op, template, cbyid, datalist, ipvars, opvars, seln, selv, ind) {
+	return this.addNodeIOToTemplate(n, op, false, template, cbyid, datalist, ipvars, opvars, seln, selv, ind); 
 }
 
-function removeItemsFromTemplate(xitem, template, seln, selv) {
+TellMe.prototype.removeItemsFromTemplate = function(xitem, template, seln, selv) {
 	var name = xitem.name;
 	if (xitem.type == "Selected") {
 		if(selv) name = selv.id;
@@ -640,7 +670,7 @@ function removeItemsFromTemplate(xitem, template, seln, selv) {
 	return false;
 }
 
-function mergeVariablesInTemplate(xv1, xv2, template, cbyid, datalist, dtparents, seln, selv) {
+TellMe.prototype.mergeVariablesInTemplate = function(xv1, xv2, template, cbyid, datalist, seln, selv) {
 	var v1 = template.variables[xv1.name];
 	var v2 = template.variables[xv2.name];
 	if (!v1 && xv1.type == "Selected" && selv) v1 = template.variables[selv.id];
@@ -654,12 +684,12 @@ function mergeVariablesInTemplate(xv1, xv2, template, cbyid, datalist, dtparents
 	if(v1.type == "DATA") {
 		var v1type = template.getVariableType(v1);
 		var v2type = template.getVariableType(v2);
-		if(!typeSubsumesType(v1type,v2type,dtparents) && 
-			!typeSubsumesType(v2type,v1type,dtparents))
+		if(!this.typeSubsumesType(v1type,v2type) && 
+			!this.typeSubsumesType(v2type,v1type))
 			 return null;
 
 		// Keep this more specific variable
-		if(v1type != v2type && typeSubsumesType(v2type, v1type, dtparents)) {
+		if(v1type != v2type && this.typeSubsumesType(v2type, v1type)) {
 			var tmp = v1; v1 = v2; v2 = tmp;
 		}
 	}
@@ -683,11 +713,10 @@ function mergeVariablesInTemplate(xv1, xv2, template, cbyid, datalist, dtparents
 	return v1;
 }
 
-function applyBeamerActionsToTemplate(template, tasks, cbyid, datalist, dtparents, seln, selv, index, ipvars, opvars) {
+TellMe.prototype.applyBeamerActionsToTemplate = function(template, tasks, cbyid, datalist, seln, selv, index, ipvars, opvars) {
 	var opvars = ipvars ? ipvars : [];
 	var ipvars = opvars ? opvars : [];
 	if(!index) index=0;
-
 	var templateQ = [template];
 	for(var i=index; i<tasks.length; i++) {
 		var task = tasks[i];
@@ -715,14 +744,16 @@ function applyBeamerActionsToTemplate(template, tasks, cbyid, datalist, dtparent
 			if(fn == "C_AddNodeWithInput" || fn == "C_AddNodeWithInputOutput") {
 				var ip = args['ip'];
 				if(!ip) return null;
-				var v = addNodeInputToTemplate(n, ip, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv);
+				var v = this.addNodeInputToTemplate(
+						n, ip, template, cbyid, datalist, ipvars, opvars, seln, selv);
 				if(!v) return null;
 				//ipvars.push(v);
 			}
 			if(fn == "C_AddNodeWithOutput" || fn == "C_AddNodeWithInputOutput") {
 				var op = args['op'];
 				if(!op) return null;
-				var v = addNodeOutputToTemplate(n, op, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv);
+				var v = this.addNodeOutputToTemplate(
+						n, op, template, cbyid, datalist, ipvars, opvars, seln, selv);
 				if(!v) return null;
 				//opvars.push(v);
 			}
@@ -730,8 +761,10 @@ function applyBeamerActionsToTemplate(template, tasks, cbyid, datalist, dtparent
 				var ip1 = args['ip1'];
 				var ip2 = args['ip2'];
 				if(!ip1 || !ip2) return null;
-				var v1 = addNodeInputToTemplate(n, ip1, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv);
-				var v2 = addNodeInputToTemplate(n, ip2, template, cbyid, datalist, dtparents, ipvars, opvars, seln, selv, 1);
+				var v1 = this.addNodeInputToTemplate(
+						n, ip1, template, cbyid, datalist, ipvars, opvars, seln, selv);
+				var v2 = this.addNodeInputToTemplate(
+						n, ip2, template, cbyid, datalist, ipvars, opvars, seln, selv, 1);
 				if(!v1 || !v2) return null;
 				//ipvars.push(v1);
 				//ipvars.push(v2);
@@ -741,28 +774,31 @@ function applyBeamerActionsToTemplate(template, tasks, cbyid, datalist, dtparent
 			var v1 = args['v1'];
 			var v2 = args['v2'];
 			if(!v1 || !v2) return null;
-			var v = mergeVariablesInTemplate(v1, v2, template, cbyid, datalist, dtparents, seln, selv);
+			var v = this.mergeVariablesInTemplate(
+					v1, v2, template, cbyid, datalist, seln, selv);
 			if(!v) return null;
 			template.editorActions.push("Merging variables "+v1.name+" and "+v2.name);
 		}
 		if(fn == "X_RemoveItem") {
 			var x = args['x'];
 			if(!x) return null;
-			var ok = removeItemsFromTemplate(x, template, seln, selv);
+			var ok = this.removeItemsFromTemplate(x, template, seln, selv);
 			if(!ok) return null;
 			template.editorActions.push("Removing "+x.name);
 		}
 		if(n) {
-			template.bindUnboundNodeIO(n, cbyid[getLocalName(n.component.id)]);
+			template.bindUnboundNodeIO(n, cbyid[getLocalName(n.binding.id)]);
 			var ilinks = n.getInputLinks();
 			var olinks = n.getOutputLinks();
 			for(var j=0; j<ilinks.length; j++) ipvars.push(ilinks[j].variable.id);
 			for(var j=0; j<olinks.length; j++) opvars.push(olinks[j].variable.id);
 
-    		var tightQ = getTightenedTemplates(template, n, cbyid, datalist, dtparents);
+    		var tightQ = this.getTightenedTemplates(template, n, 
+    				cbyid, datalist);
 			for(var j=0; j<tightQ.length; j++) {
 				// Apply rest of the beamer action tasks on these tightened templates (notice index is now i+1)
-				var tQ = applyBeamerActionsToTemplate(tightQ[j], tasks, cbyid, datalist, dtparents, seln, selv, i+1, ipvars, opvars);
+				var tQ = this.applyBeamerActionsToTemplate(tightQ[j], tasks, 
+						cbyid, datalist, seln, selv, i+1, ipvars, opvars);
 				if(!tQ) continue;
 				templateQ = tQ.concat(templateQ);
 			}
@@ -770,7 +806,7 @@ function applyBeamerActionsToTemplate(template, tasks, cbyid, datalist, dtparent
 	}
 	/*for(var nid in template.nodes) {
 		var n = template.nodes[nid];
-		template.bindUnboundNodeIO(n, cbyid[n.component]);
+		template.bindUnboundNodeIO(n, cbyid[n.binding.id]);
 	}*/
 
 	var ntQ = [];
@@ -787,7 +823,7 @@ function applyBeamerActionsToTemplate(template, tasks, cbyid, datalist, dtparent
 	return ntQ;
 }
 
-function findMatchingVariablesInTemplateForType(t, type, nid, vid, isInput, dtparents) {
+TellMe.prototype.findMatchingVariablesInTemplateForType = function(t, type, nid, vid, isInput) {
 	var vars=[];
 
 	var vdone = {};
@@ -800,28 +836,30 @@ function findMatchingVariablesInTemplateForType(t, type, nid, vid, isInput, dtpa
 		var vtype = t.getVariableType(vt);
 		if(!vtype) continue;
 
-		if(isInput && l.fromNode && l.fromNode.id != nid && typeSubsumesType(type, vtype, dtparents)) 
+		if(isInput && l.fromNode && l.fromNode.id != nid && 
+				this.typeSubsumesType(type, vtype)) 
 			vars.push(vt.id);
 
 		if(isInput && l.toNode && l.toNode.id != nid && !l.fromNode && type == vtype) 
 			vars.push(vt.id);
 
-		if(!isInput && !l.fromNode && l.toNode && l.toNode.id != nid && typeSubsumesType(vtype, type, dtparents)) 
+		if(!isInput && !l.fromNode && l.toNode && l.toNode.id != nid && 
+				this.typeSubsumesType(vtype, type)) 
 			vars.push(vt.id);
 	}
 	return vars;
 }
 
-function findMatchingVariablesInTemplate(t, n, v, isInput, dtparents) {
+TellMe.prototype.findMatchingVariablesInTemplate = function(t, n, v, isInput) {
 	var vars=[];
 
 	var type = t.getVariableType(v);
 	if(!type) return vars;
 
-	return findMatchingVariablesInTemplateForType(t, type, n.id, v.id, isInput, dtparents);
+	return this.findMatchingVariablesInTemplateForType(t, type, n.id, v.id, isInput);
 }
 
-function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
+TellMe.prototype.getTightenedTemplates = function(template, node, cbyid, datalist) {
 	var vms = {};
 	var cvms = {};
 	var vmaps = {};
@@ -836,7 +874,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 		vms[v.id] = [];
 		cvms[v.id] = [];
 		if(!l.fromPort) {
-			var tmp = findMatchingVariablesInTemplate(template, node, v, true, dtparents);
+			var tmp = this.findMatchingVariablesInTemplate(template, node, v, true);
 			for(var j=0; j<tmp.length; j++) {
 				var map = v.id+","+tmp[j];
 				var rmap = tmp[j]+","+v.id;
@@ -849,7 +887,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 			if(!tmp.length) {
 				var type = template.getVariableType(v);
 				// Find components that can be fed to the variable type
-				var cmps = findMatchingComponents(cbyid, datalist, [], [type], dtparents);
+				var cmps = this.findMatchingComponents(cbyid, datalist, [], [type]);
 
 				for(var j=0; j<cmps.length; j++) {
 					var c = cbyid[cmps[j]];
@@ -857,7 +895,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 					var coutrole = null;
 					for(var k=0; k<c.outputs.length; k++) {
 						var couttype = c.outputs[k].type;
-						if(typeSubsumesType(type, couttype, dtparents))
+						if(this.typeSubsumesType(type, couttype))
 							coutrole = c.outputs[k].role;
 					}
 					if(!coutrole) continue;
@@ -867,7 +905,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 						var cintype = cin.type;
 
 						// Check if this component's input can be linked from an existing output
-						var tmp = findMatchingVariablesInTemplateForType(template, cintype, node.id, v.id, true, dtparents);
+						var tmp = this.findMatchingVariablesInTemplateForType(template, cintype, node.id, v.id, true);
 						//console.log(tmp);
 
 						// Add a task to add the component and then add the link
@@ -891,7 +929,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 		if(!v || vms[v.id] || v.type=="PARAM") continue;
 		vms[v.id] = [];
 		if(!l.toPort) {
-			var tmp = findMatchingVariablesInTemplate(template, node, v, false, datalist, dtparents);
+			var tmp = this.findMatchingVariablesInTemplate(template, node, v, false, datalist);
 			for(var j=0; j<tmp.length; j++) {
 				var map = v.id+","+tmp[j];
 				var rmap = tmp[j]+","+v.id;
@@ -918,8 +956,8 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 			var tmp = tQ[j];
 			for(var i=0; i<mvids.length; i++) {
 				var tmp2 = tmp.createCopy();
-				copyCompVarBindings(tmp, tmp2);
-				var v = mergeVariablesInTemplate({name:vid}, {name:mvids[i]}, tmp2, null, datalist, dtparents, null, null);
+				this.copyCompVarBindings(tmp, tmp2);
+				var v = this.mergeVariablesInTemplate({name:vid}, {name:mvids[i]}, tmp2, null, datalist, null, null);
 				if(v) {
 					tQ.push(tmp2);
 					nochange = false;
@@ -940,7 +978,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 			for(var i=0; i<cmvids.length; i++) {
 				var xc = cmvids[i];
 				var tmp2 = tmp.createCopy();
-				copyCompVarBindings(tmp, tmp2);
+				this.copyCompVarBindings(tmp, tmp2);
 
 				var tmpn = tmp2.addNode(xc.c);
 				tmpn.setPortRule('S', tmpn.pruleOp); // S type for TellMe Nodes
@@ -955,7 +993,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 				}
 				if(!mv) continue;
 
-				var v = mergeVariablesInTemplate({name:mv.id}, {name:xc.vid}, tmp2, null, datalist, dtparents, null, null);
+				var v = this.mergeVariablesInTemplate({name:mv.id}, {name:xc.vid}, tmp2, null, datalist, null, null);
 				if(!v) continue;
 
 				var mv = null;
@@ -965,7 +1003,7 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 						mv = olinks[j].variable;
 				}
 				if(!mv) continue;
-				var v = mergeVariablesInTemplate({name:mv.id}, {name:vid}, tmp2, null, datalist, dtparents, null, null);
+				var v = this.mergeVariablesInTemplate({name:mv.id}, {name:vid}, tmp2, null, datalist, null, null);
 				if(!v) continue;
 
 				tQ.push(tmp2);
@@ -978,42 +1016,43 @@ function getTightenedTemplates(template, node, cbyid, datalist, dtparents) {
 	return tQ;
 }
 
-
-function elaborateTemplate(text, panel, tabPanel, ed, op_url) {
-	var hp = panel.histories.getLayout().activeItem;
+TellMe.prototype.elaborateTemplate = function(text, ed) {
+	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	var hpDetail = hp.getComponent('tellmeHistoryDetailPanel');
 
-	panel.tellme.setValue('');
+	this.tellmeCombo.setValue('');
 
 	var t = ed.template.createCopy();
 	t.txid = ed.template.txid ? ed.template.txid : ed.template.id;
-	addToHistory(hpTree, hpDetail, t, text, "Template elaboration", '', null, 'ok');
+	this.addToHistory(hpTree, hpDetail, t, text, "Template elaboration", '', null, 'ok');
 
-	inferElaboratedTemplate(tabPanel, op_url);
+	this.inferElaboratedTemplate();
 }
 
-function getUniqueTemplates(tQ) {
+TellMe.prototype.getUniqueTemplates = function(tQ) {
 	var temp = [];
 	for(var i=0;i<tQ.length;i++){
-		if(!templateArrContains(temp, tQ[i])) {
+		if(!this.templateArrContains(temp, tQ[i])) {
 			temp.push(tQ[i]);
 		}
 	}
 	return temp;
 }
-function templateArrContains(arr, t) {
+
+TellMe.prototype.templateArrContains = function(arr, t) {
 	for(var j=0;j<arr.length;j++)
 		if(arr[j].equals(t)) return true;
 	return false;
 }
 
-function applyBeamerMatches(text, matches, complist, tdatalist, dtparents, panel, gp, ed) {
-	var hp = panel.histories.getLayout().activeItem;
+TellMe.prototype.applyBeamerMatches = function(text, matches, 
+		complist, tdatalist, gp, ed) {
+	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	var hpDetail = hp.getComponent('tellmeHistoryDetailPanel');
-
-	panel.tellme.setValue('');
+	
+	this.tellmeCombo.setValue('');
 	//_console(matches);
 
 	var tQ = [];
@@ -1041,12 +1080,14 @@ function applyBeamerMatches(text, matches, complist, tdatalist, dtparents, panel
 		var tasks = m.tasks;
 		if(!tasks.length) {
 			log += br+"ERROR: Cannot Understand";
-			addToHistory(hpTree, hpDetail, t, text, "Cannot Understand", log, null, 'error');
+			this.addToHistory(hpTree, hpDetail, t, text, 
+					"Cannot Understand", log, null, 'error');
 			return;
 		}
 		var seln = ed.getSelectedNode();
 		var selv = ed.getSelectedVariable();
-		var ts = applyBeamerActionsToTemplate(t, tasks, complist, tdatalist, dtparents, seln, selv);
+		var ts = this.applyBeamerActionsToTemplate(t, tasks, 
+				complist, tdatalist, seln, selv);
 		if(ts && ts.length) {
 			num += ts.length;
 			tQ = tQ.concat(ts);
@@ -1054,7 +1095,7 @@ function applyBeamerMatches(text, matches, complist, tdatalist, dtparents, panel
 		if(num > 20) break;
 		if(i > 100) break;
 	}
-	tQ = getUniqueTemplates(tQ);
+	tQ = this.getUniqueTemplates(tQ);
 	tQ = tQ.splice(0,20);
 	tQ.sort(function(a,b) {return a.getNumLinks() - b.getNumLinks();});
 
@@ -1070,14 +1111,14 @@ function applyBeamerMatches(text, matches, complist, tdatalist, dtparents, panel
 	}
 	if(!tQ.length) {
 		log += br+"ERROR: No matches found";
-		addToHistory(hpTree, hpDetail, t, text, "No alternatives", log, null, 'error');
+		this.addToHistory(hpTree, hpDetail, t, text, "No alternatives", log, null, 'error');
 		return;
 	}
 	var msg = "OK";
 	if(tQ.length > 1) msg+= " ("+tQ.length+" alternatives)";
 
 	log += br+"Applying actions to Workflow Sketch...";
-	var trec = addToHistory(hpTree, hpDetail, t, text, msg, log, tQ, 'ok');
+	var trec = this.addToHistory(hpTree, hpDetail, t, text, msg, log, tQ, 'ok');
 
 	//var selTemplate = tQ[0];
 	/*var selTemplate = tQ[tQ.length-1];
@@ -1088,67 +1129,7 @@ function applyBeamerMatches(text, matches, complist, tdatalist, dtparents, panel
 	Ext.get(hp.getId()).highlight('#fffebb', {block:true});
 }
 
-/*function beamerSelectionHandler(gp, ed, text, actions, cbyid, datalist, panel) {
-	if(!text) return;
-	var hp = panel.histories.getLayout().activeItem;
-	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
-	var hpDetail = hp.getComponent('tellmeHistoryDetailPanel');
-
-	var actions = bdata['actions'];
-
-	panel.tellme.setValue('');
-
-	var t = ed.template.createCopy();
-	t.txid = ed.template.txid ? ed.template.txid : ed.template.id;
-
-	var br = "\n";
-	var tab = "  ";
-	var log = "Looking for matching patterns...";
-
-	var a = actions[text];
-	if(!a) {
-		log += br+"ERROR: Cannot Understand";
-		addToHistory(hpTree, hpDetail, t, text, "Cannot Understand", log, null, 'error');
-		return;
-	}
-
-	t.compBindings = {};
-	t.varBindings = {};
-	t.editorActions = [];
-
-	var tQ = applyActionsToTemplate(t, a, cbyid, datalist, 0);
-
-	log += br+"Found "+tQ.length+" alternative templates";
-	for(var i=0; i<tQ.length; i++) {
-		var t2 = tQ[i];
-		if(t2.editorActions && t2.editorActions.length) {
-			log += br+tab+"- Template "+(i+1)+" matched instruction to these editor actions:";
-			for(var j=0; j<t2.editorActions.length; j++) {
-				log += br+tab+tab+(j+1)+". "+t2.editorActions[j];
-			}
-		}
-	}
-	if(!tQ.length) {
-		log += br+"ERROR: No matches found";
-		addToHistory(hpTree, hpDetail, t, text, "No alternatives", log, null, 'error');
-		return;
-	}
-	var msg = "OK";
-	if(tQ.length > 1) msg+= " ("+tQ.length+" alternatives)";
-
-	log += br+"Applying actions to Workflow Sketch...";
-	var trec = addToHistory(hpTree, hpDetail, t, text, msg, log, tQ, 'ok');
-
-	//var selTemplate = tQ[0];
-	//var selTemplate = tQ[tQ.length-1];
-	//showTemplate(selTemplate);
-	//ed.clearCanvas();
-	//ed.findErrors(trec);
-
-	Ext.get(hp.getId()).highlight('#fffebb', {block:true});
-}*/
-
-function showTemplate(t, runTOP) {
+TellMe.prototype.showTemplate = function(t, runTOP) {
 	var ed = t.editor;
 	ed.template = t;
   	ed.initLayerItems();
@@ -1163,8 +1144,9 @@ function showTemplate(t, runTOP) {
 	}
 }
 
-function runTopAlgorithm(template, hpTree, hpDetail, msgTarget, callbackfn, ed, op_url) {
-	var url = op_url+"&op=runTopAlgorithm&template_id="+template.id;
+TellMe.prototype.runTopAlgorithm = function(template, hpTree, hpDetail, msgTarget, callbackfn, ed, op_url) {
+	var This = this;
+	var url = op_url+"/runTopAlgorithm?template_id="+template.id;
 	Ext.Ajax.request({ 
 		url: url,
 		params: {json: Ext.encode(template.store)},
@@ -1206,9 +1188,9 @@ function runTopAlgorithm(template, hpTree, hpDetail, msgTarget, callbackfn, ed, 
 				log += br+"Displaying Workflow Sketch...";
 
 				if(curNode) {
-					addToHistory(hpTree, hpDetail, template, "[Run TOP]", "OK", log, [top_template], 'ok', 'TOPIcon');
+					This.addToHistory(hpTree, hpDetail, template, "[Run TOP]", "OK", log, [top_template], 'ok', 'TOPIcon');
 				}
-				else showTemplate(top_template, true);
+				else This.showTemplate(top_template, true);
 
 			}
 			//msgTarget.mask('Using Graphviz for Layout...', 'x-mask-loading');
