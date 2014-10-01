@@ -1174,6 +1174,8 @@ ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, edita
         border: false
     });
     
+    console.log(new RulesParser(rulestr));
+    
     var keyfn = function(obj, e) {
        var key = e.getKey();
        if (key >= 33 && key <= 40)

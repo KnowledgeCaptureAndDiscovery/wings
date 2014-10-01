@@ -23,13 +23,14 @@ public class JSLoader {
 			"js/gui/template/layout.js", "js/gui/template/reasoner.js",
 			"js/gui/TemplateBrowser.js", "js/gui/TemplateGraph.js", };
 	static String[] rule_scripts = { "js/gui/jenarules/RulesParser.js",
-			"js/gui/jenarules/RuleFunctionType.js", "gui/jenarules/RuleFunction.js",
-			"js/gui/jenarules/Rule.js", "js/gui/jenarules/Constants.js", "gui/jenarules/Triple.js",
-			"js/gui/jesnarules/LocalClasses.js" };
+			"js/gui/jenarules/RuleFunctionType.js", "js/gui/jenarules/RuleFunction.js",
+			"js/gui/jenarules/Rule.js", "js/gui/jenarules/Constants.js", 
+			"js/gui/jenarules/Triple.js", "js/gui/jenarules/LocalClasses.js" };
 	static String[] tellme_scripts = { "js/gui/tellme/tellme.js",
 			"js/gui/tellme/tellme_history.js", "js/beamer/ControlList.js", "js/beamer/MatchedTask.js",
 			"js/beamer/Paraphrase.js", "js/beamer/Task.js", "js/beamer/TodoItemMatches.js",
-			"js/beamer/TodoListParser.js", "js/beamer/Token.js", "js/beamer/Trie.js" };
+			"js/beamer/TodoListParser.js", "js/beamer/Token.js", "js/beamer/Trie.js", 
+			"js/util/lz-string-min.js"};
 
 	static String[] plupload_scripts = { "js/util/pluploadPanel.js", "lib/plupload/plupload.full.min.js" };
 
@@ -70,7 +71,7 @@ public class JSLoader {
 	public static void loadComponentViewer(PrintWriter out, String path) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, component_scripts);
-		// showScriptTags(out, path, rule_scripts);
+		showScriptTags(out, path, rule_scripts);
 		showScriptTags(out, path, plupload_scripts);
 	}
 

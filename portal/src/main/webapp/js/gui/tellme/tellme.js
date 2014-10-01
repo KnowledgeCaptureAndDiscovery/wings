@@ -322,8 +322,7 @@ TellMe.prototype.getTellMeHistory = function(panel) {
 	var sels = hpTree.getSelectionModel().getSelection();
 	froot.selected = (sels && sels.length) ? sels[0].data.id : null;
 
-	var str = Ext.JSON.encode(froot);
-	return str;
+	return LZString.compressToBase64(Ext.JSON.encode(froot));
 }
 
 TellMe.prototype.filterTree = function(tn) {
@@ -368,7 +367,11 @@ TellMe.prototype.setTellMeRoot = function(panel, root) {
 }
 
 TellMe.prototype.loadTellMeHistory = function(tree) {
-	if(!tree) tree = {};
+	if(!tree) 
+		tree = {};
+	else
+		tree = Ext.decode(LZString.decompressFromBase64(tree));
+		
 	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
 	var root = hpTree.getStore().getRootNode();

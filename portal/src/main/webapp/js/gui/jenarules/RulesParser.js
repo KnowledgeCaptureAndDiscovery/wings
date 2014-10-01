@@ -23,6 +23,7 @@ RulesParser.prototype.parseAllRules = function(text) {
 	for(var i=0; i<lines.length; i++) {
 		var line = lines[i];
 		line = line.trim();
+		line = line.replace("http://www.w3.org/2001/XMLSchema#", "xsd:");
 		line = line.replace(/#.*/, '');
 		if(!line) continue;
 		currule += line;
@@ -243,7 +244,8 @@ RulesParser.prototype.parseRule = function(ruletext) {
 			t = this.parseRuleItem(item);
 			if(t instanceof Triple) {
 				if((t.s()==cvar)&&((t.p()=="pc:isInvalid")||(t.p()=="ac:isInvalid"))) {
-					if(t.o().toLowerCase()=='"true"^^xsd:boolean')
+					if((t.o().toLowerCase()=='"true"^^xsd:boolean')
+						|| (t.o().toLowerCase()=="'true'^^xsd:boolean"))
 						rule = this.addInvalidationRule(rule);
 				}
 				else if(this.inArray(t.s(), cinvars) || this.inArray(t.s(), coutvars)) {

@@ -1141,8 +1141,8 @@ TemplateBrowser.prototype.renderTemplateEditor = function(templatePanel,
 		templatePanel.mainTab.tellMeHistory = history;
 
 		if (tellme && This.tellMe) {
-			var tree = Ext.decode(tellme);
-			This.tellMe.loadTellMeHistory(tree);
+			//var tree = Ext.decode(tellme);
+			This.tellMe.loadTellMeHistory(tellme);
 		}
 	}
 };
@@ -1508,7 +1508,7 @@ TemplateBrowser.prototype.initialize = function(tid) {
 		margins : '5 0 5 5',
 		cmargins : '5 0 5 0',
 		preventHeader : true,
-		width : (This.editor_mode == 'tellme' ? 400 : This.editor_mode ? 280
+		width : (This.editor_mode == 'tellme' ? 340 : This.editor_mode ? 280
 				: 220),
 		split : true,
 		activeTab : 0
@@ -1517,7 +1517,7 @@ TemplateBrowser.prototype.initialize = function(tid) {
 	// Add the template tabPanel in the center
 	this.tabPanel = new Ext.TabPanel({
 		plain : true,
-		margins : this.opts.hide_selector ? 5 : '5 5 5 0',
+		margins : (this.opts.hide_selector && !this.editor_mode) ? 5 : '5 5 5 0',
 		region : 'center',
 		// border: false,
 		enableTabScroll : true,
@@ -1534,6 +1534,16 @@ TemplateBrowser.prototype.initialize = function(tid) {
 		});
 		this.tabPanel.setActiveTab(0);
 	}
+
+	// Add the template tree list to the leftPanel
+	if (this.store.tree) {
+		// Sets this.treePanel
+		this.createTemplatesListTree(this.store.tree);
+		this.treePanel.setTitle('Templates');
+		if (!This.opts.hide_selector)
+			this.leftPanel.add(this.treePanel);
+	}
+	
 	// Add the TellMe Panel
 	if (this.editor_mode == 'tellme') {
 		this.tellMe = new TellMe(this.guid, this.tid, this.tname,
@@ -1541,15 +1551,6 @@ TemplateBrowser.prototype.initialize = function(tid) {
 				this.plan_url, this.op_url, this.nsmap);
 		this.tellMe.initialize();
 		this.leftPanel.add(this.tellMe.mainPanel);
-	}
-
-	// Add the template tree list to the leftPanel
-	if (this.store.tree) {
-		// Sets this.treePanel
-		this.createTemplatesListTree(this.store.tree);
-		this.treePanel.setTitle('Templates');
-		this.leftPanel.add(this.treePanel);
-		this.leftPanel.setActiveTab(0);
 	}
 
 	if (this.editor_mode) {
@@ -1569,11 +1570,12 @@ TemplateBrowser.prototype.initialize = function(tid) {
 		};
 		this.leftPanel.add(cPanel);
 	}
+	this.leftPanel.setActiveTab(0);
 
 	this.mainPanel.add(this.leftPanel);
 	this.mainPanel.add(this.tabPanel);
 
-	if (This.opts.hide_selector)
+	if (This.opts.hide_selector && !This.editor_mode)
 		This.leftPanel.hide();
 
 	// Preload a template if provided
