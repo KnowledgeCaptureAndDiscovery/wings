@@ -336,6 +336,7 @@ TellMe.prototype.filterTree = function(tn) {
 		node.student = data.student;
 		node.teacher = data.teacher;
 		node.text = data.text;
+		node.log = data.log;
 	}
 	if(node.iconCls == 'icon-wflow-alt fa fa-blue' && data.template) {
 		var t = data.template.createCopy();
@@ -374,6 +375,7 @@ TellMe.prototype.loadTellMeHistory = function(tree) {
 		
 	var hp = this.historyPanel.getLayout().activeItem;
 	var hpTree = hp.getComponent('tellmeHistoryTreePanel');
+	var hpDetail = hp.getComponent('tellmeHistoryDetailPanel');
 	var root = hpTree.getStore().getRootNode();
 	while(root.firstChild) {
 		root.removeChild(root.firstChild);
@@ -384,7 +386,12 @@ TellMe.prototype.loadTellMeHistory = function(tree) {
 
 	if(tree.selected) {
 		var rec = hpTree.getStore().getNodeById(tree.selected);
-		if(rec) hpTree.getSelectionModel().select(rec, false, true);
+		if(rec) {
+			hpTree.selectPath(getTreePath(rec, 'text'), 'text');
+			var data = rec.data.template ? rec.data : rec.raw;
+			hpDetail.updateDetail(data);
+			this.showTemplate(data.template, true);
+		}
 	}
 }
 
@@ -404,8 +411,8 @@ TellMe.prototype.loadTellMeTree = function(tn, p, pn, ed) {
 		}
 		else {
 			nodeObj = {id:tn.id, iconCls:tn.iconCls, 
-						cls: tn.cls, text:tn.text, teacher:tn.teacher, student:tn.student, log:'', 
-						status:tn.status, expanded:true};
+						cls: tn.cls, text:tn.text, teacher:tn.teacher, student:tn.student, 
+						log:tn.log, status:tn.status, expanded:true};
 		}
 		if(nodeObj) {
 			pn.data.leaf = false;
@@ -580,20 +587,23 @@ TellMe.prototype.addNodeIOToTemplate = function(n, data, isInput, template, cbyi
 
 	var newvariable = false;
 	if(data.role == 'Variable') {
-		template.editorActions.push("Using existing variable "+v.id);
+		template.editorActions.push("Using existing variable "+
+				getLocalName(v.id));
 	} 
 	else if (isInput && data.type.match(/^Specified/)) {
 		var vlist = this.searchForMatchingInputVariables(n, opvars, ipvars, template, dtype);
 		if(vlist.length) {
 			v = vlist[0];
 			// FIXME: Just picking the first match for now ! Should create template copies here
-			template.editorActions.push("Using previously created variable "+v.id);
+			template.editorActions.push("Using previously created variable "+
+					getLocalName(v.id));
 		}
 		else
 			return null;
 	}
 	else if (data.type == "Selected") {
-		template.editorActions.push("Using user selected variable "+v.id);
+		template.editorActions.push("Using user selected variable "+
+				getLocalName(v.id));
 	}
 
 	if(!v && data.name) {

@@ -117,7 +117,7 @@ TellMe.HistoryPanel = Ext.extend(Ext.Panel, {
 					itemId: 'tellmeHistoryDetailPanel',
 					region: 'south',
 					border: false,
-					height: 250,
+					height: '40%',
 					autoScroll:true,
 					split: true
 				})
