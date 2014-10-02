@@ -29,8 +29,8 @@ Layout.prototype.layoutDot = function(msgTarget, callbackfn, scope, op_url, temp
 	var tab = "\t";
 	var dotstr = "digraph test {";
 	dotstr += nl + tab + "node [shape=record];";
-	dotstr += nl + tab + "nodesep = 0.1;";
-	dotstr += nl + tab + "ranksep = 0.5;";
+	dotstr += nl + tab + "nodesep = 0.06;";
+	dotstr += nl + tab + "ranksep = 0.6;";
 	var idmap = {};
 	for ( var i in this.template.nodes) {
 		var n = this.template.nodes[i];
@@ -38,7 +38,7 @@ Layout.prototype.layoutDot = function(msgTarget, callbackfn, scope, op_url, temp
 		var ntext = n.text.split(",").join("\\n");
 		var ips = n.getInputPorts();
 		var ops = n.getOutputPorts();
-		var fsize = parseInt(n.font.replace(/^bold /,'')) + 4;
+		var fsize = parseInt(n.font.replace(/^bold /,'')) + 2;
 		
 		ips.sort(function(a, b){return a.id.localeCompare(b.id);});
 		ops.sort(function(a, b){return a.id.localeCompare(b.id);});
@@ -54,7 +54,7 @@ Layout.prototype.layoutDot = function(msgTarget, callbackfn, scope, op_url, temp
 	}
 	for ( var i in this.template.variables) {
 		var v = this.template.variables[i];
-		var fsize = parseInt(v.font.replace(/^bold /,'')) + 4;
+		var fsize = parseInt(v.font.replace(/^bold /,'')) + 2;
 		var vid = this.cleanID(v.id);
 		var vtext = v.text.split(",").join("\\n");
 		dotstr += nl + tab + vid + "[label=\"{{|<ip>|}|{" + vtext + "}|{|<op>|}}\", fontsize=\"" + fsize + "\"];";
@@ -102,7 +102,7 @@ Layout.prototype.layoutDot = function(msgTarget, callbackfn, scope, op_url, temp
 				var pos = tmp[1].split(/,/);
 				var obj = idmap[id];
 				if (obj && pos[0] && pos[1]) {
-					obj.x = 20 + parseInt(pos[0]) * 1.2 - obj.width / 2;
+					obj.x = 20 + parseInt(pos[0]) * 1.1 - obj.width / 2;
 					obj.y = 20 + parseInt(pos[1]) / 1.5 - obj.height / 2;
 					// console.log(obj.id+"="+obj.x+","+obj.y);
 				}

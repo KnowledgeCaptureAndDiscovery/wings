@@ -373,45 +373,46 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
   @Override
   public RuntimePlan rePlan(RuntimePlan planexe) {
-    WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
-        DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
-        ResourceFactory.getAPI(props), planexe.getID());
-    TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
-    
-    Template seedtpl = tc.getTemplate(planexe.getSeededTemplateID());
-    Template itpl = wg.getInferredTemplate(seedtpl);
-    ArrayList<Template> candidates = wg.specializeTemplates(itpl);
-    if(candidates.size() == 0) 
-      return this.setPlanError(planexe, 
-          "No Specialized templates after planning");
-    
-    ArrayList<Template> bts = new ArrayList<Template>();
-    for(Template t : candidates)
-      bts.addAll(wg.selectInputDataObjects(t));
-    if(bts.size() == 0) 
-      return this.setPlanError(planexe, 
-          "No Bound templates after planning");
-    
-    wg.setDataMetricsForInputDataObjects(bts);
-
-    ArrayList<Template> cts = new ArrayList<Template>();
-    for(Template bt : bts)
-      cts.addAll(wg.configureTemplates(bt));
-    if(cts.size() == 0)
-      return this.setPlanError(planexe, 
-          "No Configured templates after planning");
-
-    ArrayList<Template> ets = new ArrayList<Template>();
-    for(Template ct : cts)
-      ets.add(wg.getExpandedTemplate(ct));
-    if(ets.size() == 0)
-      return this.setPlanError(planexe, 
-          "No Expanded templates after planning");
-
-    // TODO: Should show all options to the user. Picking the top one for now
-    Template xtpl = ets.get(0);
-    String xpid = planexe.getExpandedTemplateID();
     synchronized (this.writerLock) {
+      WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
+          DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
+          ResourceFactory.getAPI(props), planexe.getID());
+      TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+      
+      Template seedtpl = tc.getTemplate(planexe.getSeededTemplateID());
+      Template itpl = wg.getInferredTemplate(seedtpl);
+      ArrayList<Template> candidates = wg.specializeTemplates(itpl);
+      if(candidates.size() == 0) 
+        return this.setPlanError(planexe, 
+            "No Specialized templates after planning");
+      
+      ArrayList<Template> bts = new ArrayList<Template>();
+      for(Template t : candidates)
+        bts.addAll(wg.selectInputDataObjects(t));
+      if(bts.size() == 0) 
+        return this.setPlanError(planexe, 
+            "No Bound templates after planning");
+      
+      wg.setDataMetricsForInputDataObjects(bts);
+  
+      ArrayList<Template> cts = new ArrayList<Template>();
+      for(Template bt : bts)
+        cts.addAll(wg.configureTemplates(bt));
+      if(cts.size() == 0)
+        return this.setPlanError(planexe, 
+            "No Configured templates after planning");
+  
+      ArrayList<Template> ets = new ArrayList<Template>();
+      for(Template ct : cts)
+        ets.add(wg.getExpandedTemplate(ct));
+      if(ets.size() == 0)
+        return this.setPlanError(planexe, 
+            "No Expanded templates after planning");
+  
+      // TODO: Should show all options to the user. Picking the top one for now
+      Template xtpl = ets.get(0);
+      String xpid = planexe.getExpandedTemplateID();
+  
       // Delete the existing expanded template
       this.deleteGraph(xpid);
       // Save the new expanded template
@@ -420,12 +421,10 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
             "Could not save new Expanded template");
       }
       xtpl = tc.getTemplate(xpid);
-    }
-    
-    String ppid = planexe.getPlan().getID();
-    ExecutionPlan newplan = wg.getExecutionPlan(xtpl);
-    if(newplan != null) {
-      synchronized (this.writerLock) {
+      
+      String ppid = planexe.getPlan().getID();
+      ExecutionPlan newplan = wg.getExecutionPlan(xtpl);
+      if(newplan != null) {
         // Delete the existing plan
         this.deleteGraph(ppid);
         // Save the new plan
@@ -434,57 +433,56 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
               "Could not save new Plan");
         }
         newplan.setID(ppid);
-      }
-      
-      // Get the new runtime plan
-      RuntimePlan newexe = new RuntimePlan(newplan);
-      
-      // Update the current plan executable with the new plan
-      planexe.setPlan(newplan);
-      
-      // Hash steps from current queue
-      HashMap<String, RuntimeStep>
-        stepMap = new HashMap<String, RuntimeStep>();
-      for(RuntimeStep step : planexe.getQueue().getAllSteps())
-        stepMap.put(step.getID(), step);
-      
-      // Add new steps to the current queue
-      boolean newsteps = false;
-      for(RuntimeStep newstep : newexe.getQueue().getAllSteps()) {
-        // Add steps not already in current queue
-        if(!stepMap.containsKey(newstep.getID())) {
-          newsteps = true;
-          
-          // Set runtime plan
-          newstep.setRuntimePlan(planexe);
-          
-          // Set parents
-          @SuppressWarnings("unchecked")
-          ArrayList<RuntimeStep> parents = 
-              (ArrayList<RuntimeStep>) newstep.getParents().clone();
-          newstep.getParents().clear();
-          for(RuntimeStep pstep : parents) {
-            if(stepMap.containsKey(pstep.getID()))
-              pstep = stepMap.get(pstep.getID());
-            newstep.addParent(pstep);
+  
+        // Get the new runtime plan
+        RuntimePlan newexe = new RuntimePlan(newplan);
+        
+        // Update the current plan executable with the new plan
+        planexe.setPlan(newplan);
+        
+        // Hash steps from current queue
+        HashMap<String, RuntimeStep>
+          stepMap = new HashMap<String, RuntimeStep>();
+        for(RuntimeStep step : planexe.getQueue().getAllSteps())
+          stepMap.put(step.getID(), step);
+        
+        // Add new steps to the current queue
+        boolean newsteps = false;
+        for(RuntimeStep newstep : newexe.getQueue().getAllSteps()) {
+          // Add steps not already in current queue
+          if(!stepMap.containsKey(newstep.getID())) {
+            newsteps = true;
+            
+            // Set runtime plan
+            newstep.setRuntimePlan(planexe);
+            
+            // Set parents
+            @SuppressWarnings("unchecked")
+            ArrayList<RuntimeStep> parents = 
+                (ArrayList<RuntimeStep>) newstep.getParents().clone();
+            newstep.getParents().clear();
+            for(RuntimeStep pstep : parents) {
+              if(stepMap.containsKey(pstep.getID()))
+                pstep = stepMap.get(pstep.getID());
+              newstep.addParent(pstep);
+            }
+            
+            // Add new step to queue
+            planexe.getQueue().addStep(newstep);
           }
-          
-          // Add new step to queue
-          planexe.getQueue().addStep(newstep);
+        }
+        
+        if(newsteps)
+          return planexe;
+        else {
+          return this.setPlanError(planexe, 
+              "No new steps in the new execution plan");
         }
       }
-      
-      if(newsteps)
-        return planexe;
       else {
         return this.setPlanError(planexe, 
-            "No new steps in the new execution plan");
+            "Could not get a new Execution Plan");
       }
     }
-    else {
-      return this.setPlanError(planexe, 
-          "Could not get a new Execution Plan");
-    }
   }
-
 }
