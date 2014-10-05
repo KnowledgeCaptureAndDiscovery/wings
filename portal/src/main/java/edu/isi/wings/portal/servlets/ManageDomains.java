@@ -65,9 +65,7 @@ public class ManageDomains extends HttpServlet {
 		String domain = request.getParameter("domain");
 		
 		if (op != null && op.equals("downloadDomain")) {
-			synchronized (WriteLock.Lock) {
-				dc.streamDomain(domain, response, this.getServletContext());
-			}
+		  dc.streamDomain(domain, response, this.getServletContext());
 			return;
 		}
 		
