@@ -71,7 +71,7 @@ public class JSLoader {
 	public static void loadComponentViewer(PrintWriter out, String path) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, component_scripts);
-		showScriptTags(out, path, rule_scripts);
+		//showScriptTags(out, path, rule_scripts);
 		showScriptTags(out, path, plupload_scripts);
 	}
 

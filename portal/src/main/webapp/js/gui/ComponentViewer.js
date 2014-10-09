@@ -1174,7 +1174,7 @@ ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, edita
         border: false
     });
     
-    console.log(new RulesParser(rulestr));
+    //console.log(new RulesParser(rulestr));
     
     var keyfn = function(obj, e) {
        var key = e.getKey();
