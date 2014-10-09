@@ -25,7 +25,6 @@ import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.classes.html.CSSLoader;
 import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
@@ -181,14 +180,12 @@ public class RunController {
 
 		String seedid = UuidGen.generateURIUuid((URIEntity)seedtpl);
 		if (plan != null) {
-			synchronized (WriteLock.Lock) {
-				// Save the expanded template, seeded template and plan
-				if (!xtpl.save())
-					return "";
-        if (!seedtpl.saveAs(seedid))
-          return "";
-				plan.save();
-			}
+		  // Save the expanded template, seeded template and plan
+		  if (!xtpl.save())
+		    return "";
+		  if (!seedtpl.saveAs(seedid))
+		    return "";
+		  plan.save();
 			RuntimePlan rplan = new RuntimePlan(plan);
 			rplan.setExpandedTemplateID(xtpl.getID());
 			rplan.setOriginalTemplateID(origtplid);
@@ -201,16 +198,12 @@ public class RunController {
 
 	// Run the Runtime Plan
 	public void runExecutionPlan(RuntimePlan rplan, ServletContext context) {
-		synchronized (WriteLock.Lock) {
-			PlanExecutionEngine engine = config.getDomainExecutionEngine();
-			engine.getExecutionLogger().setWriterLock(WriteLock.Lock);
-			engine.getExecutionMonitor().setWriterLock(WriteLock.Lock);
-			// "execute" below is an asynchronous call
-			engine.execute(rplan);
-			
-			// Save the engine for an abort if needed
-			context.setAttribute("plan_" + rplan.getID(), rplan);
-			context.setAttribute("engine_" + rplan.getID(), engine);
-		}
+	  PlanExecutionEngine engine = config.getDomainExecutionEngine();
+	  // "execute" below is an asynchronous call
+	  engine.execute(rplan);
+
+	  // Save the engine for an abort if needed
+	  context.setAttribute("plan_" + rplan.getID(), rplan);
+	  context.setAttribute("engine_" + rplan.getID(), engine);
 	}
 }

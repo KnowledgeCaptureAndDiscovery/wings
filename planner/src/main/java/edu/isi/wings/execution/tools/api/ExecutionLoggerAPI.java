@@ -10,10 +10,5 @@ public interface ExecutionLoggerAPI {
 	void updateRuntimeInfo(RuntimePlan plan);
 	
 	void updateRuntimeInfo(RuntimeStep step);
-	
-	//Writer Lock
-	void setWriterLock(Object lock); 
-  
-	Object getWriterLock();
   
 }

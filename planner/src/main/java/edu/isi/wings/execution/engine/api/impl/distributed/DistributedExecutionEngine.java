@@ -69,12 +69,10 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
     // Get machine ids first
     ArrayList<String> machineIds = exe.getStep().getMachineIds();
     ArrayList<Machine> healthyMachines = new ArrayList<Machine>();
-    synchronized (this.logger.getWriterLock()) {
-      for(String machineId : machineIds) {
-        Machine machine = this.resource.getMachine(machineId);
-        if(machine.isHealthy()) 
-          healthyMachines.add(machine);
-      }
+    for(String machineId : machineIds) {
+      Machine machine = this.resource.getMachine(machineId);
+      if(machine.isHealthy()) 
+        healthyMachines.add(machine);
     }
     if(healthyMachines.size() == 0)
       return null;

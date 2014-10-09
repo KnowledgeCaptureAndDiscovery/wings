@@ -16,7 +16,5 @@ public interface ExecutionMonitorAPI {
 	
 	RuntimePlan rePlan(RuntimePlan planexe);
 	
-	void setWriterLock(Object lock); // Writer Lock
-	
 	void delete();
 }

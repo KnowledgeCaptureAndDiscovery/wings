@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.controllers.ComponentController;
 
 /**
@@ -71,64 +70,58 @@ public class ManageComponents extends HttpServlet {
 		}
 
 		int guid = 1;
-		ComponentController cv;
-		synchronized(WriteLock.Lock) {
-			cv = new ComponentController(guid, config, loadConcrete);
-		}
-		String cid = request.getParameter("cid");
-		
-		if(op != null && op.equals("fetch")) {
-			cv.streamComponent(cid, response, this.getServletContext());
-			return;
-		}
-		
-		PrintWriter out = response.getWriter();
-		if (op == null || op.equals("")) {
-			response.setContentType("text/html");
-			cv.show(out);
-			return;
-		} else if (op.equals("getComponentJSON")) {
-			out.print(cv.getComponentJSON(cid));
-		}
-		
-		synchronized(WriteLock.Lock) {
-			if (op.equals("saveComponentJSON")) {
-				String component_json = request.getParameter("component_json");
-				if (!config.isSandboxed())
-					if (cv.saveComponentJSON(cid, component_json))
-						out.print("OK");
-			} else if (op.equals("addComponent")) {
-				String pid = request.getParameter("parent_cid");
-				String ptype = request.getParameter("parent_type");
-				if (!config.isSandboxed())
-					if (cv.addComponent(cid, pid, ptype))
-						out.print("OK");
-			} else if (op.equals("addCategory")) {
-				String ptype = request.getParameter("parent_type");
-				if (!config.isSandboxed())
-					if (cv.addCategory(cid, ptype))
-						out.print("OK");
-			} else if (op.equals("delComponent")) {
-				if (!config.isSandboxed())
-					if (cv.delComponent(cid))
-						out.print("OK");
-			} else if (op.equals("delCategory")) {
-				if (!config.isSandboxed())
-					if (cv.delCategory(cid))
-						out.print("OK");
-			} else if (op.equals("moveComponentTo")) {
-				// String frompid = request.getParameter("from_parent_cid");
-				// String topid = request.getParameter("to_parent_cid");
-				// if (!config.isSandboxed())
-				// if (cv.moveComponentTo(cid, frompid, topid))
-				// out.print("OK");
-			} else if (op.equals("setComponentLocation")) {
-				String location = request.getParameter("location");
-				if(!config.isSandboxed())
-					if(cv.setComponentLocation(cid, location))
-						out.print("OK");
-			}
-		}
+		ComponentController cv = new ComponentController(guid, config, loadConcrete);
+    String cid = request.getParameter("cid");
+
+    if(op != null && op.equals("fetch")) {
+      cv.streamComponent(cid, response, this.getServletContext());
+      return;
+    }
+
+    PrintWriter out = response.getWriter();
+    if (op == null || op.equals("")) {
+      response.setContentType("text/html");
+      cv.show(out);
+    } else if (op.equals("getComponentJSON")) {
+      out.print(cv.getComponentJSON(cid));
+    }
+    // Write functions
+    else if (op.equals("saveComponentJSON")) {
+      String component_json = request.getParameter("component_json");
+      if (!config.isSandboxed())
+        if (cv.saveComponentJSON(cid, component_json))
+          out.print("OK");
+    } else if (op.equals("addComponent")) {
+      String pid = request.getParameter("parent_cid");
+      String ptype = request.getParameter("parent_type");
+      if (!config.isSandboxed())
+        if (cv.addComponent(cid, pid, ptype))
+          out.print("OK");
+    } else if (op.equals("addCategory")) {
+      String ptype = request.getParameter("parent_type");
+      if (!config.isSandboxed())
+        if (cv.addCategory(cid, ptype))
+          out.print("OK");
+    } else if (op.equals("delComponent")) {
+      if (!config.isSandboxed())
+        if (cv.delComponent(cid))
+          out.print("OK");
+    } else if (op.equals("delCategory")) {
+      if (!config.isSandboxed())
+        if (cv.delCategory(cid))
+          out.print("OK");
+    } else if (op.equals("moveComponentTo")) {
+      // String frompid = request.getParameter("from_parent_cid");
+      // String topid = request.getParameter("to_parent_cid");
+      // if (!config.isSandboxed())
+      // if (cv.moveComponentTo(cid, frompid, topid))
+      // out.print("OK");
+    } else if (op.equals("setComponentLocation")) {
+      String location = request.getParameter("location");
+      if(!config.isSandboxed())
+        if(cv.setComponentLocation(cid, location))
+          out.print("OK");
+    }
 	}
 
 	/**

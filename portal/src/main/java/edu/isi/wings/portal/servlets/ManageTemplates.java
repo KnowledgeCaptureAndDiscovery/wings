@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.controllers.TemplateController;
 
 /**
@@ -109,10 +108,7 @@ public class ManageTemplates extends HttpServlet {
 		}
 
 		int guid = 1;
-		TemplateController tv;
-		synchronized(WriteLock.Lock) {
-			tv = new TemplateController(guid, config);
-		}
+		TemplateController tv = new TemplateController(guid, config);;
 		
 		String template_id = request.getParameter("template_id");
 		if (op == null || op.equals("")) {
@@ -132,29 +128,22 @@ public class ManageTemplates extends HttpServlet {
 			String dotstr = request.getParameter("dotstr");
 			out.print(tv.getDotLayout(dotstr));
 		}
-		
-		synchronized(WriteLock.Lock) {
-        		if(op.equals("getViewerJSON")) {
-        			out.println(tv.getViewerJSON(template_id));
-        		}
-        		else if(op.equals("getEditorJSON")) {
-        			out.println(tv.getEditorJSON(template_id));
-        		}
+		else if(op.equals("getViewerJSON")) {
+		  out.println(tv.getViewerJSON(template_id));
 		}
-
-		
-		synchronized(WriteLock.Lock) {
-			if(op.equals("saveTemplateJSON")) {
-				String tpljson = request.getParameter("json");
-				String consjson = request.getParameter("constraints_json");
-				out.print(tv.saveTemplateJSON(template_id, tpljson, consjson));
-			}
-			else if(op.equals("deleteTemplate")) {
-				out.print(tv.deleteTemplate(template_id));
-			}
-			else if(op.equals("newTemplate")) {
-				out.print(tv.newTemplate(template_id));
-			}
+		else if(op.equals("getEditorJSON")) {
+		  out.println(tv.getEditorJSON(template_id));
+		}
+		else if(op.equals("saveTemplateJSON")) {
+		  String tpljson = request.getParameter("json");
+		  String consjson = request.getParameter("constraints_json");
+		  out.print(tv.saveTemplateJSON(template_id, tpljson, consjson));
+		}
+		else if(op.equals("deleteTemplate")) {
+		  out.print(tv.deleteTemplate(template_id));
+		}
+		else if(op.equals("newTemplate")) {
+		  out.print(tv.newTemplate(template_id));
 		}
 	}
 

@@ -149,50 +149,50 @@ public class StorageHandler {
 		}
 	}
 
-    private static void streamDirectory(File directory, HttpServletResponse response, 
-    		ServletContext context) {
-		try {
-			response.setContentType("application/zip");
-			response.setHeader("Content-Disposition",
-					"attachment; filename=\"" + directory.getName() + ".zip\"");
+	private static void streamDirectory(File directory, HttpServletResponse response, 
+	    ServletContext context) {
+	  try {
+	    response.setContentType("application/zip");
+	    response.setHeader("Content-Disposition",
+	        "attachment; filename=\"" + directory.getName() + ".zip\"");
 
-			// Start the ZipStream reader. Whatever is read is streamed to response
-			PipedInputStream pis = new PipedInputStream(2048);
-			ZipStreamer pipestreamer = new ZipStreamer(pis, response);
-			pipestreamer.start();
+	    // Start the ZipStream reader. Whatever is read is streamed to response
+	    PipedInputStream pis = new PipedInputStream(2048);
+	    ZipStreamer pipestreamer = new ZipStreamer(pis, response);
+	    pipestreamer.start();
 
-			// Start Zipping folder and piping to the ZipStream reader
-			PipedOutputStream pos = new PipedOutputStream(pis);
-			ZipOutputStream zos = new ZipOutputStream(pos);
-			zipAndStream(directory, zos, directory.getName() + "/");
-			zos.flush();
-			zos.close();
+	    // Start Zipping folder and piping to the ZipStream reader
+	    PipedOutputStream pos = new PipedOutputStream(pis);
+	    ZipOutputStream zos = new ZipOutputStream(pos);
+	    zipAndStream(directory, zos, directory.getName() + "/");
+	    zos.flush();
+	    zos.close();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	  } catch (Exception e) {
+	    e.printStackTrace();
+	  }
 	}
     
-    private static void zipAndStream(File dir, ZipOutputStream zos, String prefix) 
-    		throws Exception {
-		byte bytes[] = new byte[2048];
-		for (File file : dir.listFiles()) {
-			if(file.isDirectory())
-				zipAndStream(file, zos, prefix + file.getName() + "/" );
-			else {
-				FileInputStream fis = new FileInputStream(file.getAbsolutePath());
-				BufferedInputStream bis = new BufferedInputStream(fis);
-				zos.putNextEntry(new ZipEntry(prefix + file.getName()));
-				int bytesRead;
-				while ((bytesRead = bis.read(bytes)) != -1) {
-					zos.write(bytes, 0, bytesRead);
-				}
-				zos.closeEntry();
-				bis.close();
-				fis.close();
-			}
-		}
-    }
+	private static void zipAndStream(File dir, ZipOutputStream zos, String prefix) 
+	    throws Exception {
+	  byte bytes[] = new byte[2048];
+	  for (File file : dir.listFiles()) {
+	    if(file.isDirectory())
+	      zipAndStream(file, zos, prefix + file.getName() + "/" );
+	    else {
+	      FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+	      BufferedInputStream bis = new BufferedInputStream(fis);
+	      zos.putNextEntry(new ZipEntry(prefix + file.getName()));
+	      int bytesRead;
+	      while ((bytesRead = bis.read(bytes)) != -1) {
+	        zos.write(bytes, 0, bytesRead);
+	      }
+	      zos.closeEntry();
+	      bis.close();
+	      fis.close();
+	    }
+	  }
+	}
 }
 
 class ZipStreamer extends Thread {

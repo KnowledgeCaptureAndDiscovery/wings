@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.controllers.DomainController;
 
 /**
@@ -62,59 +61,55 @@ public class ManageDomains extends HttpServlet {
 
 		int guid = 1;
 		DomainController dc = new DomainController(guid, config);
-		String domain = request.getParameter("domain");
-		
-		if (op != null && op.equals("downloadDomain")) {
-		  dc.streamDomain(domain, response, this.getServletContext());
-			return;
-		}
-		
-		PrintWriter out = response.getWriter();
-		if (op == null || op.equals("")) {
-			response.setContentType("text/html");
-			dc.show(out);
-			return;
-		}
-		if(op.equals("getDomainDetails")) {
-			out.println(dc.getDomainJSON(domain));
-		}
-		
-		// Domain write functions only for owner viewers
-		if(!config.getViewerId().equals(config.getUserId()))
-		  return;
-		
-		synchronized (WriteLock.Lock) {
-	    if(op.equals("selectDomain")) {
-	      if(dc.selectDomain(domain))
-	        out.print("OK");
-	    }
-	    else if (op.equals("createDomain")) {
-				out.println(dc.createDomain(domain));
-			} 
-			else if (op.equals("deleteDomain")) {
-				if (dc.deleteDomain(domain))
-					out.print("OK");
-			} 
-			else if (op.equals("renameDomain")) {
-				String newname = request.getParameter("newname");
-				if (dc.renameDomain(domain, newname))
-					out.print("OK");
-			} 
-			else if (op.equals("importDomain")) {
-				String location = request.getParameter("location");
-				out.println(dc.importDomain(domain, location));
-			}
-			else if (op.equals("setDomainExecutionEngine")) {
-        String engine = request.getParameter("engine");
-        if(dc.setDomainExecutionEngine(domain, engine))
-          out.print("OK");
-      }
-			else if (op.equals("setDomainPermissions")) {
-			  String permissions_json = request.getParameter("permissions_json");
-			  if(dc.setDomainPermissions(domain, permissions_json))
-			    out.print("OK");
-      }
-		}
+    String domain = request.getParameter("domain");
+
+    if (op != null && op.equals("downloadDomain")) {
+      dc.streamDomain(domain, response, this.getServletContext());
+      return;
+    }
+    
+    PrintWriter out = response.getWriter();
+    if (op == null || op.equals("")) {
+      response.setContentType("text/html");
+      dc.show(out);
+    }
+    else if(op.equals("getDomainDetails")) {
+      out.println(dc.getDomainJSON(domain));
+    }
+    // Domain write functions only for owner viewers
+    else if(!config.getViewerId().equals(config.getUserId())) {
+      return;
+    }
+    else if(op.equals("selectDomain")) {
+      if(dc.selectDomain(domain))
+        out.print("OK");
+    }
+    else if (op.equals("createDomain")) {
+      out.println(dc.createDomain(domain));
+    } 
+    else if (op.equals("deleteDomain")) {
+      if (dc.deleteDomain(domain))
+        out.print("OK");
+    } 
+    else if (op.equals("renameDomain")) {
+      String newname = request.getParameter("newname");
+      if (dc.renameDomain(domain, newname))
+        out.print("OK");
+    } 
+    else if (op.equals("importDomain")) {
+      String location = request.getParameter("location");
+      out.println(dc.importDomain(domain, location));
+    }
+    else if (op.equals("setDomainExecutionEngine")) {
+      String engine = request.getParameter("engine");
+      if(dc.setDomainExecutionEngine(domain, engine))
+        out.print("OK");
+    }
+    else if (op.equals("setDomainPermissions")) {
+      String permissions_json = request.getParameter("permissions_json");
+      if(dc.setDomainPermissions(domain, permissions_json))
+        out.print("OK");
+    }
 	}
 
 	/**

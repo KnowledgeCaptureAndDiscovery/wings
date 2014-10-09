@@ -8,9 +8,7 @@ import java.util.ArrayList;
 public class KBTripleJena implements KBTriple {
 
 	public KBObject subject;
-
 	public KBObject predicate;
-
 	public KBObject object;
 
 	public KBTripleJena(KBObject subject, KBObject predicate, KBObject object) {

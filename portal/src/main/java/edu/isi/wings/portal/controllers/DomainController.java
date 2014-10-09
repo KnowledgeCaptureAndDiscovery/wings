@@ -28,7 +28,6 @@ import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.classes.domains.Permission;
@@ -293,10 +292,7 @@ public class DomainController {
 			return false;
 		
 		Domain dom = new Domain(dominfo);
-		File f = null;
-		synchronized (WriteLock.Lock) {
-		  f = Domain.exportDomain(dom, this.config);  
-    }
+		File f = Domain.exportDomain(dom, this.config);  
 		if(f == null)
 		  return false;
 		StorageHandler.streamFile(f.getAbsolutePath() + File.separator + dom.getDomainName(), 

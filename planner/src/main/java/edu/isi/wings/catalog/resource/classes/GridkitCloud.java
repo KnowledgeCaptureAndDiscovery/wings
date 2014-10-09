@@ -55,7 +55,7 @@ public class GridkitCloud {
     JSch ssh = new JSch();
     if (m.getUserKey() != null)
       ssh.addIdentity(m.getUserKey());
-    Session ssh_session = ssh.getSession(m.getUserId(), m.getHostName());
+    Session ssh_session = ssh.getSession(m.getUserId(), m.getHostString());
     java.util.Properties config = new java.util.Properties();
     config.put("StrictHostKeyChecking", "no");
     ssh_session.setConfig(config);

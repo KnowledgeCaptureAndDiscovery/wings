@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.controllers.ResourceController;
 
 /**
@@ -51,19 +50,14 @@ public class DescribeResources extends HttpServlet {
     
     int guid = 1;
 
-    ResourceController rc = null;
-    synchronized (WriteLock.Lock) {
-      rc = new ResourceController(guid, config);
-    }
-
     String resid = request.getParameter("resid");
     PrintWriter out = response.getWriter();
-
+    ResourceController rc = new ResourceController(guid, config);;
+ 
     // Reader functions
     if (op == null || op.equals("")) {
       response.setContentType("text/html");
       rc.show(out);
-      return;
     } 
     else if (op.equals("getMachineJSON")) {
       out.println(rc.getMachineJSON(resid));
@@ -75,61 +69,54 @@ public class DescribeResources extends HttpServlet {
       out.println(rc.getSoftwareVersionJSON(resid));
     }
     else if (op.equals("getAllSoftwareVersions")) {
-      synchronized(WriteLock.Lock) {
-        out.println(rc.getAllSoftwareVersions());
-      }
+      out.println(rc.getAllSoftwareVersions());
     }
     else if (op.equals("getAllSoftwareEnvironment")) {
-      synchronized(WriteLock.Lock) {
-        out.println(rc.getAllSoftwareEnvironment());
-      }
+      out.println(rc.getAllSoftwareEnvironment());
     }
     else if (op.equals("checkMachine")) {
       out.println(rc.checkMachine(resid));
     }
-      
     // Writer functions
-    synchronized (WriteLock.Lock) {
-      if (op.equals("addMachine")) {
-        if (rc.addMachine(resid))
-          out.print("OK");
-      }
-      else if (op.equals("addSoftware")) {
-        if (rc.addSoftware(resid))
-          out.print("OK");
-      }
-      else if (op.equals("addSoftwareVersion")) {
-        String softwareid = request.getParameter("softwareid");
-        if (rc.addSoftwareVersion(resid, softwareid))
-          out.print("OK");
-      }
-      else if (op.equals("saveMachineJSON")) {
-        String resvals_json = request.getParameter("json");
-        if (rc.saveMachineJSON(resid, resvals_json))
-          out.print("OK");
-      }
-      else if (op.equals("saveSoftwareJSON")) {
-        String resvals_json = request.getParameter("json");
-        if (rc.saveSoftwareJSON(resid, resvals_json))
-          out.print("OK");
-      }
-      else if (op.equals("saveSoftwareVersionJSON")) {
-        String resvals_json = request.getParameter("json");
-        if (rc.saveSoftwareVersionJSON(resid, resvals_json))
-          out.print("OK");
-      }
-      else if (op.equals("removeMachine")) {
-        if (rc.removeMachine(resid))
-          out.print("OK");
-      }
-      else if (op.equals("removeSoftwareVersion")) {
-        if (rc.removeSoftwareVersion(resid))
-          out.print("OK");
-      }
-      else if (op.equals("removeSoftware")) {
-        if (rc.removeSoftware(resid))
-          out.print("OK");
-      }
+    else if (op.equals("addMachine")) {
+      if (rc.addMachine(resid))
+        out.print("OK");
+    }
+    else if (op.equals("addSoftware")) {
+      if (rc.addSoftware(resid))
+        out.print("OK");
+    }
+    else if (op.equals("addSoftwareVersion")) {
+      String softwareid = request.getParameter("softwareid");
+      if (rc.addSoftwareVersion(resid, softwareid))
+        out.print("OK");
+    }
+    else if (op.equals("saveMachineJSON")) {
+      String resvals_json = request.getParameter("json");
+      if (rc.saveMachineJSON(resid, resvals_json))
+        out.print("OK");
+    }
+    else if (op.equals("saveSoftwareJSON")) {
+      String resvals_json = request.getParameter("json");
+      if (rc.saveSoftwareJSON(resid, resvals_json))
+        out.print("OK");
+    }
+    else if (op.equals("saveSoftwareVersionJSON")) {
+      String resvals_json = request.getParameter("json");
+      if (rc.saveSoftwareVersionJSON(resid, resvals_json))
+        out.print("OK");
+    }
+    else if (op.equals("removeMachine")) {
+      if (rc.removeMachine(resid))
+        out.print("OK");
+    }
+    else if (op.equals("removeSoftwareVersion")) {
+      if (rc.removeSoftwareVersion(resid))
+        out.print("OK");
+    }
+    else if (op.equals("removeSoftware")) {
+      if (rc.removeSoftware(resid))
+        out.print("OK");
     }
 	}
 

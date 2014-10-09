@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.*;
 
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.controllers.DataController;
 
 /**
@@ -90,102 +89,96 @@ public class ManageData extends HttpServlet {
 		
 		int guid = 1;
 
-		DataController dv;
-		synchronized (WriteLock.Lock) {
-			dv = new DataController(guid, config, loadExternal);
-		}
+		DataController dv = new DataController(guid, config, loadExternal);
+    String dtype = request.getParameter("data_type");
+    String dataid = request.getParameter("data_id");
 
-		String dtype = request.getParameter("data_type");
-		String dataid = request.getParameter("data_id");
-		if (op != null && op.equals("fetch")) {
-			dv.streamData(dataid, response, this.getServletContext());
-			return;
-		}
+    if (op != null && op.equals("fetch")) {
+      dv.streamData(dataid, response, this.getServletContext());
+      return;
+    }
 
-		PrintWriter out = response.getWriter();
-		// Reader functions
-		if (op == null || op.equals("")) {
-			response.setContentType("text/html");
-			dv.show(out);
-			return;
-		} else if (op.equals("getDataJSON")) {
-			out.println(dv.getDataJSON(dataid));
-		} else if (op.equals("getDataTypeJSON")) {
-			out.println(dv.getDatatypeJSON(dtype));
-		} else if (op.equals("getDataHierarchyJSON")) {
-			out.println(dv.getDataHierarchyJSON());
-		}
-		
-		// Writer functions
-		synchronized (WriteLock.Lock) {
-			if (op.equals("saveDataJSON")) {
-				String propvals_json = request.getParameter("propvals_json");
-				if (dv.saveDataJSON(dataid, propvals_json))
-					out.print("OK");
-			} else if (op.equals("saveDataTypeJSON")) {
-				String props_json = request.getParameter("props_json");
-				if (!config.isSandboxed())
-					out.print(dv.saveDatatypeJSON(dtype, props_json));
-			} else if (op.equals("newDataType")) {
-				String ptype = request.getParameter("parent_type");
-				if (!config.isSandboxed())
-					if (dv.addDatatype(ptype, dtype))
-						out.print("OK");
-			} else if (op.equals("delDataTypes")) {
-				Gson gson = new Gson();
-				String[] dtypes = gson.fromJson(dtype, String[].class);
-				if (!config.isSandboxed())
-					if (dv.delDatatypes(dtypes))
-						out.print("OK");
-			} else if (op.equals("moveDatatypeTo")) {
-				String fromtype = request.getParameter("from_parent_type");
-				String totype = request.getParameter("to_parent_type");
-				if (!config.isSandboxed())
-					if (dv.moveDatatypeTo(dtype, fromtype, totype))
-						out.print("OK");
-			} else if (op.equals("moveDataTo")) {
-        String fromtype = request.getParameter("from_parent_type");
-        String totype = request.getParameter("to_parent_type");
-        if (!config.isSandboxed())
-          if (dv.moveDataTo(dataid, fromtype, totype))
-            out.print("OK");
-      } else if (op.equals("addDataForType")) {
-				if (dv.addDataForDatatype(dataid, dtype))
-					out.print("OK");
-			} else if (op.equals("delData")) {
-				if (dv.delData(dataid))
-					out.print("OK");
-			} else if (op.equals("renameData")) {
-				String newid = request.getParameter("newid");
-				if (dv.renameData(dataid, newid))
-					out.print("OK");
-			} else if (op.equals("renameDataType")) {
-				String newid = request.getParameter("newid");
-				if (!config.isSandboxed())
-				  if (dv.renameDataType(dtype, newid))
-				    out.print("OK");
-			} else if (op.equals("setDataLocation")) {
-				String location = request.getParameter("location");
-				if (dv.setDataLocation(dataid, location))
-					out.print("OK");
-			} else if (op.equals("addBatchData")) {
-				Gson gson = new Gson();
-				String[] dids = gson.fromJson(request.getParameter("data_ids"), String[].class);
-				String[] locs = gson.fromJson(request.getParameter("data_locations"),
-						String[].class);
-				if (dv.addBatchData(dtype, dids, locs))
-					out.print("OK");
-			} else if (op.equals("importFromExternalCatalog")) {
-				String propvals_json = request.getParameter("propvals_json");
-				String location = request.getParameter("location");
-				if(dv.importFromExternalCatalog(dataid, dtype, propvals_json, location))
-					out.print("OK");
-			} else if (op.equals("registerData")) {
-        String newname = request.getParameter("newname");
-			  String metadata_json = request.getParameter("metadata_json");
-			  out.print(dv.registerData(dataid, newname, metadata_json));
-			}
-		}
+    PrintWriter out = response.getWriter();
+    
+    // Reader functions
+    if (op == null || op.equals("")) {
+      response.setContentType("text/html");
+      dv.show(out);
+    } else if (op.equals("getDataJSON")) {
+      out.println(dv.getDataJSON(dataid));
+    } else if (op.equals("getDataTypeJSON")) {
+      out.println(dv.getDatatypeJSON(dtype));
+    } else if (op.equals("getDataHierarchyJSON")) {
+      out.println(dv.getDataHierarchyJSON());
+    }
+    // Writer functions
+    else if (op.equals("saveDataJSON")) {
+      String propvals_json = request.getParameter("propvals_json");
+      if (dv.saveDataJSON(dataid, propvals_json))
+        out.print("OK");
+    } else if (op.equals("saveDataTypeJSON")) {
+      String props_json = request.getParameter("props_json");
+      if (!config.isSandboxed())
+        out.print(dv.saveDatatypeJSON(dtype, props_json));
+    } else if (op.equals("newDataType")) {
+      String ptype = request.getParameter("parent_type");
+      if (!config.isSandboxed())
+        if (dv.addDatatype(ptype, dtype))
+          out.print("OK");
+    } else if (op.equals("delDataTypes")) {
+      Gson gson = new Gson();
+      String[] dtypes = gson.fromJson(dtype, String[].class);
+      if (!config.isSandboxed())
+        if (dv.delDatatypes(dtypes))
+          out.print("OK");
+    } else if (op.equals("moveDatatypeTo")) {
+      String fromtype = request.getParameter("from_parent_type");
+      String totype = request.getParameter("to_parent_type");
+      if (!config.isSandboxed())
+        if (dv.moveDatatypeTo(dtype, fromtype, totype))
+          out.print("OK");
+    } else if (op.equals("moveDataTo")) {
+      String fromtype = request.getParameter("from_parent_type");
+      String totype = request.getParameter("to_parent_type");
+      if (!config.isSandboxed())
+        if (dv.moveDataTo(dataid, fromtype, totype))
+          out.print("OK");
+    } else if (op.equals("addDataForType")) {
+      if (dv.addDataForDatatype(dataid, dtype))
+        out.print("OK");
+    } else if (op.equals("delData")) {
+      if (dv.delData(dataid))
+        out.print("OK");
+    } else if (op.equals("renameData")) {
+      String newid = request.getParameter("newid");
+      if (dv.renameData(dataid, newid))
+        out.print("OK");
+    } else if (op.equals("renameDataType")) {
+      String newid = request.getParameter("newid");
+      if (!config.isSandboxed())
+        if (dv.renameDataType(dtype, newid))
+          out.print("OK");
+    } else if (op.equals("setDataLocation")) {
+      String location = request.getParameter("location");
+      if (dv.setDataLocation(dataid, location))
+        out.print("OK");
+    } else if (op.equals("addBatchData")) {
+      Gson gson = new Gson();
+      String[] dids = gson.fromJson(request.getParameter("data_ids"), String[].class);
+      String[] locs = gson.fromJson(request.getParameter("data_locations"),
+          String[].class);
+      if (dv.addBatchData(dtype, dids, locs))
+        out.print("OK");
+    } else if (op.equals("importFromExternalCatalog")) {
+      String propvals_json = request.getParameter("propvals_json");
+      String location = request.getParameter("location");
+      if(dv.importFromExternalCatalog(dataid, dtype, propvals_json, location))
+        out.print("OK");
+    } else if (op.equals("registerData")) {
+      String newname = request.getParameter("newname");
+      String metadata_json = request.getParameter("metadata_json");
+      out.print(dv.registerData(dataid, newname, metadata_json));
+    }
 	}
 
 	/**

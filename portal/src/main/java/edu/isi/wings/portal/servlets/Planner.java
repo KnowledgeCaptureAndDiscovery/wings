@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
-import edu.isi.wings.portal.classes.WriteLock;
 import edu.isi.wings.portal.controllers.PlanController;
 
 /**
@@ -41,10 +40,7 @@ public class Planner extends HttpServlet {
 			op = args.length > 0 ? args[0] : null;
 		}
 		
-		PlanController wp;
-		synchronized(WriteLock.Lock) {
-			wp = new PlanController(config, out);
-		}
+		PlanController wp = new PlanController(config, out);;
 		
 		String tplid = request.getParameter("__template_id");
 		if(op.equals("getExpansions")) {

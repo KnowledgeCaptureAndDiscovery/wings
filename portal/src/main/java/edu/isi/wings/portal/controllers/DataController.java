@@ -71,7 +71,7 @@ public class DataController {
 
 		dc = DataFactory.getCreationAPI(props);
 		if(this.loadExternal)
-			dc = dc.getExternalCatalog();
+		  dc = dc.getExternalCatalog();
 		prov = ProvenanceFactory.getAPI(props);
 		
 		this.dcns = (String) props.get("ont.data.url") + "#";
@@ -458,6 +458,14 @@ public class DataController {
 				String range = prop.get("range").getAsString();
 				String npropid = prop.get("pid").getAsString();
 				MetadataProperty eprop = this.dc.getMetadataProperty(propid);
+				MetadataProperty enprop = this.dc.getMetadataProperty(npropid);
+				if(enprop != null && !propid.equals(npropid) && 
+				    !range.equals(enprop.getRange())) {
+				  errors.add("Property "+enprop.getName()
+				      + " already exists with a different range: "
+				      + enprop.getRange());
+				  continue;
+				}
 				if (!eprop.getRange().equals(range)) {
 					this.dc.removeMetadataProperty(propid);
 					this.dc.addMetadataProperty(npropid, dtypeid, range);
