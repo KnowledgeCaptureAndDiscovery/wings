@@ -177,26 +177,28 @@ function getPortalHeader() {
 	}
 	
 	if(USER_ID != null && VIEWER_ID != null) {
-		html += "<li><a href='#'><i class='icon-user'></i> "
+		html += "<li><a href='#'> "
 			+ "<span class='user' style='"+style+"'>"
+			+ "<i class='icon-user'></i> "
 			+ USER_ID + "</span></a>";
-		
+
 		html += "<ul>";
 		html += "<li class=\"first\"><a href=\""
 			+ homepath
 			+ "/jsp/logout.jsp\">Logout <span class='user'>"
 			+ VIEWER_ID
 			+ "</span></a></li>";
-		
+
 		if(USERS != null) {
 			USERS.sort();
 			for(var i=0; i<USERS.length; i++) {
 				var userid = USERS[i];
 				if(userid == USER_ID)
 					continue;
-				var uclass= (userid == VIEWER_ID ? "user" : "");
+				var utext = (userid == VIEWER_ID) ? "<i class='icon-user'></i> "+userid : userid;
+				var uclass = (userid == VIEWER_ID ? "user" : "");
 				var userurl = homepath + "/users/" + userid + "/domains";
-				html += "<li><a href='" + userurl + "'><span class='" + uclass + "'>" + userid + "</span></a></li>";
+				html += "<li><a href='" + userurl + "'><span class='" + uclass + "'>" + utext + "</span></a></li>";
 			}
 		}
 		html += "</ul></li>";
