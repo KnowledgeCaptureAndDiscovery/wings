@@ -183,6 +183,11 @@ function getPortalHeader() {
 			+ USER_ID + "</span></a>";
 
 		html += "<ul>";
+		if(USER_ID != VIEWER_ID) {
+			var userurl = homepath + "/users/" + VIEWER_ID + "/domains";
+			html += "<li><a href='" + userurl + "'><span class='user'>" 
+			+ "<i class='icon-user'></i> " + VIEWER_ID + "</span></a></li>";
+		}
 		html += "<li class=\"first\"><a href=\""
 			+ homepath
 			+ "/jsp/logout.jsp\">Logout <span class='user'>"
@@ -193,12 +198,10 @@ function getPortalHeader() {
 			USERS.sort();
 			for(var i=0; i<USERS.length; i++) {
 				var userid = USERS[i];
-				if(userid == USER_ID)
+				if(userid == USER_ID || userid == VIEWER_ID)
 					continue;
-				var utext = (userid == VIEWER_ID) ? "<i class='icon-user'></i> "+userid : userid;
-				var uclass = (userid == VIEWER_ID ? "user" : "");
 				var userurl = homepath + "/users/" + userid + "/domains";
-				html += "<li><a href='" + userurl + "'><span class='" + uclass + "'>" + utext + "</span></a></li>";
+				html += "<li><a href='" + userurl + "'>" + userid + "</a></li>";
 			}
 		}
 		html += "</ul></li>";
