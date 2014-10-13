@@ -915,7 +915,10 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								if (cons.getPredicate().getID()
 										.equals(ncons.getPredicate().getID())) {
 									if (!cons.getObject().isLiteral()) {
-									  if(ncons.getObject().isLiteral()) {
+									  if(ncons.getObject().isLiteral()
+									      || !ncons.getObject().getNamespace().equals(
+									          cons.getObject().getNamespace())
+									      ) {
   										// If this value is already bound to a
   										// variable.
   										// - Then replace all occurences of the
@@ -929,7 +932,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
   										engine.replaceObjectInConstraints(cons.getObject(),
   												ncons.getObject());
 									  }
-									} else if (!cons.getObject().getValue()
+									}
+									else if (!cons.getObject().getValue()
 											.equals(ncons.getObject().getValue())) {
 										// If this is already bound to a value,
 										// then check that it is the same
