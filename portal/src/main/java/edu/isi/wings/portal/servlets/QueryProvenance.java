@@ -31,7 +31,7 @@ public class QueryProvenance extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     Config config = new Config(request);
-    if(!config.checkDomain(request, response, false)) {
+    if(!config.checkDomain(request, response, false) && !config.isAdminViewer()) {
       response.getWriter().print("[]");
       return;
     }
