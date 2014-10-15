@@ -375,8 +375,12 @@ public class DataController {
           }
         }
       }
-      dc.save();
-      return "OK";
+      Provenance p = new Provenance(newid);
+      p.addActivity(new ProvActivity(ProvActivity.CREATE, "Saving data from a run"));
+      if(prov.addProvenance(p)
+        && dc.save() && prov.save())
+        return "OK";
+      return "";
     }
     catch(Exception e) {
       e.printStackTrace();
