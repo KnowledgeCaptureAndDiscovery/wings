@@ -12,7 +12,7 @@ Requirements
 
 Installation
 -------------
-1. $ mvn install
+1. $ mvn install (Do this if you are installing from source and don't already have a war file)
 	- This will create a wings-portal-<version>.war file in portal/target
 
 
