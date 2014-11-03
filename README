@@ -12,8 +12,10 @@ Requirements
 
 Installation
 -------------
-1. $ mvn install (Do this if you are installing from source and don't already have a war file)
-	- This will create a wings-portal-<version>.war file in portal/target
+1. Get war file:
+	a) mvn install (Do this if you are installing from source and don't already have a war file)
+	   - This will create a wings-portal-<version>.war file in portal/target
+	b) OR download from http://www.wings-workflows.org/download-wings-portal
 
 
 2. Move the war file to a Servlet container (Tomcat) and rename to wings-portal.war
