@@ -16,7 +16,7 @@ Installation
 	a) If installing from source. Download source from https://github.com/IKCAP/wings
 	   - mvn install (Do this if you are installing from source and don't already have a war file)
 	   - This will create a wings-portal-<version>.war file in portal/target
-	b) Download from http://www.wings-workflows.org/download-wings-portal
+	b) Or, Download from http://www.wings-workflows.org/download-wings-portal
 
 
 2. Move the war file to a Servlet container (Tomcat) and rename to wings-portal.war
