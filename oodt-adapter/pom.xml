@@ -13,12 +13,12 @@
   <parent>
     <groupId>edu.isi.wings</groupId>
     <artifactId>wings-core</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>4.0-SNAPSHOT</version>
     <relativePath>../core/pom.xml</relativePath>
   </parent>
 
   <properties>
-    <oodt.version>0.7-SNAPSHOT</oodt.version>
+    <oodt.version>0.8-SNAPSHOT</oodt.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>

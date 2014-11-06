@@ -336,6 +336,12 @@ public class DataCreationFM implements DataCreationAPI {
 		// Not currently supported
 		return false;
 	}
+  
+  @Override
+  public boolean moveDataParent(String arg0, String arg1, String arg2) {
+    // Not currently supported
+    return false;
+  }
 
 	@Override
 	public boolean addData(String dataid, String dtypeid) {

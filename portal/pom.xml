@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>org.apache.oodt</groupId>
 			<artifactId>cas-wm-services</artifactId>
-			<version>0.7-SNAPSHOT</version>
+			<version>0.8-SNAPSHOT</version>
 			<type>war</type>
 		</dependency-->
 		

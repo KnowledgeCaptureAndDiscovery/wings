@@ -36,24 +36,22 @@ public class CurationServiceAPI {
 						+ URLEncoder.encode(args[i+1].toString(), "UTF-8");
 			}
 			
-			if("GET".equals(method)) {
-				URL urlobj = new URL(url + "?" + params);
-				return IOUtils.toString(urlobj);
+			URL urlobj = new URL(url);
+			if("GET".equals(method))
+			  urlobj = new URL(url + "?" + params);
+			HttpURLConnection con = (HttpURLConnection) urlobj.openConnection();
+			con.setRequestMethod(method);
+			if(!"GET".equals(method)) {
+			  con.setDoOutput(true);
+			  DataOutputStream out = new DataOutputStream(con.getOutputStream());
+			  out.writeBytes(params);
+			  out.flush();
+			  out.close();
 			}
-			else {
-				URL urlobj = new URL(url);
-				HttpURLConnection con = (HttpURLConnection) urlobj.openConnection();
-				con.setRequestMethod(method);
-				con.setDoOutput(true);
-				DataOutputStream out = new DataOutputStream(con.getOutputStream());
-				out.writeBytes(params);
-				out.flush();
-				out.close();
-				
-				String result = IOUtils.toString(con.getInputStream());
-				con.disconnect();
-				return result;
-			}
+
+			String result = IOUtils.toString(con.getInputStream());
+			con.disconnect();
+			return result;
 
 		} catch (Exception e) {
 			e.printStackTrace();
