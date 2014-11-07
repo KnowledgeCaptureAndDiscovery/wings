@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.oodt.cas.workflow.misc</groupId>
+  <artifactId>wings-oodt-task</artifactId>
+  <name>Wings OODT Task</name>
+  <packaging>jar</packaging>
+  <description>Wings Task for OODT Workflow system</description>
+
+  <parent>
+    <groupId>edu.isi.wings</groupId>
+    <artifactId>wings-oodt</artifactId>
+    <version>4.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <oodt.version>0.8-SNAPSHOT</oodt.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+ <dependencies>    
+    <dependency>
+      <groupId>org.apache.oodt</groupId>
+      <artifactId>cas-filemgr</artifactId>
+      <version>${oodt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.oodt</groupId>
+      <artifactId>cas-workflow</artifactId>
+      <version>${oodt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

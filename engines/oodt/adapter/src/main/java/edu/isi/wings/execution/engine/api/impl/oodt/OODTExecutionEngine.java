@@ -36,7 +36,6 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
   String wlogfile;
 
   public OODTExecutionEngine(Properties props) {
-    System.out.println(props);
     this.props = props;
     this.stepEngine = this;
     this.planEngine = this;

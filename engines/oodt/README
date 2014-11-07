@@ -1,0 +1,52 @@
+Instrutions for integrating with OODT
+=====================================
+
+Modifications to Wings
+----------------------
+1. In the Wings POM, add the following module
+    <module>engines/oodt</module>
+2. In the Wings Portal POM, uncomment the part which says "Wings OODT Adapter"
+3. Compile Wings. "mvn install". 
+	This should also compile oodt engine, and put appropriate jars in the Wings Portal
+4. Put portal/target/wings-portal-<version>.war to the tomcat container
+5. Put engines/oodt/wmservices/target/wings-oodt-wmservices-<version>.war to the tomcat container
+
+Modifications to OODT
+---------------------
+1. Install OODT (Latest 0.8-SNAPSHOT from trunk)
+2. Copy engines/oodt/task/target/wings-oodt-task-<version>.jar to [OODT_HOME]/workflow/lib
+3. Copy [OODT_HOME]/filemgr/lib/cas-filemgr-<version>.jar to [OODT_HOME]/workflow/lib
+4. Make sure that the cas-curator webapp is installed in tomcat
+
+Additions to Wings portal.properties
+------------------------------------
+1. Add the following OODT engine config to the execution section. Modify the urls and paths according to your installation.
+        engine = 
+        {
+            name = OODT;
+            implementation = edu.isi.wings.execution.engine.api.impl.oodt.OODTExecutionEngine;
+            type = BOTH;
+			properties = 
+			{
+				extern_data_catalog = edu.isi.wings.catalog.data.api.impl.oodt.DataCreationFM;
+				oodt =
+				{
+					fmurl = http://localhost:9000;
+					fmpolicy = wings;
+					wmurl = http://localhost:9001;
+					wmsurl = http://localhost:8080/wings-oodt-wmservices;
+					curatorurl = http://localhost:8080/cas-curator;
+					archivedir = /Users/varun/Servers/oodt/filemgr/archive;
+				}
+			}
+        }
+
+That's it !
+
+
+Usage
+-----
+1. From the "Manage Domains" interface, change the domain execution engine to OODT
+2. Go to the "Manage Data" interface once. This will sync up the data with OODT file manager
+
+

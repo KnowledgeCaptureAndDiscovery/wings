@@ -12,9 +12,9 @@
 
   <parent>
     <groupId>edu.isi.wings</groupId>
-    <artifactId>wings-core</artifactId>
+    <artifactId>wings-oodt</artifactId>
     <version>4.0-SNAPSHOT</version>
-    <relativePath>../core/pom.xml</relativePath>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <properties>
@@ -32,15 +32,16 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>edu.isi.wings</groupId>
+      <artifactId>wings-oodt-wmservices</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Apache OODT Dependencies -->
     <dependency>
       <groupId>org.apache.oodt</groupId>
       <artifactId>cas-filemgr</artifactId>
-      <version>${oodt.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.oodt</groupId>
-      <artifactId>cas-wm-services</artifactId>
       <version>${oodt.version}</version>
     </dependency>
   </dependencies>
