@@ -137,6 +137,7 @@ public class Config {
   public void showError(HttpServletRequest request, 
       HttpServletResponse response, String message) {
     try {
+      response.setContentType("text/html");
       request.setAttribute("message", message);
       request.setAttribute("nohome", true);
       request.getRequestDispatcher("index.jsp").include(request, response);
