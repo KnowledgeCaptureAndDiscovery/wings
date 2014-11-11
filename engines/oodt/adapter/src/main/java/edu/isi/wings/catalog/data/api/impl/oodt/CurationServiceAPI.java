@@ -66,7 +66,7 @@ public class CurationServiceAPI {
 	}
 
 	public HashMap<String, String> getParentTypeMap() {
-		String result = this.query("GET", "getParentMap");
+		String result = this.query("GET", "parentmap");
 		HashMap<?, ?> map = gson.fromJson(result, HashMap.class);
 		HashMap<String, String> ptypeMap = new HashMap<String, String>(); 
 		for(Object key : map.keySet()) {
@@ -76,14 +76,14 @@ public class CurationServiceAPI {
 	}
 
 	public boolean addParentForProductType(ProductType type, String parentId) {
-		String result = this.query("POST", "addParent", 
+		String result = this.query("POST", "parent/add", 
 				"id", type.getProductTypeId(), 
 				"parentId", parentId);
 		return Boolean.parseBoolean(result);
 	}
 
 	public boolean removeParentForProductType(ProductType type) {
-		String result = this.query("DELETE", "removeParent", "id", type.getProductTypeId());
+		String result = this.query("DELETE", "parent/remove", "id", type.getProductTypeId());
 		return Boolean.parseBoolean(result);
 	}
 
@@ -91,14 +91,14 @@ public class CurationServiceAPI {
 		String elementIds = "";
 		for(Element element: elementList)
 			elementIds += (elementIds != "" ? "," : "") + element.getElementId();
-		String result = this.query("POST", "addElements", 
+		String result = this.query("POST", "elements/add", 
 				"id", type.getProductTypeId(), 
 				"elementIds", elementIds);
 		return Boolean.parseBoolean(result);
 	}
 
 	public List<Element> getElementsForProductType(ProductType type, boolean direct) {
-		String result = this.query("GET", "getElements",
+		String result = this.query("GET", "elements",
 				"id", type.getProductTypeId(), 
 				"direct", direct);
 		List<Element> elementList = new ArrayList<Element>();
@@ -111,7 +111,7 @@ public class CurationServiceAPI {
 	}
 
 	public boolean removeAllElementsForProductType(ProductType type) {
-		String result = this.query("DELETE", "removeAllElements", 
+		String result = this.query("DELETE", "elements/remove/all", 
 				"id", type.getProductTypeId());
 		return Boolean.parseBoolean(result);
 	}
@@ -120,15 +120,14 @@ public class CurationServiceAPI {
 		String elementIds = "";
 		for(Element element: elementList)
 			elementIds += (elementIds != "" ? "," : "") + element.getElementId();
-		String result = this.query("DELETE", "removeElements", 
+		String result = this.query("DELETE", "elements/remove", 
 				"id", type.getProductTypeId(),
 				"elementIds", elementIds);
 		return Boolean.parseBoolean(result);
 	}
 	
 	public List<String> getProductTypeIdsHavingElement(Element el) {
-		String result = this.query("GET", "getTypesHavingElement" , 
-				"id", el.getElementId());
+		String result = this.query("GET", "typeswithelement/"+el.getElementId(), "id");
 		Object[] typeIds = gson.fromJson(result, ArrayList.class).toArray();
 		return Arrays.asList((String[])typeIds);
 	}
