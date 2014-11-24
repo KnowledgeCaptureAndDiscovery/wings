@@ -2,3 +2,4 @@
 target
 !/.gitignore
 portal/src/main/webapp/lib/*
+bin

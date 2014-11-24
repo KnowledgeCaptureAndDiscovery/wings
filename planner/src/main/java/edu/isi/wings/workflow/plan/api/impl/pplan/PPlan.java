@@ -204,7 +204,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
               fac.getDataObject(f.getLocation()));
           fileObjects.put(f.getID(), varobj);
         }
-        kb.setPropertyValue(stepobj, outvarprop, varobj);
+        kb.addPropertyValue(stepobj, outvarprop, varobj);
       }
       
       for(String mid : step.getMachineIds()) {
