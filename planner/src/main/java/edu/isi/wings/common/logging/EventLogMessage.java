@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.isi.wings.common.logging;
 
 /*
@@ -48,6 +65,9 @@ public class EventLogMessage {
 
 	// Variables
 	private final StringBuffer buf = new StringBuffer(256); // set initial
+	
+	private static final boolean DISABLED = true;
+	
 	// capacity for
 	// efficiency/memory
 	// trade-off
@@ -104,6 +124,8 @@ public class EventLogMessage {
 	 * @return Self-reference, so calls can be chained
 	 */
 	public EventLogMessage add(String key, String value) {
+	  if(DISABLED) 
+	    return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append(value);
@@ -118,6 +140,8 @@ public class EventLogMessage {
 	 * @return Self-reference, so calls can be chained
 	 */
 	public EventLogMessage addWQ(String key, String value) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append("\"");
@@ -134,6 +158,8 @@ public class EventLogMessage {
 	 * @return Self-reference, so calls can be chained
 	 */
 	public EventLogMessage add(String key, int value) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append(value);
@@ -147,6 +173,8 @@ public class EventLogMessage {
 	 * @return Self-reference, so calls can be chained
 	 */
 	public EventLogMessage add(String key, long value) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append(value);
@@ -160,6 +188,8 @@ public class EventLogMessage {
 	 * @return Self-reference, so calls can be chained
 	 */
 	public EventLogMessage add(String key, float value) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append(value);
@@ -173,6 +203,8 @@ public class EventLogMessage {
 	 * @return Self-reference, so calls can be chained
 	 */
 	public EventLogMessage add(String key, double value) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append(value);
@@ -188,6 +220,8 @@ public class EventLogMessage {
 	 * @param pairValue
 	 */
 	public EventLogMessage addPair(String key, String pairKey, String pairValue) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append("(");
@@ -200,6 +234,8 @@ public class EventLogMessage {
 	}
 
 	public EventLogMessage addTime(String key, long timeInMillis) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append(format.format(new Date(timeInMillis)));
@@ -217,6 +253,8 @@ public class EventLogMessage {
 	 * @return
 	 */
 	public EventLogMessage addMap(String key, Map<?, ?> map) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append("\"");
@@ -237,6 +275,8 @@ public class EventLogMessage {
 	}
 
 	public EventLogMessage addList(String key, Collection<?> list) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(key);
 		buf.append("=");
 		buf.append("\"");
@@ -260,6 +300,8 @@ public class EventLogMessage {
 	 * @return
 	 */
 	public EventLogMessage addMsg(String msg) {
+	   if(DISABLED) 
+	      return this;
 		buf.append(LoggingKeys.MSG);
 		buf.append("=");
 		buf.append("\"");

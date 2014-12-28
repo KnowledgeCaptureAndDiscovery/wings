@@ -121,7 +121,6 @@
     <servlet-name>QueryProvenance</servlet-name>
     <url-pattern>/common/provenance/*</url-pattern>
   </servlet-mapping>
-  
   <session-config>
     <session-timeout>43200</session-timeout>
   </session-config>
@@ -162,7 +161,7 @@
     </auth-constraint>
   </security-constraint>
   <login-config>
-    <auth-method>FORM</auth-method>
+    <auth-method>BASIC</auth-method>
     <form-login-config>
       <form-login-page>/jsp/login.jsp</form-login-page>
       <form-error-page>/jsp/login_failed.jsp</form-error-page>

@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.isi.wings.execution.engine.api.impl.oodt;
 
 import java.io.PrintStream;
@@ -16,7 +33,6 @@ import org.apache.oodt.cas.workflow.structs.Workflow;
 import org.apache.oodt.cas.workflow.structs.WorkflowTask;
 import org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration;
 import org.apache.oodt.cas.workflow.system.XmlRpcWorkflowManagerClient;
-
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
@@ -56,12 +72,13 @@ public class OODTWorkflowAdapter {
 		this.wlogfile = wlogfile;
 	}
 	
-	public Workflow runWorkflow(RuntimePlan planexe) 
+	public Workflow runWorkflow(RuntimePlan planexe, Metadata meta) 
 			throws Exception {
 		
 		// Get List of all Jobs
 		HashMap<String, WorkflowTask> tasksById = new HashMap<String, WorkflowTask>();
 		HashMap<String, String> opProducers = new HashMap<String, String>();
+		HashMap<String, String> taskJobs = new HashMap<String, String>();
 		for(RuntimeStep stepexe : planexe.getQueue().getAllSteps()) {
 			ExecutionStep step = stepexe.getStep();
 			
@@ -82,9 +99,10 @@ public class OODTWorkflowAdapter {
 				inputs.add(input.getBinding());
 			for(ExecutionFile output : step.getOutputFiles())
 				outputs.add(output.getBinding());
-			WorkflowTask task = this.getTask(stepexe, inputs, outputs, argstring);
+			WorkflowTask task = this.getTask(planexe, stepexe, inputs, outputs, argstring);
 			
 			tasksById.put(stepexe.getName(),  task);
+			taskJobs.put(stepexe.getName(), step.getCodeBinding().getID());
 			for(ExecutionFile output : step.getOutputFiles())
 				opProducers.put(output.getName(), stepexe.getName());
 		}
@@ -145,11 +163,13 @@ public class OODTWorkflowAdapter {
       
       for (String jobid : jobLevels.get(lvl)) {
         WorkflowTask task = tasksById.get(jobid);
+        String compid = taskJobs.get(jobid);
         // Set job number specific configs
         String taskid = "Job" + jobnum;
         task.getTaskConfig().addConfigProperty("LOGFILE",
             task.getTaskName() + ".log");
         task.getTaskConfig().addConfigProperty("JOBID", taskid);
+        task.getTaskConfig().addConfigProperty("COMPONENT_ID", compid);
         
         Graph taskGraph = new Graph();
         taskGraph.setExecutionType("task");
@@ -174,7 +194,7 @@ public class OODTWorkflowAdapter {
     try {
       WmServicesClient wmclient = new WmServicesClient(this.wmsurl);
       wmclient.addPackagedWorkflow(pcw.getId(), pcw);
-      this.wmclient.sendEvent(pcw.getId(), new Metadata());
+      this.wmclient.sendEvent(pcw.getId(), meta);
       return pcw;
     }
     catch (Exception e) {
@@ -209,14 +229,14 @@ public class OODTWorkflowAdapter {
 		return maxlvl;
 	}
 	
-	private WorkflowTask getTask(RuntimeStep exe, 
+	private WorkflowTask getTask(RuntimePlan planexe, RuntimeStep exe, 
 			ArrayList<String> ips, ArrayList<String> ops, String arg) 
 					throws Exception {
 		  //checkAndCreateTask(this.wmclient, exe.getName(), exe.getName());
 	    WorkflowTask task = new WorkflowTask();
 	    //task.setConditions(Collections.emptyList());
 	    task.setRequiredMetFields(Collections.emptyList());
-	    task.setTaskId(exe.getName());
+	    task.setTaskId(planexe.getName() + "-" + exe.getName());
 	    task.setTaskInstanceClassName("org.apache.oodt.cas.workflow.misc.WingsTask");
 	    task.setTaskName(exe.getName());
 	    task.setTaskConfig(this.getTaskConfiguration(exe, ips, ops, arg));

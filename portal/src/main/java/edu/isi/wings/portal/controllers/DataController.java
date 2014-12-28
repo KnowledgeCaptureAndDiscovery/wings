@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.isi.wings.portal.controllers;
 
 import java.io.File;
@@ -17,12 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
@@ -40,6 +51,11 @@ import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
 import edu.isi.wings.portal.classes.html.HTMLLoader;
 import edu.isi.wings.portal.classes.html.JSLoader;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class DataController {
 	private int guid;
@@ -716,17 +732,22 @@ public class DataController {
 			for (Map.Entry<String, JsonElement> entry : propvals.getAsJsonObject().entrySet()) {
 				String propid = entry.getKey();
 				String value = entry.getValue().getAsString();
-				//FIXME: Just using range as string for now
+
+				// Using default range as string for now
 				String range = KBUtils.XSD + "string";
 				MetadataProperty eprop = dc.getMetadataProperty(propid);
 				if (eprop == null) {
 					// Property doesn't exist
 					this.dc.addMetadataProperty(propid, dtypeid, range);
 				}
-				else if(!eprop.getDomains().contains(dtypeid)) {
-					// Property exists for another class. Add this class as domain
-					this.dc.addMetadataPropertyDomain(propid, dtypeid);
+				else {
+				  if(!eprop.getDomains().contains(dtypeid)) {
+				    // Property exists for another class. Add this class as domain
+				    this.dc.addMetadataPropertyDomain(propid, dtypeid);
+				  }
+				  range = eprop.getRange();
 				}
+				
 				this.dc.addDatatypePropertyValue(dataid, propid, value, range);
 			}
 			dc.setDataLocation(dataid, location);

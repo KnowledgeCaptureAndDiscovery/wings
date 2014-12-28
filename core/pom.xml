@@ -31,6 +31,18 @@
       <timezone>0</timezone>
     </developer>
     <developer>
+      <id>dgarijo</id>
+      <name>Daniel Garijo</name>
+      <email>dgarijo@fi.upm.es</email>
+      <organization>UPM</organization>
+      <organizationUrl>http://mayor2.dia.fi.upm.es/oeg-upm/</organizationUrl>
+      <roles>
+        <role>Researcher</role>
+        <role>Developer</role>
+      </roles>
+      <timezone>1</timezone>
+    </developer>
+    <developer>
       <id>moody</id>
       <name>Joshua Moody</name>
       <email>moody@isi.edu</email>

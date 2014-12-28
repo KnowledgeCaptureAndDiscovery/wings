@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.isi.wings.catalog.component.api.impl.kb;
 
 import java.io.File;
@@ -7,7 +24,6 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
-
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentHolder;
@@ -19,8 +35,23 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
 
 public class ComponentCreationKB extends ComponentKB implements ComponentCreationAPI {
+  ComponentCreationAPI externalCatalog;
+  
 	public ComponentCreationKB(Properties props, boolean load_concrete) {
 		super(props, load_concrete, true, false);
+		
+
+    String extern = props.getProperty("extern_component_catalog");
+    if(extern != null) {
+      try {
+        Class<?> classz = Class.forName(extern);
+        ComponentCreationAPI externalCC = 
+            (ComponentCreationAPI) classz.getDeclaredConstructor(Properties.class).newInstance(props);
+        this.setExternalCatalog(externalCC);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
 	}
 
 	@Override
@@ -112,6 +143,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		KBObject cobj = this.writerkb.getResource(cid);
 		KBObject locobj = ontologyFactory.getDataObject(location);
 		this.writerkb.setPropertyValue(cobj, locprop, locobj);
+    if(this.externalCatalog != null)
+      this.externalCatalog.setComponentLocation(cid, location);
 		return true;
 	}
 	
@@ -123,6 +156,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		boolean ok1 = this.removeComponent(comp.getID(), false, false);
 		boolean ok2 = this.addComponent(comp, null);
 		
+    if(this.externalCatalog != null)
+      this.externalCatalog.updateComponent(comp);
+    
 		// TODO: If abstract, update all components defined in all libraries !
 		return ok1 && ok2;
 	}
@@ -202,18 +238,25 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		KBObject isConcreteVal = ontologyFactory.getDataObject(comp.getType() == Component.CONCRETE);
 		this.writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);
+		
+    if(this.externalCatalog != null)
+      this.externalCatalog.addComponent(comp, pholderid);
 		return true;
 	}
 
 	@Override
 	public boolean addComponentHolder(String holderid, String pholderid) {
 		writerkb.createClass(holderid, pholderid);
+    if(this.externalCatalog != null)
+      this.externalCatalog.addComponentHolder(holderid, pholderid);
 		return true;
 	}
 	
 	@Override
 	public boolean removeComponentHolder(String ctype) {
 		KBUtils.removeAllTriplesWith(writerkb, ctype, false);
+    if(this.externalCatalog != null)
+      this.externalCatalog.removeComponentHolder(ctype);
 		return true;
 	}
 
@@ -280,6 +323,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 				}
 			}
 		}
+    if(this.externalCatalog != null)
+      this.externalCatalog.removeComponent(cid, remove_holder, unlink);
 		return true;
 	}
 
@@ -288,6 +333,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		KBUtils.renameAllTriplesWith(writerkb, this.getComponentHolderId(oldid), 
 				this.getComponentHolderId(newid), false);
 		KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
+    if(this.externalCatalog != null)
+      this.externalCatalog.renameComponent(oldid, newid);
 		return true;
 	}
 	
@@ -338,6 +385,18 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		this.writerkb.delete();
 	}
 	
+  
+  @Override
+  public ComponentCreationAPI getExternalCatalog() {
+    return this.externalCatalog;
+  }
+
+  @Override
+  public void setExternalCatalog(ComponentCreationAPI cc) {
+    this.externalCatalog = cc;
+    this.externalCatalog.copyFrom(this);
+  }
+  
 	/*
 	 * Private helper functions
 	 */
@@ -445,4 +504,5 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		}
 		return roleobj;
 	}
+
 }

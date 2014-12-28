@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package edu.isi.wings.catalog.data.api.impl.oodt;
 
 import java.io.File;
@@ -17,7 +34,6 @@ import org.apache.oodt.cas.filemgr.structs.exceptions.RepositoryManagerException
 import org.apache.oodt.cas.filemgr.structs.exceptions.ValidationLayerException;
 import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
 import org.apache.oodt.cas.metadata.Metadata;
-
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
 import edu.isi.wings.catalog.data.classes.DataTree;
@@ -26,6 +42,7 @@ import edu.isi.wings.catalog.data.classes.MetadataProperty;
 import edu.isi.wings.catalog.data.classes.MetadataValue;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
+import edu.isi.wings.util.oodt.CurationServiceAPI;
 
 public class DataCreationFM implements DataCreationAPI {
 	XmlRpcFileManagerClient fmclient;
@@ -80,7 +97,14 @@ public class DataCreationFM implements DataCreationAPI {
 		HashMap<String, String> pmap = this.curatorApi.getParentTypeMap();
 		try {
 			for(ProductType ptype : this.fmclient.getProductTypes()) {
-				DataItem ptitem = new DataItem(ptype.getProductTypeId(), DataItem.DATATYPE);
+        String pid = ptype.getProductTypeId();
+        String parentid = pmap.get(pid);
+        while(parentid != null && !parentid.endsWith("#DataObject")) {
+          parentid = pmap.get(parentid);
+        }
+        if(parentid == null && !pid.endsWith("#DataObject")) 
+          continue;
+				DataItem ptitem = new DataItem(pid, DataItem.DATATYPE);
 				DataTreeNode ptitemnode = new DataTreeNode(ptitem);
 				for (Product p : this.fmclient.getProductsByProductType(ptype)) {
 					DataItem pitem = new DataItem(p.getProductId(), DataItem.DATA);
