@@ -367,7 +367,7 @@ function showWingsRanMessage(tid, runid, results_url) {
             xtype: 'button',
             region: 'south',
             text: 'Or CLICK HERE to Monitor Execution',
-            iconCls: 'icon-select-alt fa-big fa-green',
+            iconCls: 'icon-select-alt fa-big fa-up fa-green',
             handler: function() {
                 var w = window.open(results_url + '?run_id=' + escape(runid), '_accessResults');
                 win.close();

@@ -24,6 +24,9 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	top: 0px !important;
 	font-size: 18px !important;
 }
+.fa-up {
+	top: -4px !important;
+}
 .fa-menu {
 	top: 0px !important;
 	font-size: 12px !important;
