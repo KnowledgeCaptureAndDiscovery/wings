@@ -1834,6 +1834,23 @@ public class KBAPIJena implements KBAPI {
       readLock.unlock();
     }
   }
+  
+  public String toJson() {
+    return toJson(this.url);
+  }
+
+  public String toJson(String base) {
+    readLock.lock();
+    try {   
+      StringWriter out = new StringWriter();
+      RDFWriter rdfWriter = ontmodel.getWriter("RDF/JSON");
+      rdfWriter.write(ontmodel.getBaseModel(), out, base);
+      return out.toString();
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
 
   public ArrayList<KBTriple> getAllTriples() {
     readLock.lock();

@@ -54,13 +54,23 @@ public class ExportGraph extends HttpServlet {
 		//if(!config.checkDomain(request, response))
 		//	return;
 		
+		String format = request.getParameter("format");
+		response.addHeader("Access-Control-Allow-Origin", "*");
+		
 		String uri = config.getServerUrl() + request.getRequestURI();
 		OntFactory tdbfac = new OntFactory(OntFactory.JENA, config.getTripleStoreDir());
 		try {
 			KBAPI kb = tdbfac.getKB(uri, OntSpec.PLAIN);
 			if(kb.getAllTriples().size() > 0) {
 				response.setContentType("application/rdf+xml");
-				out.println(kb.toAbbrevRdf(true));
+				if(format != null) {
+				  if(format.equals("json"))
+				    out.println(kb.toJson());
+				  else if(format.equals("n3"))
+				    out.println(kb.toN3());
+				}
+				else
+				  out.println(kb.toAbbrevRdf(true));
 			}
 		}
 		catch (Exception e) {

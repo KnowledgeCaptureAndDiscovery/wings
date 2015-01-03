@@ -125,7 +125,7 @@ public class ManageTemplates extends HttpServlet {
 		}
 
 		int guid = 1;
-		TemplateController tv = new TemplateController(guid, config);;
+		TemplateController tv = new TemplateController(guid, config);
 		
 		String template_id = request.getParameter("template_id");
 		if (op == null || op.equals("")) {

@@ -237,4 +237,8 @@ public interface KBAPI {
 	public String toN3();
 
 	public String toN3(String base);
+	
+	public String toJson();
+	
+	public String toJson(String base);
 }

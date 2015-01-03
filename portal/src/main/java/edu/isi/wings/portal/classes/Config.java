@@ -504,8 +504,10 @@ public class Config {
     props.setProperty("lib.provenance.url", 
         this.getExportCommunityUrl()+"/provenance/library.owl");
     
-    props.setProperty("viewer.id", this.viewerId);
-    props.setProperty("user.id", this.userId);
+    if(this.viewerId != null)
+      props.setProperty("viewer.id", this.viewerId);
+    if(this.userId != null)
+      props.setProperty("user.id", this.userId);
     
     return props;
 	}
