@@ -40,8 +40,11 @@ var Template = function(id, store, editor) {
 Template.prototype.getXYFromComment = function(comment) {
 	var arr = /x=(.+),y=(.+)/.exec(comment);
 	if(!arr) return {x:0,y:0};
+	var center = false;
+	if(comment.match(/center:/))
+		center = true;
 	
-	return {x: arr[1], y:arr[2]};
+	return {center: center, x: arr[1], y:arr[2]};
 };
 
 Template.prototype.initialize = function() {
@@ -52,6 +55,8 @@ Template.prototype.initialize = function() {
 			continue;
 		var xy = this.getXYFromComment(node.comment);
 		var n = new Node(this, node.id, node.componentVariable, parseInt(xy.x) + 0.5, parseInt(xy.y) + 0.5);
+		if(xy.center)
+			n.centercoords = true;
 		if(node.machineIds)
 			n.machineIds = node.machineIds;
 		n.setInactive(node.inactive);
@@ -93,7 +98,8 @@ Template.prototype.initialize = function() {
 		var type = variable.type == 1 ? 'DATA' : 'PARAM';
 		this.variables[variable.id] = new Variable(this, variable.id, getLocalName(variable.id), 
 				parseInt(xy.x) + 0.5, parseInt(xy.y) + 0.5, type);
-
+		if(xy.center)
+			this.variables[variable.id].centercoords = true;
 		this.variables[variable.id].setBinding(variable.binding);
 		
 		// Set input/output role dimensionality
@@ -176,6 +182,8 @@ Template.prototype.initialize = function() {
 		if (typeof (node) == "function")
 			continue;
 		node.setConcrete(node.isConcrete);
+		if(!node.prule.expr.args.length)
+			node.setDefaultPortRule();
 		this.canvasItems = this.canvasItems.concat(this.nodes[node.id].getLayerItems());
 	}
 	for ( var i in this.variables) {
@@ -240,10 +248,12 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			componentVariable : {
 				id : n.id+"_component",
 				isConcrete : n.isConcrete,
-				binding : n.binding
+				binding : n.binding,
+				type : 3
 			},
 			inputPorts : ips,
-			outputPorts : ops
+			outputPorts : ops,
+			machineIds : n.machineIds
 		});
 		cnt++;
 	}
@@ -253,7 +263,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			id : v.id,
 			comment : "x="+v.x+",y="+v.y,
 			type : v.type == 'DATA' ? 1 : 2,
-			//binding : v.binding,
+			binding : v.binding,
 			//FIXME: unknown isn't currently stored on server
 			unknown : v.unknown, 
 			autofill : v.autofill,

@@ -466,7 +466,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	layout : function() {
 		var msgTarget = Ext.get(this.getId());
 		msgTarget.mask('Designing Layout...', 'x-mask-loading');
-		this.graphLayout.layoutDot(msgTarget, this.redrawCanvas, this, this.url, this.template);
+		this.graphLayout.layoutDot(msgTarget, this, this.url);
 	},
 
 	saveImage : function() {

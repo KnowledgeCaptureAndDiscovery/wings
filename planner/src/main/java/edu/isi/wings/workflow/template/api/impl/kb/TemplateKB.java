@@ -17,12 +17,20 @@
 
 package edu.isi.wings.workflow.template.api.impl.kb;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.datatype.DatatypeFactory;
 
@@ -54,7 +62,6 @@ import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.DataVariable;
 import edu.isi.wings.workflow.template.classes.variables.ParameterVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
-import edu.isi.wings.workflow.template.util.LayoutHelper;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
@@ -1602,9 +1609,7 @@ public class TemplateKB extends URIEntity implements Template {
 			}
 
 			if (nobj != null && n.getComment() != null) {
-				double[] pos = LayoutHelper.parseCommentString(n.getComment());
-				if (pos != null)
-					tkb.setComment(nobj, LayoutHelper.createCommentString(pos[0], pos[1]));
+			  tkb.setComment(nobj, n.getComment());
 			}
 
 			// Add Port information
@@ -1697,9 +1702,7 @@ public class TemplateKB extends URIEntity implements Template {
 				}
 			}
 			if (vobj != null && v.getComment() != null) {
-				double[] pos = LayoutHelper.parseCommentString(v.getComment());
-				if (pos != null)
-					tkb.setComment(vobj, LayoutHelper.createCommentString(pos[0], pos[1]));
+			  tkb.setComment(vobj, v.getComment());
 			}
 		}
 
@@ -1971,6 +1974,179 @@ public class TemplateKB extends URIEntity implements Template {
 
 		return this;
 	}
+	
+  private String cleanID(String id) {
+    id = id.replaceAll("^.*#", "");
+    id = id.replaceAll("[^a-zA-Z0-9_]", "_");
+    if (id.matches("^([0-9]|\\.|\\-)"))
+      id = '_' + id;
+    return id;
+  }
+  
+  public void autoLayout() {
+    String dotexe = this.props.getProperty("dot.path");
+    if(dotexe == null)
+      return;
+    
+    File f = new File(dotexe);
+    if(!f.exists() || !f.canExecute())
+      return;
+    
+    String nl = "\n";
+    String tab = "\t";
+    String dotstr = "digraph test {";
+    dotstr += nl + tab + "node [shape=record];";
+    dotstr += nl + tab + "nodesep = 0.1;";
+    dotstr += nl + tab + "ranksep = 0.6;";
+    
+    HashMap<String, Node> nodeidmap = new HashMap<String, Node>();
+    HashMap<String, Variable> varidmap = new HashMap<String, Variable>();
+    
+    for ( Node n : this.getNodes()) {
+      String nid = cleanID(n.getID());
+      String ntext = n.getName();
+      if(n.getMachineIds() != null && n.getMachineIds().size() > 0) {
+        ntext += "\\n[Run on ";
+        if(n.getMachineIds().size() > 1) 
+          ntext += "1 of "+n.getMachineIds().size()+" machines]";
+        else
+          ntext += n.getMachineIds().get(0).replaceAll(".*#", "")+"]";
+      }
+      ArrayList<String> ips = new ArrayList<String>();
+      ArrayList<String> ops = new ArrayList<String>();
+      for(Port p : n.getInputPorts())
+        ips.add(cleanID(p.getID()));
+      for(Port p : n.getOutputPorts())
+        ops.add(cleanID(p.getID()));
+      Collections.sort(ips);
+      Collections.sort(ops);
+      int fsize = 13;
+      
+      dotstr += nl + tab + nid + "[label=\"{{";
+      for ( int i = 0; i < ips.size(); i++)
+        dotstr += "|<" + ips.get(i) + ">";
+      dotstr += "|}|{" + ntext + "}|{";
+      for ( int i = 0; i < ops.size(); i++)
+        dotstr += "|<" + ops.get(i) + ">";
+      dotstr += "|}}\", fontname=\"bold\" fontsize=\"" + fsize + "\"];";
+      nodeidmap.put(nid, n);
+    }
+
+    for ( Variable v : this.getVariables()) {
+      String vid = cleanID(v.getID());
+      String vtext = v.getName();
+      if(v.getBinding() != null) {
+        vtext += " =\\n" + v.getBinding();
+      }
+      int fsize = 13;       
+      dotstr += nl + tab + vid + "[label=\"{{|<ip>|}|{" + vtext + "}|{|<op>|}}\", fontsize=\"" + fsize + "\"];";
+
+      varidmap.put(vid, v);
+    }
+
+    HashMap<String, Boolean> donelinks = new HashMap<String, Boolean>();
+    for ( Link l : this.getLinks()) {
+      if (l.getOriginPort() != null) {
+        String lid = cleanID(l.getOriginNode().getID()) + ":" 
+              + cleanID(l.getOriginPort().getID()) + " -> "
+              + cleanID(l.getVariable().getID()) + ":ip;";
+        if(!donelinks.containsKey(lid)) {
+          dotstr += nl + tab + lid;
+          donelinks.put(lid, true);
+        }
+      }
+      if (l.getDestinationPort() != null) {
+        String lid = cleanID(l.getVariable().getID()) + ":op -> "
+            + cleanID(l.getDestinationNode().getID()) + ":" 
+            + cleanID(l.getDestinationPort().getID()) + ";";
+        if(!donelinks.containsKey(lid)) {
+          dotstr += nl + tab + lid;
+          donelinks.put(lid, true);
+        }
+      }
+    }
+    dotstr += nl + "}";
+    
+    try {
+      String layout = getDotLayout(dotstr, dotexe);
+      String[] lines = layout.split("\\n");
+      for ( int i = 0; i < lines.length; i++) {
+        String[] tmp = lines[i].split(":");
+        if (tmp.length != 2)
+          continue;
+        String id = tmp[0];
+        String[] pos = tmp[1].split(",");
+        double x = 20 + Float.parseFloat(pos[0]) * 1.1;
+        double y = 20 + Float.parseFloat(pos[1]) / 1.5;
+        String comment = "center:x="+x+",y="+y;
+        if(nodeidmap.containsKey(id)) {
+          nodeidmap.get(id).setComment(comment);
+        }
+        else if(varidmap.containsKey(id)) {
+          varidmap.get(id).setComment(comment);
+        }
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+  private String getDotLayout(String dotstr, String dotexe) throws IOException {
+    HashMap<String, Float[]> idpositions = new HashMap<String, Float[]>();
+
+    // Run the dot executable
+    Process dot = Runtime.getRuntime().exec(dotexe);
+    
+    // Write dot-format graph to dot
+    PrintWriter bout = new PrintWriter(dot.getOutputStream());
+    bout.println(dotstr);
+    bout.flush();
+    
+    // Read position annotated graph from dot
+    BufferedReader bin = new BufferedReader(new InputStreamReader(dot.getInputStream()));
+    Pattern pospattern = Pattern.compile("^\\s*(.+?)\\s.+pos=\"([\\d\\.]+),([\\d\\.]+)\"");
+    
+    String curline = "", line;
+    while((line = bin.readLine()) != null) {
+      line = line.trim();
+      if(line.equals("}"))
+        break;      
+      if(line.endsWith("\\")) 
+        line = line.substring(0, line.length()-1);
+      
+      if(!line.endsWith(";")) {
+        curline += " " + line;
+        continue;
+      }
+      curline += line;
+      curline = curline.trim();
+      Matcher m = pospattern.matcher(curline);
+      if(m.find()) {
+        idpositions.put(
+            m.group(1), 
+            new Float[]{ Float.parseFloat(m.group(2)), Float.parseFloat(m.group(3)) }
+        );
+      }
+      curline = "";
+    }
+    bin.close();
+    bout.close();
+    
+    float maxY = 0;
+    for(String id : idpositions.keySet()) {
+      Float[] pos = idpositions.get(id);
+      if(maxY < pos[1])
+        maxY = pos[1];
+    }
+    
+    String retval = "";
+    for(String id : idpositions.keySet()) {
+      Float[] pos = idpositions.get(id);
+      retval += id+":"+pos[0]+","+(40+maxY-pos[1])+"\n";
+    }
+    return retval;
+  }
 
 	public void addInputRole(String vid, Role r) {
 		inputRoles.put(vid, r);

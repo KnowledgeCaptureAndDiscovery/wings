@@ -144,9 +144,12 @@ Variable.prototype.getDimensionality = function() {
 };
 
 Variable.prototype.setBinding = function(binding) {
+	this.binding = binding;
 	if (binding) {
 		this.text = getLocalName(this.id) + " =," + this.getBindingText(binding);
-		this.binding = binding;
+	}
+	else {
+		this.text = getLocalName(this.id);
 	}
 };
 

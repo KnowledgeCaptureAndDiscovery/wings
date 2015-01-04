@@ -56,6 +56,7 @@ import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 import edu.isi.wings.workflow.template.classes.variables.VariableType;
+
 import org.mindswap.pellet.utils.FileUtils;
 
 import com.google.gson.Gson;
@@ -304,83 +305,20 @@ public class TemplateController {
 		}
 	}
 	
-	public String getDotLayout(String dotstr) throws IOException {
-		HashMap<String, Float[]> idpositions = new HashMap<String, Float[]>();
-
-		// Run the dot executable
-		Process dot = Runtime.getRuntime().exec(this.config.getDotFile());
-		
-		// Write dot-format graph to dot
-		PrintWriter bout = new PrintWriter(dot.getOutputStream());
-		bout.println(dotstr);
-		bout.flush();
-		
-		// Read position annotated graph from dot
-		BufferedReader bin = new BufferedReader(new InputStreamReader(dot.getInputStream()));
-		Pattern pospattern = Pattern.compile("^\\s*(.+?)\\s.+pos=\"([\\d\\.]+),([\\d\\.]+)\"");
-		
-		String curline = "", line;
-		while((line = bin.readLine()) != null) {
-			line = line.trim();
-			if(line.equals("}"))
-				break;			
-			if(line.endsWith("\\")) 
-				line = line.substring(0, line.length()-1);
-			
-			if(!line.endsWith(";")) {
-				curline += " " + line;
-				continue;
-			}
-			curline += line;
-			curline = curline.trim();
-			Matcher m = pospattern.matcher(curline);
-			if(m.find()) {
-				idpositions.put(
-						m.group(1), 
-						new Float[]{ Float.parseFloat(m.group(2)), Float.parseFloat(m.group(3)) }
-				);
-			}
-			curline = "";
-		}
-		bin.close();
-		bout.close();
-		
-		float maxY = 0;
-		for(String id : idpositions.keySet()) {
-			Float[] pos = idpositions.get(id);
-			if(maxY < pos[1])
-				maxY = pos[1];
-		}
-		
-		String retval = "";
-		for(String id : idpositions.keySet()) {
-			Float[] pos = idpositions.get(id);
-			retval += id+":"+pos[0]+","+(40+maxY-pos[1])+"\n";
-		}
-		return retval;
+	public String layoutTemplate(String tjson, String dotexe) 
+	    throws IOException {
+	  try {
+	    Template tpl = JsonHandler.getTemplateFromJSON(this.json, tjson, "[]");
+	    tpl.autoLayout();
+	    return JsonHandler.getTemplateJSON(this.json, tpl, null);
+    }
+    finally {
+      dc.end();
+      cc.end();
+      tc.end();
+      prov.end();
+    }
 	}
-	
-//	private String getBeamerParaphrasesJSON() {
-//		return this.getJSONFileContents(this.config.getArchivedDomainDir()+"/beamer/paraphrases.json");
-//	}
-//	
-//	private String getBeamerMappingsJSON() {
-//		return this.getJSONFileContents(this.config.getArchivedDomainDir()+"/beamer/mappings.json");
-//	}
-//	
-//	private String getJSONFileContents(String path) {
-//		String str = "";
-//		try {
-//			Scanner sc = new Scanner(new File(path));
-//			while (sc.hasNextLine()) {
-//				str += sc.nextLine() + "\n";
-//			}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//			return "{}";
-//		}
-//		return str;
-//	}
 	
 	private ArrayList<Object> getTemplateInputs(Template tpl) {
 		HashMap<String, Integer> varDims = new HashMap<String, Integer>();

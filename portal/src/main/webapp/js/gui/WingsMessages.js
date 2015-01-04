@@ -486,7 +486,7 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
                 var tstore = myRec.raw[0];
                 var url = run_url + '/runWorkflow';
                 var msgTarget = Ext.get(win.getId());
-
+                
                 msgTarget.mask('Running...', 'x-mask-loading');
                 Ext.Ajax.request({
                     url: url,

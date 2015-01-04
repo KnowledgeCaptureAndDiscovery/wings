@@ -151,6 +151,8 @@ public interface Template extends Serializable {
 
 	Template applyRules();
 	
+	void autoLayout();
+	
 	boolean save();
 	
 	boolean saveAs(String newid);

@@ -408,6 +408,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
     // TODO: Should show all options to the user. Picking the top one for now
     Template xtpl = ets.get(0);
+    xtpl.autoLayout();
+    
     String xpid = planexe.getExpandedTemplateID();
 
     // Delete the existing expanded template

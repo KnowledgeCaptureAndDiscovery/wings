@@ -29,6 +29,7 @@ Shape.prototype.initialize = function(id, text, x, y, wmul, hmul) {
 	this.text = text;
 	this.x = x;
 	this.y = y;
+	this.centercoords = false;
 	this.width = 0;
 	this.height = 0;
 	this.padding = 8;
@@ -257,6 +258,12 @@ Shape.prototype.draw = function(ctx, text, x, y, highlight) {
 	this.width = dim.width;
 	this.height = dim.height;
 	this.lineheight = dim.lineheight;
+	
+	if(this.centercoords) {
+		this.x = this.x - dim.width/2;
+		this.y = this.y - dim.height/2;
+		this.centercoords = false;
+	}
 
 	// Check if this shape has to be "hidden" or if there are any errors with it
 	var color = this.backgroundColor;

@@ -683,7 +683,7 @@ TemplateBrowser.prototype.getDatatypeChildren = function(dtype, ptype, map) {
 
 // TODO: Move Constraints Table code in another class
 // -- This is becoming too big
-TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
+TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 	var This = this;
 	var tns = getNamespace(tid);
 	var propmap = {};
@@ -738,7 +738,23 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
 	 * Stores
 	 */
 	var editorTripleStore = new Ext.data.Store({
-		model : 'Triple'
+		model : 'Triple',
+		listeners: {
+			remove: function(store, record, index) {
+				var wns = This.nsmap['wflow'];
+				var prop = record.get('predicate');
+				if((prop == wns+"hasDataBinding") ||
+						(prop == wns+"hasParameterValue")) {
+					var vid = record.get('subject');
+					var ed = tpanel.mainTab.graphPanel.editor;
+					var v = ed.template.variables[vid];
+					if(v) {
+						v.setBinding(null);
+						ed.redrawCanvas();
+					}
+				}
+			} 
+		}
 	});
 	editorTripleStore.loadData(tstore.constraints);
 
@@ -974,7 +990,29 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore) {
 	});
 
 	var editorPlugin = Ext.create('Ext.grid.plugin.FlexibleCellEditing', {
-		clicksToEdit : 1
+		clicksToEdit : 1,
+		listeners: {
+			edit: function(editor, e) {
+				if(e.field == "object") {
+					var wns = This.nsmap['wflow'];
+					var prop = e.record.get('predicate');
+					if((prop == wns+"hasDataBinding") ||
+							(prop == wns+"hasParameterValue")) {
+						var vid = e.record.get('subject');
+						var ed = e.grid.graph.editor;
+						var v = ed.template.variables[vid];
+						if(v) {
+							var val = e.record.get('object');
+							if(prop == wns+"hasDataBinding")
+								v.setBinding({id:val, type:'uri'});
+							else
+								v.setBinding({value:val, type:'literal'});
+							ed.redrawCanvas();							
+						}
+					}	
+				}
+			}
+		}
 	});
 
 	var gridPanel = Ext.create('Ext.grid.Panel', {
@@ -1080,7 +1118,7 @@ TemplateBrowser.prototype.renderTemplateEditor = function(templatePanel,
 	});
 
 	if (!This.opts.hide_constraints) {
-		gridPanel = This.getConstraintsTable(tid, tstore);
+		gridPanel = This.getConstraintsTable(tid, tstore, templatePanel);
 		Ext.apply(gridPanel, {
 			region : (This.opts.hide_graph ? 'center' : 'north')
 		});

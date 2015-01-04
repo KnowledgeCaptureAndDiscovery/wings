@@ -495,6 +495,7 @@ public class Config {
 		else {
       props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
 		}
+		props.setProperty("dot.path", this.getDotFile());
 		
     if(this.getResourceOntologyUrl() == null)
       this.setResourceOntologyUrl(ontdirurl + "/resource.owl");

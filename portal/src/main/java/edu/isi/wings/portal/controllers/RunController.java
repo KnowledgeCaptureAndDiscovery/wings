@@ -187,7 +187,8 @@ public class RunController {
 	    String consjson, String seedjson, String seedconsjson, ServletContext context) {
 		Gson json = JsonHandler.createTemplateGson();
 		Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
-		Template seedtpl = JsonHandler.getTemplateFromJSON(json, seedjson, seedconsjson);
+    xtpl.autoLayout();
+    Template seedtpl = JsonHandler.getTemplateFromJSON(json, seedjson, seedconsjson);
 
 		String requestid = UuidGen.generateAUuid("");
 		WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
