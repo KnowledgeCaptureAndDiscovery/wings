@@ -18,6 +18,8 @@
 package edu.isi.wings.portal.servlets;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -27,6 +29,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
 
+import edu.isi.wings.portal.classes.domains.DomainInfo;
+import edu.isi.wings.portal.controllers.DomainController;
+
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
@@ -34,6 +39,16 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
+import com.hp.hpl.jena.rdf.model.impl.ResourceImpl;
+import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 import com.hp.hpl.jena.sparql.resultset.ResultsFormat;
 import com.hp.hpl.jena.tdb.TDB;
 import com.hp.hpl.jena.tdb.TDBFactory;
@@ -120,10 +135,76 @@ public class SparqlEndpoint extends HttpServlet {
 		if(!config.checkDomain(request, response))
 			return;
 		Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
-		UpdateRequest update = UpdateFactory.create(updateString);
-		UpdateAction.execute(update, tdbstore);
+		if(updateString.startsWith("__SERVER_RENAME:")) {
+	    String newurl = updateString.substring(updateString.indexOf(":")+1);
+	    this.updateServerURL(newurl, tdbstore, config);
+		}
+		else {
+  		UpdateRequest update = UpdateFactory.create(updateString);
+  		UpdateAction.execute(update, tdbstore);
+		}
 		out.print("Updated");
 		TDB.sync(tdbstore);
+	}
+	
+	private void updateServerURL(String newurl, Dataset tdbstore, Config config) {
+    String cururl = config.getServerUrl();
+    System.out.println(cururl +" ==>> "+newurl);
+    
+    // Update all graphs in the Dataset
+    ArrayList<String> graphnames = new ArrayList<String>();
+    for(Iterator<String> i = tdbstore.listNames(); i.hasNext(); ) {
+      graphnames.add(i.next());
+    }
+    for(String graphname : graphnames) {
+      if(graphname.startsWith(cururl)) {
+        String newname = graphname.replace(cururl, newurl);
+        System.out.println(graphname + " -> "+newname);
+        
+        try {
+          Model m = tdbstore.getNamedModel(graphname);
+          Model nm = ModelFactory.createDefaultModel();
+          
+          for(StmtIterator iter = m.listStatements(); iter.hasNext(); ) {
+            Statement st = iter.next();
+            Resource subj = st.getSubject();
+            Property pred = st.getPredicate();
+            RDFNode obj = st.getObject();
+            if(subj.isURIResource() && subj.getURI().startsWith(cururl)) {
+              String nurl = subj.getURI().replace(cururl, newurl);
+              subj = new ResourceImpl(nurl);
+            }
+            if(pred.getURI().startsWith(cururl)) {
+              String nurl = pred.getURI().replace(cururl, newurl);
+              pred = new PropertyImpl(nurl);
+            }
+            if(obj.isURIResource() && obj.asResource().getURI().startsWith(cururl)) {
+              String nurl = obj.asResource().getURI().replace(cururl, newurl);
+              obj = new ResourceImpl(nurl);
+            }
+            nm.add(new StatementImpl(subj, pred, obj));
+          }
+          tdbstore.removeNamedModel(graphname);
+          tdbstore.addNamedModel(newname, nm);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    TDB.sync(tdbstore);
+    
+    // Update all User domains
+    for(String userid : config.getUsersList()) {
+      config.setUserId(userid);
+      DomainController dc = new DomainController(1, config);
+      for(String domname : dc.getDomainsList()) {
+        DomainInfo dominfo = dc.getDomainInfo(domname);
+        String url = dominfo.getUrl();
+        url = url.replace(cururl, newurl);
+        dc.setDomainURL(domname, url);
+      }
+    }
 	}
 
 	/**

@@ -17,19 +17,15 @@
 
 package edu.isi.wings.portal.controllers;
 
-import java.io.BufferedReader;
 import java.io.File;
 //import java.io.File;
 //import java.io.FileNotFoundException;
 //import java.util.Scanner;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;

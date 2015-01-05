@@ -161,6 +161,10 @@ public class DomainController {
     return new Domain(dominfo);
   }
   
+  public DomainInfo getDomainInfo (String domain) {
+    return this.user_domains.get(domain);
+  }
+  
 	public String getDomainJSON (String domain) {
 		DomainInfo dominfo = this.user_domains.get(domain);
 		Domain dom = new Domain(dominfo);
@@ -261,6 +265,14 @@ public class DomainController {
 		if(this.saveUserConfig(this.userConfigFile))
 			return true;
 		return false;
+	}
+	
+	public boolean setDomainURL(String domain, String url) {
+	  DomainInfo dominfo = this.user_domains.get(domain);
+	  dominfo.setUrl(url);
+    if(this.saveUserConfig(this.userConfigFile))
+      return true;
+    return false;
 	}
 	
 	public boolean deleteDomain(String domain) {
