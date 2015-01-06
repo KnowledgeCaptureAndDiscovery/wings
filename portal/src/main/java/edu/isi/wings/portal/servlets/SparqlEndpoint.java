@@ -149,17 +149,29 @@ public class SparqlEndpoint extends HttpServlet {
 	
 	private void updateServerURL(String newurl, Dataset tdbstore, Config config) {
     String cururl = config.getServerUrl();
-    System.out.println(cururl +" ==>> "+newurl);
+    try {out.println(cururl +" ==>> "+newurl);}
+    catch (Exception e) {System.out.println(cururl +" ==>> "+newurl);}
     
     // Update all graphs in the Dataset
     ArrayList<String> graphnames = new ArrayList<String>();
-    for(Iterator<String> i = tdbstore.listNames(); i.hasNext(); ) {
-      graphnames.add(i.next());
+    try {
+      Iterator<String> it = tdbstore.listNames();
+      while(true) {
+        String tmp = it.next();
+        if(tmp == null)
+          break;
+        graphnames.add(tmp);
+      }
     }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    
     for(String graphname : graphnames) {
       if(graphname.startsWith(cururl)) {
         String newname = graphname.replace(cururl, newurl);
-        System.out.println(graphname + " -> "+newname);
+        try {out.println(graphname + " -> "+newname);}
+        catch (Exception e) {System.out.println(graphname + " -> "+newname);}
         
         try {
           Model m = tdbstore.getNamedModel(graphname);
