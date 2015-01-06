@@ -19,7 +19,6 @@ package edu.isi.wings.portal.servlets;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -28,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import edu.isi.wings.portal.classes.Config;
-
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.controllers.DomainController;
 
@@ -37,6 +35,7 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -155,12 +154,15 @@ public class SparqlEndpoint extends HttpServlet {
     // Update all graphs in the Dataset
     ArrayList<String> graphnames = new ArrayList<String>();
     try {
-      Iterator<String> it = tdbstore.listNames();
-      while(true) {
-        String tmp = it.next();
-        if(tmp == null)
-          break;
-        graphnames.add(tmp);
+      Query query = QueryFactory.create("SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o }}");
+      QueryExecution qexec = QueryExecutionFactory.create(query, tdbstore);
+      qexec.getContext().set(TDB.symUnionDefaultGraph, true);
+      ResultSet results = qexec.execSelect();
+      while(results.hasNext()) {
+        QuerySolution soln = results.next();
+        RDFNode graph = soln.get("g");
+        if(graph.isURIResource())
+          graphnames.add(graph.asResource().getURI());
       }
     }
     catch(Exception e) {
@@ -209,12 +211,21 @@ public class SparqlEndpoint extends HttpServlet {
     // Update all User domains
     for(String userid : config.getUsersList()) {
       config.setUserId(userid);
+      config.setViewerId(userid);
       DomainController dc = new DomainController(1, config);
       for(String domname : dc.getDomainsList()) {
         DomainInfo dominfo = dc.getDomainInfo(domname);
         String url = dominfo.getUrl();
-        url = url.replace(cururl, newurl);
-        dc.setDomainURL(domname, url);
+        if(url.startsWith(cururl)) {
+          try {
+            out.println("* changing "+userid+"'s domain url for "+domname);
+          }
+          catch(Exception e) {
+            System.out.println("* changing "+userid+"'s domain url for "+domname);
+          }
+          url = url.replace(cururl, newurl);
+          dc.setDomainURL(domname, url);
+        }
       }
     }
 	}
