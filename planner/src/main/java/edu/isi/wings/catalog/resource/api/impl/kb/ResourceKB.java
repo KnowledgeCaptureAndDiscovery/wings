@@ -391,10 +391,12 @@ public class ResourceKB implements ResourceAPI {
     this.removeMachine(machine.getID());
     this.addMachine(machine.getID());
     
-    this.libkb.setPropertyValue(mobj, pmap.get("hasHostName"), 
-        this.libkb.createLiteral(machine.getHostName()));
-    this.libkb.setPropertyValue(mobj, pmap.get("hasHostIP"), 
-        this.libkb.createLiteral(machine.getHostIP()));
+    if(!machine.getID().equals(this.onturl+"#Localhost")) {
+      this.libkb.setPropertyValue(mobj, pmap.get("hasHostName"), 
+          this.libkb.createLiteral(machine.getHostName()));
+      this.libkb.setPropertyValue(mobj, pmap.get("hasHostIP"), 
+          this.libkb.createLiteral(machine.getHostIP()));
+    }
     this.libkb.setPropertyValue(mobj, pmap.get("hasUserID"), 
         this.libkb.createLiteral(machine.getUserId()));
     this.libkb.setPropertyValue(mobj, pmap.get("hasUserKey"), 

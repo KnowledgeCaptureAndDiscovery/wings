@@ -66,7 +66,8 @@ public class Machine extends Resource {
   }
 
   public String getHostString() {
-    return this.hostIP != null ? this.hostIP : this.hostName;
+    return (this.hostIP != null && !this.hostIP.equals(""))
+        ? this.hostIP : this.hostName;
   }
   
   public String getUserId() {

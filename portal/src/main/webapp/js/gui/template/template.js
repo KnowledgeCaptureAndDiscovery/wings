@@ -245,6 +245,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			comment : "x="+n.x+",y="+n.y,
 			crule : n.crule,
 			prule : n.prule,
+			inactive : n.inactive,
 			componentVariable : {
 				id : n.id+"_component",
 				isConcrete : n.isConcrete,
@@ -264,6 +265,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			comment : "x="+v.x+",y="+v.y,
 			type : v.type == 'DATA' ? 1 : 2,
 			binding : v.binding,
+			inactive : v.inactive,
 			//FIXME: unknown isn't currently stored on server
 			unknown : v.unknown, 
 			autofill : v.autofill,
