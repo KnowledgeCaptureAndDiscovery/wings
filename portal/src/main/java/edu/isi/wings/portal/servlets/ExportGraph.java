@@ -19,6 +19,8 @@ package edu.isi.wings.portal.servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -60,7 +62,17 @@ public class ExportGraph extends HttpServlet {
 		String uri = config.getServerUrl() + request.getRequestURI();
 		OntFactory tdbfac = new OntFactory(OntFactory.JENA, config.getTripleStoreDir());
 		try {
+		  Pattern complibpat = Pattern.compile(".+\\/components\\/(.+)\\.owl");
 			KBAPI kb = tdbfac.getKB(uri, OntSpec.PLAIN);
+			Matcher mat = complibpat.matcher(uri);
+			if(mat.find()) {
+			  String abslib = "abstract";
+			  String complib = mat.group(1);
+			  if(!complib.equals(abslib)) {
+			    String absuri = uri.replace(complib, abslib);
+			    kb.copyFrom(tdbfac.getKB(absuri, OntSpec.PLAIN));
+			  }
+			}
 			if(kb.getAllTriples().size() > 0) {
 				response.setContentType("application/rdf+xml");
 				if(format != null) {
