@@ -64,6 +64,7 @@ Template.prototype.initialize = function() {
 		n.setConcrete(node.componentVariable.isConcrete);
 		n.setComponentRule(node.crule);
 		n.setPortRule(node.prule);
+		n.derivedFrom = node.derivedFrom;
 
 		// in case inputPorts/outputPorts are explicitly provided for the nodes
 		if (node.inputPorts) {
@@ -246,6 +247,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			crule : n.crule,
 			prule : n.prule,
 			inactive : n.inactive,
+			derivedFrom : n.derivedFrom,
 			componentVariable : {
 				id : n.id+"_component",
 				isConcrete : n.isConcrete,

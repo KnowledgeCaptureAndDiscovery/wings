@@ -1302,6 +1302,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 							
 							// Create a new Node
 							Node newNode = curt.addNode(c);
+							newNode.setDerivedFrom(destNode.getID());
+							
 							//newNode.addComponentSetRule(destNode.getComponentSetRule());
 							//newNode.addPortSetRule(destNode.getPortSetRule());
 							newNode.setComment(destNode.getComment());

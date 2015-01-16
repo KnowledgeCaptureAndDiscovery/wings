@@ -40,6 +40,8 @@ public class Node extends URIEntity {
 	
 	private ArrayList<String> machineIds;
 	private boolean inactive;
+	
+	private String derivedFrom;
 
 	public Node(String id) {
 		super(id);
@@ -139,5 +141,13 @@ public class Node extends URIEntity {
 
   public void setInactive(boolean inactive) {
     this.inactive = inactive;
+  }
+
+  public String getDerivedFrom() {
+    return derivedFrom;
+  }
+
+  public void setDerivedFrom(String derivedFrom) {
+    this.derivedFrom = derivedFrom;
   }
 }

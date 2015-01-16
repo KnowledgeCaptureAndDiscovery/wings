@@ -230,6 +230,8 @@ public class TemplateKB extends URIEntity implements Template {
       propertyObjMap.put("isInactive", kb.createDatatypeProperty(this.wflowns+"isInactive"));
     if(!propertyObjMap.containsKey("tellmeData"))
       propertyObjMap.put("tellmeData", kb.createDatatypeProperty(this.wflowns+"tellmeData"));
+    if(!propertyObjMap.containsKey("derivedFrom"))
+      propertyObjMap.put("derivedFrom", kb.createObjectProperty(this.wflowns+"derivedFrom"));
     
 		if(!conceptObjMap.containsKey("ReduceDimensionality"))
 			conceptObjMap.put("ReduceDimensionality", kb.createClass(this.wflowns+"ReduceDimensionality"));
@@ -284,6 +286,10 @@ public class TemplateKB extends URIEntity implements Template {
       machineIds.add(mobj.getID());
     }
     n.setMachineIds(machineIds);
+    
+    KBObject dnode = kb.getPropertyValue(obj,  propertyObjMap.get("derivedFrom"));
+    if(dnode != null)
+      n.setDerivedFrom(dnode.getID());
 
 		return n;
 	}
@@ -1579,6 +1585,10 @@ public class TemplateKB extends URIEntity implements Template {
               tkb.getResource(machineId));
         }
       
+      if(n.getDerivedFrom() != null)
+        tkb.addTriple(nobj, propertyObjMap.get("derivedFrom"), 
+            tkb.getResource(n.getDerivedFrom()));
+
 			ComponentVariable c = n.getComponentVariable();
 			if (c != null && !c.isTemplate()) {
 				KBObject cobj = tkb.getResource(c.getID());
