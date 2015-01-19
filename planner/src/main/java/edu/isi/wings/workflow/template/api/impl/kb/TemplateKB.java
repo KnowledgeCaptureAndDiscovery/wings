@@ -534,6 +534,10 @@ public class TemplateKB extends URIEntity implements Template {
 	        KBObject autoFill = kb.getPropertyValue(varObj, pmap.get("autoFill"));
 	        if(autoFill != null && (Boolean)autoFill.getValue())
 	          var.setAutoFill(true);
+	        
+	        KBObject dvar = kb.getPropertyValue(varObj,  propertyObjMap.get("derivedFrom"));
+	        if(dvar != null)
+	          var.setDerivedFrom(dvar.getID());
 					varMap.put(varObj.getID(), var);
 				}
 			}
@@ -1711,6 +1715,10 @@ public class TemplateKB extends URIEntity implements Template {
 				      ontologyFactory.getDataObject(true));
 				}
 			}
+      if(v.getDerivedFrom() != null)
+        tkb.addPropertyValue(vobj, propertyObjMap.get("derivedFrom"), 
+            tkb.getResource(v.getDerivedFrom()));
+      
 			if (vobj != null && v.getComment() != null) {
 			  tkb.setComment(vobj, v.getComment());
 			}

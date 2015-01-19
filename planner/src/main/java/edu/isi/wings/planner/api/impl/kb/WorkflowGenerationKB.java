@@ -1394,6 +1394,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										// Input Variable doesn't exist. Create a new variable and link
 										newVariable = curt.addVariable(ns + variable.getName(), variable.getVariableType());
 										newVariable.setBinding(cb);
+										newVariable.setDerivedFrom(variable.getID());
 										newVariables.put(varkey, newVariable);
 										
 										// Add new input link
@@ -1450,6 +1451,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 										// Create a new variable
 										newVariable = curt.addVariable(ns + variable.getName(), variable.getVariableType());
 										newVariable.setBinding(cb);
+										newVariable.setDerivedFrom(variable.getID());
 										newVariables.put(varkey, newVariable);
 									}
 									

@@ -99,9 +99,12 @@ Template.prototype.initialize = function() {
 		var type = variable.type == 1 ? 'DATA' : 'PARAM';
 		this.variables[variable.id] = new Variable(this, variable.id, getLocalName(variable.id), 
 				parseInt(xy.x) + 0.5, parseInt(xy.y) + 0.5, type);
+
 		if(xy.center)
 			this.variables[variable.id].centercoords = true;
 		this.variables[variable.id].setBinding(variable.binding);
+		
+		this.variables[variable.id].derivedFrom = variable.derivedFrom;
 		
 		// Set input/output role dimensionality
 		var irole = this.store.inputRoles[variable.id];
@@ -268,6 +271,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			type : v.type == 'DATA' ? 1 : 2,
 			binding : v.binding,
 			inactive : v.inactive,
+			derivedFrom : v.derivedFrom,
 			//FIXME: unknown isn't currently stored on server
 			unknown : v.unknown, 
 			autofill : v.autofill,

@@ -29,6 +29,8 @@ public class Variable extends URIEntity {
 	private boolean autofill;
 	private boolean breakpoint;
 
+	private String derivedFrom;
+	
 	public Variable(String id, short type) {
 		super(id);
 		this.type = type;
@@ -89,4 +91,12 @@ public class Variable extends URIEntity {
   public String toString() {
 		return getID() + (binding != null ? " (" + binding.toString() + ")" : "");
 	}
+
+  public String getDerivedFrom() {
+    return derivedFrom;
+  }
+
+  public void setDerivedFrom(String derivedFrom) {
+    this.derivedFrom = derivedFrom;
+  }
 }
