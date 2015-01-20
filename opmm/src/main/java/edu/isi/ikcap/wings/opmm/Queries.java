@@ -1,23 +1,17 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Copyright 2012-2013 Ontology Engineering Group, Universidad Politécnica de Madrid, Spain
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package edu.isi.ikcap.wings.opmm;
@@ -29,9 +23,19 @@ package edu.isi.ikcap.wings.opmm;
 public class Queries {
 
     /*Template queries*/
+    
+    /**
+     * Query for retieving the taxonomy url
+     * @return
+     */
+    public static String queryGetTaxonomyURL(){
+        String query = "SELECT distinct ?taxonomyURL WHERE{"
+                + "?anyNode <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?taxonomyURL}";
+        return query;
+    }
 
     /**
-     * query for retieving the name of a template
+     * Query for retieving the name of a template
      * @return
      */
     public static String queryNameWfTemplate(){
@@ -63,7 +67,8 @@ public class Queries {
         String query = "SELECT ?n ?c ?typeComp ?isConcrete WHERE{"
                 + "?n a <"+Constants.WINGS_NODE+">."
                 + "?n <"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?c."
-                + "?c a ?typeComp."
+                + "?c <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?cb."
+                + "?cb a ?typeComp."
                 + "OPTIONAL{?c <"+Constants.WINGS_DATA_PROP_IS_CONCRETE+"> ?isConcrete.}}";
         return query;
     }
@@ -105,7 +110,8 @@ public class Queries {
                 + "?var a <"+Constants.WINGS_DATA_VARIABLE+">."
                 + "OPTIONAL{"
                 + "?iLink <"+Constants.WINGS_PROP_HAS_DESTINATION_PORT+"> ?port."
-                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?role."
+                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?r."
+                + "?r <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?role."
                 + "}."
                 + "}";
         return query;
@@ -123,7 +129,8 @@ public class Queries {
                 + "?var a <"+Constants.WINGS_PARAMETER_VARIABLE+">."
                 + "OPTIONAL{"
                 + "?iLink <"+Constants.WINGS_PROP_HAS_DESTINATION_PORT+"> ?port."
-                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?role."
+                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?r."
+                + "?r <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?role."
                 + "}."
                 + "}";
         return query;
@@ -140,7 +147,8 @@ public class Queries {
                 + "?oLink <"+Constants.WINGS_PROP_HAS_VARIABLE+">?var."
                 + "OPTIONAL{"
                 + "?oLink <"+Constants.WINGS_PROP_HAS_ORIGIN_PORT+"> ?port."
-                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?role."
+                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?r."
+                + "?r <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?role."
                 + "}."
                 + "}";
         return query;
@@ -158,11 +166,13 @@ public class Queries {
                 + "?ioLink <"+Constants.WINGS_PROP_HAS_VARIABLE+">?var."
                 + "OPTIONAL{"
                 + "?ioLink <"+Constants.WINGS_PROP_HAS_ORIGIN_PORT+"> ?portO."
-                + "?portO <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?origRole."
+                + "?portO <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?oRole."
+                + "?oRole <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?origRole."
                 + "}."
                 + "OPTIONAL{"
                 + "?ioLink <"+Constants.WINGS_PROP_HAS_DESTINATION_PORT+"> ?portD."
-                + "?portD <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?destRole."
+                + "?portD <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?dRole."
+                + "?dRole <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?destRole."
                 + "}."
                 + "}";
         return query;
@@ -170,56 +180,102 @@ public class Queries {
 
     /*INSTANCE QUERIES*/
     /**
-     * query to retrieve the name of the template plus metadata from the results
-     * @return
+     * New execution methods
      */
-    public static String queryNameWfTemplateAndMetadata(){
-        String query = "SELECT ?fileURI ?user ?wTempl ?name ?status ?startT ?endT ?execDiagram ?templDiagram ?tool ?engine ?license WHERE{"
-                + "?fileURI <"+Constants.WINGS_PROP_HAS_USER+"> ?user."
-                + "?fileURI <"+Constants.WINGS_PROP_USES_TEMPLATE+"> ?templ."
-                + "?templ <"+Constants.WINGS_PROP_HAS_ID+"> ?name."
-                + "?templ <"+Constants.WINGS_PROP_HAS_URL+"> ?wTempl."
-                + "OPTIONAL{?templ <"+Constants.WINGS_DATA_PROP_HAS_TEMPLATE_DIAGRAM+"> ?templDiagram}."
-                + "?fileURI <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status."
-                + "?fileURI <"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?startT."
-                + "?fileURI <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?endT."
-                + "OPTIONAL {?fileURI <"+Constants.WINGS_DATA_PROP_HAS_CREATION_TOOL+"> ?tool}."
+    static String queryIntermediateTemplates() {
+        String query = "SELECT ?template ?expandedTemplate ?wfInstance WHERE{"
+                + "?execution a <"+Constants.WINGS_EXECUTION+">."
+                + "?execution <"+Constants.WINGS_PROP_HAS_TEMPLATE+"> ?template."
+                + "?execution <"+Constants.WINGS_PROP_HAS_PLAN+"> ?wfInstance."
+                + "?execution <"+Constants.WINGS_PROP_HAS_EXPANDED_TEMPLATE+"> ?expandedTemplate.}";
+        return query;
+    }
+    /**
+     * Query to retrieve the name of the template plus metadata from the results
+     * @return query
+     */
+    public static String queryExecutionMetadata(){
+        String query = "SELECT ?exec ?status ?startT ?endT ?user ?tool ?license WHERE{"
+                + "?exec a <"+Constants.WINGS_EXECUTION+">."
+                + "OPTIONAL {?exec <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status}."
+                + "OPTIONAL {?exec <"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?startT}."
+                + "OPTIONAL {?exec <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?endT}."
+                + "OPTIONAL {?exec <"+Constants.WINGS_PROP_HAS_USER+"> ?user}."
+                + "OPTIONAL {?exec <"+Constants.WINGS_DATA_PROP_HAS_CREATION_TOOL+"> ?tool}."
                 //+ "OPTIONAL {?fileURI <"+Constants.WINGS_DATA_PROP_HAS_EXECUTION_ENGINE+"> ?engine}."
-                + "OPTIONAL {?fileURI <"+Constants.WINGS_DATA_PROP_HAS_LICENSE+"> ?license}."
-                + "OPTIONAL {?fileURI <"+Constants.WINGS_DATA_PROP_HAS_EXECUTION_DIAGRAM+"> ?execDiagram}."
+                + "OPTIONAL {?exec <"+Constants.WINGS_DATA_PROP_HAS_LICENSE+"> ?license}."
+//                + "OPTIONAL {?fileURI <"+Constants.WINGS_DATA_PROP_HAS_EXECUTION_DIAGRAM+"> ?execDiagram}."
                 + "}";
         return query;
     }
     
     /**
-     * Function to query the tools used and their version.
+     * Query to retrieve the metadata of each step
      * @return 
      */
-    static String queryUsedTools() {
-        String query = "SELECT ?toolID ?version ?url WHERE{"
-                + "?fileURI <"+Constants.WINGS_PROP_HAS_EXECUTION_ENGINE+"> ?eng."
-                + "?eng <"+Constants.WINGS_PROP_USES_TOOL+"> ?tool."
-                + "?tool <"+Constants.WINGS_PROP_HAS_ID+"> ?toolID."
-                + "?tool <"+Constants.WINGS_PROP_HAS_URL+"> ?url."
-                + "?tool <"+Constants.WINGS_DATA_PROP_HAS_VERSION+"> ?version."
+    public static String queryStepsAndMetadata() {
+        String query = "SELECT ?step ?startT ?endT ?status ?code ?derivedFrom WHERE{"
+                + "?step a <"+Constants.WINGS_EXECUTION_STEP+">. "
+                + "OPTIONAL{?step <"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?startT}."//this can be optional
+                + "OPTIONAL{?step <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?endT}."//this can be optional
+                + "?step <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status."
+                + "?step <"+Constants.WF_INVOC_DATA_PROP_HAS_CODE_BINDING+"> ?code."
+                + "OPTIONAL{?step <"+Constants.WINGS_PROP_DERIVED_FROM+"> ?derivedFrom}."
                 + "}";
         return query;
     }
-
+    
     /**
-     * Query to retrieve the nodes (processes) of the results.
-     * @return
+     * Query to retrieve steps and their inputs of an execution
+     * @return 
      */
-//    public static String queryNodesResults(){
-//        String query = "SELECT ?nodeId ?absComponent ?comp ?compLoc WHERE{"
-//                + "?wf <"+Constants.WINGS_PROP_HAS_NODE+"> ?node."
-//                + "?node <"+Constants.WINGS_PROP_HAS_ID+"> ?nodeId."
-//                + "?node <"+Constants.WINGS_PROP_HAS_COMPONENT_TYPE+"> ?absComponent."
-//                + "?node <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?cbind."
-//                + "?cbind <"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?comp ."
-//                + "OPTIONAL {?cbind <"+Constants.WINGS_PROP_HAS_LOCATION+"> ?compLoc.}}";
-//        return query;
-//    }
+    public static String queryStepInputs() {
+        String query = "SELECT ?step ?input ?iBinding WHERE{"
+                + "?step a <"+Constants.WINGS_EXECUTION_STEP+">. "
+                + "?step <"+Constants.P_PLAN_PROP_HAS_INPUT+"> ?input."
+                + "?input <"+Constants.WF_INVOC_DATA_PROP_HAS_DATA_BINDING+"> ?iBinding."
+                + "}";
+        return query;
+    }
+    
+    /**
+     * Query to retrieve steps and their outputs of an execution
+     * @return 
+     */
+    public static String queryStepOutputs() {
+        String query = "SELECT ?step ?output ?oBinding WHERE{"
+                + "?step a <"+Constants.WINGS_EXECUTION_STEP+">. "
+                + "?step <"+Constants.P_PLAN_PROP_HAS_OUTPUT+"> ?output."
+                + "?output <"+Constants.WF_INVOC_DATA_PROP_HAS_DATA_BINDING+"> ?oBinding."
+                + "}";
+        return query;
+    }
+    
+    /**
+     * Query to select the data variables and their metadata
+     * @return 
+     */
+    static String queryDataVariablesMetadata() {
+        String query = "SELECT ?variable ?prop ?obj WHERE{"
+                + "?variable a <"+Constants.WINGS_DATA_VARIABLE+">."
+                + "?variable ?prop ?obj."
+                + "}";
+        return query;
+    }
+    /**
+     * Query to select step, their input parameters and their values
+     * @return 
+     */
+    public static String querySelectStepParameterValues(){
+        String query = "SELECT ?step ?param ?value ?derivedFrom WHERE{"
+                + "?link <"+Constants.WINGS_PROP_HAS_DESTINATION_NODE+"> ?step."
+                + "?link <"+Constants.WINGS_PROP_HAS_VARIABLE+"> ?param."
+                + "?param a <"+Constants.WINGS_PARAMETER_VARIABLE+">."
+                + "?param <"+Constants.WINGS_DATA_PROP_HAS_PARAMETER_VALUE+"> ?value."
+                + "OPTIONAL{?param <"+Constants.WINGS_PROP_DERIVED_FROM+"> ?derivedFrom}."
+                + "}";
+        return query;
+    }
     
     /**
      * Query to retrieve the nodes (processes) of the results.
@@ -235,120 +291,19 @@ public class Queries {
                 + "}";
         return query;
     }
-
+    
     /**
-     * query to retrieve the 'used' relationships
-     * @return
+     * Query that will help determine whether an execution has already been published or not.
+     * @param runURL
+     * @return 
      */
-//    public static String queryInLinksResults(){
-//        String query = "SELECT ?id ?var ?dbind ?cbind ?pbind ?loc ?size ?varT ?role WHERE{"
-//                + "?wf <"+Constants.WINGS_PROP_HAS_NODE+"> ?node."
-//                + "?node <"+Constants.WINGS_PROP_HAS_ID+"> ?id."
-//                + "?node <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?cbind.}";//cbind
-////                + "?cbind <"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?comp ."
-////                + "?cbind <"+Constants.WINGS_PROP_HAS_INPUT+"> ?inp ."
-////                + "?inp <"+Constants.WINGS_PROP_HAS_VARIABLE+"> ?var ."
-////                + "?inp <"+Constants.WINGS_PROP_HAS_ARGUMENT_ID+"> ?role."                
-////                + "OPTIONAL{?inp <"+Constants.WINGS_PROP_HAS_PARAMETER_BINDING+"> ?pbind .}."
-////                + "OPTIONAL{?inp <"+Constants.WINGS_PROP_HAS_DATA_BINDING+"> ?dbind ."
-////                + "?dbind <"+Constants.WINGS_PROP_HAS_LOCATION+"> ?loc."
-////                + "?dbind <"+Constants.WINGS_DATA_PROP_HAS_SIZE+"> ?size."
-////                + "?dbind a ?varT.}}";
-//        return query;
-//    }
-    
-    /**TEST QUERIES**/
-    //query to iterate through an RDF list
-//    public static String queryTestspecific(){
-//        String query = "SELECT ?member WHERE{"
-//                + "?a <"+Constants.WINGS_PROP_HAS_INPUT+"> ?input."
-//                + "?input <"+Constants.WINGS_PROP_HAS_ARGUMENT_ID+"> \"InputSensorData\"."
-//                + "?input <"+Constants.WINGS_PROP_HAS_VARIABLE+"> <http://www.isi.edu/Water/AquaFlow_NTM.owl#DailyData>."
-//                + "?input <"+Constants.WINGS_PROP_HAS_DATA_BINDING+"> ?dbind. "
-//                + "?dbind <http://jena.hpl.hp.com/ARQ/list#member> ?member ."
-//                + "}";
-//        return query;
-//    }
-//    
-//    public static String queryInLinkTest(){
-//        String query = "SELECT ?comp ?inp ?dbind ?pbind WHERE{"                         
-//                + "?cbind <"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?comp ."
-//                + "?cbind <"+Constants.WINGS_PROP_HAS_INPUT+"> ?inp ."
-////                + "?inp <"+Constants.WINGS_PROP_HAS_VARIABLE+"> ?var ."
-////                + "?inp <"+Constants.WINGS_PROP_HAS_ARGUMENT_ID+"> ?role."                
-//                + "OPTIONAL{?inp <"+Constants.WINGS_PROP_HAS_PARAMETER_BINDING+"> ?pbind .}."
-//                + "OPTIONAL{?inp <"+Constants.WINGS_PROP_HAS_DATA_BINDING+"> ?dbind .}}";
-////                + "?dbind <"+Constants.WINGS_PROP_HAS_LOCATION+"> ?loc."
-////                + "?dbind <"+Constants.WINGS_DATA_PROP_HAS_SIZE+"> ?size."
-////                + "?dbind a ?varT.}}";
-//        return query;
-//    }
-//    
-//    public static String getComponentBindingLists(){
-//        String query = "SELECT ?id ?first ?rest WHERE{"
-//                + "?wf <"+Constants.WINGS_PROP_HAS_NODE+"> ?node."
-//                + "?node <"+Constants.WINGS_PROP_HAS_ID+"> ?id."
-//                + "?node <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?cbind."
-//                + "?cbind <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?first."
-//                + "?cbind <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?rest}";//cbind
-//
-//        return query;
-//    }
-    
-//    public static String getCompLocInputOutput(String uri){
-//        String query = "SELECT ?comp ?loc WHERE{"
-//                + uri+ "<"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?comp ."
-//                + uri+ "<"+Constants.WINGS_PROP_HAS_LOCATION+"> ?loc ."                
-//                + "}";
-//
-//        return query;
-//    }
-    
-//    public String getComponentBinding(){
-//        return query;
-//    }
-/**
-     * END TEST QUERIES
-     */
-    
- /**
-  * Query to retrieve the 'wasGeneratedBy' relationships
-  * @return
-  */
-// public static String queryOutLinksResults(){
-//        String query = "SELECT ?id ?var ?bind ?loc ?size ?varT ?role WHERE{"
-//                + "?wf <"+Constants.WINGS_PROP_HAS_NODE+"> ?node."
-//                + "?node <"+Constants.WINGS_PROP_HAS_ID+"> ?id."
-//                + "?node <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?cbind."
-//                + "?cbind <"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?comp ."
-//                + "?cbind <"+Constants.WINGS_PROP_HAS_OUTPUT+"> ?out ."
-//                + "?out <"+Constants.WINGS_PROP_HAS_VARIABLE+"> ?var ."
-//                + "?out <"+Constants.WINGS_PROP_HAS_ARGUMENT_ID+"> ?role."
-//                + "?out <"+Constants.WINGS_PROP_HAS_DATA_BINDING+"> ?bind ."
-//                + "?bind <"+Constants.WINGS_PROP_HAS_LOCATION+"> ?loc."
-//                + "?bind <"+Constants.WINGS_DATA_PROP_HAS_SIZE+"> ?size."
-//                + "?bind a ?varT.}";
-//        return query;
-//    }
-
- /**
-  * Query to retrieve the related properties from an artifact.
-  * Since Allegro does not work well with regexp, it retrieves all and
-  * the filtering has to be done manually
-  * @param artifactID ID of the artifact we are aiming to retrieve the properties.
-  * @return
-  */
-    public static String queryDCDOMProperties(String artifactID){
-        String queryDCDOMprops = "SELECT ?prop ?value WHERE{"
-                + "<"+artifactID+"> ?prop ?value.}";
-        return queryDCDOMprops;
-    }
-    
     public static String queryIsTheRunAlreadyPublished(String runURL){
         String queryRun= "prefix xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?run WHERE {"
                 + "?run <http://www.opmw.org/ontology/hasOriginalLogFile> \""+runURL+"\"^^xsd:anyURI}";
         return queryRun;
     }
+
+    
 
     
    

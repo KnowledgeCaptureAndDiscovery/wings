@@ -1,20 +1,18 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Copyright 2012-2013 Ontology Engineering Group, Universidad Politécnica de Madrid, Spain
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-
 package edu.isi.ikcap.wings.opmm;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
@@ -31,18 +29,13 @@ import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.util.FileManager;
-import java.io.FileNotFoundException;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -54,14 +47,17 @@ public class Mapper {
     private OntModel WINGSExecutionResults;
     private OntModel OPMWModel;
     private OntModel PROVModel;
-    private String ACDOM = null;
-    private String DCDOM = null;
-    private int count = 0;//count for avoiding the same process identiefier in n-dimensional lists
-    //this 2 variables cannot be on the constants because they change on every domain
+    private String taxonomyURL;
     public Mapper(){
 
     }
 
+    /**
+     * Query a local repository, specified in the second argument
+     * @param queryIn sparql query to be performed
+     * @param repository repository on which the query will be performed
+     * @return 
+     */
     private ResultSet queryLocalRepository(String queryIn, OntModel repository){
         Query query = QueryFactory.create(queryIn);
         // Execute the query and obtain results
@@ -70,25 +66,56 @@ public class Mapper {
         //qe.close();
         return rs;
     }
-
-    public ResultSet queryLocalOPMRepository(String queryIn) {
+    
+    /**
+     * Query the local OPMW repository
+     * @param queryIn input query
+     * @return 
+     */
+    @SuppressWarnings("unused")
+    private ResultSet queryLocalOPMRepository(String queryIn) {
         return queryLocalRepository(queryIn, OPMWModel);
     }
-    public ResultSet queryLocalWINGSTemplateModelRepository(String queryIn) {
+    /**
+     * Query the local Wings repository
+     * @param queryIn input query
+     * @return 
+     */
+    private ResultSet queryLocalWINGSTemplateModelRepository(String queryIn) {
         return queryLocalRepository(queryIn, WINGSModelTemplate);
     }
-    public ResultSet queryLocalWINGSResultsRepository(String queryIn) {
+    /**
+     * Query the local results repository
+     * @param queryIn input query
+     * @return 
+     */
+    private ResultSet queryLocalWINGSResultsRepository(String queryIn) {
         return queryLocalRepository(queryIn, WINGSExecutionResults);
+    }
+    /**
+     * Method for accessing the URl of the domain ontology.
+     * @param queryIn input query
+     * @return 
+     */
+    private String getTaxonomyURL(OntModel m) throws Exception{
+        if(taxonomyURL!=null)return taxonomyURL;
+        else{
+            ResultSet rs = this.queryLocalRepository(Queries.queryGetTaxonomyURL(), m);
+            if(rs.hasNext()){
+                taxonomyURL = rs.next().getResource("?taxonomyURL").getNameSpace();
+            }else{
+                throw new Exception("Taxonomy is not available");
+            }
+        }
+        return taxonomyURL;
     }
 
     /**
      * Loads the files to the Local repository, to prepare conversion to OPM
      * @param template. Workflow template
-     * @param executionResults. Results of the execution of with the workflow template
-     * @param modeFile1. syntax of the files to load: "RDF/XML", "N-TRIPLE", "TURTLE" (or "TTL") and "N3"
-     * @param modeFile2. syntax of the files to load: "RDF/XML", "N-TRIPLE", "TURTLE" (or "TTL") and "N3"
+     * @param modeFile. syntax of the files to load: "RDF/XML", "N-TRIPLE", "TURTLE" (or "TTL") and "N3"
      */
-    public void loadTemplateFileToLocalRepository(String template, String modeFile){
+    public void loadTemplateFileToLocalRepository(String template, String modeFile) throws Exception{
         WINGSModelTemplate = ModelFactory.createOntologyModel();//ModelFactory.createDefaultModel();
         InputStream in = FileManager.get().open(template);
         if (in == null) {
@@ -97,39 +124,47 @@ public class Mapper {
         // read the RDF/XML file
         WINGSModelTemplate.read(in, null, modeFile);
         System.out.println("File "+template+" loaded into the model template");
-        getACDCfromModel(true);
+//        getACDCfromModel(true);
+        //load the taxonomy as well
+        loadTaxonomy(WINGSModelTemplate);
+    }
+    
+    /**
+     * Method to load the domain specific taxonomy. Used to determine the node types.
+     * @param m model where to load the taxonomy
+     * @throws Exception 
+     */
+    private void loadTaxonomy(OntModel m)throws Exception{
+         System.out.println("Attempting to load the domain specific domain ...");
+        //since this is NOT included in the template per se, we need to download it
+        System.out.println("Importing taxonomy at: "+ getTaxonomyURL(m));
+        m.read(getTaxonomyURL(m));
+        System.out.println("Done");
     }
 
+    /**
+     * Method to load an execution file to a local model.
+     * @param executionResults owl file with the execution
+     * @param mode type of serialization. E.g., "RDF/XML"
+     */
     public void loadResultFileToLocalRepository(String executionResults, String mode){
         InputStream in2 = FileManager.get().open(executionResults);
         if (in2 == null){
             throw new IllegalArgumentException("File: " + executionResults + " not found");
         }
-        WINGSExecutionResults = ModelFactory.createOntologyModel();//ModelFactory.createDefaultModel();
+        
         WINGSExecutionResults.read(in2, null, mode);
         System.out.println("File "+executionResults+" loaded into the execution results");
-        getACDCfromModel(false);
     }
 
     /**
-     * Constants ac catalog and dc catalog depend on the domain. They have to be loaded from the file
+     * Method to transform a Wings template to OPMW, PROV and P-Plan
+     * @param template template file
+     * @param mode rdf serialization of the file
+     * @param outFile output file name
+     * @return Template URI assigned to identify the template
      */
-    public void getACDCfromModel(boolean template){
-        if(template){
-            //query the template
-            this.ACDOM = WINGSModelTemplate.getNsPrefixURI("acdom");
-            this.DCDOM = WINGSModelTemplate.getNsPrefixURI("dcdom");
-
-        }else{//results
-            this.ACDOM = WINGSExecutionResults.getNsPrefixURI("acdom");
-            this.DCDOM = WINGSExecutionResults.getNsPrefixURI("dcdom");
-        }
-        System.out.println("ACDOM: "+ACDOM);
-        System.out.println("DCDOM: "+DCDOM);
-    }
-
-    //THE PROV MODEL IS NOT NECESSARY HERE BECAUSE THE BUNDLE CONTAINS ONLY THE EXECUTION (PROV)
-    public void transformWINGSElaboratedTemplateToOPM(String template,String mode, String outFile){
+    public String transformWINGSElaboratedTemplateToOPMW(String template,String mode, String outFile){
         //clean previous transformations
         if(WINGSModelTemplate!=null){
             WINGSModelTemplate.removeAll();
@@ -138,9 +173,13 @@ public class Mapper {
             OPMWModel.removeAll();            
         }
         OPMWModel = ModelFactory.createOntologyModel(); //inicialization of the model        
-        //load the template file to WINGSModel
-        this.loadTemplateFileToLocalRepository(template, mode);        
-        //query the model and transform
+        try{
+            //load the template file to WINGSModel
+            this.loadTemplateFileToLocalRepository(template, mode);
+        }catch(Exception e){
+            System.err.println("Error "+e.getMessage());
+            return "";
+        }
         //retrieval of the name of the workflowTemplate
         String queryNameWfTemplate = Queries.queryNameWfTemplate();
         String templateName = null, templateName_ = null;
@@ -153,7 +192,7 @@ public class Mapper {
             templateName = res.getLocalName();
             if (templateName==null){
                 System.out.println("Error: No Template specified.");
-                return;
+                return "";
             }
             templateName_=templateName+"_";
             //add the template as a provenance graph
@@ -162,9 +201,16 @@ public class Mapper {
                 this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,""+ v.getInt(),
                         Constants.OPMW_DATA_PROP_VERSION_NUMBER, XSDDatatype.XSDint);
             }
+            //add the uri of the original log file (native system template)
+            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName, 
+                    res.getURI(),Constants.OPMW_DATA_PROP_HAS_NATIVE_SYSTEM_TEMPLATE, XSDDatatype.XSDanyURI);
+            
             //Prov-o interoperability : workflow template           
             OntClass plan = OPMWModel.createClass(Constants.PROV_PLAN);
             plan.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+encode(templateName));
+            
+            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
+                res.getURI(),Constants.PROV_HAD_PRIMARY_SOURCE, XSDDatatype.XSDanyURI);
         }        
         
         //additional metadata from the template.
@@ -217,7 +263,7 @@ public class Mapper {
             Resource comp = qs.getResource("?c");
             Resource typeComp = qs.getResource("?typeComp");
             //Literal isConcrete = qs.getLiteral("?isConcrete");
-            System.out.println(res+" Template has component "+comp+" of type: "+ typeComp);//+ " which is concrete: "+isConcrete.getBoolean()
+            System.out.println(res+" Node has component "+comp+" of type: "+ typeComp);//+ " which is concrete: "+isConcrete.getBoolean()
             //add each of the nodes as a UniqueTemplateProcess
             this.addIndividual(OPMWModel,templateName_+res.getLocalName(),Constants.OPMW_WORKFLOW_TEMPLATE_PROCESS, "Workflow template process "+res.getLocalName());
                      
@@ -240,7 +286,7 @@ public class Mapper {
         while(r.hasNext()){
             QuerySolution qs = r.next();
             Resource res = qs.getResource("?d");
-            Resource opt = qs.getResource("?t");
+            //Resource opt = qs.getResource("?t");
             Literal dim = qs.getLiteral("?hasDim");            
             this.addIndividual(OPMWModel,templateName_+res.getLocalName(), Constants.OPMW_DATA_VARIABLE, "Data variable "+res.getLocalName());
             //we add the individual as a workflowTemplateArtifact as well            
@@ -253,21 +299,22 @@ public class Mapper {
                         ""+dim.getInt(), Constants.OPMW_DATA_PROP_HAS_DIMENSIONALITY, XSDDatatype.XSDint);
                 System.out.println(res+" has dim: "+dim.getInt());
             }
-            if(opt!=null){
-                //sometimes there are some blank nodes asserted as types in the ellaboration.
-                //This will remove the blank nodes.
-                if(opt.isURIResource()){
-                    System.out.println(res+" of type "+ opt);
-                    //add the individual as an instance of another class, not as a new individual
-                    String nombreIndividuoEnc = encode(Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+res.getLocalName());
-                    OntClass c = OPMWModel.createClass(opt.getURI());
-                    c.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+nombreIndividuoEnc);
-                }else{
-                    System.out.println("ANON RESOURCE "+opt.getURI()+" ignored");
-                }
-            }else{
-                System.out.println(res);
-            }
+            /*IF THE TYPES OF DATA VARIABLES ARE GOING TO BE ADDED, LOOK AT ISSUE #7 ON GITHUB*/
+//            if(opt!=null){
+//                //sometimes there are some blank nodes asserted as types in the ellaboration.
+//                //This will remove the blank nodes.
+//                if(opt.isURIResource()){
+//                    System.out.println(res+" of type "+ opt);
+//                    //add the individual as an instance of another class, not as a new individual
+//                    String nameEncoded = encode(Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+res.getLocalName());
+//                    OntClass c = OPMWModel.createClass(opt.getURI());
+//                    c.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+nameEncoded);
+//                }else{
+//                    System.out.println("ANON RESOURCE "+opt.getURI()+" ignored");
+//                }
+//            }else{
+//                System.out.println(res);
+//            }
             this.addProperty(OPMWModel,Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+res.getLocalName(),
                     Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
                         Constants.OPMW_PROP_IS_VARIABLE_OF_TEMPLATE);
@@ -286,11 +333,7 @@ public class Mapper {
             String aux = encode(Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName_+res.getLocalName());
             OntClass cAux = OPMWModel.createClass(Constants.OPMW_WORKFLOW_TEMPLATE_ARTIFACT);//repeated tuples will not be duplicated
             cAux.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+aux);
-            //this has been commented to avoid asserting parameter values in templates. Not necessary
-//            if(parValue!=null){
-//                this.addDataProperty(OPMWModel,Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName_+res.getLocalName(),
-//                    parValue.getLexicalForm(), Constants.OPMW_DATA_PROP_HAS_DIMENSIONALITY);
-//            }
+            
             this.addProperty(OPMWModel,Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName_+res.getLocalName(),
                     Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,                    
                         Constants.OPMW_PROP_IS_PARAMETER_OF_TEMPLATE);
@@ -304,18 +347,21 @@ public class Mapper {
             QuerySolution qs = r.next();
             Resource resVar = qs.getResource("?var");
             Resource resNode = qs.getResource("?dest");
-            Resource role = qs.getResource("?role");            
+            String role = qs.getLiteral("?role").getString();            
             this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
                         Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
                             Constants.OPMW_PROP_USES);
             if(role!=null){
-                System.out.println("Node "+resNode.getLocalName() +" Uses "+ resVar.getLocalName()+ " Role: "+role.getLocalName());
+                System.out.println("Node "+resNode.getLocalName() +" Uses "+ resVar.getLocalName()+ " Role: "+role);
                 //add the roles as subproperty of used. This triple should be on the ontology.
                 this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
                         Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
-                            Constants.PREFIX_OPMW+"usesAs_"+role.getLocalName());
+                            Constants.PREFIX_EXTENSION+"usesAs_"+role);
                 //link the property as a subproperty of Used
-                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_USES, Constants.PREFIX_OPMW+"usesAs_"+role.getLocalName());
+                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_USES, Constants.PREFIX_EXTENSION+"usesAs_"+role);
+                //description of the new property
+                OntProperty propUsed = OPMWModel.getOntProperty(Constants.PREFIX_EXTENSION+"usesAs_"+role);
+                propUsed.addLabel("Property that indicates that a resource has been used as a "+role, "EN");
             }
         }
         String queryInputLinksP = Queries.queryInputLinksP();
@@ -325,18 +371,20 @@ public class Mapper {
             QuerySolution qs = r.next();
             Resource resVar = qs.getResource("?var");
             Resource resNode = qs.getResource("?dest");
-            Resource role = qs.getResource("?role");
+            String role = qs.getLiteral("?role").getString(); 
             this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
                         Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName_+resVar.getLocalName(),
                             Constants.OPMW_PROP_USES);
             if(role!=null){
-                System.out.println("Node "+resNode.getLocalName() +" Uses "+ resVar.getLocalName()+ " Role: "+role.getLocalName());
+                System.out.println("Node "+resNode.getLocalName() +" Uses "+ resVar.getLocalName()+ " Role: "+role);
                 //add the roles as subproperty of used. This triple should be on the ontology.
                 this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
                         Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName_+resVar.getLocalName(),
-                            Constants.PREFIX_OPMW+"usesAs_"+role.getLocalName());
+                            Constants.PREFIX_EXTENSION+"usesAs_"+role);
                 //link the property as a subproperty of Used
-                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_USES, Constants.PREFIX_OPMW+"usesAs_"+role.getLocalName());
+                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_USES, Constants.PREFIX_EXTENSION+"usesAs_"+role);
+                OntProperty propUsed = OPMWModel.getOntProperty(Constants.PREFIX_EXTENSION+"usesAs_"+role);
+                propUsed.addLabel("Property that indicates that a resource has been used as a "+role, "EN");
             }
         }
 
@@ -348,18 +396,20 @@ public class Mapper {
             QuerySolution qs = r.next();
             Resource resVar = qs.getResource("?var");
             Resource resNode = qs.getResource("?orig");
-            Resource role = qs.getResource("?role");            
+            String role = qs.getLiteral("?role").getString();             
             this.addProperty(OPMWModel,Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
                     Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
                         Constants.OPMW_PROP_IGB);
             if(role!=null){
-                System.out.println("Artifact "+ resVar.getLocalName()+" Is generated by node "+resNode.getLocalName()+" Role "+role.getLocalName());
+                System.out.println("Artifact "+ resVar.getLocalName()+" Is generated by node "+resNode.getLocalName()+" Role "+role);
                 //add the roles as subproperty of used. This triple should be on the ontology.
                 this.addProperty(OPMWModel,Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
                     Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
-                            Constants.PREFIX_OPMW+"isGeneratedByAs_"+role.getLocalName());
+                            Constants.PREFIX_EXTENSION+"isGeneratedByAs_"+role);
                 //link the property as a subproperty of WGB
-                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_IGB, Constants.PREFIX_OPMW+"isGeneratedByAs_"+role.getLocalName());
+                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_IGB, Constants.PREFIX_EXTENSION+"isGeneratedByAs_"+role);
+                OntProperty propGenerated = OPMWModel.getOntProperty(Constants.PREFIX_EXTENSION+"isGeneratedByAs_"+role);
+                propGenerated.addLabel("Property that indicates that a resource has been generated as a "+role, "EN");
             }
         }
         //InOutLink == Used and WasGeneratedBy
@@ -370,13 +420,13 @@ public class Mapper {
             QuerySolution qs = r.next();
             Resource resVar = qs.getResource("?var");
             Resource resNode = qs.getResource("?orig");
-            Resource roleOrig = qs.getResource("?origRole");
+            String roleOrig = qs.getLiteral("?origRole").getString();
             Resource resNodeD = qs.getResource("?dest");
-            Resource roleDest = qs.getResource("?destRole");
+            String roleDest = qs.getLiteral("?destRole").getString();
             if(roleOrig!=null && roleDest!=null){
                 System.out.println("Artifact "+ resVar.getLocalName()+" is generated by node "+resNode.getLocalName()
-                        +" with role "+roleOrig.getLocalName()+" and uses node "+resNodeD.getLocalName()
-                        +" with role "+ roleDest.getLocalName());
+                        +" with role "+roleOrig+" and uses node "+resNodeD.getLocalName()
+                        +" with role "+ roleDest);
             }
             //they are all data variables
             this.addProperty(OPMWModel,Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
@@ -388,32 +438,47 @@ public class Mapper {
             if(roleOrig!=null){                
                 this.addProperty(OPMWModel,Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
                     Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNode.getLocalName(),
-                            Constants.PREFIX_OPMW+"isGeneratedByAs_"+roleOrig.getLocalName());
+                            Constants.PREFIX_EXTENSION+"isGeneratedByAs_"+roleOrig);
                 //link the property as a subproperty of WGB
-                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_IGB, Constants.PREFIX_OPMW+"isGeneratedByAs_"+roleOrig.getLocalName());
+                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_IGB, Constants.PREFIX_EXTENSION+"isGeneratedByAs_"+roleOrig);
+                OntProperty propGenerated = OPMWModel.getOntProperty(Constants.PREFIX_EXTENSION+"isGeneratedByAs_"+roleOrig);
+                propGenerated.addLabel("Property that indicates that a resource has been generated as a "+roleOrig, "EN");
             }
             if(roleDest!=null){
                 //System.out.println("created role "+ Constants.PREFIX_ONTOLOGY_PROFILE+"used_"+roleDest.getLocalName());
                 this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName_+resNodeD.getLocalName(),
                         Constants.CONCEPT_DATA_VARIABLE+"/"+templateName_+resVar.getLocalName(),
-                            Constants.PREFIX_OPMW+"usesAs_"+roleDest.getLocalName());
+                            Constants.PREFIX_EXTENSION+"usesAs_"+roleDest);
                 //link the property as a subproperty of Used
-                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_USES, Constants.PREFIX_OPMW+"usesAs_"+roleDest.getLocalName());
+                this.createSubProperty(OPMWModel,Constants.OPMW_PROP_USES, Constants.PREFIX_EXTENSION+"usesAs_"+roleDest);
+                OntProperty propUsed = OPMWModel.getOntProperty(Constants.PREFIX_EXTENSION+"usesAs_"+roleDest);
+                propUsed.addLabel("Property that indicates that a resource has been used as a "+roleDest, "EN");
             }
         }
-        /***********************************************************************************
+        /******************
          * FILE EXPORT. 
-         ***********************************************************************************/        
+         ******************/        
         exportRDFFile(outFile, OPMWModel);
+        return Constants.PREFIX_EXPORT_RESOURCE+""+Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+encode(templateName);
     }
 
-    
-    public String transformWINGSResultsToOPM(String results,String modeFile, String outFilenameOPMW, String outFilenamePROV){
-        //this first operations should be on a "initialize" method
+/**
+ * Method to transform a Wings execution to OPMW, PROV and P-Plan.
+ * Note that this method will load the Workflow Instance and Workflow Expanded Template
+ * from the data in the execution file. It is assumed that these URLs are accessible.
+ * @param resultFile the Wings Execution File for this execution.
+ * @param libraryFile the library file containing all the execution metadata.
+ * @param modeFile the serialization of the data (e.g., RDF/XML)
+ * @param outFilenameOPMW output name for the OPMW serialization
+ * @param outFilenamePROV output name for the PROV serialization
+ * @return 
+ */
+    public String transformWINGSResultsToOPMW(String resultFile, String libraryFile, String modeFile, String outFilenameOPMW, String outFilenamePROV){
         //clean previous transformations        
         if(WINGSExecutionResults!=null){
             WINGSExecutionResults.removeAll();//where we store the RDF to query
         }
+        WINGSExecutionResults = ModelFactory.createOntologyModel();//ModelFactory.createDefaultModel();
         if(OPMWModel!=null){
             OPMWModel.removeAll(); //where we store the new RDF we create
         }
@@ -422,67 +487,33 @@ public class Mapper {
             PROVModel.removeAll();
         }
         PROVModel=ModelFactory.createOntologyModel();
-        //load the files to WINGSModel
-        //this.loadTemplateFileToLocalRepository(template, modeFile2);
-        this.loadResultFileToLocalRepository(results, modeFile);        
-        String queryNameWfTemplate = Queries.queryNameWfTemplateAndMetadata();
-        String wingsResultsFile = null, templateName = null, user = null,
-                wingsURLname = null, status = null, startT = null, endT = null, license = null, tool = null;
-        //we need the template name to reference the nodes in the wf exec.
-        /********************************************************/
-        /************** EXECUTION ACCOUNT METADATA **************/
-        /********************************************************/
-        ResultSet r = queryLocalWINGSResultsRepository(queryNameWfTemplate);
-        Resource execDiagram = null;
-        Resource templDiagram = null;
+        //load the execution library file
+        this.loadResultFileToLocalRepository(libraryFile, modeFile);
+        //load the execution file
+        this.loadResultFileToLocalRepository(resultFile, modeFile);        
+        //now, extract the expanded template and the workflow instance. Load them as well
+        String queryIntermediateTemplates = Queries.queryIntermediateTemplates();
+        //the template is only needed to connect the execution account to itself.
+        ResultSet r = queryLocalWINGSResultsRepository(queryIntermediateTemplates);
+        @SuppressWarnings("unused")
+        String templateName = "", templateURI, expandedTemplateURI;
         if(r.hasNext()){
             QuerySolution qs = r.next();
-            wingsResultsFile = qs.getResource("?fileURI").getURI();
-            Resource res = qs.getResource("?name");
-            templateName = res.getLocalName();
-            user = qs.getLiteral("?user").getString();
-            wingsURLname = qs.getResource("?wTempl").getURI();
-            status = qs.getLiteral("?status").getString();
-            startT = qs.getLiteral("?startT").getString();
-            endT = qs.getLiteral("?endT").getString();
-            execDiagram = qs.getResource("?execDiagram");
-            templDiagram = qs.getResource("?templDiagram");
-            tool = qs.getLiteral("?tool").getString();
-            //engine = qs.getLiteral("?engine").getString();
-            license = qs.getLiteral("?license").getString();
-            
-            System.out.println("Wings results file:"+wingsResultsFile+"\n"
-                    + "User: "+user+", \n"
-                    + "Workflow Template: "+templateName+"\n"
-                    + "Wings Workflow template: "+wingsURLname+"\n"
-                    + "status: "+status+"\n"
-                    + "startTime: "+startT+"\n"
-                    + "endTime: "+endT);
+            Resource template = qs.getResource("?template");
+            templateURI = template.getURI();
+            templateName = template.getLocalName();
+            String wfInstance = qs.getResource("?wfInstance").getURI();
+            expandedTemplateURI = qs.getResource("?expandedTemplate").getURI();
+//            this.loadResultFileToLocalRepository(template.getURI(), modeFile);
+//            System.out.println("Loaded the original template successfully ...");
+            this.loadResultFileToLocalRepository(expandedTemplateURI, modeFile);
+            System.out.println("Loaded the expanded template successfully ...");
+            this.loadResultFileToLocalRepository(wfInstance, modeFile);
+            System.out.println("Loaded the workflow instance successfully ...");
+        }else{
+            System.err.println("The template, expanded template or workflow instance are not available. ");
+            return "";
         }
-        
-        if(templateName == null){
-            System.out.println("Workflow Template not existant");
-            return null;
-        }
-        //query for the tools used in the execution (there can be more than one)
-        String queryToolsUsed = Queries.queryUsedTools();        
-        //we need the template name to reference the nodes in the wf exec.        
-        r = queryLocalWINGSResultsRepository(queryToolsUsed);
-        ArrayList<ArrayList<String>> tools = new ArrayList<ArrayList<String>>();
-        ArrayList<String> currTool;
-        while(r.hasNext()){
-            QuerySolution qs = r.next();
-            String toolID = qs.getLiteral("toolID").getString();
-            String toolURL = qs.getResource("url").getURI();
-            String toolVersion = qs.getLiteral("version").getString();
-            currTool = new ArrayList<String>();
-            currTool.add(toolID);
-            currTool.add(toolURL);
-            currTool.add(toolVersion);
-            tools.add(currTool);
-            //System.out.println("TOOL USED: "+toolID+ " URL :"+toolURL+ " VERSION: "+toolVersion);
-        }
-        
         String date = ""+new Date().getTime();//necessary to add unique nodeId identifiers
         
         //add the account of the current execution
@@ -499,106 +530,111 @@ public class Mapper {
         d.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+accname);
         
         //relation between the account and the template
-        this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+        this.addProperty(OPMWModel,accname,
                 Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
                     Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE);
+        
+        //account metadata: start time, end time, user, license and status.                
+        String queryMetadata = Queries.queryExecutionMetadata();
+        String executionFile = null, user = null,
+                status = null, startT = null, endT = null, license = null, tool = null;
+        
+        //we need the template name to reference the nodes in the wf exec.
+        /********************************************************/
+        /************** EXECUTION ACCOUNT METADATA **************/
+        /********************************************************/
+        r = queryLocalWINGSResultsRepository(queryMetadata);
+//        Resource execDiagram = null; //the newer version doesn't have this info
+//        Resource templDiagram = null;
+        if(r.hasNext()){
+            QuerySolution qs = r.next();
+            executionFile = qs.getResource("?exec").getNameSpace();
+            status = qs.getLiteral("?status").getString();
+            startT = qs.getLiteral("?startT").getString();
+            Literal e = qs.getLiteral("?endT");
+//            execDiagram = qs.getResource("?execDiagram");
+//            templDiagram = qs.getResource("?templDiagram");
+            Literal t = qs.getLiteral("?tool");
+            Literal u = qs.getLiteral("?user");
+            Literal l = qs.getLiteral("?license");
+            if(e!=null){
+                endT = e.getString();
+            }else{
+                endT="Not available";
+            }
+            if(t!=null){
+                tool = t.getString();
+            }else{
+                tool = "http://wings-workflows.org/";//default
+            }
+            if(u!=null){
+                user = u.getString();
+            }else{
+                //can be extracted from the execution file
+                try{
+                    user = executionFile;
+                    user = user.substring(user.indexOf("users/"), user.length());
+                    user = user.split("/",3)[1];
+                }catch(Exception ex){
+                    user = "unknown";
+                }
+            }
+            if(l!=null){
+                license = l.getString();
+            }else{
+                license = "http://creativecommons.org/licenses/by-sa/3.0/";//default
+            }
+            //engine = qs.getLiteral("?engine").getString();
+            System.out.println("Wings results file:"+executionFile+"\n"
+                   // + "User: "+user+", \n"
+                    + "Workflow Template: "+templateName+"\n"
+                    + "status: "+status+"\n"
+                    + "startTime: "+startT+"\n"
+                    + "endTime: "+endT);
+        }
+        
         //metadata about the execution: Agent
-        this.addIndividual(OPMWModel,user, Constants.OPM_AGENT, "Agent "+user);//user HAS to have a URI
-        this.addProperty(OPMWModel,Constants.CONCEPT_AGENT+"/"+user,
-                Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+        if(user!=null){
+            this.addIndividual(OPMWModel,user, Constants.OPM_AGENT, "Agent "+user);//user HAS to have a URI
+            this.addProperty(OPMWModel,Constants.CONCEPT_AGENT+"/"+user,
+                accname,
                     Constants.OPM_PROP_ACCOUNT);
+            
+            /*************************
+            * PROV-O INTEROPERABILITY
+            *************************/
+           String agEncoded = encode(Constants.CONCEPT_AGENT+"/"+user);
+           OntClass ag = PROVModel.createClass(Constants.PROV_AGENT);
+           ag.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+agEncoded);
+        }
         
-        /*************************
-         * PROV-O INTEROPERABILITY
-         *************************/
-        String agEncoded = encode(Constants.CONCEPT_AGENT+"/"+user);
-        OntClass ag = PROVModel.createClass(Constants.PROV_AGENT);
-        ag.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+agEncoded);
-        
-        //link to the wings template and results file
-        this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
-                wingsURLname,Constants.OPMW_DATA_PROP_HAS_NATIVE_SYSTEM_TEMPLATE,
-                        XSDDatatype.XSDanyURI);
-        
-        //prov-o interoperability: hasNativeSysTempl subprop of hadPrimary Source
-        this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
-                wingsURLname,Constants.PROV_HAD_PRIMARY_SOURCE,
-                        XSDDatatype.XSDanyURI);
-        
-        
-        this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                wingsResultsFile,Constants.OPMW_DATA_PROP_HAS_ORIGINAL_LOG_FILE,
+        this.addDataProperty(OPMWModel,accname,
+                executionFile,Constants.OPMW_DATA_PROP_HAS_ORIGINAL_LOG_FILE,
                         XSDDatatype.XSDanyURI);
         
         /*************************
          * PROV-O INTEROPERABILITY
          *************************/ 
         //hasOriginalLogFile subprop of hadPrimary Source
-        this.addDataProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                wingsResultsFile,Constants.PROV_HAD_PRIMARY_SOURCE,
+        this.addDataProperty(PROVModel,accname,
+                executionFile,Constants.PROV_HAD_PRIMARY_SOURCE,
                         XSDDatatype.XSDanyURI);
         
         //status
-        this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+        this.addDataProperty(OPMWModel,accname,
                 status, Constants.OPMW_DATA_PROP_HAS_STATUS);
         //startTime
-        this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+        this.addDataProperty(OPMWModel,accname,
                 startT,Constants.OPMW_DATA_PROP_OVERALL_START_TIME,
                     XSDDatatype.XSDdateTime);
         //endTime
-        this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+        this.addDataProperty(OPMWModel,accname,
                 endT,Constants.OPMW_DATA_PROP_OVERALL_END_TIME,
                     XSDDatatype.XSDdateTime);
-        if(execDiagram!=null){
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                execDiagram.getURI(),Constants.OPMW_DATA_PROP_HAS_EXECUTION_DIAGRAM,
-                    XSDDatatype.XSDanyURI);
-        }
-        if(templDiagram!=null){
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
-                templDiagram.getURI(),Constants.OPMW_DATA_PROP_HAS_TEMPLATE_DIAGRAM,
-                    XSDDatatype.XSDanyURI);
-        }
         if(license!=null){
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+            this.addDataProperty(OPMWModel,accname,
                 license,Constants.DATA_PROP_RIGHTS,
                     XSDDatatype.XSDanyURI);
-        }
-        for(int i = 0; i<tools.size(); i++){
-            currTool = (ArrayList<String>) tools.get(i);
-            String id = (String) currTool.get(0);
-            String url = (String) currTool.get(1);
-            String version = (String) currTool.get(2);
-            //add the tool as an agent (or artifact)?
-            if(id!=null){
-                this.addIndividual(OPMWModel,id, Constants.OPM_AGENT, "Tool "+id);
-                
-                /*************************
-                * PROV-O INTEROPERABILITY
-                *************************/
-                agEncoded = encode(Constants.CONCEPT_AGENT+"/"+id);
-                ag.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+agEncoded);
-            
-                if(url!=null){
-                    this.addDataProperty(OPMWModel,Constants.CONCEPT_AGENT+"/"+id,
-                    url,Constants.DATA_PROP_HAS_HOME_PAGE,
-                        XSDDatatype.XSDanyURI);
-                }
-                if(version != null){
-                    this.addDataProperty(OPMWModel,Constants.CONCEPT_AGENT+"/"+id,
-                    version,Constants.OPMW_DATA_PROP_VERSION_NUMBER);
-                }
-                //bind the agent to the account
-                this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                    Constants.CONCEPT_AGENT+"/"+id, 
-                        Constants.OPMW_PROP_EXECUTED_IN_WORKFLOW_SYSTEM);
-                /*************************
-                * PROV-O INTEROPERABILITY
-                *************************/
-                this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                    Constants.CONCEPT_AGENT+"/"+id, 
-                        Constants.PROV_WAS_ATTRIBUTED_TO);
-            }
         }
         if(tool!=null){
             this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
@@ -615,39 +651,281 @@ public class Mapper {
                 tool,Constants.PROV_WAS_ATTRIBUTED_TO,
                     XSDDatatype.XSDanyURI);
             //the run wasInfluencedBy the template
-            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
+            this.addProperty(PROVModel,accname,
                 Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+templateName,
                     Constants.PROV_WAS_INFLUENCED_BY);
         }
-        //nodes and links to the process templates
+        
         /********************************************************/
         /********************* NODE LINKING**********************/
         /********************************************************/
-        //an execution process has to be made per componentBinding, not per Node
-        String queryNodes = Queries.queryNodesResults();
-        r = null;
-        r = queryLocalWINGSResultsRepository(queryNodes);
-        //iteration through the nodes
-        //PROPERTIES TO BE USED        
-        Property pFirst = WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
-//        Property pRest = WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        //query for detecting steps, their inputs and their outputs
+        String queryStepsAndIO = Queries.queryStepsAndMetadata();
+        r = queryLocalWINGSResultsRepository(queryStepsAndIO);
+        String stepName, sStartT = null, sEndT = null, sStatus, sCode, derivedFrom = null;        
+        while (r.hasNext()){
+            QuerySolution qs = r.next();
+            
+            //start time and end time could be optional.
+            stepName = qs.getResource("?step").getLocalName();
+            Literal stLiteral = qs.getLiteral("?startT");
+            if (stLiteral!=null){
+                sStartT = stLiteral.getString();
+            }
+            Literal seLiteral = qs.getLiteral("?endT");
+            if(seLiteral!=null){
+                sEndT = seLiteral.getString();
+            }
+            sStatus = qs.getLiteral("?status").getString();
+            sCode = qs.getLiteral("?code").getString();
+            try{
+                derivedFrom = qs.getResource("?derivedFrom").getLocalName();
+            }catch(Exception e){
+                //if we don't have the derivedFrom relationship, we assume that
+                //the node name on the template is the same as in the exp template
+                derivedFrom = stepName;
+            }
+//            System.out.println(step +"\n\t "+ sStartT+"\n\t "+sEndT+"\n\t "+sStatus+"\n\t "+sCode);
+            //add each step with its metadata to the model Start and end time are reused from prov.
+            this.addIndividual(OPMWModel,stepName+date, Constants.OPMW_WORKFLOW_EXECUTION_PROCESS, "Execution process "+stepName);
+            //add type opmv:Process as well
+            String auxP = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date);
+            OntClass cP = OPMWModel.createClass(Constants.OPM_PROCESS);
+            cP.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
+            
+            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date,
+                Constants.CONCEPT_AGENT+"/"+user,
+                    Constants.OPM_PROP_WCB);
+            
+            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date,
+                accname,
+                    Constants.OPM_PROP_ACCOUNT);
+            
+            /*************************
+             * PROV-O INTEROPERABILITY
+             *************************/
+            OntClass d1 = PROVModel.createClass(Constants.PROV_ACTIVITY);
+            d1.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
+            
+            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date,
+                Constants.CONCEPT_AGENT+"/"+user,
+                    Constants.PROV_WAS_ASSOCIATED_WITH);
+
+            //metadata
+            if(sStartT!=null){
+                this.addDataProperty(PROVModel, 
+                        Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date, 
+                        sStartT, 
+                        Constants.PROV_STARTED_AT_TIME,
+                        XSDDatatype.XSDdateTime);
+            }
+            if(sEndT!=null){
+                this.addDataProperty(PROVModel, 
+                        Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date, 
+                        sEndT, 
+                        Constants.PROV_ENDED_AT_TIME,
+                        XSDDatatype.XSDdateTime);
+            }
+            this.addDataProperty(OPMWModel, 
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date, 
+                    sStatus, 
+                    Constants.OPMW_DATA_PROP_HAS_STATUS);
+            
+            //add the code binding as an executable component            
+            Resource blankNode = OPMWModel.createResource();
+            blankNode.addProperty(OPMWModel.createOntProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION),
+                    sCode).
+                    addProperty(OPMWModel.createOntProperty(Constants.RDFS_LABEL), 
+                            "Executable Component associated to "+stepName);
+            String procURI = Constants.PREFIX_EXPORT_RESOURCE+ encode(Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date);
+            OPMWModel.getResource(procURI).
+                    addProperty(OPMWModel.createOntProperty(Constants.OPMW_PROP_HAS_EXECUTABLE_COMPONENT), 
+                            blankNode);
+            /*************************
+            * PROV-O INTEROPERABILITY
+            *************************/ 
+            Resource bnodeProv = PROVModel.createResource();
+            bnodeProv.addProperty(PROVModel.createOntProperty(Constants.PROV_AT_LOCATION),
+                    sCode).
+                    addProperty(PROVModel.createOntProperty(Constants.RDFS_LABEL), 
+                            "Executable Component associated to "+stepName);
+            PROVModel.getResource(procURI).
+                    addProperty(PROVModel.createOntProperty(Constants.OPM_PROP_USED), 
+                            bnodeProv);
+            
+            //link node  to the process templates
+            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date,
+                    Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName+"_"+derivedFrom,
+                        Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_PROCESS);
+        }
+        //annotation of inputs
+        String getInputs = Queries.queryStepInputs();
+        r = queryLocalWINGSResultsRepository(getInputs);
+        String step, input, inputBinding;
         while(r.hasNext()){
             QuerySolution qs = r.next();
-            Resource node = qs.getResource("?nodeId");
-            Resource absComp = qs.getResource("?absComponent");//used in the template
-            Resource compBinding = qs.getResource("?cbind");
+            step = qs.getResource("?step").getLocalName();
+            input = qs.getResource("?input").getLocalName();
+            inputBinding = qs.getLiteral("?iBinding").getString();
+            System.out.println("Step: "+step+" used input "+input+" with data binding: "+inputBinding);            
+            //no need to add the variable individual now because the types are going to be added later
+            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+step+date,
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+input+date,
+                        Constants.OPM_PROP_USED);
+            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+input+date,
+                    inputBinding,
+                        Constants.OPMW_DATA_PROP_HAS_LOCATION, XSDDatatype.XSDanyURI);
+            /*************************
+            * PROV-O INTEROPERABILITY
+            *************************/ 
+            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+step+date,
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+input+date,
+                        Constants.PROV_USED);
+            //hasLocation subrpop of atLocation
+            this.addDataProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+input+date,
+                    inputBinding,
+                        Constants.PROV_AT_LOCATION, XSDDatatype.XSDanyURI);
             
-            //if cbind if a list, parse the list (could be n-dimensional)
-            String processName = node.getLocalName()+date;
-            if(compBinding.getProperty(pFirst)!=null){
-                System.out.println("It's a list!!!. Node: "+node.getLocalName());
-                //query list recursively, given the blank node
-                treatProcessFromComponentBindingList(node,absComp,compBinding,processName,date,user,templateName);
-            }else{//else, parse it normally
-                System.out.println("NOT a list!!!. Node: "+node.getLocalName());                
-                this.addProcessMetadata(node, absComp, compBinding, processName,date,user,templateName);
-            }  
         }
+        //parameters are separated (in expanded template). 
+        String getParams = Queries.querySelectStepParameterValues();
+        r = queryLocalWINGSResultsRepository(getParams);
+        String paramName, paramvalue, derived = null;
+        while(r.hasNext()){
+            QuerySolution qs = r.next();
+            step = qs.getResource("?step").getLocalName();
+            paramName = qs.getResource("?param").getLocalName();
+            paramvalue = qs.getLiteral("?value").getString();
+            Resource res = qs.getResource("?derivedFrom");
+            if(res!=null){
+                derived = res.getLocalName();
+            }
+            System.out.println("step "+step +"used param: "+paramName+" with value: "+paramvalue);
+            this.addIndividual(OPMWModel, paramName+date,
+                    Constants.OPMW_PARAMETER_VARIABLE, "Parameter variable with value: "+paramvalue);
+            this.addDataProperty(OPMWModel, 
+                    Constants.CONCEPT_PARAMETER_VARIABLE+"/"+paramName+date, 
+                    paramvalue, 
+                    Constants.OPMW_DATA_PROP_HAS_VALUE);
+            this.addProperty(OPMWModel, 
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+step+date, 
+                    Constants.CONCEPT_PARAMETER_VARIABLE+"/"+paramName+date, 
+                    Constants.OPM_PROP_USED);
+            //link to template
+            if(res!=null){
+                this.addProperty(OPMWModel,
+                        Constants.CONCEPT_PARAMETER_VARIABLE+"/"+paramName+date,
+                        Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName+"_"+derived,
+                        Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT);
+            }
+            /*************************
+            * PROV-O INTEROPERABILITY
+            *************************/ 
+            String auxP = encode(Constants.CONCEPT_PARAMETER_VARIABLE+"/"+paramName+date);
+            OntClass cP = PROVModel.createClass(Constants.PROV_ENTITY);
+            cP.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
+            this.addDataProperty(PROVModel, 
+                    Constants.CONCEPT_PARAMETER_VARIABLE+"/"+paramName+date, 
+                    paramvalue,
+                    Constants.PROV_VALUE);            
+            this.addProperty(PROVModel, 
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+step+date, 
+                    Constants.CONCEPT_PARAMETER_VARIABLE+"/"+paramName+date, 
+                    Constants.PROV_USED);            
+        }
+        //annotation of outputs
+        String getOutputs = Queries.queryStepOutputs();
+        r = queryLocalWINGSResultsRepository(getOutputs);
+        String output, outputBinding;
+        while(r.hasNext()){
+            QuerySolution qs = r.next();
+            step = qs.getResource("?step").getLocalName();
+            output = qs.getResource("?output").getLocalName();
+            outputBinding = qs.getLiteral("?oBinding").getString();
+            System.out.println("Step: "+step+" has output "+output+" with data binding: "+outputBinding);
+            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+output+date,
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+step+date,
+                        Constants.OPM_PROP_WGB);
+            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+output+date,
+                    outputBinding,
+                        Constants.OPMW_DATA_PROP_HAS_LOCATION, XSDDatatype.XSDanyURI);
+            /*************************
+            * PROV-O INTEROPERABILITY
+            *************************/ 
+            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+output+date,
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+step+date,
+                        Constants.PROV_WGB);
+            //hasLocation subrpop of atLocation
+            this.addDataProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+output+date,
+                    outputBinding,
+                        Constants.PROV_AT_LOCATION, XSDDatatype.XSDanyURI);
+        }
+        //annotation of variable metadata
+        String getVarMetadata = Queries.queryDataVariablesMetadata();
+        r = queryLocalWINGSResultsRepository(getVarMetadata);
+        String var, prop, obj, objName = null;
+        while(r.hasNext()){
+            QuerySolution qs = r.next();
+            var = qs.getResource("?variable").getLocalName();
+            prop = qs.getResource("?prop").getURI();
+            try{
+                //types
+                Resource rObj = qs.getResource("?obj");
+                obj = rObj.getURI();
+                objName = rObj.getLocalName();
+            }catch(Exception e){
+                //basic metadata
+                obj = qs.getLiteral("?obj").getString();
+            }
+//            System.out.println("Var "+var+" <"+prop+ "> "+ obj);
+            this.addIndividual(OPMWModel, var+date,
+                    Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT, 
+                    "Workflow execution artifact: "+var+date);
+            //redundancy: add it as a opm:Artifact as well
+            String auxP = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date);
+            OntClass cP = OPMWModel.createClass(Constants.OPM_ARTIFACT);
+            cP.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
+            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date,
+                accname,
+                    Constants.OPM_PROP_ACCOUNT);
+            //link to template
+            if(prop.contains("derivedFrom")){
+                //this relationship ensures that we are doing the linking correctly.
+                //if it doesn't exist we avoid linking to the template.
+                this.addProperty(OPMWModel,
+                        Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date,
+                        Constants.CONCEPT_DATA_VARIABLE+"/"+templateName+"_"+objName,
+                        Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT);
+            }else
+            //metadata
+            if(prop.contains("type")){
+                //the objects are resources in this case
+                //String auxP = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date);
+                cP = OPMWModel.createClass(obj);
+                cP.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
+            }
+            else if(prop.contains("hasSize")){
+                this.addDataProperty(OPMWModel,
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date,
+                    obj,
+                    Constants.OPMW_DATA_PROP_HAS_SIZE);
+            }else if(prop.contains("hasDataBinding")||prop.contains("isVariableOfPlan")){
+                //do nothing! we have already dealt with data binding before
+                //regarding the p-plan, i don't add it to avoid confusion
+            }else{
+                //custom wings property: preserve it.
+                this.addDataProperty(OPMWModel,
+                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date,
+                    obj,
+                    prop);
+            }
+            /*************************
+            * PROV-O INTEROPERABILITY
+            *************************/ 
+            cP = OPMWModel.createClass(Constants.PROV_ENTITY);
+            cP.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
+        }
+
         /***********************************************************************************
          * FILE EXPORT 
          ***********************************************************************************/        
@@ -656,382 +934,22 @@ public class Mapper {
         return (Constants.PREFIX_EXPORT_RESOURCE+accname);
     }
     
-    /**
-     * 
-     * @param node
-     * @param abstractType
-     * @param cbind: the resource that has the metadata about the process 
-     * @param processName
-     * @param date
-     * @param user 
-     */
-    private void addProcessMetadata(Resource node, Resource abstractType, Resource cbind, String processName, String date, String user, String templateName){
-        //component, location
-        Property pComp = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_COMPONENT);
-        Property pLoc = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_LOCATION);
-        Property pHasInput = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_INPUT);
-        Property pHasOutput = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_OUTPUT);
-        Property pHasArgument = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_ARGUMENT_ID);
-        Property pHasVariable = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_VARIABLE);
-        Property pHasDBinding = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_DATA_BINDING);
-        Property pHasPBinding = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_PARAMETER_BINDING);
-        Statement sComponent = cbind.getProperty(pComp);
-        Statement sLocation = cbind.getProperty(pLoc);
-        Resource comp = (Resource) sComponent.getObject();
-        Resource compLocation =  (Resource) sLocation.getObject();
-        
-        if(compLocation!=null){
-            System.out.println("Node Instance: "+node.getLocalName()+ " has type: "+abstractType+ " and specific binding: "
-                    + comp+ ". Location of the component: "+ compLocation.getURI());
-        }
-        //add to the model the rdf as process instances
-        this.addIndividual(OPMWModel,processName, Constants.OPMW_WORKFLOW_EXECUTION_PROCESS, "Execution process "+node.getLocalName());
-        //add type opmv:Process as well
-        String auxP = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName);
-        OntClass cP = OPMWModel.createClass(Constants.OPM_PROCESS);//repeated tuples will not be duplicated
-        cP.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
-        /*************************
-         * PROV-O INTEROPERABILITY
-         *************************/
-        OntClass d = PROVModel.createClass(Constants.PROV_ACTIVITY);
-        d.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+auxP);
-        
-        //link them to the process templates
-        this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName,
-                Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS+"/"+templateName+"_"+node.getLocalName(),
-                    Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_PROCESS);
-        //assert the used components (specific components)
-        this.addIndividual(OPMWModel,"Component"+comp.getLocalName()+date, comp.getURI(), comp.getLocalName());
-        this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName,
-                getClassName(comp.getURI())+"/"+"Component"+comp.getLocalName()+date,
-                    Constants.OPMW_PROP_HAS_EXECUTABLE_COMPONENT);
-        
-        /*************************
-         * PROV-O INTEROPERABILITY
-         *************************/
-        //has specific component is a subprop of used
-        this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName,
-                getClassName(comp.getURI())+"/"+"Component"+comp.getLocalName()+date,
-                    Constants.PROV_USED);
-        
-        //assert the process as part of the OPM account of the execution
-        this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName,
-                Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                    Constants.OPM_PROP_ACCOUNT);
-        //add the agent as the controller of the process
-        this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName,
-                Constants.CONCEPT_AGENT+"/"+user,
-                    Constants.OPM_PROP_WCB);
-        
-        /*************************
-         * PROV-O INTEROPERABILITY
-         *************************/ 
-        //wcb subprop of associatedwith
-        this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processName,
-                Constants.CONCEPT_AGENT+"/"+user,
-                    Constants.PROV_WAS_ASSOCIATED_WITH);
-        //add the location of the component (URL)
-        if(compLocation!=null){
-            //the location should be added to the component, not the process                
-            this.addDataProperty(OPMWModel,getClassName(comp.getURI())+"/"+"Component"+comp.getLocalName()+date,
-                    compLocation.getURI(),Constants.OPMW_DATA_PROP_HAS_LOCATION,
-                        XSDDatatype.XSDanyURI);
-            //prov-o interoperability: hasLocation subrprop of atLocation
-            this.addDataProperty(PROVModel,getClassName(comp.getURI())+"/"+"Component"+comp.getLocalName()+date,
-                    compLocation.getURI(),Constants.PROV_AT_LOCATION,
-                        XSDDatatype.XSDanyURI);
-        }
-        //Iterate through the inputs
-        StmtIterator listPropertiesIn = cbind.listProperties(pHasInput);
-        while (listPropertiesIn.hasNext()){//if there are any, then they have the following structure
-            Statement currentInput = listPropertiesIn.next();
-            Resource inputBinding = (Resource) currentInput.getObject();
-            //hasArgument, hasVariable, hasDataBinding
-            Literal argID = (Literal) inputBinding.getProperty(pHasArgument).getObject();
-            Resource variable = (Resource) inputBinding.getProperty(pHasVariable).getObject();
-            Statement dataBinding = inputBinding.getProperty(pHasDBinding);
-            Statement parameterBinding = inputBinding.getProperty(pHasPBinding);
-            //data binding can be a list, literal or resource
-            if(parameterBinding!=null){
-                System.out.println("Data binding literal (parameter)");
-                //set of actions of the input parameter.
-                this.addArtifactMetadata(parameterBinding.getObject(), true, true, variable, argID.getLexicalForm(),
-                        processName, templateName, date);
-            }else if ((dataBinding.getObject()).isURIResource()){
-                System.out.println("Data binding resource (URI)");
-                //set of assertions of the input artifact
-                this.addArtifactMetadata(dataBinding.getObject(), false, true, variable, argID.getLexicalForm(),
-                        processName, templateName, date);
-            }else{
-                System.out.println("Data binding is a list!!");
-                treatArtifactNamesFromDataBindingList((Resource)dataBinding.getObject(),true, variable, argID.getLexicalForm(),
-                        processName, templateName, date);
-            }
-        }
-        //Iterate through the outputs
-        StmtIterator listPropertiesOut = cbind.listProperties(pHasOutput);
-        while (listPropertiesOut.hasNext()){
-            Statement currentOutput = listPropertiesOut.next();
-            Resource outputBinding = (Resource) currentOutput.getObject();
-            //hasArgument, hasVariable, hasDataBinding
-            Literal argID = (Literal) outputBinding.getProperty(pHasArgument).getObject();
-            Resource variable = (Resource) outputBinding.getProperty(pHasVariable).getObject();
-            RDFNode dataBinding = outputBinding.getProperty(pHasDBinding).getObject();
-            //data binding can be a list or resource
-            if (dataBinding.isURIResource()){
-                System.out.println("Data binding resource (URI)");
-                //set of assertions of the output artifact
-                this.addArtifactMetadata(dataBinding, false, false, variable, argID.getLexicalForm(),
-                        processName, templateName, date);
-            }else{
-                System.out.println("Data binding is a list!!");
-                treatArtifactNamesFromDataBindingList((Resource)dataBinding,false, variable, argID.getLexicalForm(),
-                        processName, templateName, date);
-            }
-        }
-        
-    }
-    
-    private void treatProcessFromComponentBindingList(Resource node, Resource abstractType, Resource cbind,String processBaseName, String date, String user, String template){
-        Statement isList = cbind.getProperty(WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"));
-        if(isList == null){            
-            //for every component binding, we add a new process
-            addProcessMetadata(node, abstractType, cbind,this.getNextId(processBaseName),date,user,template);
-            return;// no hay que seguir porque es la URI del artifact            
-        }else{//recursively we see if the first is another list
-            treatProcessFromComponentBindingList(node,abstractType,(Resource)isList.getObject(),processBaseName,date,user,template);
-        }
-        //iterate through the rest of the list, if it's not finished.
-        Resource rest = (Resource) cbind.getProperty(WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest")).getObject();
-        if(rest.getURI() == null){
-            treatProcessFromComponentBindingList(node, abstractType,rest, processBaseName, date, user, template);
-        }
-    }
-    
-    //small auxiliar function to help provide unique ids for processes
-    private String getNextId(String baseName){
-        this.count++;
-        return (baseName+count);
-    }
-    
-    private void treatArtifactNamesFromDataBindingList(Resource databinding,boolean isInput, Resource variableID,String role, String processId, String templateName, String date ){
-        //if it is not a list, print current value     
-        Statement isList = databinding.getProperty(WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#first"));
-        if(isList == null){
-            if(databinding.isURIResource()){//variable
-                addArtifactMetadata(databinding, false, isInput, variableID, role, processId, templateName, date);
-            }else{//parameter
-                addArtifactMetadata(databinding, true, isInput, variableID, role, processId, templateName, date);
-            }
-            System.out.println(databinding.getLocalName());
-            return;// no hay que seguir porque es la URI del artifact            
-        }else{//recursively we see if the first is another list
-             treatArtifactNamesFromDataBindingList((Resource)isList.getObject(),isInput, variableID, role, processId, templateName, date);                       
-        }
-        //iterate through the rest of the list, if it's not finished.
-        Resource rest = (Resource) databinding.getProperty(WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#rest")).getObject();
-        if(rest.getURI() == null){
-            treatArtifactNamesFromDataBindingList(rest, isInput,variableID, role, processId, templateName, date);
-        }
-        
-    }
-    
-    //the dataBind value is supposed to be the node at the lower level of granularity. No lists allowed.
-    private void addArtifactMetadata(RDFNode dataBind, boolean isParameter, boolean isInput, Resource variableID,String role, String processId, String templateName, String date ){
-        String artifactID = null;
-        Property pHasLocation = WINGSExecutionResults.createProperty(Constants.WINGS_PROP_HAS_LOCATION);
-        Property pHasSize = WINGSExecutionResults.createProperty(Constants.WINGS_DATA_PROP_HAS_SIZE);
-        Property pHasType = WINGSExecutionResults.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");        
-        
-        if(isParameter){
-            Literal parameterValue = (Literal) dataBind;            
-            System.out.println("process: "+ processId +" has inputID " +variableID.getLocalName()
-                    +" with parameter value: "+parameterValue.getLexicalForm());
-            //parameter variables
-            artifactID = variableID.getLocalName()+parameterValue.getLexicalForm();
-            //link the artifact to its template
-            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_PARAMETER_VARIABLE+"/"+templateName+"_"+variableID.getLocalName(),
-                        Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT);
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID, parameterValue.getLexicalForm(),
-                    Constants.OPMW_DATA_PROP_HAS_VALUE);
-            
-            /*************************
-            * PROV-O INTEROPERABILITY
-            *************************/ 
-            //hasValue subprop of prov:value
-            this.addDataProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID, parameterValue.getLexicalForm(),
-                    Constants.PROV_VALUE);
-        
-        }else{//is a data variable
-            //get location, size and type from the artifact
-            Resource artifact = (Resource) dataBind;
-            Resource location = (Resource) artifact.getProperty(pHasLocation).getObject();
-            Literal size = (Literal) artifact.getProperty(pHasSize).getObject();
-            StmtIterator types = artifact.listProperties(pHasType);     
-                    
-            System.out.println("Process: "+ processId+" has inputID " +role
-                    +" with loc: "+location+"\n, size: "+size.getString());                
-            try {
-                //they are all data variables
-                //create the artifact from its location. Type: artifactInstance AND varT
-                artifactID = MD5Util.MD5(location.getURI());
-            } catch (Exception ex) {
-                System.out.println("Error while trying to make MD5Util key "+ex.getMessage());
-                artifactID = location.getLocalName();
-            }
-//            artifactID =variableID.getLocalName() + artifactID;
-            String nombreIndividuoEnc = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID);
-            
-            //assert all the types to the artifact (it may have more than one)
-            while(types.hasNext()){
-                Statement stAux = types.next();
-                Resource currentType = (Resource)stAux.getObject();
-                OntClass c = OPMWModel.createClass(currentType.getURI());
-                c.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+nombreIndividuoEnc);
-            }
-            
-            //link the artifact to its template
-            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_DATA_VARIABLE+"/"+templateName+"_"+variableID.getLocalName(),
-                        Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT);
-            
-            //assert size, location to artifact
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    location.getURI(),
-                        Constants.OPMW_DATA_PROP_HAS_LOCATION, XSDDatatype.XSDanyURI);
-            
-            /*************************
-            * PROV-O INTEROPERABILITY
-            *************************/ 
-            //hasLocation subrpop of atLocation
-            this.addDataProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    location.getURI(),
-                        Constants.PROV_AT_LOCATION, XSDDatatype.XSDanyURI);
-            
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    size.getLexicalForm(),
-                        Constants.OPMW_DATA_PROP_HAS_SIZE, XSDDatatype.XSDlong);
-            
-            //DCDOM custom properties
-            //use artifactID from WINGS to retrieve dcdom properties. They are all data properties
-            addDCDOMProperties(artifactID, artifact.getURI());
-            
-            //add here the property to link the variables to the same name: hasFileName
-            this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    getFileName(location.getURI()),
-                        Constants.OPMW_DATA_PROP_HAS_FILE_NAME);            
-        }
-        //common artifact metadata
-        this.addIndividual(OPMWModel,artifactID, Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT, "Execution artifact with id: "+artifactID);
-
-        //this is done this way to avoid inferences and suppport interoperability
-        String aux = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID);
-        OntClass c = OPMWModel.createClass(Constants.OPM_ARTIFACT);//repeated tuples will not be duplicated
-        c.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+aux);
-        /*************************
-         * PROV-O INTEROPERABILITY
-         *************************/
-        OntClass d = PROVModel.createClass(Constants.PROV_ENTITY);
-        d.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+aux);
-
-        //assert artifact to opm account
-        this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date,
-                        Constants.OPM_PROP_ACCOUNT);
-        
-        if(isInput){
-            //assert USED relationship between the node and the artifact
-            //Roles should be specialized here.
-            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                        Constants.OPM_PROP_USED);
-            //roles
-            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                            Constants.PREFIX_OPMW+"usedAs_"+role);
-            this.createSubProperty(OPMWModel,Constants.OPM_PROP_USED, Constants.PREFIX_OPMW+"usedAs_"+role);
-            
-            /*************************
-            * PROV-O INTEROPERABILITY
-            *************************/ 
-            //used subprop of prov:used
-            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                        Constants.PROV_USED);
-            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                            Constants.PREFIX_OPMW+"usedAs_"+role);
-            this.createSubProperty(PROVModel,Constants.PROV_USED, Constants.PREFIX_OPMW+"usedAs_"+role);
-        }else{
-            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                        Constants.OPM_PROP_WGB);
-            //add roles for the wgb extended relations. Since the subproperty is added
-            //in the template, there is no need to add it here.
-            this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                            Constants.PREFIX_OPMW+"wasGeneratedByAs_"+role);
-            this.createSubProperty(OPMWModel,Constants.OPM_PROP_WGB, Constants.PREFIX_OPMW+"wasGeneratedByAs_"+role);            
-            
-            /*************************
-            * PROV-O INTEROPERABILITY
-            *************************/ 
-            //used wgb of prov:wgb
-            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                        Constants.PROV_WGB);
-            this.addProperty(PROVModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                    Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+processId,
-                            Constants.PREFIX_OPMW+"wasGeneratedByAs_"+role);
-            this.createSubProperty(PROVModel,Constants.PROV_WGB, Constants.PREFIX_OPMW+"wasGeneratedByAs_"+role);
-        }
-        
-        
-    }
-    
-
-    /**
-     * given a url, it will take the last id of the file
-     * @param url
-     * @return the last part of the url
-     */
-    private String getFileName(String url){
-        return url.substring(url.lastIndexOf("/")+1, url.length());
-    }
-
-    private void addDCDOMProperties(String artifactID, String WINGSArtifactID){
-        //use artifactID from WINGS to retrieve dcdom properties. They are all data properties
-        String queryDCDOMprops = Queries.queryDCDOMProperties(WINGSArtifactID);
-        ResultSet rAux = queryLocalWINGSResultsRepository(queryDCDOMprops);
-        while(rAux.hasNext()){
-                    QuerySolution qsAux = rAux.next();
-                    Resource prop = qsAux.getResource("?prop");
-                    try{
-                        Literal value = qsAux.getLiteral("?value");
-                        //ONLY dcdom properties
-                        if(prop.getURI().contains(DCDOM)){
-                            if(value.getDatatype() == null){
-                                this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                                    value.getString(),
-                                        prop.getURI());
-                            }else{//not string
-                                XSDDatatype tipo = (XSDDatatype) value.getDatatype();
-                                if(tipo.equals(XSDDatatype.XSDinteger)){
-                                    tipo = XSDDatatype.XSDlong;
-                                }//we switch to long in case the int numbers are too high.                                
-                                this.addDataProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+artifactID,
-                                        value.getString(),
-                                            prop.getURI(),
-                                                tipo);
-                            }
-                        }
-
-                    }catch(Exception e){
-                        //If it fails, they are not dcdom properties
-                    }
-                }
-    }
+//I leave this method commented as it might be useful in the future
+//    private HashMap<String,String> getNodes(OntModel m)throws Exception{
+//        HashMap<String,String> toReturn = new HashMap<>();
+//        String queryExp = Queries.queryNodes();
+//        ResultSet r = queryLocalRepository(queryExp, m);
+//        while(r.hasNext()){
+//            QuerySolution qs = r.next();
+//            String nodeName = qs.getResource("?n").getLocalName();
+//            String type = qs.getResource("?typeComp").getURI();
+////            System.out.println(nodeName+ " "+ type);
+//            if(type.contains(getTaxonomyURL(m))){
+//                toReturn.put(nodeName,type);
+//            }
+//        }
+//        return toReturn;
+//    }
 
     /**
      * Function to export the stored model as an RDF file, using ttl syntax
@@ -1042,7 +960,8 @@ public class Mapper {
         try {
             out = new FileOutputStream(outFile);
             model.write(out,"TURTLE");
-        } catch (FileNotFoundException ex) {
+            out.close();
+        } catch (Exception ex) {
             System.out.println("Error while writing the model to file "+ex.getMessage());
         }
     }
@@ -1056,11 +975,11 @@ public class Mapper {
      * @param classURL URL of the class from which we want to create the instance
      */
     private void addIndividual(OntModel m,String individualId, String classURL, String label){
-        String nombreIndividuoEnc = encode(getClassName(classURL)+"/"+individualId);
+        String nameOfIndividualEnc = encode(getClassName(classURL)+"/"+individualId);
         OntClass c = m.createClass(classURL);
-        c.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+nombreIndividuoEnc);
+        c.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+nameOfIndividualEnc);
         if(label!=null){
-            this.addDataProperty(m,nombreIndividuoEnc,label,Constants.RDFS_LABEL);
+            this.addDataProperty(m,nameOfIndividualEnc,label,Constants.RDFS_LABEL);
         }
     }
 
@@ -1097,6 +1016,14 @@ public class Mapper {
         m.add(orig, propSelec, literal); 
     }
 
+    /**
+     * Function to add dataProperties. Similar to addProperty
+     * @param m Model of the propery to be added
+     * @param origen Domain of the property
+     * @param dato literal to be asserted
+     * @param dataProperty URI of the dataproperty to assert
+     * @param tipo type of the literal (String, int, double, etc.).
+     */
     private void addDataProperty(OntModel m, String origen, String dato, String dataProperty,RDFDatatype tipo) {
         OntProperty propSelec;
         //lat y long son de otra ontologia, tienen otro prefijo distinto
@@ -1130,7 +1057,7 @@ public class Mapper {
             try {
                 nom = MD5Util.MD5(name);
             } catch (Exception ex) {
-                System.err.println("Error when encoding in MD5Util: "+ex.getMessage() );
+                System.err.println("Error when encoding in MD5: "+ex.getMessage() );
             }
         }        
 
@@ -1151,16 +1078,21 @@ public class Mapper {
         }
         catch (Exception ex) {
             try {
-                System.err.println("Problem encoding the URI:" + nom + " " + ex.getMessage() +". We encode it in MD5Util");
+                System.err.println("Problem encoding the URI:" + nom + " " + ex.getMessage() +". We encode it in MD5");
                 nom = MD5Util.MD5(name);
-                System.err.println("MD5Util encoding: "+nom);
+                System.err.println("MD5 encoding: "+nom);
             } catch (Exception ex1) {
-                System.err.println("Could not encode in MD5Util:" + name + " " + ex1.getMessage());
+                System.err.println("Could not encode in MD5:" + name + " " + ex1.getMessage());
             }
         }
         return prenom+nom;
     }
 
+    /**
+     * Method to retrieve the name of a URI class objet
+     * @param classAndVoc URI from which retrieve the name
+     * @return 
+     */
     private String getClassName(String classAndVoc){
         if(classAndVoc.contains(Constants.PREFIX_DCTERMS))return classAndVoc.replace(Constants.PREFIX_DCTERMS,"");
         else if(classAndVoc.contains(Constants.PREFIX_FOAF))return classAndVoc.replace(Constants.PREFIX_FOAF,"");
@@ -1168,8 +1100,8 @@ public class Mapper {
         else if(classAndVoc.contains(Constants.PREFIX_OPMV))return classAndVoc.replace(Constants.PREFIX_OPMV,"");
         else if(classAndVoc.contains(Constants.PREFIX_RDFS))return classAndVoc.replace(Constants.PREFIX_RDFS,"");
         else if(classAndVoc.contains(Constants.PREFIX_OPMW))return classAndVoc.replace(Constants.PREFIX_OPMW,"");
-        else if(classAndVoc.contains(ACDOM))return classAndVoc.replace(ACDOM,"");
-        else if(classAndVoc.contains(DCDOM))return classAndVoc.replace(DCDOM,"");
+//        else if(classAndVoc.contains(ACDOM))return classAndVoc.replace(ACDOM,"");
+//        else if(classAndVoc.contains(DCDOM))return classAndVoc.replace(DCDOM,"");
         else return null;
     }
     
