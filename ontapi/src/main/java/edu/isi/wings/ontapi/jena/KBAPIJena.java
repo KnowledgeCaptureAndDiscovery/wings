@@ -1182,7 +1182,7 @@ public class KBAPIJena implements KBAPI {
     }
   }
 
-  public boolean isPropertyFunctional(KBObject prop) {
+  public boolean isFunctionalProperty(KBObject prop) {
     readLock.lock();
     try {   
       OntProperty p = ontmodel.getOntProperty(prop.getID());

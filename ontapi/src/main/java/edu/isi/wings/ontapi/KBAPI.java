@@ -92,7 +92,7 @@ public interface KBAPI {
 
 	public KBObject getPropertyRange(KBObject prop);
 
-	public boolean isPropertyFunctional(KBObject prop);
+	public boolean isFunctionalProperty(KBObject prop);
 
 	public ArrayList<KBObject> getPropertyDomains(KBObject prop);
 	
