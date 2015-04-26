@@ -50,7 +50,7 @@ Installation
 	- (Optional) Change any other settings if needed
 
 
-8. To see a list of Domains to download, please go to http://www.wings-workflows.org/domains/
+8. To see a list of domains to download, please go to http://www.wings-workflows.org/domains/
 	- To Import a domain: From the "Manage Domains" interface, do the following:
 		- Add -> Import Domain
 		- Enter Domain Location: the url (or path) to the domain zip file
