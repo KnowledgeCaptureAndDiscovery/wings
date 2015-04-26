@@ -383,6 +383,21 @@ public class KBAPIJena implements KBAPI {
       readLock.unlock();
     }
   }
+  
+  public KBObject getAnnotationProperty(String id) {
+    readLock.lock();
+    try {   
+      KBObject propobj = null;
+      Property prop = ontmodel.getAnnotationProperty(id);
+      if (prop != null && prop.isProperty()) {
+        propobj = new KBObjectJena(prop);
+      }
+      return propobj;
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
 
   public boolean containsResource(String id) {
     readLock.lock();
@@ -1167,6 +1182,20 @@ public class KBAPIJena implements KBAPI {
     }
   }
 
+  public boolean isPropertyFunctional(KBObject prop) {
+    readLock.lock();
+    try {   
+      OntProperty p = ontmodel.getOntProperty(prop.getID());
+      if (p != null) {
+        return p.isFunctionalProperty();
+      }
+      return false;
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
+
   public void addClassForInstance(KBObject obj, KBObject cls) {
     writeLock.lock();
     try {    
@@ -1843,7 +1872,7 @@ public class KBAPIJena implements KBAPI {
     readLock.lock();
     try {   
       StringWriter out = new StringWriter();
-      RDFWriter rdfWriter = ontmodel.getWriter("RDF/JSON");
+      RDFWriter rdfWriter = ontmodel.getWriter("JSON-LD");
       rdfWriter.write(ontmodel.getBaseModel(), out, base);
       return out.toString();
     }

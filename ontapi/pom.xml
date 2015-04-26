@@ -18,7 +18,7 @@
   </parent>
 
   <properties>
-    <apache-jena.version>2.10.1</apache-jena.version>
+    <apache-jena.version>2.11.2</apache-jena.version>
     <pellet.version>2.3.1</pellet.version>
     <pellet-jena.version>2.3.1-mod</pellet-jena.version>
     <aterm-java.version>1.6</aterm-java.version>

@@ -46,6 +46,8 @@ public interface KBAPI {
 
 	public KBObject getProperty(String id);
 
+	public KBObject getAnnotationProperty(String id);
+	 
 	public ArrayList<KBObject> getAllClasses();
 
 	public ArrayList<KBObject> getAllDatatypeProperties();
@@ -89,6 +91,8 @@ public interface KBAPI {
 	public KBObject getPropertyDomain(KBObject prop);
 
 	public KBObject getPropertyRange(KBObject prop);
+
+	public boolean isPropertyFunctional(KBObject prop);
 
 	public ArrayList<KBObject> getPropertyDomains(KBObject prop);
 	

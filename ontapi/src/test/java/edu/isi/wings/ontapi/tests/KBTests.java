@@ -21,7 +21,7 @@ import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
-import org.mindswap.pellet.jena.PelletReasonerFactory;
+//import org.mindswap.pellet.jena.PelletReasonerFactory;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntClass;
@@ -65,13 +65,13 @@ public class KBTests {
 		
 		Dataset tdbstore = TDBFactory.createDataset("/Users/varun/git/fuseki/DB");
 		try {
-			tdbstore.begin(ReadWrite.WRITE);
-			Model impmodel = tdbstore.getNamedModel(onturl);
-			if(impmodel.isEmpty()) {
-				impmodel.read(onturl);
-			}
-			OntModel ontmodel = ModelFactory.createOntologyModel(PelletReasonerFactory.THE_SPEC, impmodel);
-			tdbstore.commit();
+//			tdbstore.begin(ReadWrite.WRITE);
+//			Model impmodel = tdbstore.getNamedModel(onturl);
+//			if(impmodel.isEmpty()) {
+//				impmodel.read(onturl);
+//			}
+//			OntModel ontmodel = ModelFactory.createOntologyModel(PelletReasonerFactory.THE_SPEC, impmodel);
+//			tdbstore.commit();
 			
 //			tdbstore.begin(ReadWrite.WRITE);
 //			OntModel model =  ModelFactory.createOntologyModel(PelletReasonerFactory.THE_SPEC, tdbstore.getNamedModel(url));
@@ -81,12 +81,12 @@ public class KBTests {
 //			tpl.setPropertyValue(prop, model.createTypedLiteral(2));
 //			tdbstore.commit();
 			
-			tdbstore.begin(ReadWrite.READ);
-			OntModel model =  ModelFactory.createOntologyModel(PelletReasonerFactory.THE_SPEC, tdbstore.getNamedModel(url));
-			model.getOntClass(onturl + "#WorkflowTemplate");
-			model.addSubModel(ontmodel);
-			model.write(System.out, "N3");
-			tdbstore.end();
+//			tdbstore.begin(ReadWrite.READ);
+//			OntModel model =  ModelFactory.createOntologyModel(PelletReasonerFactory.THE_SPEC, tdbstore.getNamedModel(url));
+//			model.getOntClass(onturl + "#WorkflowTemplate");
+//			model.addSubModel(ontmodel);
+//			model.write(System.out, "N3");
+//			tdbstore.end();
 
 		}
 		catch(Exception e) {
