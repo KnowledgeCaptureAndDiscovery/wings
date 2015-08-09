@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package edu.isi.ikcap.wings.opmm;
+package edu.isi.wings.opmm;
 
 /**
  *
@@ -25,7 +25,8 @@ public class Constants {
     /*****
     ONTOLOGY PREFIXES
     *****/
-    public static final String PREFIX_EXPORT_RESOURCE =  "http://www.opmw.org/export/resource/";
+    public static String PREFIX_EXPORT_RESOURCE =  "http://www.opmw.org/export/resource/";
+    
     public static final String PREFIX_EXTENSION =  "http://www.opmw.org/extension/";
     public static final String PREFIX_OPMW =  "http://www.opmw.org/ontology/";
     public static final String PREFIX_OPMO =  "http://openprovenance.org/model/opmo#";

@@ -46,4 +46,6 @@ public interface ExecutionPlan {
 	public boolean save();
 	
 	public boolean saveAs(String newid);
+	
+	public String serialize();
 }

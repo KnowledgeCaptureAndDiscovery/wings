@@ -37,7 +37,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FileUtils;
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.domains.Domain;
 import org.apache.tika.Tika;

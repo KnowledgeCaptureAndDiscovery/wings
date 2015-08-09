@@ -323,15 +323,14 @@ RunBrowser.prototype.registerData = function(b, runid) {
 	return false;
 };
 
-RunBrowser.prototype.getRunReport = function(op_url, runid, tabPanel, type, image) {
+RunBrowser.prototype.publishRun = function(runid, tabPanel) {
 	var msgTarget = tabPanel.getEl();
-	msgTarget.mask('Generating ' + type + '...', 'x-mask-loading');
-	var url = op_url + '/op=getRun' + type;
+	msgTarget.mask('Publishing RDF ...', 'x-mask-loading');
+	var url = this.op_url + '/publishRun';
 	Ext.Ajax.request({
 		url : url,
 		params : {
-			run_id : runid,
-			run_image : image
+			run_id : runid
 		},
 		success : function(response) {
 			msgTarget.unmask();
@@ -339,16 +338,22 @@ RunBrowser.prototype.getRunReport = function(op_url, runid, tabPanel, type, imag
 				alert("This run has already been published");
 				return;
 			}
-			var url = response.responseText;
-			var win = new Ext.Window({
-				title : type + ' Turtle',
-				width : 800,
-				height : 600,
-				plain : true,
-				html : "URL: <a target='_blank' href='" + url + "'>" + url
-						+ "</a><br/><iframe style='width:770px; height:550px' src='" + url + "'></iframe>"
-			});
-			win.show();
+			var resp = Ext.decode(response.responseText);
+			if(!resp.error) {
+				var url = resp.url;
+				var win = new Ext.Window({
+					title : 'RDF Turtle',
+					width : '70%',
+					height : '70%',
+					plain : true,
+					maximizable : true,
+					html : "<div style='padding:5px'>URL: <a target='_blank' href='" + url + "'>" + url
+							+ "</a></div>"
+							+ "<iframe style='border: 1px solid #999; width:100%; height:94%' src='" 
+							+ url + "'></iframe>"
+				});
+				win.show();
+			}
 		},
 		failure : function(response) {
 			msgTarget.unmask();
@@ -361,8 +366,31 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	var This = this;
 	var tabPanel = Ext.create('Ext.tab.Panel', {
 			plain: true,
-			margin: 5
+			margin: 5,
+			tbar : [
+			/*{
+				text : 'Get HTML',
+				iconCls : 'icon-docs fa fa-blue',
+				handler : function() {
+					This.getRunReport(runid, this.up('panel'), 'HTML');
+				}
+			},*/
+			{
+				text: 'Publish RDF',
+				iconCls: 'icon-network fa fa-blue',
+				handler: function() {
+					var me = this;
+					Ext.MessageBox.confirm("Confirm", 
+						"This might take a while to publish. Please don't close this browser window while upload is going on. Are you sure you want to Continue ?", 
+					  	function(b) {
+					     	if(b == "yes") {
+								This.publishRun(runid, me.up('panel'));
+							}
+						});
+				}
+			}]
 	});
+	
 	var tid = data.originalTemplateId;
 	var xtid = data.expandedTemplateId;
 	
@@ -375,7 +403,7 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	
 	tBrowser.tabPanel = tabPanel;
 
-	var dataPanel = this.getRunDataPanel(tBrowser);
+	var dataPanel = this.getRunDataPanel();
 	var logPanel = this.getRunLogPanel(data);
 
 	tabPanel.insert(0, logPanel);
@@ -430,43 +458,13 @@ RunBrowser.prototype.getRunLogPanel = function(data) {
 	});
 };
 
-RunBrowser.prototype.getRunDataPanel = function(tBrowser) {
+RunBrowser.prototype.getRunDataPanel = function() {
+	var me = this;
 	return new Ext.Panel({
 		title : 'Data',
 		layout : 'fit',
 		border : false,
-		iconCls : 'icon-file-alt fa-title fa-blue',
-		/*tbar : [
-		{
-				text : 'Get HTML',
-				iconCls : 'docsIcon',
-				handler : function() {
-					tBrowser.tabPanel.setActiveTab(2);
-					var graph = tBrowser.templatePanel.graph.editor;
-					var image = graph.getImageData(1, false);
-					tBrowser.tabPanel.setActiveTab(0);
-					getRunReport(op_url, runid, tBrowser.tabPanel, 'HTML', image);
-				}
-		},
-		{
-			text: 'Publish RDF',
-			iconCls: 'docsIcon',
-			handler: function() {
-				Ext.MessageBox.confirm("Confirm", 
-					"This might take a while to publish. Please don't close this browser window while upload is going on. Are you sure you want to Continue ?", 
-		  			function(b) {
-		     			if(b == "yes") {
-		     				tBrowser.tabPanel.setActiveTab(2);
-							var graph = tBrowser.templatePanel.graph.editor;
-							var image = graph.getImageData(1, false);
-							tBrowser.tabPanel.setActiveTab(0);
-							getRunReport(op_url, runid, tBrowser.tabPanel, 'RDF', image);
-						}
-					}
-				);
-			}
-		}
-		]*/
+		iconCls : 'icon-file-alt fa-title fa-blue'
 	});
 };
 

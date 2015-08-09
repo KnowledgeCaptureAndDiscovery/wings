@@ -193,7 +193,7 @@ ComponentViewer.prototype.getComponentTree = function(item) {
 };
 
 ComponentViewer.prototype.getComponentTreeByIO = function(item, isInput) {
-    var tmp = item.children;
+    var tmp = item.children.slice(0);
     var compsByIO = {};
     while(tmp.length > 0) {
     	var comp = tmp.pop();
@@ -205,7 +205,7 @@ ComponentViewer.prototype.getComponentTreeByIO = function(item, isInput) {
         		if(!compsByIO[type]) compsByIO[type] = [];
         		var isIncluded = false;
         		for(var j=0; j<compsByIO[type].length; j++) {
-        			if(compsByIO[type][j] == type) {
+        			if(compsByIO[type][j] == comp) {
         				isIncluded = true;
         				break;
         			}
@@ -217,6 +217,7 @@ ComponentViewer.prototype.getComponentTreeByIO = function(item, isInput) {
         tmp = tmp.concat(comp.children);
     }
     var root = this.getComponentTreeNode(item, false);
+    root.leaf = false;
     for(var type in compsByIO) {
     	var comps = compsByIO[type];
     	var typenode = {

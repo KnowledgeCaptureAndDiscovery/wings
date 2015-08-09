@@ -20,13 +20,12 @@ package edu.isi.wings.portal.controllers;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
 import edu.isi.wings.portal.classes.html.HTMLLoader;

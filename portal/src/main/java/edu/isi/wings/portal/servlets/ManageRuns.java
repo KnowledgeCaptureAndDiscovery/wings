@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.controllers.RunController;
 
 /**
@@ -100,6 +100,8 @@ public class ManageRuns extends HttpServlet {
 		  out.println(rc.deleteRun(request.getParameter("json"), context));
 		} else if (op.equals("stopRun")) {
 		  out.println(rc.stopRun(runid, context));
+		} else if (op.equals("publishRun")) {
+		  out.println(rc.publishRun(runid)); 
 		}
 	}
 	

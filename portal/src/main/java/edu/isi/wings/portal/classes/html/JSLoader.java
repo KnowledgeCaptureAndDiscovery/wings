@@ -20,7 +20,7 @@ package edu.isi.wings.portal.classes.html;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 
 import com.google.gson.Gson;

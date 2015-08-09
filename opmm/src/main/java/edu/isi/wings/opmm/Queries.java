@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package edu.isi.ikcap.wings.opmm;
+package edu.isi.wings.opmm;
 
 /**
  *

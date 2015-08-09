@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package edu.isi.ikcap.wings.opmm;
+package edu.isi.wings.opmm;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
@@ -148,7 +148,7 @@ public class Mapper {
      * @param mode type of serialization. E.g., "RDF/XML"
      */
     public void loadResultFileToLocalRepository(String executionResults, String mode){
-        InputStream in2 = FileManager.get().open(executionResults);
+        InputStream in2 = FileManager.get().open(executionResults.replaceAll("#.*$", ""));
         if (in2 == null){
             throw new IllegalArgumentException("File: " + executionResults + " not found");
         }
@@ -164,7 +164,8 @@ public class Mapper {
      * @param outFile output file name
      * @return Template URI assigned to identify the template
      */
-    public String transformWINGSElaboratedTemplateToOPMW(String template,String mode, String outFile){
+    public String transformWINGSElaboratedTemplateToOPMW(String template,String mode, 
+        String outFile, String templateName){
         //clean previous transformations
         if(WINGSModelTemplate!=null){
             WINGSModelTemplate.removeAll();
@@ -182,17 +183,19 @@ public class Mapper {
         }
         //retrieval of the name of the workflowTemplate
         String queryNameWfTemplate = Queries.queryNameWfTemplate();
-        String templateName = null, templateName_ = null;
+        String templateName_ = null;
         //System.out.println(queryNameWfTemplate);
         ResultSet r = queryLocalWINGSTemplateModelRepository(queryNameWfTemplate);
         if(r.hasNext()){//there should be just one local name per template
             QuerySolution qs = r.next();
             Resource res = qs.getResource("?name");
             Literal v = qs.getLiteral("?ver");
-            templateName = res.getLocalName();
-            if (templateName==null){
+            if(templateName == null) {
+              templateName = res.getLocalName();
+              if (templateName==null){
                 System.out.println("Error: No Template specified.");
-                return "";
+                  return "";
+              }
             }
             templateName_=templateName+"_";
             //add the template as a provenance graph
@@ -473,7 +476,8 @@ public class Mapper {
  * @param outFilenamePROV output name for the PROV serialization
  * @return 
  */
-    public String transformWINGSResultsToOPMW(String resultFile, String libraryFile, String modeFile, String outFilenameOPMW, String outFilenamePROV){
+    public String transformWINGSResultsToOPMW(String resultFile, String libraryFile, String modeFile, 
+        String outFilenameOPMW, String outFilenamePROV, String suffix){
         //clean previous transformations        
         if(WINGSExecutionResults!=null){
             WINGSExecutionResults.removeAll();//where we store the RDF to query
@@ -488,7 +492,7 @@ public class Mapper {
         }
         PROVModel=ModelFactory.createOntologyModel();
         //load the execution library file
-        this.loadResultFileToLocalRepository(libraryFile, modeFile);
+        this.loadResultFileToLocalRepository(libraryFile, modeFile);        
         //load the execution file
         this.loadResultFileToLocalRepository(resultFile, modeFile);        
         //now, extract the expanded template and the workflow instance. Load them as well
@@ -514,12 +518,16 @@ public class Mapper {
             System.err.println("The template, expanded template or workflow instance are not available. ");
             return "";
         }
+        
         String date = ""+new Date().getTime();//necessary to add unique nodeId identifiers
         
+        if(suffix == null)
+          suffix = date;
+        
         //add the account of the current execution
-        this.addIndividual(OPMWModel,"Account"+date, Constants.OPMW_WORKFLOW_EXECUTION_ACCOUNT,"Execution account created on "+date);
+        this.addIndividual(OPMWModel,"Account-"+suffix, Constants.OPMW_WORKFLOW_EXECUTION_ACCOUNT,"Execution account created on "+date);
         //we also assert that it is an account
-        String accname = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account"+date);
+        String accname = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account-"+suffix);
         OntClass cAux = OPMWModel.createClass(Constants.OPM_ACCOUNT);
         cAux.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+accname);
         
@@ -934,6 +942,20 @@ public class Mapper {
         return (Constants.PREFIX_EXPORT_RESOURCE+accname);
     }
     
+    public String getRunUrl(String suffix) {
+        String accname = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ACCOUNT+"/"+"Account-"+suffix);
+        return (Constants.PREFIX_EXPORT_RESOURCE+accname);
+    }
+    
+    public String getTemplateUrl(String templateName) {
+        return Constants.PREFIX_EXPORT_RESOURCE+""+Constants.CONCEPT_WORKFLOW_TEMPLATE+"/"+
+            encode(templateName);
+    }
+    
+    public void setPublishExportPrefix(String prefix) {
+      Constants.PREFIX_EXPORT_RESOURCE = prefix;
+    }
+    
 //I leave this method commented as it might be useful in the future
 //    private HashMap<String,String> getNodes(OntModel m)throws Exception{
 //        HashMap<String,String> toReturn = new HashMap<>();
@@ -959,7 +981,7 @@ public class Mapper {
         OutputStream out;
         try {
             out = new FileOutputStream(outFile);
-            model.write(out,"TURTLE");
+            model.write(out,"RDF/XML");
             out.close();
         } catch (Exception ex) {
             System.out.println("Error while writing the model to file "+ex.getMessage());

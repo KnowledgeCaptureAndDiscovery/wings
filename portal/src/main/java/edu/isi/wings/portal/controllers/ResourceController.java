@@ -26,7 +26,7 @@ import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.html.CSSLoader;
 import edu.isi.wings.portal.classes.html.HTMLLoader;

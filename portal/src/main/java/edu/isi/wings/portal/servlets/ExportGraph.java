@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 
 /**
  * Servlet exports graph in TDB

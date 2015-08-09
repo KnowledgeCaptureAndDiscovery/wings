@@ -17,7 +17,7 @@
 
 <%@page import="java.io.PrintWriter"
 %><%@page import="edu.isi.wings.portal.classes.html.CSSLoader"
-%><%@page import="edu.isi.wings.portal.classes.Config"
+%><%@page import="edu.isi.wings.portal.classes.config.Config"
 %><%@page import="edu.isi.wings.portal.classes.html.JSLoader"
 %><%@page language="java" contentType="text/html; charset=US-ASCII"
     pageEncoding="US-ASCII"

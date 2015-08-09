@@ -17,6 +17,10 @@
 
 package edu.isi.wings.catalog.resource.classes;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import org.gridkit.internal.com.jcraft.jsch.ChannelSftp;
@@ -87,10 +91,46 @@ public class GridkitCloud {
       if(ssh_session.isConnected()) {
         ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
         sftpChannel.connect();
+        
+        // Get list of all required remote directories
+        ArrayList<String> dirList = new ArrayList<String>();
+        for(String local: localRemoteMap.keySet()) {
+          String remote = localRemoteMap.get(local);
+          File f = new File(remote);
+          File dir = f.getParentFile();
+          while(dir != null) {
+            if(!dirList.contains(dir.getAbsolutePath())) {
+              dirList.add(dir.getAbsolutePath());
+            }
+            dir = dir.getParentFile();
+          }
+        }
+        // Sort the directories by size
+        Collections.sort(dirList, new Comparator<String>() {
+          @Override
+          public int compare(String o1, String o2) {
+            return o1.length() - o2.length();
+          }
+        });
+        System.out.println(dirList);
+        
+        // Make sure all remote directories are created
+        for(String dir : dirList) {
+          File f = new File(dir);
+          try {
+            sftpChannel.stat(f.getAbsolutePath());
+          }
+          catch (Exception e) {
+            sftpChannel.mkdir(f.getAbsolutePath());
+          }
+        }
+        
+        // Finally upload the files
         for(String local: localRemoteMap.keySet()) {
           String remote = localRemoteMap.get(local);
           sftpChannel.put(local, remote);
         }
+        
         sftpChannel.disconnect();
         ssh_session.disconnect();
         return true;

@@ -34,7 +34,7 @@ import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.common.kb.PropertiesHelper;
 import edu.isi.wings.execution.tools.ExecutionToolsFactory;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 

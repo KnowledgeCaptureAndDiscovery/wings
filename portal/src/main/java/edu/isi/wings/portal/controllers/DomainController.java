@@ -37,7 +37,7 @@ import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.io.FileUtils;
 import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
-import edu.isi.wings.portal.classes.Config;
+import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.domains.Domain;

@@ -112,6 +112,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     KBObject outvarprop = kb.getProperty(pplan + "#hasOutputVar");
     KBObject cbindingprop = kb.getProperty(wfinst + "#hasCodeBinding");
     KBObject canrunonprop = kb.getProperty(wfont + "#canRunOn");
+    KBObject cdataprop = kb.getProperty(wfont + "#hasCustomData");
 
     for (KBObject pobj : kb.getInstancesOfClass(plancls, true)) {
       this.setID(pobj.getID());
@@ -145,6 +146,19 @@ public class PPlan extends URIEntity implements ExecutionPlan {
         if (cobj != null)
           code.setLocation((String) cobj.getValue());
         step.setCodeBinding(code);
+
+        KBObject cdata = kb.getPropertyValue(sobj, cdataprop);
+        if (cdata != null) {
+          HashMap<String, String> keyvals = new HashMap<String, String>();
+          String customdata = ((String) cdata.getValue());
+          String[] lines = customdata.split("\\n");
+          for(String line : lines) {
+            String[] kval = line.split("=");
+            keyvals.put(kval[0], kval[1]);
+          }
+          if(keyvals.containsKey("CodeDirectory"))
+            code.setCodeDirectory(keyvals.get("CodeDirectory"));
+        }
 
         KBObject invline = kb.getPropertyValue(sobj, invlineprop);
         @SuppressWarnings("unused")
@@ -187,6 +201,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     KBObject cbindingprop = wfkb.getProperty(wfinst + "#hasCodeBinding");
     // KBObject outvarprop = pkb.getProperty(pplan+"#isOutputVarOf");
     KBObject canrunonprop = kb.getProperty(wfont + "#canRunOn");
+    KBObject cdataprop = kb.getProperty(wfont + "#hasCustomData");
 
     KBObject planobj = kb.createObjectOfClass(this.getID(), plancls);
 
@@ -197,6 +212,9 @@ public class PPlan extends URIEntity implements ExecutionPlan {
       if (step.getCodeBinding().getLocation() != null)
         kb.setPropertyValue(stepobj, cbindingprop,
             fac.getDataObject(step.getCodeBinding().getLocation()));
+      if (step.getCodeBinding().getCodeDirectory() != null)
+        kb.setPropertyValue(stepobj, cdataprop,
+            fac.getDataObject("CodeDirectory="+step.getCodeBinding().getCodeDirectory()));
       String invocationLine = step.getInvocationArgumentString();
       kb.setPropertyValue(stepobj, invlineprop,
           fac.getDataObject(invocationLine));
