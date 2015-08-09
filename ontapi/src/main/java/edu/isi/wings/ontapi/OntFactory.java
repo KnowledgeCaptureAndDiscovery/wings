@@ -53,6 +53,8 @@ public class OntFactory {
 			// Extra Rules
 			Power rule1 = new Power();
 			BuiltinRegistry.theRegistry.register(rule1);
+			Log rulelog = new Log();
+			BuiltinRegistry.theRegistry.register(rulelog);
 			AddDays rule2 = new AddDays();
 			BuiltinRegistry.theRegistry.register(rule2);
 			SubtractDays rule3 = new SubtractDays();
