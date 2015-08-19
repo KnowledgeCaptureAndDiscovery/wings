@@ -1841,11 +1841,12 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	private SetExpression readSetExpressionFromKB(KBAPI tkb, KBObject exprobj, Node n) {
-		SetExpression expr = null;
-
+		if(exprobj == null) return null;
+		
 		KBObject exprcls = tkb.getClassOfInstance(exprobj);
-		if(exprcls == null) return expr;
+		if(exprcls == null) return null;
 
+    SetExpression expr = null;
 		boolean isleaf = false;
 		if (exprcls.getID().equals(conceptObjMap.get("XProduct").getID())) {
 			expr = new SetExpression(SetOperator.XPRODUCT);
