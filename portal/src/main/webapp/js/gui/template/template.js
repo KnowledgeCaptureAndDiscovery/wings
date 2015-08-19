@@ -186,7 +186,7 @@ Template.prototype.initialize = function() {
 		if (typeof (node) == "function")
 			continue;
 		node.setConcrete(node.isConcrete);
-		if(!node.prule.expr.args.length)
+		if(!node.prule.expr || !node.prule.expr.args.length)
 			node.setDefaultPortRule();
 		this.canvasItems = this.canvasItems.concat(this.nodes[node.id].getLayerItems());
 	}
@@ -1138,7 +1138,9 @@ function cloneObj(o) {
 Template.prototype.createCopy = function() {
 	this.saveToStore(true);
 	var store = cloneObj(this.store);
-	return new Template(this.id, store, this.editor);
+	var newt = new Template(this.id, store, this.editor);
+	newt.errors = this.errors;
+	return newt;
 };
 
 Template.prototype.equals = function(t) {

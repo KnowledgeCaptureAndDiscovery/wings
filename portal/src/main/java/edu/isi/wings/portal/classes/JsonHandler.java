@@ -258,13 +258,17 @@ class SetExpressionSerializer implements JsonSerializer<SetExpression>{
 			JsonObject obj = new JsonObject();
 			obj.add("op", context.serialize(expr.getOperator()));
 			JsonArray arr = new JsonArray();
-			for(SetExpression s : expr)
+			for(SetExpression s : expr) {
 				arr.add(context.serialize(s));
+			}
 			obj.add("args", arr);
 			return obj;
 		}
 		else {
-			return context.serialize(expr.getPort().getID());
+		  if(expr.getPort() != null)
+		    return context.serialize(expr.getPort().getID());
+		  else
+		    return null;
 		}
 	}
 }
