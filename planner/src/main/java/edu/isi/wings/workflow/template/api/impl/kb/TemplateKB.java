@@ -700,6 +700,8 @@ public class TemplateKB extends URIEntity implements Template {
 		exprs.add(prule.getSetExpression());
 		while (!exprs.isEmpty()) {
 			SetExpression ex = exprs.remove(0);
+			if(ex == null)
+			  continue;
 			if (ex.isSet())
 				exprs.addAll(ex);
 			else
