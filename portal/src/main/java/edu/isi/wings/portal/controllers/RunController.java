@@ -276,8 +276,8 @@ public class RunController {
 
                 // Check if run already published
                 if (graphExists(tstoreurl, runurl)) {
-                    retmap.put("info", "Run already published");
-                    System.out.println("Run already published");
+                    retmap.put("url", runurl);
+                    retmap.put("error", "Run already published");
                     return json.toJson(retmap);
                 }
                 
@@ -465,6 +465,8 @@ public class RunController {
                 opmwfile.delete();
                 provfile.delete();
                 tmplfile.delete();
+                
+                retmap.put("url", runurl);
 
             } catch (Exception e) {
                 e.printStackTrace();

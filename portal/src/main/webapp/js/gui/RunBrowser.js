@@ -334,12 +334,8 @@ RunBrowser.prototype.publishRun = function(runid, tabPanel) {
 		},
 		success : function(response) {
 			msgTarget.unmask();
-			if (response.responseText == "Already Published") {
-				alert("This run has already been published");
-				return;
-			}
 			var resp = Ext.decode(response.responseText);
-			if(!resp.error) {
+			if(resp.url) {
 				var url = resp.url;
 				var win = new Ext.Window({
 					title : 'RDF Turtle',
@@ -354,6 +350,8 @@ RunBrowser.prototype.publishRun = function(runid, tabPanel) {
 				});
 				win.show();
 			}
+			if(resp.error)
+				showError(resp.error);
 		},
 		failure : function(response) {
 			msgTarget.unmask();
