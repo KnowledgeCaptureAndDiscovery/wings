@@ -18,9 +18,7 @@
   </parent>
 
   <properties>
-    <apache-jena.version>2.11.2</apache-jena.version>
-    <pellet.version>2.3.1</pellet.version>
-    <pellet-jena.version>2.3.1-mod</pellet-jena.version>
+    <pellet-jena.version>2.4.0-SNAPSHOT</pellet-jena.version>
     <aterm-java.version>1.6</aterm-java.version>
     <log4j.version>1.2.14</log4j.version>
     <junit.version>4.5</junit.version>
@@ -30,10 +28,10 @@
   </properties>
 
   <repositories>
-    <!-- Local Wings Repository (using for pellet 2.3.1 jars here) -->
+    <!-- Local IKCAP Repository (using for pellet jars here) -->
     <repository>
-      <id>wings</id>
-      <url>http://skc.isi.edu:8765/archiva/repository/internal</url>
+      <id>Local archiva.snapshots repository</id>
+      <url>http://skc.isi.edu:8765/archiva/repository/snapshots/</url>
     </repository>
   </repositories>
 
@@ -54,39 +52,26 @@
       <version>${log4j.version}</version>
     </dependency>
 
-    <!-- Jena -->
+    <!-- Pellet & Jena -->
     <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>apache-jena-libs</artifactId>
-      <type>pom</type>
-      <version>${apache-jena.version}</version>
-    </dependency>
-
-    <!-- Pellet -->
-    <dependency>
-      <groupId>com.clarkparsia</groupId>
-      <artifactId>pellet</artifactId>
-      <version>${pellet.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.clarkparsia</groupId>
+      <groupId>com.clarkparsia.pellet</groupId>
       <artifactId>pellet-jena</artifactId>
       <version>${pellet-jena.version}</version>
     </dependency>
-
+    
+    <!-- Jena TDB -->
+	<dependency>
+		<groupId>org.apache.jena</groupId>
+		<artifactId>jena-tdb</artifactId>
+		<version>1.1.2</version>
+	</dependency>
+	
     <!-- Apache Commons IO -->
     <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>${commons-io.version}</version>
     </dependency>
-            
-    <!-- Virtuoso-Jena -->
-    <!--dependency>
-        <groupId>tr.com.srdc</groupId>
-        <artifactId>virt-jena</artifactId>
-        <version>2.6.2-srdc</version>
-    </dependency-->
 
   </dependencies>
 </project>

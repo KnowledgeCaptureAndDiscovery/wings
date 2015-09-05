@@ -1904,8 +1904,8 @@ public class KBAPIJena implements KBAPI {
     writeLock.lock();
     try {
       if(ontmodel != null) {
-        ontmodel.getBaseModel().close();
-        ontmodel.close();
+        //ontmodel.getBaseModel().close();
+        //ontmodel.close();
       }
     }
     finally {
