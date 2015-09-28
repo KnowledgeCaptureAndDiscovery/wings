@@ -18,7 +18,6 @@
 package edu.isi.wings.portal.classes;
 
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,7 +46,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 public class JsonHandler {
 	public static Gson createGson() {
@@ -66,7 +64,7 @@ public class JsonHandler {
 
   public static Gson createDataGson() {
     GsonBuilder gson = new GsonBuilder();
-    gson.registerTypeAdapter(XSDDateTime.class, new XSDDateTimeSerializer());
+    gson.setDateFormat("yyyy-MM-dd");
     return gson.disableHtmlEscaping().setPrettyPrinting().create();
   }
   
@@ -80,7 +78,7 @@ public class JsonHandler {
 		gson.registerTypeAdapter(ValueBinding.class, new BindingDeserializer());
 		gson.registerTypeAdapter(SetExpression.class, new SetExpressionSerializer());
 		gson.registerTypeAdapter(SetExpression.class, new SetExpressionDeserializer());
-		gson.registerTypeAdapter(XSDDateTime.class, new XSDDateTimeSerializer());
+		gson.setDateFormat("yyyy-MM-dd");
 		gson.disableHtmlEscaping();
 		gson.setPrettyPrinting();
 		return gson.create();
@@ -301,17 +299,5 @@ class DateSerializer implements JsonSerializer<Date> {
   public JsonElement serialize(Date date, Type typeOfSrc,
       JsonSerializationContext context) {
     return context.serialize(date.getTime()/1000);
-  }
-}
-/**
- * XSDDateTime Serializer
- * -- convert to string 
- *
- */
-class XSDDateTimeSerializer implements JsonSerializer<XSDDateTime> {
-  public JsonElement serialize(XSDDateTime dateTime, Type typeOfSrc,
-      JsonSerializationContext context) {
-    SimpleDateFormat xsddate_format = new SimpleDateFormat("yyyy-MM-dd");
-    return context.serialize(xsddate_format.format(dateTime.asCalendar().getTime()));
   }
 }

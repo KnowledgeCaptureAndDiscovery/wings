@@ -17,6 +17,7 @@
 
 package edu.isi.wings.ontapi.jena;
 
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.graph.Graph;
 import com.hp.hpl.jena.ontology.*;
 import com.hp.hpl.jena.query.*;
@@ -645,6 +646,14 @@ public class KBAPIJena implements KBAPI {
     try {    
       if (!checkNulls(literal))
         return null;
+      // Special handling for Date types
+      // Convert to XSD DateTime
+      if(literal instanceof Date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime((Date)literal);
+        XSDDateTime dtime = new XSDDateTime(cal);
+        return new KBObjectJena(ontmodel.createTypedLiteral(dtime));
+      }
       return new KBObjectJena(ontmodel.createTypedLiteral(literal));
     }
     finally {

@@ -24,15 +24,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.datatype.DatatypeFactory;
 
 import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
@@ -62,8 +60,6 @@ import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.DataVariable;
 import edu.isi.wings.workflow.template.classes.variables.ParameterVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
-
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 public class TemplateKB extends URIEntity implements Template {
 	private static final long serialVersionUID = 1L;
@@ -739,7 +735,7 @@ public class TemplateKB extends URIEntity implements Template {
 		// Fetch metadata
 		KBObject val = kb.getPropertyValue(mobj, propertyObjMap.get("lastUpdateTime"));
 		if (val != null) {
-			m.setLastUpdateTime((XSDDateTime) val.getValue());
+			m.setLastUpdateTime((Date) val.getValue());
 		}
 
 		val = kb.getPropertyValue(mobj, propertyObjMap.get("hasDocumentation"));
@@ -1900,15 +1896,6 @@ public class TemplateKB extends URIEntity implements Template {
 		KBObject mobj = tkb.createObjectOfClass(this.getID()+"_meta", conceptObjMap.get("Metadata"));
 		tkb.setPropertyValue(tobj, propertyObjMap.get("hasMetadata"), mobj);
 
-		if(m.lastUpdate != null && m.lastUpdateTime == null) {
-			try {
-				Calendar cal = DatatypeFactory.newInstance().newXMLGregorianCalendar(m.lastUpdate).toGregorianCalendar();
-				m.lastUpdateTime = new XSDDateTime(cal);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 		if (m.lastUpdateTime != null)
 			tkb.setPropertyValue(mobj, propertyObjMap.get("lastUpdateTime"),
 					ontologyFactory.getDataObject(m.getLastUpdateTime()));

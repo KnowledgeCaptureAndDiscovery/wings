@@ -17,17 +17,11 @@
 
 package edu.isi.wings.workflow.template.classes.sets;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.TimeZone;
 
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
-
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 /*
  * A Binding can contain just one URI or a set of URIs
@@ -82,7 +76,6 @@ public class Binding extends WingsSet implements Serializable {
 
 	public void setValue(Object value) {
 		this.value = value;
-		this.setObject();
 	}
 
 	public void setValue(Object[] values) {
@@ -138,43 +131,19 @@ public class Binding extends WingsSet implements Serializable {
 		return this.data.get("data");
 	}
 	
-	 public void setData(String key, Object data) {
-	    this.data.put(key, data);
-	    super.obj = "" + this.id + this.data.toString();
-	  }
+  public void setData(String key, Object data) {
+    this.data.put(key, data);
+    super.obj = "" + this.id + this.data.toString();
+  }
 
-	  public Object getData(String key) {
-	    return this.data.get(key);
-	  }
+  public Object getData(String key) {
+    return this.data.get(key);
+  }
 
 	/*
 	 * public Binding clone() { Binding b = (Binding)super.clone(); if(isSet())
 	 * { for(int i=0; i<this.size(); i++) { b.add(i,
 	 * ((Binding)this.get(i)).clone()); } } return b; }
 	 */
-
-	/*
-	 * XSDDateTime isn't serializable. So converting it to Calendar and back on
-	 * Serialization
-	 */
-	protected void setObject() {
-		this.obj = this.value;
-		if (this.obj.getClass().getSimpleName().equals("XSDDateTime")) {
-			this.obj = ((XSDDateTime) this.obj).asCalendar();
-			((Calendar) this.obj).setTimeZone(TimeZone.getTimeZone("UTC"));
-		}
-	}
-
-	private void readObject(java.io.ObjectInputStream in) throws IOException,
-			ClassNotFoundException {
-		in.defaultReadObject();
-		if (this.id == null) {
-			this.value = this.obj;
-			if (this.obj != null && this.obj.getClass().getSimpleName().equals("GregorianCalendar")) {
-				// ((Calendar)this.obj).setTimeZone(TimeZone.getTimeZone("UTC"));
-				this.value = new XSDDateTime((Calendar) this.obj);
-				((XSDDateTime) this.value).narrowType(XSDDatatype.XSDdate);
-			}
-		}
-	}
+	  
 }

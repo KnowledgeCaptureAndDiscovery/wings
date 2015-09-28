@@ -508,9 +508,9 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 								bodyPadding : 10,
 								autoHeight : true,
 								html : ("<b>Author:</b> " + meta.contributors
-										+ "<br/><b>Last Updated:</b> " + This
-										.parseXSDDateString(meta.lastUpdate))
-							},*/ {
+										+ "<br/><b>Last Updated:</b> " + meta.lastUpdateTime)
+							},*/
+							{
 								region : 'center',
 								border : false,
 								bodyPadding : 10,
@@ -531,13 +531,13 @@ TemplateBrowser.prototype.renderTemplateViewer = function(templatePanel,
 	templatePanel.add(mainPanel);
 };
 
-TemplateBrowser.prototype.parseXSDDateString = function(date) {
+/*TemplateBrowser.prototype.parseXSDDateString = function(date) {
 	if (!date)
 		return null;
 	var re = /(\d{4})-(\d{2})-(\d{2})(T(\d{2}):(\d{2}):(\d{2}))Z/;
 	return eval(date.replace(re,
 			'new Date(new Date(\'$2/$3/$1 $5:$6:$7 GMT\').getTime())'));
-};
+};*/
 
 TemplateBrowser.prototype.getConstraintsTableViewer = function(tid, tstore) {
 	var This = this;
@@ -1280,7 +1280,7 @@ TemplateBrowser.prototype.getTemplateStoreForTab = function(tab) {
 	if (tab.doc) {
 		template.store.metadata.documentation = tab.doc.getValue();
 	}
-	template.store.metadata.lastUpdate = xsdDateTime(new Date());
+	template.store.metadata.lastUpdateTime = new Date();
 	return template.store;
 };
 

@@ -18,7 +18,7 @@
 package edu.isi.wings.catalog.provenance.api.impl.kb;
 
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -32,8 +32,6 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
-
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 public class ProvenanceKB implements ProvenanceAPI {
   private String libns;
@@ -243,9 +241,7 @@ public class ProvenanceKB implements ProvenanceAPI {
     this.libkb.setPropertyValue(actobj, propmap.get("wasAttributedTo"), 
         userobj);
     
-    Calendar cal = Calendar.getInstance();
-    XSDDateTime dtime = new XSDDateTime(cal);
-    KBObject timeobj = this.libkb.createLiteral(dtime);
+    KBObject timeobj = this.libkb.createLiteral(new Date());
     this.libkb.setPropertyValue(actobj, propmap.get("startedAtTime"), 
         timeobj);
     this.libkb.setPropertyValue(actobj, propmap.get("endedAtTime"), 
@@ -268,7 +264,7 @@ public class ProvenanceKB implements ProvenanceAPI {
     activity.setLog(this.kb.getComment(actobj));
     KBObject timeobj = this.kb.getPropertyValue(actobj, propmap.get("startedAtTime"));
     if(timeobj != null)
-      activity.setTime(((XSDDateTime)timeobj.getValue()).asCalendar().getTimeInMillis());
+      activity.setTime( ((Date)timeobj.getValue()).getTime());
     KBObject userobj = this.kb.getPropertyValue(actobj, propmap.get("wasAttributedTo"));
     if(userobj != null)
       activity.setUserId(userobj.getID());

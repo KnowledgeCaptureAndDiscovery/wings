@@ -19,6 +19,7 @@ package edu.isi.wings.ontapi.jena;
 
 import edu.isi.wings.ontapi.KBObject;
 
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFList;
 import com.hp.hpl.jena.rdf.model.RDFNode;
@@ -125,6 +126,11 @@ public class KBObjectJena implements KBObject {
 	      isLiteral = true;
 	      this.value = node.asNode().getLiteralValue();
 	      this.type = node.asNode().getLiteralDatatypeURI();
+	      
+	      // Special handling for XSDDateTime
+	      if(this.value != null && this.value instanceof XSDDateTime) {
+	        this.value = ((XSDDateTime)this.value).asCalendar().getTime();
+	      }
 	    } else {
 	      this.id = ((Resource) node).getURI();
 	    }

@@ -19,9 +19,7 @@ package edu.isi.wings.execution.tools.api.impl.kb;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -49,8 +47,6 @@ import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
-
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	KBAPI kb;
@@ -329,21 +325,13 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void updateRuntimeInfo(KBAPI tkb, KBObject exobj, RuntimeInfo rinfo) {
 		tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
-				ontologyFactory.getDataObject(rinfo.getLog()));
+				tkb.createLiteral(rinfo.getLog()));
 		tkb.setPropertyValue(exobj, dataPropMap.get("hasStartTime"),
-				this.getXSDDateTime(rinfo.getStartTime()));
+				tkb.createLiteral(rinfo.getStartTime()));
 		tkb.setPropertyValue(exobj, dataPropMap.get("hasEndTime"),
-				this.getXSDDateTime(rinfo.getEndTime()));
+				tkb.createLiteral(rinfo.getEndTime()));
 		tkb.setPropertyValue(exobj, dataPropMap.get("hasExecutionStatus"),
-				ontologyFactory.getDataObject(rinfo.getStatus().toString()));
-	}
-
-	private KBObject getXSDDateTime(Date date) {
-		if (date == null)
-			return null;
-		Calendar cal = new GregorianCalendar();
-		cal.setTime(date);
-		return ontologyFactory.getDataObject(new XSDDateTime(cal));
+				tkb.createLiteral(rinfo.getStatus().toString()));
 	}
 
 	private RuntimeInfo getRuntimeInfo(KBAPI tkb, KBObject exobj) {
@@ -353,9 +341,9 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		KBObject status = this.kb.getPropertyValue(exobj, dataPropMap.get("hasExecutionStatus"));
 		KBObject log = this.kb.getPropertyValue(exobj, dataPropMap.get("hasLog"));
 		if (sttime != null && sttime.getValue() != null)
-			info.setStartTime(((XSDDateTime) sttime.getValue()).asCalendar().getTime());
+			info.setStartTime((Date) sttime.getValue());
 		if (endtime != null && endtime.getValue() != null)
-			info.setEndTime(((XSDDateTime) endtime.getValue()).asCalendar().getTime());
+			info.setEndTime((Date) endtime.getValue());
 		if (status != null && status.getValue() != null)
 			info.setStatus(RuntimeInfo.Status.valueOf((String) status.getValue()));
 		if (log != null && log.getValue() != null)

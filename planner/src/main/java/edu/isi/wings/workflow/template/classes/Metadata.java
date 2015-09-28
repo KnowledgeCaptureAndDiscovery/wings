@@ -19,14 +19,11 @@ package edu.isi.wings.workflow.template.classes;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Calendar;
-
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import java.util.Date;
 
 public class Metadata implements Serializable {
 	private static final long serialVersionUID = 1L;
-	public String lastUpdate;
-	public transient XSDDateTime lastUpdateTime;
+	public Date lastUpdateTime;
 	public String tellme;
 	public String documentation;
 	public ArrayList<String> contributors = new ArrayList<String>();
@@ -48,19 +45,15 @@ public class Metadata implements Serializable {
 	}
 
 	public void setLastUpdateTime() {
-		this.lastUpdateTime = new XSDDateTime(Calendar.getInstance());
-		this.lastUpdate = this.lastUpdateTime.toString();
+		this.lastUpdateTime = new Date();
 	}
 
-	public void setLastUpdateTime(XSDDateTime datetime) {
+	public void setLastUpdateTime(Date datetime) {
 		this.lastUpdateTime = datetime;
-		this.lastUpdate = this.lastUpdateTime.toString();
 	}
 	
-	public Calendar getLastUpdateTime() {
-		if (this.lastUpdateTime != null)
-			return this.lastUpdateTime.asCalendar();
-		return null;
+	public Date getLastUpdateTime() {
+		return this.lastUpdateTime;
 	}
 
 	public void setDocumentation(String doc) {

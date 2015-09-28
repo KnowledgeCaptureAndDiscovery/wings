@@ -32,7 +32,6 @@ import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
-import edu.isi.wings.catalog.data.classes.metrics.MetricsXMLUtil;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.common.logging.LoggerHelper;
 import edu.isi.wings.ontapi.KBObject;
@@ -233,7 +232,7 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 				  if(propValMap.containsKey(this.dcdomns + key)) {
   					for(Metric tmp : propValMap.get(this.dcdomns + key)) {
     					if (tmp != null && tmp.getValue() != null)
-    						m.appendReplacement(sb, MetricsXMLUtil.getValueString(tmp.getValue()));
+    						m.appendReplacement(sb, tmp.getValue().toString());
     					else
     						m.appendReplacement(sb, "");
   					}
