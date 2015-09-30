@@ -209,7 +209,7 @@ public class ComponentKB {
 		KBObject compobj = this.writerkb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		for(KBRule rule : ontologyFactory.parseRules(text).getRules()) {
-			KBObject ruleobj = ontologyFactory.getDataObject(rule.getInternalRuleObject().toString());
+			KBObject ruleobj = writerkb.createLiteral(rule.getInternalRuleObject().toString());
 			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
 		}
 	}

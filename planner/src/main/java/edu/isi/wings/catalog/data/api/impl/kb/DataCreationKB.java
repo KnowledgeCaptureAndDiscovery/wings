@@ -326,7 +326,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		// What happens to existing file ?
 		KBObject locprop = this.kb.getProperty(this.dcns + "hasLocation");
 		KBObject dobj = this.libkb.getIndividual(dataid);
-		KBObject locobj = ontologyFactory.getDataObject(locuri);
+		KBObject locobj = this.libkb.createLiteral(locuri);
 		this.libkb.setPropertyValue(dobj, locprop, locobj);
 		if(this.externalCatalog != null)
 			this.externalCatalog.setDataLocation(dataid, locuri);
@@ -346,7 +346,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	public boolean addDatatypePropertyValue(String dataid, String propid, Object val) {
 		KBObject dataobj = this.libkb.getIndividual(dataid);
 		KBObject pobj = this.kb.getProperty(propid);
-		KBObject valobj = this.ontologyFactory.getDataObject(val);
+		KBObject valobj = this.libkb.createLiteral(val);
 		this.libkb.setPropertyValue(dataobj, pobj, valobj);
 		if(this.externalCatalog != null)
 			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val);
@@ -379,7 +379,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	public boolean removePropertyValue(String dataid, String propid, Object val) {
 		KBObject dataobj = this.libkb.getIndividual(dataid);
 		KBObject pobj = this.kb.getProperty(propid);
-		KBObject valobj = this.ontologyFactory.getDataObject(val);
+		KBObject valobj = this.libkb.createLiteral(val);
 		this.libkb.removeTriple(dataobj, pobj, valobj);
 		if(this.externalCatalog != null)
 			this.externalCatalog.removePropertyValue(dataid, propid, val);

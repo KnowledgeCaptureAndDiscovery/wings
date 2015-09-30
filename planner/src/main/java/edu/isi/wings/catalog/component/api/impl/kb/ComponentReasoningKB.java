@@ -335,7 +335,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 							tkb.createLiteral(var.getBinding().getName()));
 				} else {
 					tkb.addTriple(varobj, dmap.get("hasBindingID"),
-							this.ontologyFactory.getDataObject(""));
+							tkb.createLiteral(""));
 				}
 
 				// assign this variable as an input or output to the component
@@ -635,15 +635,15 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 							}
 						}
 						tkb.setPropertyValue(varobj, dmap.get("hasDimensionSizes"),
-								this.ontologyFactory.getDataObject(dimensionSizes));
+						    tkb.createLiteral(dimensionSizes));
 					}
 
 					if (var.getBinding().getID() != null)
 						tkb.addTriple(varobj, dmap.get("hasBindingID"),
-								this.ontologyFactory.getDataObject(var.getBinding().getName()));
+						    tkb.createLiteral(var.getBinding().getName()));
 					else
 						tkb.addTriple(varobj, dmap.get("hasBindingID"),
-								this.ontologyFactory.getDataObject(""));
+						    tkb.createLiteral(""));
 
 					// end if (var.getDataBinding() != null)
 				}
@@ -655,7 +655,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				KBObject arg_value = this.kb.getPropertyValue(arg, dmap.get("hasValue"));
 				if (var.getBinding() != null && var.getBinding().getValue() != null) {
 					// If the template has any value specified, use that instead
-					arg_value = this.ontologyFactory.getDataObject(var.getBinding().getValue());
+					arg_value = tkb.createLiteral(var.getBinding().getValue());
 				}
 				if (arg_value != null) {
 					// Set argument value in the temporary kb store to run rules on
@@ -664,7 +664,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				if(dmap.containsKey("hasBindingID"))
 					// Set the hasBindingID term
 					tkb.addTriple(varobj, dmap.get("hasBindingID"),
-							this.ontologyFactory.getDataObject("Param" + arg.getName()));
+					    tkb.createLiteral("Param" + arg.getName()));
 			}
 
 			// Copy argument classes from Catalog as classes for the temporary
@@ -673,7 +673,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 			// Set the temporary variable's argumentID so rules can get/set
 			// triples based on the argument
-			tkb.addTriple(varobj, dmap.get("hasArgumentID"), ontologyFactory.getDataObject(rolestr));
+			tkb.addTriple(varobj, dmap.get("hasArgumentID"), tkb.createLiteral(rolestr));
 
 			// Set hasInput or hasOutput for the temporary Variable
 			if (sInputRoles.containsKey(rolestr)) {
@@ -920,14 +920,15 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 							for (int i = 0; i < dimSizes[vdim]; i++) {
 								Binding cvb = new Binding(b.getNamespace()
 										+ UuidGen.generateAUuid("" + i));
+								// Copy over metrics from parent variable binding
+                Metrics tmpMetrics = new Metrics(vb.getMetrics());
 								// Add dimension index (if property set)
 								String prop = dimIndexProps[vdim];
 								if (prop != null && !prop.equals("")) {
-									Metrics tmpMetrics = new Metrics(vb.getMetrics());
 									Metric nm = new Metric(Metric.LITERAL, i, KBUtils.XSD+"integer");
 									tmpMetrics.addMetric(this.dcdomns + prop, nm);
-									cvb.setMetrics(tmpMetrics);
 								}
+                cvb.setMetrics(tmpMetrics);
 								vb.add(cvb);
 								vbs.add(cvb);
 							}

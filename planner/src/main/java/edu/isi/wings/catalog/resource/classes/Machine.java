@@ -201,6 +201,7 @@ class MachineDetailsGrabber implements Callable<MachineDetails>, Serializable {
     this.machine = machine;
   }
 
+  @SuppressWarnings("restriction")
   @Override
   public MachineDetails call() {
     MachineDetails details = new MachineDetails();

@@ -2317,7 +2317,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
   				if(m.getDatatype() != null)
   					val = tkb.createXSDLiteral(m.getValue().toString(), m.getDatatype());
   				else
-  					val = ontfac.getDataObject(m.getValue());
+  					val = tkb.createLiteral(m.getValue());
   			}
   			else if (m.getType() == Metric.URI)
   				val = tkb.getResource(m.getValue().toString());

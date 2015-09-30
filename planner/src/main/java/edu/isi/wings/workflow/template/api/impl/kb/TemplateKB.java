@@ -1543,7 +1543,7 @@ public class TemplateKB extends URIEntity implements Template {
 			if(b.getDatatype() != null)
 				return tkb.createXSDLiteral(b.getValue().toString(), b.getDatatype());
 			else
-				return ontologyFactory.getDataObject(b.getValue());
+				return tkb.createLiteral(b.getValue());
 		}
 
 		ArrayList<KBObject> listItems = new ArrayList<KBObject>();
@@ -1578,7 +1578,7 @@ public class TemplateKB extends URIEntity implements Template {
 
       if(n.isInactive()) {
         tkb.addPropertyValue(nobj, pmap.get("isInactive"), 
-            ontologyFactory.getDataObject(true));
+            tkb.createLiteral(true));
       }
       
       if(n.getMachineIds() != null)
@@ -1600,7 +1600,7 @@ public class TemplateKB extends URIEntity implements Template {
 					tkb.addPropertyValue(nobj, pmap.get("hasComponent"), cobj);
 					if (c.isConcrete())
 						tkb.addPropertyValue(cobj, pmap.get("isConcrete"),
-								ontologyFactory.getDataObject(true));
+						    tkb.createLiteral(true));
 					if (c.getBinding() != null) {
 						tkb.addPropertyValue(cobj, pmap.get("hasComponentBinding"),
 								writeBindingObjectToKB(tkb, c.getBinding()));
@@ -1631,9 +1631,9 @@ public class TemplateKB extends URIEntity implements Template {
 					Role r = p.getRole();
 					KBObject roleobj = tkb.getResource(r.getID());
 					tkb.setPropertyValue(roleobj, propertyObjMap.get("hasDimensionality"),
-							ontologyFactory.getDataObject(r.getDimensionality()));
+					    tkb.createLiteral(r.getDimensionality()));
 					tkb.setPropertyValue(roleobj, propertyObjMap.get("hasRoleID"),
-							ontologyFactory.getDataObject(r.getRoleId()));
+					    tkb.createLiteral(r.getRoleId()));
 					tkb.addPropertyValue(pobj, pmap.get("satisfiesRole"), roleobj);
 				}
 				tkb.addPropertyValue(nobj, pmap.get("hasInputPort"), pobj);
@@ -1645,9 +1645,9 @@ public class TemplateKB extends URIEntity implements Template {
 					Role r = p.getRole();
 					KBObject roleobj = tkb.getResource(r.getID());
 					tkb.setPropertyValue(roleobj, propertyObjMap.get("hasDimensionality"),
-							ontologyFactory.getDataObject(r.getDimensionality()));
+					    tkb.createLiteral(r.getDimensionality()));
 					tkb.setPropertyValue(roleobj, propertyObjMap.get("hasRoleID"),
-							ontologyFactory.getDataObject(r.getRoleId()));
+					    tkb.createLiteral(r.getRoleId()));
 					tkb.addPropertyValue(pobj, pmap.get("satisfiesRole"), roleobj);
 				}
 				tkb.addPropertyValue(nobj, pmap.get("hasOutputPort"), pobj);
@@ -1661,10 +1661,10 @@ public class TemplateKB extends URIEntity implements Template {
 				KBObject cruleobj = tkb.createObjectOfClass(n.getID()+"_crule", cmap.get("ComponentSetRule"));
 				if (crule.getType() == SetType.STYPE) {
 					tkb.addPropertyValue(cruleobj, pmap.get("createComponentSets"),
-							ontologyFactory.getDataObject(true));
+					    tkb.createLiteral(true));
 				} else if (crule.getType() == SetType.WTYPE) {
 					tkb.addPropertyValue(cruleobj, pmap.get("createWorkflowSets"),
-							ontologyFactory.getDataObject(true));
+					    tkb.createLiteral(true));
 				}
 				tkb.addPropertyValue(cruleobj, pmap.get("createSetsOn"),
 						tkb.getResource(n.getComponentVariable().getID()));
@@ -1674,10 +1674,10 @@ public class TemplateKB extends URIEntity implements Template {
 				KBObject pruleobj = tkb.createObjectOfClass(n.getID()+"_prule", cmap.get("PortSetRule"));
 				if (prule.getType() == SetType.STYPE) {
 					tkb.addPropertyValue(pruleobj, pmap.get("createComponentSets"),
-							ontologyFactory.getDataObject(true));
+					    tkb.createLiteral(true));
 				} else if (prule.getType() == SetType.WTYPE) {
 					tkb.addPropertyValue(pruleobj, pmap.get("createWorkflowSets"),
-							ontologyFactory.getDataObject(true));
+					    tkb.createLiteral(true));
 				}
 
 				SetExpression expr = prule.getSetExpression();
@@ -1700,7 +1700,7 @@ public class TemplateKB extends URIEntity implements Template {
 				}
         if(v.isBreakpoint()) {
           tkb.addPropertyValue(vobj, pmap.get("breakPoint"), 
-              ontologyFactory.getDataObject(true));
+              tkb.createLiteral(true));
         }
 			} else if (v.isParameterVariable()) {
 				vobj = tkb.createObjectOfClass(v.getID(), cmap.get("ParameterVariable"));
@@ -1710,7 +1710,7 @@ public class TemplateKB extends URIEntity implements Template {
 				}
 				if(v.isAutoFill()) {
 				  tkb.addPropertyValue(vobj, pmap.get("autoFill"), 
-				      ontologyFactory.getDataObject(true));
+				      tkb.createLiteral(true));
 				}
 			}
       if(v.getDerivedFrom() != null)
@@ -1771,7 +1771,7 @@ public class TemplateKB extends URIEntity implements Template {
 			this.version = latestVersion;
 
 			tkb.addPropertyValue(tobj, pmap.get("hasVersion"),
-					ontologyFactory.getDataObject(this.version));
+			    tkb.createLiteral(this.version));
 
 			writeMetadataDescription(tkb, tobj, metadata);
 			writeRules(tkb, tobj, rules);
@@ -1821,9 +1821,9 @@ public class TemplateKB extends URIEntity implements Template {
 			tkb.setPropertyValue(roleobj, propertyObjMap.get("mapsToVariable"),
 					tkb.getResource(varid));
 			tkb.setPropertyValue(roleobj, propertyObjMap.get("hasRoleID"),
-					ontologyFactory.getDataObject(r.getRoleId()));
+			    tkb.createLiteral(r.getRoleId()));
 			tkb.setPropertyValue(roleobj, propertyObjMap.get("hasDimensionality"),
-					ontologyFactory.getDataObject(r.getDimensionality()));
+			    tkb.createLiteral(r.getDimensionality()));
 		}
 		for (String varid : outputRoles.keySet()) {
 			Role r = outputRoles.get(varid);
@@ -1832,9 +1832,9 @@ public class TemplateKB extends URIEntity implements Template {
 			tkb.setPropertyValue(roleobj, propertyObjMap.get("mapsToVariable"),
 					tkb.getResource(varid));
 			tkb.setPropertyValue(roleobj, propertyObjMap.get("hasRoleID"),
-					ontologyFactory.getDataObject(r.getRoleId()));
+			    tkb.createLiteral(r.getRoleId()));
 			tkb.setPropertyValue(roleobj, propertyObjMap.get("hasDimensionality"),
-					ontologyFactory.getDataObject(r.getDimensionality()));
+			    tkb.createLiteral(r.getDimensionality()));
 		}
 	}
 
@@ -1842,7 +1842,7 @@ public class TemplateKB extends URIEntity implements Template {
 		if(exprobj == null) return null;
 		
 		KBObject exprcls = tkb.getClassOfInstance(exprobj);
-		if(exprcls == null) return null;
+		if(exprcls == null || exprcls.getID() == null) return null;
 
     SetExpression expr = null;
 		boolean isleaf = false;
@@ -1898,24 +1898,24 @@ public class TemplateKB extends URIEntity implements Template {
 
 		if (m.lastUpdateTime != null)
 			tkb.setPropertyValue(mobj, propertyObjMap.get("lastUpdateTime"),
-					ontologyFactory.getDataObject(m.getLastUpdateTime()));
+					tkb.createLiteral(m.getLastUpdateTime()));
 			
 		if (m.documentation != null)
 			tkb.setPropertyValue(mobj, propertyObjMap.get("hasDocumentation"),
-					ontologyFactory.getDataObject(m.documentation));
+			    tkb.createLiteral(m.documentation));
 
 		for (String tmp : m.createdFrom)
 			if (tmp != null)
 				tkb.addPropertyValue(mobj, propertyObjMap.get("createdFrom"),
-						ontologyFactory.getDataObject(tmp));
+				    tkb.createLiteral(tmp));
 		for (String tmp : m.contributors)
 			if (tmp != null)
 				tkb.addPropertyValue(mobj, propertyObjMap.get("hasContributor"),
-						ontologyFactory.getDataObject(tmp));
+				    tkb.createLiteral(tmp));
 		
 		if(m.tellme != null)
 		  tkb.setPropertyValue(mobj, propertyObjMap.get("tellmeData"),
-          ontologyFactory.getDataObject(m.tellme));
+		      tkb.createLiteral(m.tellme));
 	}
 
 	protected void writeRules(KBAPI tkb, KBObject tobj, Rules rules) {
@@ -1923,7 +1923,7 @@ public class TemplateKB extends URIEntity implements Template {
 		this.cacheConceptsAndProperties();
 		if (rules.getRulesText() != null)
 			tkb.setPropertyValue(tobj, propertyObjMap.get("hasRules"),
-					ontologyFactory.getDataObject(rules.getRulesText()));
+			    tkb.createLiteral(rules.getRulesText()));
 	}
 
 	public Template getCreatedFrom() {

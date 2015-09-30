@@ -141,7 +141,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	public boolean setComponentLocation(String cid, String location) {
 		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
 		KBObject cobj = this.writerkb.getResource(cid);
-		KBObject locobj = ontologyFactory.getDataObject(location);
+		KBObject locobj = writerkb.createLiteral(location);
 		this.writerkb.setPropertyValue(cobj, locprop, locobj);
     if(this.externalCatalog != null)
       this.externalCatalog.setComponentLocation(cid, location);
@@ -236,7 +236,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 			this.setComponentRules(cid, comp.getRulesText());
 		}
 		
-		KBObject isConcreteVal = ontologyFactory.getDataObject(comp.getType() == Component.CONCRETE);
+		KBObject isConcreteVal = this.writerkb.createLiteral(comp.getType() == Component.CONCRETE);
 		this.writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);
 		
     if(this.externalCatalog != null)
@@ -471,9 +471,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		String roletype = this.pcns + (role.isParam() ? "ParameterArgument" : "DataArgument");
 		KBObject roletypeobj = this.kb.getConcept(roletype);
 		KBObject roleobj = writerkb.createObjectOfClass(role.getID(), roletypeobj);
-		writerkb.setPropertyValue(roleobj, argidProp, ontologyFactory.getDataObject(role.getRoleName()));
-		writerkb.setPropertyValue(roleobj, dimProp, ontologyFactory.getDataObject(role.getDimensionality()));
-		writerkb.setPropertyValue(roleobj, pfxProp, ontologyFactory.getDataObject(role.getPrefix()));
+		writerkb.setPropertyValue(roleobj, argidProp, writerkb.createLiteral(role.getRoleName()));
+		writerkb.setPropertyValue(roleobj, dimProp, writerkb.createLiteral(role.getDimensionality()));
+		writerkb.setPropertyValue(roleobj, pfxProp, writerkb.createLiteral(role.getPrefix()));
 		
 		if (role.isParam() && role.getType() != null) {
 			// Write the parameter default value

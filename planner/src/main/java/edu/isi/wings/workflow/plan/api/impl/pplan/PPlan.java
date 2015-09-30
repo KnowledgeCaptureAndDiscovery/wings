@@ -211,13 +211,13 @@ public class PPlan extends URIEntity implements ExecutionPlan {
       kb.setPropertyValue(stepobj, isstepofplanprop, planobj);
       if (step.getCodeBinding().getLocation() != null)
         kb.setPropertyValue(stepobj, cbindingprop,
-            fac.getDataObject(step.getCodeBinding().getLocation()));
+            kb.createLiteral(step.getCodeBinding().getLocation()));
       if (step.getCodeBinding().getCodeDirectory() != null)
         kb.setPropertyValue(stepobj, cdataprop,
-            fac.getDataObject("CodeDirectory="+step.getCodeBinding().getCodeDirectory()));
+            kb.createLiteral("CodeDirectory="+step.getCodeBinding().getCodeDirectory()));
       String invocationLine = step.getInvocationArgumentString();
       kb.setPropertyValue(stepobj, invlineprop,
-          fac.getDataObject(invocationLine));
+          kb.createLiteral(invocationLine));
 
       for (ExecutionFile f : step.getInputFiles()) {
         KBObject varobj = fileObjects.get(f.getID());
@@ -225,7 +225,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
           varobj = kb.createObjectOfClass(f.getID(), varcls);
           kb.setPropertyValue(varobj, isvarofplanprop, planobj);
           kb.setPropertyValue(varobj, dbindingprop,
-              fac.getDataObject(f.getLocation()));
+              kb.createLiteral(f.getLocation()));
           fileObjects.put(f.getID(), varobj);
         }
         kb.addPropertyValue(stepobj, invarprop, varobj);
@@ -236,7 +236,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
           varobj = kb.createObjectOfClass(f.getID(), varcls);
           kb.setPropertyValue(varobj, isvarofplanprop, planobj);
           kb.setPropertyValue(varobj, dbindingprop,
-              fac.getDataObject(f.getLocation()));
+              kb.createLiteral(f.getLocation()));
           fileObjects.put(f.getID(), varobj);
         }
         kb.addPropertyValue(stepobj, outvarprop, varobj);
