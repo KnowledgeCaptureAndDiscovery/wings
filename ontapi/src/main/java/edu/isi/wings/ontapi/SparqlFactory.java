@@ -113,7 +113,7 @@ public class SparqlFactory {
 		KBObject object = dod.get(2);
 
 		if (this.isVariable(subject)) {
-			String variableName = subject.getName();
+			String variableName = subject.getName().replaceAll("-", "_");
 			String sparqlVariableName = "?" + variableName;
 			if (!variables.contains(variableName)) {
 				variables.add(variableName);
