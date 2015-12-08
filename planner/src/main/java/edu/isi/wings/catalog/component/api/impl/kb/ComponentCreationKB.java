@@ -415,7 +415,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
 		KBObject doc = kb.getPropertyValue(compobj, docProp);
 		if(doc != null && doc.getValue() != null)
-		    return doc.getValue().toString();
+		    return doc.getValueAsString();
 		return null;
 	}
 	
@@ -454,11 +454,11 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 			}
 		}
 		if (role != null && role.getValue() != null)
-			arg.setRoleName(role.getValue().toString());
+			arg.setRoleName(role.getValueAsString());
 		if (dim != null && dim.getValue() != null)
 			arg.setDimensionality((Integer) dim.getValue());
 		if (pfx != null && pfx.getValue() != null)
-			arg.setPrefix(pfx.getValue().toString());
+			arg.setPrefix(pfx.getValueAsString());
 		return arg;
 	}
 

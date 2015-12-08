@@ -146,13 +146,13 @@ public class SparqlFactory {
 			if (object.isLiteral() && object.getValue() !=  null) {
 				if (object.getDataType() != null) {
 					whereClause.append("\"");
-					whereClause.append(escape(object.getValue().toString()));
+					whereClause.append(escape(object.toString()));
 					whereClause.append("\"^^<");
 					whereClause.append(object.getDataType());
 					whereClause.append(">");
 				} else {
 					whereClause.append("\"");
-					whereClause.append(escape(object.getValue().toString()));
+					whereClause.append(escape(object.toString()));
 					whereClause.append("\"");
 				}
 			} else {

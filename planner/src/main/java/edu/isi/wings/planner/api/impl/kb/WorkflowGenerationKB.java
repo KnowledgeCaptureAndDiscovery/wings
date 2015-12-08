@@ -2315,12 +2315,12 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
   			KBObject val = null;
   			if (m.getType() == Metric.LITERAL && m.getValue() != null) {
   				if(m.getDatatype() != null)
-  					val = tkb.createXSDLiteral(m.getValue().toString(), m.getDatatype());
+  					val = tkb.createXSDLiteral(m.getValueAsString(), m.getDatatype());
   				else
   					val = tkb.createLiteral(m.getValue());
   			}
   			else if (m.getType() == Metric.URI)
-  				val = tkb.getResource(m.getValue().toString());
+  				val = tkb.getResource(m.getValueAsString());
   			constraints.add(tkb.addTriple(varObject, prop, val));
 			}
 		}

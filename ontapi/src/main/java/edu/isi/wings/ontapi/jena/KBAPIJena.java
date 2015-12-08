@@ -1610,7 +1610,7 @@ public class KBAPIJena implements KBAPI {
           if(obj.getDataType() != null)
             obobj = model.createTypedLiteral(obj.getValue(), obj.getDataType());
           else {
-            obobj = model.createLiteral(obj.getValue().toString());
+            obobj = model.createLiteral(obj.getValueAsString());
           }
         } 
         else {

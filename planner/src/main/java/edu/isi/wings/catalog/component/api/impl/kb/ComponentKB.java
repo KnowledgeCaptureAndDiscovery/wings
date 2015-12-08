@@ -195,7 +195,7 @@ public class ComponentKB {
 		KBObject cobj = this.kb.getIndividual(cid);
 		KBObject locobj = this.kb.getPropertyValue(cobj, locprop);
 		if (locobj != null && locobj.getValue() != null)
-			return locobj.getValue().toString();
+			return locobj.getValueAsString();
 		else {
 			String location = this.codedir + File.separator + cobj.getName();
 			File f = new File(location);
@@ -225,7 +225,7 @@ public class ComponentKB {
 		KBObject compobj = this.kb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		for(KBObject ruleobj : this.kb.getPropertyValues(compobj, ruleProp))
-			rulestr += ruleobj.getValue().toString();
+			rulestr += ruleobj.getValueAsString();
 		return ontologyFactory.parseRules(rulestr);
 	}
 	
@@ -237,7 +237,7 @@ public class ComponentKB {
 			for(KBObject superclsobj : this.kb.getSuperClasses(clsobj, false)) {
 				for(KBObject supercompobj : this.kb.getInstancesOfClass(superclsobj, true))
 					for(KBObject ruleobj : this.kb.getPropertyValues(supercompobj, ruleProp))
-						rulestr += ruleobj.getValue().toString();
+						rulestr += ruleobj.getValueAsString();
 			}
 		}
 		return ontologyFactory.parseRules(rulestr);
@@ -266,9 +266,9 @@ public class ComponentKB {
     KBObject s4bitobj = tkb.getPropertyValue(hdobj,
         this.dataPropMap.get("needs64bit"));
     if(memobj != null && memobj.getValue() != null)
-      requirement.setMemoryGB(Float.parseFloat(memobj.getValue().toString()));
+      requirement.setMemoryGB(Float.parseFloat(memobj.getValueAsString()));
     if(stobj != null && stobj.getValue() != null)
-      requirement.setStorageGB(Float.parseFloat(stobj.getValue().toString()));
+      requirement.setStorageGB(Float.parseFloat(stobj.getValueAsString()));
     if(s4bitobj != null)
       requirement.setNeed64bit((Boolean)s4bitobj.getValue());
     

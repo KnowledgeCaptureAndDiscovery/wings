@@ -17,6 +17,11 @@
 
 package edu.isi.wings.workflow.template.classes.sets;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ValueBinding extends Binding {
 	private static final long serialVersionUID = 1L;
 
@@ -51,4 +56,68 @@ public class ValueBinding extends Binding {
 	public void setDatatype(String datatype) {
 		this.datatype = datatype;
 	}
+
+	 
+  public String getValueAsString() {
+    if(this.value instanceof Date) {
+      if(this.datatype == null || this.datatype.endsWith("dateTime")) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        return format.format(this.value);
+      }
+      else if (this.datatype.endsWith("date")){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        return format.format(this.value);
+      }
+    }
+    return this.value.toString();
+  } 
+  
+  public void setValueFromString(String value) throws ParseException {
+    if(this.datatype != null) {
+      if(this.datatype.endsWith("#dateTime")) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        this.value = format.parse(value);
+      }
+      else if (this.datatype.endsWith("#date")){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        this.value = format.parse(value);
+      }
+      else if (this.datatype.endsWith("#float")) {
+        this.value = Float.parseFloat(value);
+      }
+      else if (this.datatype.endsWith("#int")) {
+        this.value = Integer.parseInt(value);
+      }
+      else if (this.datatype.endsWith("#boolean")) {
+        this.value = Boolean.parseBoolean(value);
+      }
+      else {
+        this.value = value;
+      }
+    }
+    else {
+      this.value = value;
+    }
+  }
+  
+  /*
+   * Serialize Date into appropriate values
+   */
+  private void writeObject(java.io.ObjectOutputStream out)
+       throws IOException {
+    if (this.value != null &&
+        this.value instanceof Date) {
+      this.value = this.getValueAsString();
+    }
+    out.defaultWriteObject();
+  }
+
+  private void readObject(java.io.ObjectInputStream in) throws IOException,
+      ClassNotFoundException, ParseException {
+    in.defaultReadObject();
+    if (this.value != null
+        && this.value instanceof String) {
+      this.setValueFromString(this.value.toString());
+    }
+  }	
 }

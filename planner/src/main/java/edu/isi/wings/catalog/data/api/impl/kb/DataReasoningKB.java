@@ -232,7 +232,7 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 				  if(propValMap.containsKey(this.dcdomns + key)) {
   					for(Metric tmp : propValMap.get(this.dcdomns + key)) {
     					if (tmp != null && tmp.getValue() != null)
-    						m.appendReplacement(sb, tmp.getValue().toString());
+    						m.appendReplacement(sb, tmp.getValueAsString());
     					else
     						m.appendReplacement(sb, "");
   					}

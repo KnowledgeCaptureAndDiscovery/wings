@@ -19,6 +19,9 @@ package edu.isi.wings.ontapi.jena;
 
 import edu.isi.wings.ontapi.KBObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.RDFList;
@@ -103,6 +106,23 @@ public class KBObjectJena implements KBObject {
 	public Object getValue() {
 		return this.value;
 	}
+	
+  public String getValueAsString() {
+    if(!isLiteral)
+      return this.id;
+    
+    if(this.value instanceof Date) {
+      if(this.type == null || this.type.endsWith("#dateTime")) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        return format.format(this.value);
+      }
+      else if (this.type.endsWith("#date")){
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        return format.format(this.value);
+      }
+    }
+    return (this.value != null ? this.value.toString() : null);
+  } 
 
 	public String getDataType() {
 		return this.type;

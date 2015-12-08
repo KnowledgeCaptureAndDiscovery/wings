@@ -213,7 +213,7 @@ class BindingSerializer implements JsonSerializer<Binding>{
 				String datatype = vb.getDatatype();
 				if(datatype== null)
 					datatype = KBUtils.XSD + "string";
-				obj.add("value", new JsonPrimitive(vb.getValue().toString()));
+				obj.add("value", new JsonPrimitive(vb.getValueAsString()));
 				obj.add("datatype", new JsonPrimitive(datatype));
 				obj.add("type", new JsonPrimitive("literal"));
 			}

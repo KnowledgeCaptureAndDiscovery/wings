@@ -128,7 +128,7 @@ public class KBRuleJena implements KBRule {
 			KBObject argobj = kbobj.getKBObject();
 			if(argobj.isLiteral()) {
 				RDFDatatype type = NodeFactory.getType(argobj.getDataType());
-				return NodeFactory.createLiteral(argobj.getValue().toString(), type);
+				return NodeFactory.createLiteral(argobj.toString(), type);
 			}
 			else
 				return NodeFactory.createURI(argobj.getID());

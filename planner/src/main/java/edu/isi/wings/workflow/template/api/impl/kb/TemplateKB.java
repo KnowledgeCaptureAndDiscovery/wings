@@ -1541,7 +1541,7 @@ public class TemplateKB extends URIEntity implements Template {
 	private KBObject writeValueBindingObjectToKB(KBAPI tkb, ValueBinding b) {
 		if (!b.isSet()) {
 			if(b.getDatatype() != null)
-				return tkb.createXSDLiteral(b.getValue().toString(), b.getDatatype());
+				return tkb.createXSDLiteral(b.getValueAsString(), b.getDatatype());
 			else
 				return tkb.createLiteral(b.getValue());
 		}

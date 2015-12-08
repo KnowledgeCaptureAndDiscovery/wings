@@ -567,18 +567,19 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 					for (String propid : propValMap.keySet()) {
 						for(Metric tmp : propValMap.get(propid)) {
   						Object val = tmp.getValue();
+  						String valstring = tmp.getValueAsString();
   						int type = tmp.getType();
   						String dtype = tmp.getDatatype();
   						KBObject metricProp = this.kb.getProperty(propid);
   						if (metricProp != null) {
-  							// System.out.println(propid + " : " +obj);
+  							//System.out.println(var.getName()+": " + propid + " = " +valstring);
   							if (type == Metric.URI) {
   								// Object Property
-  								KBObject valobj = this.kb.getResource(val.toString());
+  								KBObject valobj = this.kb.getResource(valstring);
   								if (valobj == null) {
   									// TODO: Log and explain (make a utility
   									// function)
-  									details.addExplanations("ERROR Cannot Recognize Metrics Value " + val);
+  									details.addExplanations("ERROR Cannot Recognize Metrics Value " + valstring);
   									continue;
   								}
   								// Copy over the object class into kb as well
@@ -594,7 +595,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   								tkb.addTriple(varobj, metricProp, valobj);
   							} else if (type == Metric.LITERAL && val != null) {
   								// Literal value
-  								KBObject tobj = dtype != null ? tkb.createXSDLiteral(val.toString(), dtype) :
+  								KBObject tobj = dtype != null ? tkb.createXSDLiteral(valstring, dtype) :
   													tkb.createLiteral(val);
   								if (tobj != null) {
   	                // Remove any existing values first
@@ -603,7 +604,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   	                 // Add a Triple for the metric propertyvalue
   									tkb.addTriple(varobj, metricProp, tobj);
   								} else {
-  									details.addExplanations("ERROR Cannot Convert Metrics Value " + val);
+  									details.addExplanations("ERROR Cannot Convert Metrics Value " + valstring);
   									continue;
   								}
   							}
@@ -1015,10 +1016,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 					invocation.addArgument(prefix, b, var.getID(), isInput);
 				} else if (var.isParameterVariable()) {
 					if (var.getBinding() != null) {
-						invocation.addArgument(prefix, var.getBinding().toString(), 
+						invocation.addArgument(prefix, ((ValueBinding)var.getBinding()).getValueAsString(),  
 							var.getID(), isInput);
 					} else if (defaultValue != null && defaultValue.getValue() != null) {
-						invocation.addArgument(prefix, defaultValue.getValue().toString(), 
+						invocation.addArgument(prefix, defaultValue.getValueAsString(), 
 							var.getID(), isInput);
 					}
 				}

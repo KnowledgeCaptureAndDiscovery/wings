@@ -104,11 +104,13 @@ public class RuntimeStep extends URIEntity {
 	public void onUpdate(ExecutionLoggerAPI logger, String log) {
 		this.runtimeInfo.addLog(log);
     // NOTE: Updating KB in batches of [logBatchSize]
-		this.logCount++;
+		// FIXME: Stopping update for now as it tends to have memory impact
+		// - Log will only be updated after the process is finished 
+		/*this.logCount++;
 		if(this.logCount > this.logBatchSize) {
 		  logger.updateRuntimeInfo(this);
 		  this.logCount = 0;
-		}
+		}*/
 	}
 	
 	public void abort() {

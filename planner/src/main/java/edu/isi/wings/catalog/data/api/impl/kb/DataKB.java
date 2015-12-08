@@ -121,7 +121,7 @@ public class DataKB {
 		KBObject dobj = this.kb.getIndividual(dataid);
 		KBObject locobj = this.kb.getPropertyValue(dobj, locprop);
 		if (locobj != null && locobj.getValue() != null)
-			return locobj.getValue().toString();
+			return locobj.getValueAsString();
 		else {
 			String location = this.getDefaultDataLocation(dataid);
 			File f = new File(location);

@@ -61,7 +61,7 @@ public class KBTripleJena implements KBTriple {
 	}
 
 	public String fullForm() {
-		return "{" + "subject=" + subject + ", predicate=" + predicate + ", object=" + object + '}';
+		return "{" + "subject=" + subject + ", predicate=" + predicate + ", object=" + object.getValueAsString() + '}';
 	}
 
 	/** {@inheritDoc} */

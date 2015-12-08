@@ -31,7 +31,7 @@ public class Binding extends WingsSet implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	protected URI id;
-	protected transient Object value;
+	protected Object value;
 	protected Metrics metrics = new Metrics();
 
 	protected HashMap<String, Object> data;

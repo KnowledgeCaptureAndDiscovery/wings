@@ -37,7 +37,8 @@ public interface KBObject {
 
 	// Literals : KBObject that contains Data values such as numbers or strings
 	public Object getValue(); // Example: 4, "hello",..
-
+	public String getValueAsString();
+	
 	public String getDataType(); // Example:
 	// http://www.w3.org/2001/XMLSchema#integer
 
