@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,6 +32,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+
+import edu.isi.wings.catalog.resource.classes.EnvironmentValue;
+import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
@@ -166,11 +170,18 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void execute(RuntimeStep exe, RuntimePlan planexe) {
+	  Machine machine = this.selectStepMachine(exe);
 		Future<?> job = 
-		    executor.submit(new StepExecutionThread(exe, planexe, planEngine, logger));
+		    executor.submit(new StepExecutionThread(exe, planexe, planEngine, logger, machine));
 		exe.setProcess(job);
     exe.onStart(this.logger);
 	}
+	
+  private Machine selectStepMachine(RuntimeStep exe) {
+    for(String machineId : exe.getStep().getMachineIds())
+      return this.resource.getMachine(machineId);
+    return null;
+  }
 
   class StepExecutionThread implements Runnable {
     	RuntimeStep exe;
@@ -178,15 +189,17 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     	PlanExecutionEngine planEngine;
     	ExecutionLoggerAPI logger;
     	Process process;
+    	Machine machine;
     	
     	public StepExecutionThread(RuntimeStep exe, 
     			RuntimePlan planexe, PlanExecutionEngine planEngine,
-    			ExecutionLoggerAPI logger) {
+    			ExecutionLoggerAPI logger, Machine machine) {
     		this.exe = exe;
     		this.exe.setRuntimePlan(planexe);
     		this.planexe = planexe;
     		this.planEngine = planEngine;
     		this.logger = logger;
+    		this.machine = machine;
     	}
     	
       @Override
@@ -221,7 +234,12 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
           if(!tempdir.delete() || !tempdir.mkdirs())
              throw new Exception("Cannot create temp directory");
           
+          HashMap<String, String> environment = new HashMap<String, String>();
+          for(EnvironmentValue eval : machine.getEnvironmentValues()) {
+            environment.put(eval.getVariable(), eval.getValue());
+          }
     			ProcessBuilder pb = new ProcessBuilder(args);
+    			pb.environment().putAll(environment);
     			pb.directory(tempdir);
     			pb.redirectErrorStream(true);
     			this.process = pb.start();
