@@ -654,9 +654,12 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 				// Get any default value for the argument specified in catalog
 				KBObject arg_value = this.kb.getPropertyValue(arg, dmap.get("hasValue"));
-				if (var.getBinding() != null && var.getBinding().getValue() != null) {
+				ValueBinding parambinding = (ValueBinding) var.getBinding();
+				if (parambinding != null && parambinding.getValue() != null) {
 					// If the template has any value specified, use that instead
-					arg_value = tkb.createLiteral(var.getBinding().getValue());
+					//arg_value = tkb.createLiteral(var.getBinding().getValue());
+					arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
+					    parambinding.getDatatype());
 				}
 				if (arg_value != null) {
 					// Set argument value in the temporary kb store to run rules on

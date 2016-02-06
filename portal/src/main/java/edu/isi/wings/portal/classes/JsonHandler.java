@@ -68,6 +68,12 @@ public class JsonHandler {
     return gson.disableHtmlEscaping().setPrettyPrinting().create();
   }
   
+  public static Gson createComponentJson() {
+    GsonBuilder gson = new GsonBuilder();
+    gson.setDateFormat("yyyy-MM-dd");
+    return gson.disableHtmlEscaping().setPrettyPrinting().create();
+  }
+  
 	public static Gson createTemplateGson() {
 		GsonBuilder gson = new GsonBuilder();
 		gson.registerTypeAdapter(Link.class, new LinkSerializer());

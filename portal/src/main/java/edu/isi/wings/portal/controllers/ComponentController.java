@@ -71,7 +71,7 @@ public class ComponentController {
 		this.config = config;
 		this.loadConcrete = loadConcrete;
 		this.isSandboxed = config.isSandboxed();
-		json = JsonHandler.createPrettyGson();
+		json = JsonHandler.createComponentJson();
 		this.props = config.getProperties();
 
 		cc = ComponentFactory.getCreationAPI(props, this.loadConcrete);

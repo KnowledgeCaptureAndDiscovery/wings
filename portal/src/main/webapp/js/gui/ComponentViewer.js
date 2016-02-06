@@ -427,10 +427,16 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
             allowDecimals: false
         });
         var floatEditor = new Ext.form.field.Number({
-            allowDecimals: true
+            decimalPrecision: 6
         });
-        var boolEditor = new Ext.form.field.Checkbox();
-
+        var boolEditor = new Ext.form.field.ComboBox({
+        	editable: false,
+        	store: [[true, 'true'], [false, 'false']]
+        });
+        var dateEditor = new Ext.form.DateField({
+        	format: 'Y-m-d'
+        });
+        
         var columns = [{
             dataIndex: 'role',
             header: 'Name',
@@ -473,10 +479,19 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
                     return boolEditor;
                 else if (type == xsd + 'float')
                     return floatEditor;
+                else if (type == xsd + 'date')
+                    return dateEditor;                
                 else if (type == xsd + 'int')
                     return numEditor;
                 else
                     return txtEditor;
+            },
+            renderer: function(val) {
+            	if (val instanceof Date) {
+            		val.setHours(1, 0, 0, 0);
+            		val = val.toJSON().replace(/T.*$/, '');
+                }
+        		return val;
             },
             menuDisabled: true
         });
@@ -789,6 +804,7 @@ ComponentViewer.prototype.prepareRoleRecord = function(arg, isParam) {
     var narg = {};
     for (var key in arg)
         narg[key] = arg[key];
+    
     narg.isParam = isParam;
     return narg;
 };
@@ -864,6 +880,12 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                 }
                 else {
                 	names[rec.data.role] = 1;
+                	
+                    if (rec.data.paramDefaultValue instanceof Date) {
+                    	rec.data.paramDefaultValue.setHours(1, 0, 0, 0);
+                    	rec.data.paramDefaultValue = 
+                    		rec.data.paramDefaultValue.toJSON().replace(/T.*$/, '');
+                    }                	
                 	comp.inputs.push(This.prepareRoleRecord(rec.data, true));
                 }
             });
