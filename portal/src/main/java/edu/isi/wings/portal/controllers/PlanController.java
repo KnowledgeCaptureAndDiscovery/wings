@@ -309,7 +309,11 @@ public class PlanController {
           hasSets = true;
         } 
         else if (b.isSet() && b.size() == 1) {
-          ValueBinding vb = (ValueBinding) b.get(0);
+          Binding tmpb = (Binding) b.get(0);
+          while(tmpb.isSet() && tmpb.size() == 1) {
+            tmpb = (Binding) tmpb.get(0);
+          }
+          ValueBinding vb = (ValueBinding) tmpb;
           binding.put(v, new ValueBinding(vb.getValue(), vb.getDatatype()));
         }
         else if (!b.isSet()){

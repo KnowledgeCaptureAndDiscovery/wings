@@ -762,6 +762,7 @@ DataViewer.prototype.openDataEditor = function(args) {
     var This = this;
 
     var customEditors = {};
+    var customRenderers = {};
     var propertyNames = {};
     var propVals = [];
 
@@ -783,6 +784,13 @@ DataViewer.prototype.openDataEditor = function(args) {
             ed = new Ext.form.DateField({
                 format: 'Y-m-d'
             });
+            customRenderers[prop] = function(val) {
+            	if (val instanceof Date) {
+            		val.setHours(1, 0, 0, 0);
+            		val = val.toJSON().replace(/T.*$/, '');
+                }
+        		return val;
+            };
         } else if (pinfo.range == This.xsd + "boolean") {
             ed = new Ext.form.field.ComboBox({
                 editable: false,
