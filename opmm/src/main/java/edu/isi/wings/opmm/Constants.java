@@ -26,7 +26,6 @@ public class Constants {
     ONTOLOGY PREFIXES
     *****/
     public static String PREFIX_EXPORT_RESOURCE =  "http://www.opmw.org/export/resource/";
-    
     public static final String PREFIX_EXTENSION =  "http://www.opmw.org/extension/";
     public static final String PREFIX_OPMW =  "http://www.opmw.org/ontology/";
     public static final String PREFIX_OPMO =  "http://openprovenance.org/model/opmo#";
@@ -181,6 +180,8 @@ public class Constants {
     public static final String WINGS_PROP_HAS_EXECUTION_ENGINE = PREFIX_WFLOW + "hasExecutionEngine";
     public static final String WINGS_PROP_USES_TOOL = PREFIX_WFLOW + "usesTool";
     public static final String WINGS_PROP_HAS_USER = PREFIX_WEXEC + "hasUser";
+    
+    static String WINGS_PROP_HAS_RULE = "http://www.wings-workflows.org/ontology/component.owl#hasRule";
     /*****
     Wings data properties
     *****/
@@ -201,7 +202,10 @@ public class Constants {
     public static final String WINGS_DATA_PROP_HAS_START_TIME = PREFIX_WEXEC + "hasStartTime";
     public static final String WINGS_DATA_PROP_HAS_END_TIME = PREFIX_WEXEC + "hasEndTime";    
     public static final String WINGS_DATA_PROP_HAS_LICENSE = PREFIX_WEXEC + "hasLicense";
-    public static final String WINGS_DATA_PROP_HAS_CREATION_TOOL = PREFIX_WEXEC + "creationTool";   
+    public static final String WINGS_DATA_PROP_HAS_CREATION_TOOL = PREFIX_WEXEC + "creationTool";  
+    
+    //component (to get variabletypes)
+    public static final String WINGS_DATA_PROP_HAS_ARGUMENT_ID = "http://www.wings-workflows.org/ontology/component.owl#hasArgumentID";
     
     /**
      * WF-INVOC
@@ -231,6 +235,7 @@ public class Constants {
     public static final String PROV_HAD_PRIMARY_SOURCE = PREFIX_PROV+ "hadPrimarySource";
     public static final String PROV_STARTED_AT_TIME = PREFIX_PROV+ "startedAtTime";
     public static final String PROV_ENDED_AT_TIME = PREFIX_PROV+ "endedAtTime";
+    public static final String PROV_WAS_DERIVED_FROM = PREFIX_PROV+ "wasDerivedFrom";
                 
     /*****
     other useful properties
@@ -242,11 +247,21 @@ public class Constants {
     /*****
     P-Plan classes
     *****/
-    //TO DO IF A P-PLAN REPRESENTATION IS ADDED.
+    public static final String P_PLAN_PLAN = PREFIX_P_PLAN+ "Plan";
+    public static final String P_PLAN_STEP = PREFIX_P_PLAN+ "Step";
+    public static final String P_PLAN_Variable = PREFIX_P_PLAN+ "Variable";
     
     /*****
     P-Plan properties
     *****/
     public static final String P_PLAN_PROP_HAS_INPUT = PREFIX_P_PLAN+ "hasInputVar";
     public static final String P_PLAN_PROP_HAS_OUTPUT = PREFIX_P_PLAN+ "hasOutputVar";
+    public static final String P_PLAN_PROP_IS_INTPUT_VAR_OF = PREFIX_P_PLAN+ "isInputVarOf";
+    public static final String P_PLAN_PROP_IS_OUTPUT_VAR_OF = PREFIX_P_PLAN+ "isOutputVarOf";
+    public static final String P_PLAN_PROP_CORRESPONDS_TO_STEP = PREFIX_P_PLAN+ "correspondsToStep";
+    public static final String P_PLAN_PROP_CORRESPONDS_TO_VAR = PREFIX_P_PLAN+ "correspondsToVariable";
+    public static final String P_PLAN_PROP_IS_STEP_OF_PLAN =  PREFIX_P_PLAN+ "isStepOfPlan";
+    
+    
+    
 }

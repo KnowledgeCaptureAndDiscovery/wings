@@ -64,19 +64,23 @@ public class Queries {
      * @return
      */
     public static String queryNodes(){
-        String query = "SELECT ?n ?c ?typeComp ?isConcrete WHERE{"
+        String query = "SELECT ?n ?c ?typeComp ?isConcrete ?rule WHERE{"
                 + "?n a <"+Constants.WINGS_NODE+">."
                 + "?n <"+Constants.WINGS_PROP_HAS_COMPONENT+"> ?c."
                 + "?c <"+Constants.WINGS_PROP_HAS_COMPONENT_BINDING+"> ?cb."
                 + "?cb a ?typeComp."
-                + "OPTIONAL{?c <"+Constants.WINGS_DATA_PROP_IS_CONCRETE+"> ?isConcrete.}}";
+                //filter rdfs:resource and component, which don't add any new knowledge
+                + "FILTER(<http://www.wings-workflows.org/ontology/component.owl#Component> !=?typeComp)."
+                + "FILTER(<http://www.w3.org/2000/01/rdf-schema#Resource> !=?typeComp)."
+                + "OPTIONAL{?c <"+Constants.WINGS_DATA_PROP_IS_CONCRETE+"> ?isConcrete.}"
+                + "OPTIONAL{?cb <"+Constants.WINGS_PROP_HAS_RULE+"> ?rule }}";
         return query;
     }
 
     /**
      * Query to retrieve artifacts (Data Variables in template)
      * @return
-     */
+     *
     public static String queryDataV(){
         String query = "SELECT ?d ?t ?hasDim WHERE{"
                 + "?d a <"+Constants.WINGS_DATA_VARIABLE+">."
@@ -84,6 +88,31 @@ public class Queries {
                 + "?role <"+Constants.WINGS_DATA_PROP_HAS_DIMENSIONALITY+"> ?hasDim.}."
                 + "OPTIONAL{?d a ?t ."
                 + "FILTER(<"+Constants.WINGS_DATA_VARIABLE+"> != ?t)}}";
+        return query;
+    }*/
+    
+    /**
+     * Query to retrieve artifacts and their types. (Data Variables in template)
+     * Updated for the newer version of Wings
+     * @return
+     */
+    public static String queryDataV2(){
+        String query = "SELECT distinct ?d ?hasDim ?t WHERE{"
+                + "?d a <"+Constants.WINGS_DATA_VARIABLE+">."
+                + "?link <"+Constants.WINGS_PROP_HAS_VARIABLE+"> ?d." 
+                + "?link ?prop ?port." 
+                + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?r."
+                + "?r <"+Constants.WINGS_DATA_PROP_HAS_DIMENSIONALITY+"> ?hasDim." 
+                + "?r <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?roleID."
+                + "?argument <"+Constants.WINGS_DATA_PROP_HAS_ARGUMENT_ID+"> ?roleID."
+                + "?argument a ?t."
+                //remove types that are common to all variables.
+                + "FILTER(<http://www.wings-workflows.org/ontology/component.owl#DataArgument> !=?t)." 
+                + "FILTER(<http://www.wings-workflows.org/ontology/component.owl#ParameterArgument> !=?t)."
+                + "FILTER(<http://www.wings-workflows.org/ontology/component.owl#ComponentArgument> !=?t)."
+                + "FILTER(<http://www.wings-workflows.org/ontology/data.owl#DataObject> !=?t)."
+                + "FILTER(<http://www.w3.org/2000/01/rdf-schema#Resource> !=?t)"
+                +"}";
         return query;
     }
 
@@ -122,7 +151,7 @@ public class Queries {
      * @return
      */
     public static String queryInputLinksP(){
-        String query = "SELECT ?var ?dest ?role WHERE{"
+        String query = "SELECT ?var ?dest ?role ?t WHERE{"
                 + "?iLink a <"+Constants.WINGS_INPUTLINK+">."
                 + "?iLink <"+Constants.WINGS_PROP_HAS_DESTINATION_NODE+">?dest."
                 + "?iLink <"+Constants.WINGS_PROP_HAS_VARIABLE+">?var."
@@ -131,6 +160,10 @@ public class Queries {
                 + "?iLink <"+Constants.WINGS_PROP_HAS_DESTINATION_PORT+"> ?port."
                 + "?port <"+Constants.WINGS_PROP_SATISFIES_ROLE+"> ?r."
                 + "?r <"+Constants.WINGS_DATA_PROP_HAS_ROLE_ID+"> ?role."
+                
+//                + "?argument <"+Constants.WINGS_DATA_PROP_HAS_ARGUMENT_ID+"> ?role."
+//                + "?argument a ?t."
+                
                 + "}."
                 + "}";
         return query;
@@ -259,6 +292,10 @@ public class Queries {
         String query = "SELECT ?variable ?prop ?obj WHERE{"
                 + "?variable a <"+Constants.WINGS_DATA_VARIABLE+">."
                 + "?variable ?prop ?obj."
+                //we remove some undesired types
+                + "FILTER(<http://www.wings-workflows.org/ontology/workflow.owl#Variable> !=?obj)."
+                + "FILTER(<http://www.w3.org/2000/01/rdf-schema#Resource> !=?obj)."
+                + "FILTER(<http://www.wings-workflows.org/ontology/workflow.owl#DataVariable> !=?obj)"
                 + "}";
         return query;
     }
