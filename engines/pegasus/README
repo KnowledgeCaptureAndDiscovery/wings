@@ -18,13 +18,13 @@ Modifications to Wings
 Modifications to Pegasus
 ------------------------
 
-1. Install Pegasus (https://pegasus.isi.edu)
+1. Install Pegasus 4.6.x (https://pegasus.isi.edu)
 
 
 Additions to Wings portal.properties
 ------------------------------------
 
-1. Add the following Pegasus engine configuation to the execution section. Modify the urls and paths according to your installation.
+1. Add the following Pegasus engine configuration to the execution section. Modify the urls and paths according to your installation.
 
         engine =
         {
