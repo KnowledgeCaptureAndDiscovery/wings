@@ -1,19 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>edu.isi.wings</groupId>
-  <artifactId>wings</artifactId>
-  <name>Wings</name>
-  <url>http://www.wings-workflows.org</url>
-  <description>Wings project for the IKCAP group</description>
+  <artifactId>wings-pegasus</artifactId>
+  <name>Wings Pegasus Engine</name>
+  <description>Wings Pegasus Engine Information</description>
   <packaging>pom</packaging>
 
   <parent>
     <groupId>edu.isi.wings</groupId>
     <artifactId>wings-core</artifactId>
     <version>4.0-SNAPSHOT</version>
-    <relativePath>core/pom.xml</relativePath>
+    <relativePath>../../core/pom.xml</relativePath>
   </parent>
   
   <properties>
@@ -21,13 +19,6 @@
   </properties>
 
   <modules>
-    <module>core</module>
-    <module>ontapi</module>
-    <module>planner</module>
-    <module>opmm</module>
-    <module>portal</module>
-    <!--module>engines/oodt</module-->
-    <module>engines/pegasus</module>
+    <module>adapter</module>
   </modules>
-
 </project>

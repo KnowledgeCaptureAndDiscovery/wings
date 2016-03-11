@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.isi.wings</groupId>
+  <artifactId>wings-pegasus-adapter</artifactId>
+  <name>Wings Pegasus Adapter</name>
+  <packaging>jar</packaging>
+  <description>An adapter to help Wings connect with Pegasus</description>
+
+  <parent>
+    <groupId>edu.isi.wings</groupId>
+    <artifactId>wings-pegasus</artifactId>
+    <version>4.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <log4j.version>1.2.14</log4j.version>
+    <commons-io.version>2.4</commons-io.version>
+    <pegasus.version>4.6.0</pegasus.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>edu.isi.wings</groupId>
+      <artifactId>wings-planner</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.isi.pegasus</groupId>
+      <artifactId>pegasus</artifactId>
+      <version>${pegasus.version}</version>
+    </dependency>
+
+    <!-- log4j -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+
+    <!-- Apache Commons IO -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>

@@ -30,6 +30,13 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 
+		<!-- Wings Pegasus Adapter -->
+		<dependency>
+			<groupId>edu.isi.wings</groupId>
+			<artifactId>wings-pegasus-adapter</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
 		<!-- Wings OODT Adapter -->
 		<!--dependency>
 			<groupId>edu.isi.wings</groupId>
