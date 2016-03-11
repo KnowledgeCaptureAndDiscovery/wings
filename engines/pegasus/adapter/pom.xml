@@ -25,6 +25,14 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
+  <repositories>
+    <!-- Local IKCAP Repository (using for pegasus jar) -->
+    <repository>
+      <id>Local archiva.snapshots repository</id>
+      <url>http://skc.isi.edu:8765/archiva/repository/snapshots/</url>
+    </repository>
+  </repositories>
+
   <!-- Dependencies -->
   <dependencies>
     <dependency>

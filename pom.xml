@@ -27,7 +27,7 @@
     <module>opmm</module>
     <module>portal</module>
     <!--module>engines/oodt</module-->
-    <module>engines/pegasus</module>
+    <!--module>engines/pegasus</module-->
   </modules>
 
 </project>
