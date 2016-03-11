@@ -38,7 +38,7 @@ Additions to Wings portal.properties
                     home         = <PEGASUS_HOME>;
                     storage-dir  = <STORAGE_DIR>;
                     site-catalog = <SITE_CATALOG_FILE>;
-                    site         = <SITE>;
+                    site         = <SITE-1>,<SITE-2>,..,<SITE-N>;
                 }
             }
         }
@@ -49,7 +49,7 @@ Where,
     STORAGE_DIR       - Directory where Pegasus submit directories will be created.
     SITE_CATALOG_FILE - sites.xml file describing the cluster where Pegasus jobs will execute.
                         Example: engines/pegasus/resources/sites.xml
-    SITE              - One of the sites described in the SITE_CATALOG_FILE.
+    SITE              - Comma separated list of sites, where jobs can be executed, as defined in the SITE_CATALOG_FILE.
 
 
 Usage
