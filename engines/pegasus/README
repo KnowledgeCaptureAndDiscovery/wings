@@ -23,29 +23,33 @@ Modifications to Pegasus
 
 Additions to Wings portal.properties
 ------------------------------------
+
 1. Add the following Pegasus engine configuation to the execution section. Modify the urls and paths according to your installation.
+
         engine =
+        {
+            name = Pegasus;
+            implementation = edu.isi.wings.execution.engine.api.impl.pegasus.PegasusExecutionEngine;
+            type = BOTH;
+            properties =
             {
-                name = Pegasus;
-                implementation = edu.isi.wings.execution.engine.api.impl.pegasus.PegasusExecutionEngine;
-                type = BOTH;
-                properties =
+                pegasus =
                 {
-                    pegasus =
-                    {
-                        home = <PEGASUS_HOME>;
-                        storage-dir = <STORAGE_DIR>;
-                        site-catalog = <SITE_CATALOG_FILE>;
-                        site = <SITE>;
-                    }
+                    home         = <PEGASUS_HOME>;
+                    storage-dir  = <STORAGE_DIR>;
+                    site-catalog = <SITE_CATALOG_FILE>;
+                    site         = <SITE>;
                 }
             }
+        }
 
-PEGASUS_HOME      - Location of Pegasus installation.
-STORAGE_DIR       - Directory where Pegasus submit directories will be created.
-SITE_CATALOG_FILE - sites.xml file describing the cluster where Pegasus jobs will execute.
-                    Example: engines/pegasus/resources/sites.xml
-SITE              - One of the sites described in the SITE_CATALOG_FILE.
+Where,
+
+    PEGASUS_HOME      - Location of Pegasus installation.
+    STORAGE_DIR       - Directory where Pegasus submit directories will be created.
+    SITE_CATALOG_FILE - sites.xml file describing the cluster where Pegasus jobs will execute.
+                        Example: engines/pegasus/resources/sites.xml
+    SITE              - One of the sites described in the SITE_CATALOG_FILE.
 
 
 Usage
