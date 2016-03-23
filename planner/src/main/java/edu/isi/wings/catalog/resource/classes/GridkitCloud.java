@@ -112,7 +112,7 @@ public class GridkitCloud {
             return o1.length() - o2.length();
           }
         });
-        System.out.println(dirList);
+        //System.out.println(dirList);
         
         // Make sure all remote directories are created
         for(String dir : dirList) {

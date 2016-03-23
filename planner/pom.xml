@@ -17,8 +17,8 @@
 	</parent>
 
 	<properties>
-		<jsch.version>0.1.51</jsch.version>
-		<nanocloud.version>0.8.2.3</nanocloud.version>
+		<jsch.version>0.1.53</jsch.version>
+		<nanocloud.version>0.8.11</nanocloud.version>
 		<gson.version>2.2.4</gson.version>
 		<junit.version>4.5</junit.version>
 		<log4j.version>1.2.14</log4j.version>

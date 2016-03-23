@@ -20,7 +20,7 @@ package edu.isi.wings.common;
 import java.io.Serializable;
 import java.net.URI;
 
-public class URIEntity implements Serializable {
+public class URIEntity implements Serializable, Comparable<URIEntity> {
 	private static final long serialVersionUID = 1L;
 	private URI id;
 
@@ -68,5 +68,12 @@ public class URIEntity implements Serializable {
 	public int hashCode() {
 		return id.hashCode();
 	}
+
+  @Override
+  public int compareTo(URIEntity o) {
+    if(o != null)
+      return this.getID().compareTo(o.getID());
+    return 1;
+  }
 
 }

@@ -172,12 +172,15 @@ class LinkSerializer implements JsonSerializer<Link>{
 			nodeobj.addProperty("id", link.getDestinationNode().getID());
 			obj.add("toNode", nodeobj);
 		}
+    if(link.getVariable() != null) {
+      JsonObject varobj = new JsonObject();
+      varobj.addProperty("id", link.getVariable().getID());
+      obj.add("variable", varobj);      
+    }		
 		if(link.getOriginPort() != null)
 			obj.add("fromPort", context.serialize(link.getOriginPort()));
 		if(link.getDestinationPort() != null)
 			obj.add("toPort", context.serialize(link.getDestinationPort()));
-		if(link.getVariable() != null)
-			obj.add("variable", context.serialize(link.getVariable()));
 		return obj;
 	}
 }

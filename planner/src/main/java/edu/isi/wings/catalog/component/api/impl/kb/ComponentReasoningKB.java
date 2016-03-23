@@ -955,7 +955,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 		// Extract info from details object
 		ComponentVariable c = details.getComponent();
-		HashMap<Variable, Role> varMap = details.getVariableMap();
+		Map<Role, Variable> roleMap = details.getRoleMap();
 
 		// Get Component
 		KBObject comp = this.kb.getResource(c.getBinding().getID());
@@ -987,8 +987,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		for (KBObject arg : args) {
 			KBObject argid = this.kb.getDatatypePropertyValue(arg, dmap.get("hasArgumentID"));
 			String role = (String) argid.getValue();
-			for(Variable var : varMap.keySet()) {
-				Role r = varMap.get(var);
+			for(Role r : roleMap.keySet()) {
+				Variable var = roleMap.get(r);
 				if(r.getRoleId().equals(role))
 					setInvocationArguments(invocation, arg, var, inputs.contains(arg));
 			}

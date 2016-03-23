@@ -832,6 +832,7 @@ public class TemplateKB extends URIEntity implements Template {
 				links.add(l);
 			}
 		}
+		Collections.sort(links);
 		return links.toArray(new Link[0]);
 	}
 
@@ -998,11 +999,13 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 	
 	public Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var) {
-	    	String lid = this.createLinkId(fromPort, toPort);
+	  String olid = this.createLinkId(fromPort, toPort);
 	    	
 		int i = 1;
+		String lid = olid;
 		while (getLink(lid) != null) {
-			lid += "_" + i;
+			lid = olid + "_" + i;
+			i++;
 		}
 
 		Link l = new Link(lid, fromN, toN, fromPort, toPort);

@@ -18,7 +18,8 @@
 package edu.isi.wings.catalog.component.classes;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.workflow.template.classes.Role;
@@ -37,11 +38,11 @@ import edu.isi.wings.workflow.template.classes.variables.*;
  */
 public class ComponentPacket {
 	private ComponentVariable component;
-	private HashMap<Role, Variable> roleMap;
+	private LinkedHashMap<Role, Variable> roleMap;
 	private ArrayList<KBTriple> requirements;
 
 	// Keep a reverse mapping
-	private HashMap<Variable, Role> variableMap;
+	private LinkedHashMap<Variable, Role> variableMap;
 	// Reasoner explanations (provided by component catalog)
 	private ArrayList<String> explanations;
 	// If the reasoner marked this ComponentDetails packet as invalid
@@ -49,10 +50,10 @@ public class ComponentPacket {
 	
 	private ArrayList<String> inputRoles;
 
-	public ComponentPacket(ComponentVariable component, HashMap<Role, Variable> roleMap,
+	public ComponentPacket(ComponentVariable component, Map<Role, Variable> roleMap,
 			ArrayList<KBTriple> requirements) {
 		this.component = component;
-		this.roleMap = roleMap;
+		this.roleMap = new LinkedHashMap<Role, Variable>(roleMap);
 		this.variableMap = createReverseMap(roleMap);
 		this.requirements = requirements;
 		this.explanations = new ArrayList<String>();
@@ -60,16 +61,16 @@ public class ComponentPacket {
 		this.isInvalid = false;
 	}
 
-	public HashMap<Variable, Role> createReverseMap(HashMap<Role, Variable> map) {
-		HashMap<Variable, Role> rmap = new HashMap<Variable, Role>();
+	public LinkedHashMap<Variable, Role> createReverseMap(Map<Role, Variable> map) {
+		LinkedHashMap<Variable, Role> rmap = new LinkedHashMap<Variable, Role>();
 		for (Role cp : map.keySet()) {
 			rmap.put(map.get(cp), cp);
 		}
 		return rmap;
 	}
 
-	public HashMap<Role, Variable> createMapFromReverseMap(HashMap<Variable, Role> rmap) {
-		HashMap<Role, Variable> map = new HashMap<Role, Variable>();
+	public LinkedHashMap<Role, Variable> createMapFromReverseMap(Map<Variable, Role> rmap) {
+		LinkedHashMap<Role, Variable> map = new LinkedHashMap<Role, Variable>();
 		for (Variable cp : rmap.keySet()) {
 			map.put(rmap.get(cp), cp);
 		}
@@ -100,7 +101,7 @@ public class ComponentPacket {
 	 * 
 	 * @return Value for property 'roleMap'.
 	 */
-	public HashMap<Role, Variable> getRoleMap() {
+	public LinkedHashMap<Role, Variable> getRoleMap() {
 		return roleMap;
 	}
 
@@ -110,7 +111,7 @@ public class ComponentPacket {
 	 * @param roleMap
 	 *            Value to set for property 'roleMap'.
 	 */
-	public void setRoleMap(HashMap<Role, Variable> inputMaps) {
+	public void setRoleMap(LinkedHashMap<Role, Variable> inputMaps) {
 		this.roleMap = inputMaps;
 		this.variableMap = createReverseMap(inputMaps);
 	}
@@ -137,9 +138,9 @@ public class ComponentPacket {
 	/**
 	 * Get Variable <=> Input Role Mappings
 	 * 
-	 * @return A HashMap of Variable <=> Role objects
+	 * @return A LinkedHashMap of Variable <=> Role objects
 	 */
-	public HashMap<Variable, Role> getVariableMap() {
+	public LinkedHashMap<Variable, Role> getVariableMap() {
 		return variableMap;
 	}
 
@@ -148,8 +149,8 @@ public class ComponentPacket {
 	 * 
 	 * @return Mapping Role IDs to Variable
 	 */
-	public HashMap<String, Variable> getStringRoleMaps() {
-		HashMap<String, Variable> map = new HashMap<String, Variable>();
+	public LinkedHashMap<String, Variable> getStringRoleMaps() {
+		LinkedHashMap<String, Variable> map = new LinkedHashMap<String, Variable>();
 		for (Role cp : roleMap.keySet()) {
 			map.put(cp.getRoleId(), roleMap.get(cp));
 		}
@@ -161,8 +162,8 @@ public class ComponentPacket {
 	 * 
 	 * @return Mapping Variable IDs to Roles
 	 */
-	public HashMap<String, Role> getStringVariableMap() {
-		HashMap<String, Role> map = new HashMap<String, Role>();
+	public LinkedHashMap<String, Role> getStringVariableMap() {
+		LinkedHashMap<String, Role> map = new LinkedHashMap<String, Role>();
 		for (Variable var : variableMap.keySet()) {
 			map.put(var.getID(), variableMap.get(var));
 		}

@@ -18,6 +18,7 @@
 package edu.isi.wings.planner.api.impl.kb;
 
 import org.apache.log4j.Logger;
+
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.api.impl.kb.TemplateReasoningKB;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
@@ -67,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 import java.util.TreeMap;
 
@@ -1166,7 +1168,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				
 				ComponentVariable c = n.getComponentVariable();
 
-				HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
+				LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<Role, Variable>();
 				for (Link outputLink : template.getOutputLinks(n))
 					roleMap.put(outputLink.getOriginPort().getRole(), outputLink.getVariable());
 				for (Link inputLink : template.getInputLinks(n)) {
