@@ -25,9 +25,9 @@ var Link = function(tpl, fromPort, toPort, variable) {
 	this.fromPort = null;
 	this.toNode = null;
 	this.toPort = null;
+	this.variable = variable;	
 	this.setFromPort(fromPort);
 	this.setToPort(toPort);
-	this.variable = variable;
 	this.color = 'rgba(50,50,50,0.9)';
 	this.hideLinkColor = 'rgba(0,0,0,0.2)';
 	this.layerItem = this.createLayerItem(this.id);
@@ -76,7 +76,7 @@ Link.prototype.setId = function() {
 		name = getLocalName(this.fromPort.id);
 	}
 	else {
-		name += "ip";
+		name += "Input_To";
 	}
 	name += "_";
 	if(this.toNode && this.toPort) {
@@ -84,8 +84,11 @@ Link.prototype.setId = function() {
 		name += getLocalName(this.toPort.id);
 	}
 	else {
-		name += "op";
+		name += "Output";
 	}
+	
+	name += "_" + getLocalName(this.variable.id);
+	
 	this.id = ns + name;
 };
 

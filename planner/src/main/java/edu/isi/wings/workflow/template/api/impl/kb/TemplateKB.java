@@ -501,14 +501,10 @@ public class TemplateKB extends URIEntity implements Template {
 			if(linkObj.getID() == null) {
 			    
 			}
-			String lid = linkObj.getID();
-			if(lid == null) 
-			    lid = this.createLinkId(fromPort, toPort);
-			links[i] = new Link(lid, fromNode, toNode, fromPort, toPort);
 
-			KBObject varObj = kb.getPropertyValue(linkObj, pmap.get("hasVariable"));
+      KBObject varObj = kb.getPropertyValue(linkObj, pmap.get("hasVariable"));
+      Variable var = varMap.get(varObj.getID());			
 
-			Variable var = varMap.get(varObj.getID());
 			if (var == null) {
 				if (kb.isA(varObj, cmap.get("DataVariable"))) {
 					var = new DataVariable(varObj.getID());
@@ -538,6 +534,11 @@ public class TemplateKB extends URIEntity implements Template {
 				}
 			}
 			if (var != null) {
+	      String lid = linkObj.getID();
+	      if(lid == null) 
+	          lid = this.createLinkId(fromPort, toPort, var);
+	      links[i] = new Link(lid, fromNode, toNode, fromPort, toPort);
+			  
 				links[i].setVariable(var);
 				String comment = kb.getComment(varObj);
 				if (comment != null)
@@ -969,6 +970,7 @@ public class TemplateKB extends URIEntity implements Template {
 				links.add(l);
 			}
 		}
+    Collections.sort(links);	
 		return links.toArray(new Link[0]);
 	}
 
@@ -984,27 +986,29 @@ public class TemplateKB extends URIEntity implements Template {
 		return Variables;
 	}
 
-	private String createLinkId(Port fromPort, Port toPort) {
+	private String createLinkId(Port fromPort, Port toPort, Variable var) {
 		String lid = this.getNamespace();
 		if (fromPort != null)
 			lid += fromPort.getName() + "_To";
 		else
-			lid += "Input_To";
+			lid += "To";
 
 		if (toPort != null)
 			lid += "_" + toPort.getName();
 		else
 			lid += "_Output";
+		
+		lid += "_" + var.getName();
 		return lid;
 	}
 	
 	public Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var) {
-	  String olid = this.createLinkId(fromPort, toPort);
+	  String olid = this.createLinkId(fromPort, toPort, var);
 	    	
 		int i = 1;
 		String lid = olid;
 		while (getLink(lid) != null) {
-			lid = olid + "_" + i;
+			lid = olid + "_" + String.format("%04d", i);
 			i++;
 		}
 
@@ -1078,7 +1082,7 @@ public class TemplateKB extends URIEntity implements Template {
 		String vid = varid;
 		int i = 1;
 		while (getVariable(vid) != null) {
-			vid = varid + "_" + i;
+			vid = varid + "_" + String.format("%04d", i);
 			i++;
 		}
 		Variable v = new Variable(vid, type);
