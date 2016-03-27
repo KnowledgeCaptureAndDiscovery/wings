@@ -70,10 +70,11 @@ Link.prototype.getLayerItem = function() {
 
 Link.prototype.setId = function() {
 	var ns = "";
-	var name = "";
+	var name = 	getLocalName(this.variable.id) + "_";
+
 	if(this.fromNode && this.fromPort) {
 		ns = getNamespace(this.fromNode.id);
-		name = getLocalName(this.fromPort.id);
+		name += getLocalName(this.fromPort.id);
 	}
 	else {
 		name += "Input_To";
@@ -86,9 +87,7 @@ Link.prototype.setId = function() {
 	else {
 		name += "Output";
 	}
-	
-	name += "_" + getLocalName(this.variable.id);
-	
+		
 	this.id = ns + name;
 };
 

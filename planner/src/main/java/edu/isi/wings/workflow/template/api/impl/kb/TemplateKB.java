@@ -988,6 +988,8 @@ public class TemplateKB extends URIEntity implements Template {
 
 	private String createLinkId(Port fromPort, Port toPort, Variable var) {
 		String lid = this.getNamespace();
+		lid += var.getName() + "_";
+		
 		if (fromPort != null)
 			lid += fromPort.getName() + "_To";
 		else
@@ -998,7 +1000,6 @@ public class TemplateKB extends URIEntity implements Template {
 		else
 			lid += "_Output";
 		
-		lid += "_" + var.getName();
 		return lid;
 	}
 	
