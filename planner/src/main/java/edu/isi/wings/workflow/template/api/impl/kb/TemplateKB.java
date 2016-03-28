@@ -60,6 +60,7 @@ import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.DataVariable;
 import edu.isi.wings.workflow.template.classes.variables.ParameterVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
+import edu.isi.wings.workflow.template.classes.variables.VariableType;
 
 public class TemplateKB extends URIEntity implements Template {
 	private static final long serialVersionUID = 1L;
@@ -1080,16 +1081,24 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Variable addVariable(String varid, short type) {
+	  return this.addVariable(varid, type, false);
+	}
+	
+	public Variable addVariable(String varid, short type, boolean isCollectionItem) {
 		String vid = varid;
 		int i = 1;
+		if(isCollectionItem && type != VariableType.PARAM)
+		  vid =  varid + "_" + String.format("%04d", i++);
+		
 		while (getVariable(vid) != null) {
-			vid = varid + "_" + String.format("%04d", i);
-			i++;
+			vid = varid + "_" + String.format("%04d", i++);
 		}
+		
 		Variable v = new Variable(vid, type);
 		this.addVariable(v);
 		return v;
 	}
+	
 	
 	public Node addNode(ComponentVariable c) {
 		String cid = c.getName();

@@ -109,6 +109,8 @@ public interface Template extends Serializable {
 
 	Variable addVariable(String varid, short type); // type comes from VariableType
 	
+	Variable addVariable(String varid, short type, boolean isCollectionItem);
+	
 	void deleteNode(Node n);
 
 	Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var);

@@ -1287,12 +1287,15 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 					nodesDone.add(destNode);
 					ComponentVariable component = destNode.getComponentVariable();
 			     
+					boolean compCollection = false;
 					// Expand the component bindings into multiple nodes
 					ArrayList<Binding> cbindings = new ArrayList<Binding>();
 					cbindings.add(component.getBinding());
 					while (!cbindings.isEmpty()) {
 						Binding cbinding = cbindings.remove(0);
 						if (cbinding.isSet()) {
+						  if(cbinding.size() > 1)
+						    compCollection = true;
 							for (WingsSet s : cbinding) {
 								cbindings.add((Binding) s);
 							}
@@ -1321,7 +1324,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								Variable variable = inputLink.getVariable();
 								
 								Port oldport = inputLink.getDestinationPort();
-								String portid = ns + oldport.getName() + "_" + jobCounter;
+								String portid = ns + oldport.getName() + "_" + 
+								    String.format("%04d", jobCounter);
+								
 								Port newPort = newNode.findInputPort(portid);
 								// Create a new port
 								if(newPort == null) {
@@ -1341,10 +1346,13 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								// (or it's sub-bindings in case the variable binding is a collection)
 								ArrayList<Binding> queue = new ArrayList<Binding>();
 								queue.add(xb);
+								boolean dataCollection = false;
 								while(!queue.isEmpty()) {
 									Binding cb = queue.remove(0);
-									// Not creating variables for collections
+									// Expanding collections into multiple variables
 									if(cb.isSet()) {
+									  if(cb.size() > 1)
+									    dataCollection = true;
 										for(WingsSet sb : cb) {
 											queue.add((Binding)sb);
 										}
@@ -1394,7 +1402,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 									}
 									else {
 										// Input Variable doesn't exist. Create a new variable and link
-										newVariable = curt.addVariable(ns + variable.getName(), variable.getVariableType());
+										newVariable = curt.addVariable(ns + variable.getName(), 
+										    variable.getVariableType(),
+										    dataCollection || compCollection);
 										newVariable.setBinding(cb);
 										newVariable.setDerivedFrom(variable.getID());
 										newVariables.put(varkey, newVariable);
@@ -1434,11 +1444,14 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								// Add links for all non-collection variable bindings
 								ArrayList<Binding> queue = new ArrayList<Binding>();
 								queue.add(xb);
+								boolean dataCollection = false;
 								while(!queue.isEmpty()) {
 									Binding cb = queue.remove(0);
 									if(cb == null)
 										continue;
 									if(cb.isSet()) {
+									  if(cb.size() > 1)
+									    dataCollection = true;
 										for(WingsSet sb : cb)
 											queue.add((Binding)sb);
 										continue;
@@ -1451,7 +1464,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 									Variable newVariable = newVariables.get(varkey);
 									if (newVariable == null) {
 										// Create a new variable
-										newVariable = curt.addVariable(ns + variable.getName(), variable.getVariableType());
+										newVariable = curt.addVariable(ns + variable.getName(), 
+										    variable.getVariableType(),
+										    compCollection || dataCollection);
 										newVariable.setBinding(cb);
 										newVariable.setDerivedFrom(variable.getID());
 										newVariables.put(varkey, newVariable);
