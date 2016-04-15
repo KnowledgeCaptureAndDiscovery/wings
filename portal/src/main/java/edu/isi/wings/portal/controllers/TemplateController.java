@@ -109,7 +109,7 @@ public class TemplateController {
 	public void show(PrintWriter out, HashMap<String, Boolean> options, String tid, boolean editor, boolean tellme) {
 		try {
 			// Get Hierarchy
-			String tree = json.toJson(tc.getTemplateList());
+			String tree = this.getTemplatesListJSON();
 			String optionstr = json.toJson(options);
 			
 			HTMLLoader.printHeader(out);
@@ -170,7 +170,7 @@ public class TemplateController {
 		try {
 			tpl = this.tc.getTemplate(tplid);
 			HashMap<String, Object> extra = new HashMap<String, Object>();
-			extra.put("inputs",  this.getTemplateInputs(tpl));
+			extra.put("inputs",  this.getTemplateInputs(tpl, true));
 			return JsonHandler.getTemplateJSON(json, tpl, extra);
 		}
 		finally {
@@ -182,6 +182,26 @@ public class TemplateController {
 			prov.end();
 		}
 	}
+	
+	public String getTemplatesListJSON() {
+	  return json.toJson(tc.getTemplateList());	  
+	}
+	
+  public String getInputsJSON(String tplid) {
+    Template tpl = null;
+    try {
+      tpl = this.tc.getTemplate(tplid);
+      return json.toJson(this.getTemplateInputs(tpl, false));
+    }
+    finally {
+      if(tpl != null)
+        tpl.end();
+      dc.end();
+      cc.end();
+      tc.end();
+      prov.end();
+    }
+  }	
 	
 	public String getEditorJSON(String tplid) {
 		Template tpl = null;
@@ -316,7 +336,7 @@ public class TemplateController {
     }
 	}
 	
-	private ArrayList<Object> getTemplateInputs(Template tpl) {
+	private ArrayList<Object> getTemplateInputs(Template tpl, boolean dataoptions) {
 		HashMap<String, Integer> varDims = new HashMap<String, Integer>();
 		HashMap<String, Role> iroles = tpl.getInputRoles();
 		for (String varid : iroles.keySet()) {
@@ -372,7 +392,7 @@ public class TemplateController {
 			vardata.put("name", var.getName());
 			if (var.getVariableType() == VariableType.DATA) {
 				vardata.put("type", "data");
-				if (roletypeid != null) {
+				if (roletypeid != null && dataoptions) {
 					ArrayList<DataItem> dataitems = this.dc.getDataForDatatype(roletypeid, false);
 					ArrayList<String> items = new ArrayList<String>();
 					for (DataItem ditem : dataitems) {

@@ -60,14 +60,19 @@ public class Planner extends HttpServlet {
 		PlanController wp = new PlanController(config, out);;
 		
 		String tplid = request.getParameter("__template_id");
+		String noexplainstr = request.getParameter("__no_explanation");
+		boolean noexplain = false;
+		if(noexplainstr != null && noexplainstr.equals("true"))
+		  noexplain = true;
+		
 		if(op.equals("getExpansions")) {
-			wp.printExpandedTemplatesJSON(tplid, request.getParameterMap());
+			wp.printExpandedTemplatesJSON(tplid, request.getParameterMap(), noexplain);
 		}
 		else if(op.equals("getData")) {
-			wp.printSuggestedDataJSON(tplid, request.getParameterMap());
+			wp.printSuggestedDataJSON(tplid, request.getParameterMap(), noexplain);
 		}
 		else if(op.equals("getParameters")) {
-			wp.printSuggestedParametersJSON(tplid, request.getParameterMap());
+			wp.printSuggestedParametersJSON(tplid, request.getParameterMap(), noexplain);
 		}
 		else if(op.equals("elaborateTemplateJSON")) {
 			String tpljson = request.getParameter("json");

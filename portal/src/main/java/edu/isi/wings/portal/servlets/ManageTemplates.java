@@ -146,9 +146,15 @@ public class ManageTemplates extends HttpServlet {
 			String dotexe = config.getDotFile();
 			out.println(tv.layoutTemplate(tpljson, dotexe));
 		}
+    else if(op.equals("getTemplatesListJSON")) {
+      out.print(tv.getTemplatesListJSON());
+    }		
 		else if(op.equals("getViewerJSON")) {
 		  out.println(tv.getViewerJSON(template_id));
 		}
+		else if(op.equals("getInputsJSON")) {
+      out.println(tv.getInputsJSON(template_id));
+    }
 		else if(op.equals("getEditorJSON")) {
 		  out.println(tv.getEditorJSON(template_id));
 		}

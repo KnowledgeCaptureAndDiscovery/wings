@@ -109,18 +109,18 @@ public class PlanController {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public void printSuggestedDataJSON(String tplid, Map keyvals) {
-		printPlannerJSON(tplid, keyvals, "getData");
+	public void printSuggestedDataJSON(String tplid, Map keyvals, boolean noexplain) {
+		printPlannerJSON(tplid, keyvals, "getData", noexplain);
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void printSuggestedParametersJSON(String tplid, Map keyvals) {
-		printPlannerJSON(tplid, keyvals, "getParameters");
+	public void printSuggestedParametersJSON(String tplid, Map keyvals, boolean noexplain) {
+		printPlannerJSON(tplid, keyvals, "getParameters", noexplain);
 	} 
 	
 	@SuppressWarnings("rawtypes")
-	public void printExpandedTemplatesJSON(String tplid, Map keyvals) {
-		printPlannerJSON(tplid, keyvals, "getExpansions");
+	public void printExpandedTemplatesJSON(String tplid, Map keyvals, boolean noexplain) {
+		printPlannerJSON(tplid, keyvals, "getExpansions", noexplain);
 	}
 
 	public void printElaboratedTemplateJSON(String tplid, String templatejson, String consjson) {
@@ -134,7 +134,7 @@ public class PlanController {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private void printPlannerJSON(String tplid, Map keyvals, String op) {
+	private void printPlannerJSON(String tplid, Map keyvals, String op, boolean noexplain) {
 		Template tpl = tc.getTemplate(tplid);
 		this.addTemplateBindings(tpl, keyvals);
 		
@@ -153,7 +153,7 @@ public class PlanController {
 			return;
 		}
 		if(op.equals("getData")) {
-			printDataBindingsJSON(bts);
+			printDataBindingsJSON(bts, noexplain);
 			return;
 		}
 		
@@ -167,7 +167,7 @@ public class PlanController {
 			return;
 		}
 		if(op.equals("getParameters")) {
-			printParameterBindingsJSON(cts);
+			printParameterBindingsJSON(cts, noexplain);
 			return;
 		}
 
@@ -179,7 +179,7 @@ public class PlanController {
 			return;
 		}
 		if(op.equals("getExpansions")) {
-			printTemplatesJSON(ets, tplid, tpl);
+			printTemplatesJSON(ets, tplid, tpl, noexplain);
 			return;
 		}
 		
@@ -197,13 +197,14 @@ public class PlanController {
 	}
 	
 	private void printTemplatesJSON(ArrayList<Template> ts, String tplid,
-	    Template seedtpl) {
+	    Template seedtpl, boolean noexplain) {
 		ArrayList<Object> template_stores = new ArrayList<Object>();
 		for(Template t : ts) {
 			template_stores.add(this.getTemplateDetails(t));
 		}
-		HashMap<String, Object> map = new HashMap<String, Object>(); 
-		map.put("explanations", wg.getExplanations());
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		if(!noexplain)
+		  map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
 		map.put("templates", template_stores);
     map.put("output",  "");
@@ -212,18 +213,20 @@ public class PlanController {
 		this.printEncodedResults(map); 
 	}
 	
-	private void printDataBindingsJSON(ArrayList<Template> bts) {
-		HashMap<String, Object> map = new HashMap<String, Object>(); 
-		map.put("explanations", wg.getExplanations());
+	private void printDataBindingsJSON(ArrayList<Template> bts, boolean noexplain) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		if(!noexplain)
+		  map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
 		map.put("bindings", getDataBindings(bts));
 		map.put("output",  "");
 		this.printEncodedResults(map); 
 	}
 	
-	private void printParameterBindingsJSON(ArrayList<Template> cts) {
-		HashMap<String, Object> map = new HashMap<String, Object>(); 
-		map.put("explanations", wg.getExplanations());
+	private void printParameterBindingsJSON(ArrayList<Template> cts, boolean noexplain) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		if(!noexplain)
+		  map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
 		map.put("bindings", getParameterBindings(cts));
 		map.put("output",  "");
@@ -239,7 +242,7 @@ public class PlanController {
 		HashMap<String, Object> map = new HashMap<String, Object>(); 
 		map.put("explanations", wg.getExplanations());
 		map.put("error",  true);
-		map.put("bindings", "{}");
+		map.put("bindings", new ArrayList<String>());
 		this.printEncodedResults(map);
 	}
 	

@@ -61,12 +61,14 @@ public class URIEntity implements Serializable, Comparable<URIEntity> {
 			return null;
 	}
 
+	@Override
 	public String toString() {
 		return getName();
 	}
 
+	@Override
 	public int hashCode() {
-		return id.hashCode();
+		return this.getID().hashCode();
 	}
 
   @Override

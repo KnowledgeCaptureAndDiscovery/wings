@@ -137,6 +137,8 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 		Metrics result = new Metrics();
 
 		KBObject dataObject = this.dataObjectForDataObjectNameOrId(dataObjectId);
+		if(dataObject == null)
+		  return result;
 
 		HashMap<String, KBObject> opmap = this.objPropMap;
 		HashMap<String, KBObject> dpmap = this.dataPropMap;
