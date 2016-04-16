@@ -1790,8 +1790,11 @@ public class TemplateKB extends URIEntity implements Template {
 			tkb.addPropertyValue(tobj, pmap.get("hasVersion"),
 			    tkb.createLiteral(this.version));
 
-			writeMetadataDescription(tkb, tobj, metadata);
-			writeRules(tkb, tobj, rules);
+			if(metadata != null)
+			  writeMetadataDescription(tkb, tobj, metadata);
+			
+			if(rules != null)
+			  writeRules(tkb, tobj, rules);
 		}
 
 		return tkb;

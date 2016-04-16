@@ -159,7 +159,7 @@ public class RunController {
     public String getRunJSON(String runid) {
         ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
         RuntimePlan plan = monitor.getRunDetails(runid);
-        if (plan.getPlan() != null) {
+        if (plan != null && plan.getPlan() != null) {
             for (ExecutionStep step : plan.getPlan().getAllExecutionSteps()) {
                 for (ExecutionFile file : step.getInputFiles()) {
                     file.loadMetadataFromLocation();

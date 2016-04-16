@@ -209,6 +209,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			args.add(exe.getStep().getCodeBinding().getLocation());
 
     			PrintWriter fout = null;
+    			
     			for(String argname : exe.getStep().getInvocationArguments().keySet()) {
     				ArrayList<Object> values = exe.getStep().getInvocationArguments().get(argname);
     				if(argname.equals(">")) {
@@ -228,6 +229,21 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     				}
     			}
     			exe.onUpdate(this.logger, StringUtils.join(args, " "));
+          
+          
+          // Check if the outputs already exist, if so don't run
+          boolean allExist = true;
+          for (ExecutionFile file : exe.getStep().getOutputFiles()) {
+            file.removeMetadataFile();
+            File f = new File(file.getLocation());
+            if(!f.exists())
+              allExist = false;
+          }
+          if(allExist) {
+            exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, 
+                "Outputs already exist. Not running job");
+            return;
+          }
           
           // Create a temporary directory
           File tempdir = File.createTempFile(planexe.getName()+"-", "-"+exe.getName());

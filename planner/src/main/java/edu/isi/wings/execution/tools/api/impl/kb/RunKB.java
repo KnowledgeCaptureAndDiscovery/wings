@@ -38,6 +38,7 @@ import edu.isi.wings.ontapi.KBAPI;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.ontapi.OntSpec;
+import edu.isi.wings.ontapi.SparqlQuerySolution;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.workflow.plan.PlanFactory;
@@ -51,6 +52,7 @@ import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	KBAPI kb;
 	KBAPI libkb;
+	KBAPI unionkb;
 
 	Properties props;
 
@@ -82,6 +84,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			this.kb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN, true);
 			this.kb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true));
 			this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
+			this.unionkb = 
+			    this.ontologyFactory.getKB("urn:x-arq:UnionGraph", OntSpec.PLAIN);
 			this.initializeMaps();
 		}
 		catch (Exception e) {
@@ -222,6 +226,9 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private RuntimePlan getExecutionRun(KBObject exobj, boolean details) {
 		// Create new runtime plan
+	  if(exobj == null)
+	    return null;
+	  
 		RuntimePlan rplan = new RuntimePlan(exobj.getID());
 		rplan.setRuntimeInfo(this.getRuntimeInfo(this.kb, exobj));
 		RuntimeInfo.Status status = rplan.getRuntimeInfo().getStatus();
@@ -271,28 +278,84 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     }
 	}
 	
+	private boolean fileIsOutputofAnotherRun(ExecutionFile file) {
+    String query = 
+        "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" + 
+        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
+        "PREFIX wflow: <http://www.wings-workflows.org/ontology/workflow.owl#>\n" + 
+        "PREFIX pplan: <http://purl.org/net/p-plan#>\n" + 
+        "PREFIX wf: <http://purl.org/net/wf-invocation#>\n" + 
+        "SELECT distinct ?run\n" + 
+        "WHERE {\n" + 
+        "  ?run a exec:Execution .\n" + 
+        "  ?run exec:hasPlan ?plan .\n" + 
+        "  ?var pplan:isVariableOfPlan ?plan .\n" + 
+        "  ?var wf:hasDataBinding \"" + file.getLocation() + "\"^^ xsd:string\n" + 
+        "}";
+    ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+    if(result.size() > 1)
+      return true;
+    return false;
+	}
+	
+  private boolean xgraphIsUsedInAnotherRun(String graphid) {
+    String query = 
+        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" +  
+        "SELECT ?run\n" + 
+        "WHERE {\n" + 
+        "  ?run exec:hasExpandedTemplate <" + graphid + "> .\n" +  
+        "}";
+    ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+    if(result.size() > 1)
+      return true;
+    return false;
+  }	
+  
+  private boolean sgraphIsUsedInAnotherRun(String graphid) {
+    String query = 
+        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" +  
+        "SELECT ?run\n" + 
+        "WHERE {\n" + 
+        "  ?run exec:hasSeededTemplate <" + graphid + "> .\n" +  
+        "}";
+    ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+    if(result.size() > 1)
+      return true;
+    return false;
+  } 
+	
 	private boolean deleteExecutionRun(String runid) {
 		KBObject exobj = this.kb.getIndividual(runid);
 		RuntimePlan rplan = this.getExecutionRun(exobj, true);
 		try {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
-			this.deleteGraph(rplan.getExpandedTemplateID());
-			this.deleteGraph(rplan.getSeededTemplateID());
-			if(rplan.getPlan() != null)
-			  this.deleteGraph(rplan.getPlan().getID());
-	    tkb.delete();
-	     
+
 			// Delete output files
 			if(rplan.getPlan() != null) {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
           for (ExecutionFile file : step.getOutputFiles()) {
             file.removeMetadataFile();
             File f = new File(file.getLocation());
-            if(f.exists())
+            if(f.exists() && !this.fileIsOutputofAnotherRun(file))
               f.delete();
           }
         }
 			}
+			// Delete expanded template
+      if(!this.xgraphIsUsedInAnotherRun(rplan.getExpandedTemplateID()))
+        this.deleteGraph(rplan.getExpandedTemplateID());
+      
+      // Delete seeded template
+      if(!this.sgraphIsUsedInAnotherRun(rplan.getSeededTemplateID()))
+        this.deleteGraph(rplan.getSeededTemplateID());
+      
+      // Delete execution plan
+      if(rplan.getPlan() != null)
+        this.deleteGraph(rplan.getPlan().getID());
+      
+      // Delete execution provenance
+      tkb.delete();
+       			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
