@@ -29,7 +29,8 @@ function RunBrowser(guid, runid, op_url, data_url, template_url) {
 RunBrowser.prototype.formatRunListItem = function(value, meta, record, rowind, colind, store, view) {
 	var d = record.data;
 	var tid = getLocalName(d.template_id);
-	//var tid = getLocalName(d.id).replace(/^(.+?)\-[0-9a-f]+\-[0-9a-f]+.*$/, '$1');
+	if(!tid)
+		tid = getLocalName(d.id).replace(/^(.+?)\-[0-9a-f]+\-[0-9a-f]+.*$/, '$1');
 	var rstat = d.status;
 	
 	var icon = 'icon-spin6 fa animate-spin fa-grey'
@@ -86,7 +87,7 @@ RunBrowser.prototype.formatBinding = function(b, meta, record, runid) {
 		str += This.formatSize(b.size);
 		str += ")</span>";
 	} else
-		str += "<b style='color:red'>Not yet available</b>";
+		str += "<b style='color:red'>Not available</b>";
 	return str;
 };
 
