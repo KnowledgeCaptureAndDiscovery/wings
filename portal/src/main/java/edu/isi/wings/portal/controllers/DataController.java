@@ -138,7 +138,7 @@ public class DataController {
 		finally {
 			if(dc != null) 
 				dc.end();
-			prov.end();
+			//prov.end();
 		}
 	}
 
@@ -151,6 +151,9 @@ public class DataController {
 				return "{}";
 			String location = this.dc.getDataLocation(dataid);
 			DataItem dtype = this.dc.getDatatypeForData(dataid);
+			if(dtype == null)
+			  return null;
+			
 			ArrayList<MetadataProperty> props = this.dc.getMetadataProperties(dtype.getID(), false);
 			ArrayList<String> propids = new ArrayList<String>();
 			for (MetadataProperty prop : props)

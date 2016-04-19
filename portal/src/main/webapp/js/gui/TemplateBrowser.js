@@ -289,7 +289,8 @@ TemplateBrowser.prototype.openTemplate = function(tid, tname, path, doLayout) {
 
 	if (doLayout) {
 		var layoutfn = function() {
-			tpanel.graph.editor.layout();
+			if(tpanel.graph.editor.needsLayout())
+				tpanel.graph.editor.layout();
 			tpanel.mainTab.un("activate", layoutfn);
 		};
 		tpanel.mainTab.on("activate", layoutfn);

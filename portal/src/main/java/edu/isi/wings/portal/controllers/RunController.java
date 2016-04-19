@@ -129,6 +129,7 @@ public class RunController {
         for (RuntimePlan exe : monitor.getRunList()) {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("runtimeInfo", exe.getRuntimeInfo());
+            map.put("template_id", exe.getOriginalTemplateID());
             map.put("id", exe.getID());
             if (exe.getQueue() != null) {
                 int numtotal = exe.getQueue().getAllSteps().size();

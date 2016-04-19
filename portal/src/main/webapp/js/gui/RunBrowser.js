@@ -28,7 +28,8 @@ function RunBrowser(guid, runid, op_url, data_url, template_url) {
 
 RunBrowser.prototype.formatRunListItem = function(value, meta, record, rowind, colind, store, view) {
 	var d = record.data;
-	var tid = getLocalName(d.id).replace(/^(.+?)\-[0-9a-f]+\-[0-9a-f]+.*$/, '$1');
+	var tid = getLocalName(d.template_id);
+	//var tid = getLocalName(d.id).replace(/^(.+?)\-[0-9a-f]+\-[0-9a-f]+.*$/, '$1');
 	var rstat = d.status;
 	
 	var icon = 'icon-spin6 fa animate-spin fa-grey'
@@ -537,7 +538,7 @@ RunBrowser.prototype.openRunDetails = function(runid, status, tab) {
 RunBrowser.prototype.getRunList = function() {
 	var This = this;
 	var fields = [
-			'id', 
+			'id', 'template_id',
 			{
 				name: 'status',
 				mapping: 'runtimeInfo["status"]'
@@ -700,8 +701,8 @@ RunBrowser.prototype.getRunList = function() {
 		run : function() {
 			wRunStore.load();
 		},
-		interval : 30000
-		// 30 seconds
+		interval : 60000
+		// 60 seconds
 	};
 	Ext.TaskManager.start(gridListRefresh);
 

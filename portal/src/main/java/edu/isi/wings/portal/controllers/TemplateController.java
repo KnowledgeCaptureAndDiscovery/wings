@@ -392,6 +392,7 @@ public class TemplateController {
 			vardata.put("name", var.getName());
 			if (var.getVariableType() == VariableType.DATA) {
 				vardata.put("type", "data");
+	      vardata.put("dtype", roletypeid);				
 				if (roletypeid != null && dataoptions) {
 					ArrayList<DataItem> dataitems = this.dc.getDataForDatatype(roletypeid, false);
 					ArrayList<String> items = new ArrayList<String>();

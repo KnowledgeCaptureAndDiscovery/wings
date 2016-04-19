@@ -157,11 +157,69 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	@Override
 	public ArrayList<RuntimePlan> getRunList() {
+	  ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
+	  
+	  String query = 
+	      "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
+	      "SELECT ?run ?status ?template ?start ?end \n" + 
+	      "(GROUP_CONCAT (CONCAT (STR(?step), '=', STR(?stepstatus)); "
+	          + "SEPARATOR=\"|\") AS ?steps)  \n" + 
+	      "WHERE {\n" + 
+	      "?run a exec:Execution .\n" + 
+	      "?run exec:hasExecutionStatus ?status .\n" + 
+	      "?run exec:hasTemplate ?template .\n" + 
+	      "?run exec:hasStartTime ?start .\n" + 
+	      "OPTIONAL { ?run exec:hasEndTime ?end . } .\n" + 
+	      "OPTIONAL {\n" + 
+	      "FILTER REGEX(?status, 'FAILURE|RUNNING') .\n" + 
+	      "?run exec:hasStep ?step .\n" + 
+	      "?step exec:hasExecutionStatus ?stepstatus .\n" + 
+	      "}\n" + 
+	      "FILTER REGEX(str(?run), '" + newrunurl + "')\n" + 
+	      "}\n" + 
+	      "GROUP BY ?run ?status ?template ?start ?end";
+	  
+	  
+	  ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+	  for(ArrayList<SparqlQuerySolution> row : result) {
+	    HashMap<String, KBObject> vals = new HashMap<String, KBObject>();
+	    for(SparqlQuerySolution col : row)
+	      vals.put(col.getVariable(), col.getObject());
+	    RuntimePlan rplan = new RuntimePlan(vals.get("run").getID());
+	    rplan.setOriginalTemplateID(vals.get("template").getID());
+	    RuntimeInfo info = new RuntimeInfo();
+	    KBObject sttime = vals.get("start");
+	    if (sttime != null && sttime.getValue() != null)
+	      info.setStartTime((Date) sttime.getValue());
+	    KBObject endtime = vals.get("end");
+	    if (endtime != null && endtime.getValue() != null)
+	      info.setEndTime((Date) endtime.getValue());
+	    KBObject status = vals.get("status");
+	    if (status != null && status.getValue() != null)
+	      info.setStatus(RuntimeInfo.Status.valueOf((String) status.getValue()));
+	    rplan.setRuntimeInfo(info);
+	    
+	    KBObject steps = vals.get("steps");
+	    ExecutionQueue queue = new ExecutionQueue();
+	    if(steps != null && steps.getValue() != null) {
+	      for(String stepstatus : ((String) steps.getValue()).split("\\|")) {
+	        String[] ss = stepstatus.split("=", 2);
+	        RuntimeStep step = new RuntimeStep(ss[0]);
+	        RuntimeInfo stepinfo = new RuntimeInfo();
+	        stepinfo.setStatus(RuntimeInfo.Status.valueOf(ss[1]));
+	        step.setRuntimeInfo(stepinfo);
+	        queue.addStep(step);
+	      }
+	    }
+	    rplan.setQueue(queue);
+	    rplans.add(rplan);
+	  }
+	  /*
 		ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
 		for (KBObject exobj : this.kb.getInstancesOfClass(conceptMap.get("Execution"), true)) {
 			RuntimePlan rplan = this.getExecutionRun(exobj, false);
 			rplans.add(rplan);
-		}
+		}*/
 		return rplans;
 	}
 

@@ -468,6 +468,23 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		msgTarget.mask('Designing Layout...', 'x-mask-loading');
 		this.graphLayout.layoutDot(msgTarget, this, this.url);
 	},
+	
+	needsLayout : function() {
+		var noLayout = 0;
+		for(var i=0; i<this.template.nodes.length; i++) {
+			var node = this.template.nodes[i];
+			if(node.x < 1 && node.y < 1)
+				noLayout++;
+		}
+		for(var i=0; i<this.template.variables.length; i++) {
+			var variable = this.template.variables[i];
+			if(variable.x < 1 && variable.y < 1)
+				noLayout++;
+		}
+		if(noLayout > 0)
+			return true;
+		return false;
+	},
 
 	saveImage : function() {
 		// var scale = this.canvas.getScale();
