@@ -737,15 +737,9 @@ public class KBAPIJena implements KBAPI {
             RDFNode x = soln.get(variableName);
             // System.out.println(soln.toString());
             KBObject item = null;
-            if (x != null) {
-              if (x.isLiteral()) {
-                Literal l = soln.getLiteral(variableName);
-                item = new KBObjectJena(l.getValue(), true);
-              } else {
-                Resource r = soln.getResource(variableName);
-                item = new KBObjectJena(r);
-              }
-            }
+            if (x != null)
+              item = new KBObjectJena(x);
+
             SparqlQuerySolution sqs = new SparqlQuerySolution(variableName, item);
             inner.add(sqs);
           }
