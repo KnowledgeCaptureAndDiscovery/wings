@@ -67,7 +67,10 @@ import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
+import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
+import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
+import edu.isi.wings.workflow.template.classes.variables.Variable;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -159,9 +162,10 @@ public class RunController {
 
     public String getRunJSON(String runid) {
         ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-        RuntimePlan plan = monitor.getRunDetails(runid);
-        if (plan != null && plan.getPlan() != null) {
-            for (ExecutionStep step : plan.getPlan().getAllExecutionSteps()) {
+        Map<String, Object> returnmap = new HashMap<String, Object>();
+        RuntimePlan planexe = monitor.getRunDetails(runid);
+        if (planexe != null && planexe.getPlan() != null) {
+            for (ExecutionStep step : planexe.getPlan().getAllExecutionSteps()) {
                 for (ExecutionFile file : step.getInputFiles()) {
                     file.loadMetadataFromLocation();
                 }
@@ -169,8 +173,39 @@ public class RunController {
                     file.loadMetadataFromLocation();
                 }
             }
+            
+            TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+            
+            Template tpl = tc.getTemplate(planexe.getExpandedTemplateID());        
+            Map<String, Object> variables = new HashMap<String, Object>();
+            variables.put("input", tpl.getInputVariables());
+            variables.put("intermediate", tpl.getIntermediateVariables());
+            variables.put("output", tpl.getOutputVariables());
+            returnmap.put("variables", variables);
+            returnmap.put("constraints", this.getShortConstraints(tpl));            
         }
-        return json.toJson(plan);
+        returnmap.put("execution", planexe);
+        
+        return json.toJson(returnmap);
+    }
+    
+    private Map<String, Object> getShortConstraints(Template tpl) {
+      Map<String, Object> varbindings = new HashMap<String, Object>();
+      for(Variable v : tpl.getVariables()) {
+        List<Object> constraints = new ArrayList<Object>();
+        if(v.isParameterVariable())
+          continue;
+        for(KBTriple t : tpl.getConstraintEngine().getConstraints(v.getID())) {
+          Map<String, Object> cons = new HashMap<String, Object>();
+          if(t.getPredicate().getName().equals("hasDataBinding"))
+            continue;
+          cons.put("p", t.getPredicate().getName());
+          cons.put("o", t.getObject());
+          constraints.add(cons);
+        }
+        varbindings.put(v.getID(), constraints);
+      }
+      return varbindings;
     }
 
     public String deleteRun(String rjson, ServletContext context) {

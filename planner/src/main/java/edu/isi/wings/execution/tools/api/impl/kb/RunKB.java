@@ -225,9 +225,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	@Override
 	public RuntimePlan getRunDetails(String runid) {
-		KBObject exobj = this.kb.getIndividual(runid);
 		try {
-			RuntimePlan rplan = this.getExecutionRun(exobj, true);
+			RuntimePlan rplan = this.getExecutionRun(runid, true);
 			return rplan;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -282,8 +281,9 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		return exobj;
 	}
 
-	private RuntimePlan getExecutionRun(KBObject exobj, boolean details) {
+	private RuntimePlan getExecutionRun(String runid, boolean details) {
 		// Create new runtime plan
+	  KBObject exobj = this.kb.getResource(runid);
 	  if(exobj == null)
 	    return null;
 	  
@@ -383,8 +383,7 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
   } 
 	
 	private boolean deleteExecutionRun(String runid) {
-		KBObject exobj = this.kb.getIndividual(runid);
-		RuntimePlan rplan = this.getExecutionRun(exobj, true);
+		RuntimePlan rplan = this.getExecutionRun(runid, true);
 		try {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 

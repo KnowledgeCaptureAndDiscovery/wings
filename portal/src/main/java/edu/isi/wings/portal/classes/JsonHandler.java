@@ -59,6 +59,8 @@ public class JsonHandler {
 	public static Gson createRunGson() {
 		GsonBuilder gson = new GsonBuilder();
 		gson.registerTypeAdapter(Date.class, new DateSerializer());
+		gson.registerTypeAdapter(Binding.class, new BindingSerializer());		
+		gson.registerTypeAdapter(ValueBinding.class, new BindingSerializer());		
 		return gson.disableHtmlEscaping().setPrettyPrinting().create();
 	}
 

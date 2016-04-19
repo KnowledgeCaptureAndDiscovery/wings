@@ -24,7 +24,17 @@ function RunBrowser(guid, runid, op_url, data_url, template_url) {
 	
 	this.tabPanel;
 	this.runList;
+	this.tBrowser = this.setupTemplateBrowser();
 }
+
+RunBrowser.prototype.setupTemplateBrowser = function() {
+	return new TemplateBrowser(this.guid, 
+			{ 
+				hide_selector: true, hide_form: true, hide_intro: true, 
+				hide_documentation: true, hide_title: true 
+			}, 
+			null, false, false,  this.template_url);
+};
 
 RunBrowser.prototype.formatRunListItem = function(value, meta, record, rowind, colind, store, view) {
 	var d = record.data;
@@ -115,12 +125,14 @@ RunBrowser.prototype.formatSize = function(bytes, precision) {
 	return Math.round(bytes, precision) + ' ' + units[pow];
 };
 
-RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
+RunBrowser.prototype.getIODataGrid = function(data, runid) {
 	var This = this;
+	
+	var exec = data.execution;
 	
 	// Get information about the file bindings
 	var filedata = {};
-	var steps = data.plan.steps;
+	var steps = exec.plan.steps;
 	for(var i=0; i<steps.length; i++) {
 		var step = steps[i];
 		for(var j=0; j<step.inputFiles.length; j++) {
@@ -136,40 +148,39 @@ RunBrowser.prototype.getIODataGrid = function(data, tstore, runid) {
 			filedata[file.id] = file;
 		}
 	}
-	// Get mappings of variables to bindings
+	
 	var vmaps = {};
-	for(var i=0; i<tstore.Variables.length; i++) {
-		var v = tstore.Variables[i];
-		var binding = filedata[v.id] ? filedata[v.id] : v.binding;
-		if(v.binding.id)
-			binding.id = v.binding.id;
-		vmaps[v.id] = {v: getLocalName(v.id), b: binding};
+	var varmap = function(variables, type) {
+		for(var i=0; i<variables.length; i++) {
+			var v = variables[i];
+			var binding = filedata[v.id] ? filedata[v.id] : v.binding;
+			if(v.binding.id)
+				binding.id = v.binding.id;
+			vmaps[v.id] = {v: getLocalName(v.id), b: binding, type: type};
+		}		
 	}
-	for(var i=0; i<tstore.Links.length; i++) {
-		var l = tstore.Links[i];
-		if(!l.fromPort)
-			vmaps[l.variable.id].type = 'Input';
-		else if(!l.toPort)
-			vmaps[l.variable.id].type = 'Output';
-		else 
-			vmaps[l.variable.id].type = 'Intermediate';
-	}
+	// Get mappings of variables to bindings
+	varmap(data.variables.input, "Input");
+	varmap(data.variables.output, "Output");
+	varmap(data.variables.intermediate, "Intermediate");
 
 	// Get variable constraints
-	for(var i=0; i<tstore.constraints.length; i++) {
-		var cons = tstore.constraints[i];
-		var vid = cons.subject;
+	for(var vid in data.constraints) {
 		if(vmaps[vid] && vmaps[vid].b) {
+			var constraints = data.constraints[vid];
 			var b = vmaps[vid].b;
-			var pred = getLocalName(cons.predicate);
 			if(!b.metadata)
 				b.metadata = {};
-			if(!b.metadata[pred])
-				b.metadata[pred] = [];
-			if(b.metadata[pred].push && 
-					(pred == "type" || b.metadata[pred].length == 0))
-				b.metadata[pred].push(cons.object);
-			vmaps[vid].b = b;
+			for(var i=0; i<constraints.length; i++) {
+				var cons = constraints[i];
+				var pred = cons.p;
+				if(!b.metadata[pred])
+					b.metadata[pred] = [];
+				if(b.metadata[pred].push && 
+						(pred == "type" || b.metadata[pred].length == 0))
+					b.metadata[pred].push(cons.o.isLiteral ? cons.o.value : cons.o.id);				
+			}
+			vmaps[vid].b = b;			
 		}
 	}
 	
@@ -388,59 +399,79 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 							}
 						});
 				}
-			}]
+			}],
+			items: []
 	});
 	
-	var tid = data.originalTemplateId;
-	var xtid = data.expandedTemplateId;
-	
-	var tBrowser = new TemplateBrowser(this.guid, 
-			{ 
-				hide_selector: true, hide_form: true, hide_intro: true, 
-				hide_documentation: true, hide_title: true 
-			}, 
-			null, false, false,  This.template_url);
-	
-	tBrowser.tabPanel = tabPanel;
+	var exec = data.execution;	
+	var tid = exec.originalTemplateId;
+	var xtid = exec.expandedTemplateId;
 
-	var dataPanel = this.getRunDataPanel();
-	var logPanel = this.getRunLogPanel(data);
-
-	tabPanel.insert(0, logPanel);
-	tabPanel.insert(0, dataPanel);
+	var dataPanel = this.getRunDataPanel(data, runid);
+	var logPanel = this.getRunLogPanel(exec);
+	var tPanel = this.getTemplatePanel(tid, 'Original Template');
+	var xtPanel = this.getTemplatePanel(xtid, 'Expanded Template');	
 	
-	dataPanel.on("afterrender", function() {
-		Ext.get(dataPanel.getId()).mask('Loading...');
-	});
+	tabPanel.add(dataPanel);	
+	tabPanel.add(logPanel);
+	tabPanel.add(tPanel);
+	tabPanel.add(xtPanel);
 	
-	var tpanel = tBrowser.openTemplate(xtid, 'Expanded Template', null, true);
-	tpanel.getLoader().on("load", function() {
-		Ext.get(dataPanel.getId()).unmask();
-		var tstore = tpanel.graph.editor.store;
-		dataPanel.add(This.getIODataGrid(data, tstore, runid));
-	});
 	tabPanel.setActiveTab(0);
 	
+	var loadxfn = function() {
+		xtPanel.getLoader().on("load", function(event, response) {
+			// Layout if current data not complete
+			var data = Ext.decode(response.responseText);
+			var tpl = data.template;
+			for(var i=0; i<tpl.Variables.length; i++) {
+				var variable = tpl.Variables[i];
+				if(!variable.comment) {
+					xtPanel.graph.editor.layout();
+					return;
+				}
+			}
+		});
+		This.tBrowser.loadTemplateInViewer(xtPanel, xtid);
+		xtPanel.un("activate", loadxfn);
+	};
+	xtPanel.on("activate", loadxfn);
+	
+	var loadtfn = function() {
+		This.tBrowser.loadTemplateInViewer(tPanel, tid);
+		tPanel.un("activate", loadtfn);
+	};	
+	tPanel.on("activate", loadtfn);
+	
 	return tabPanel;
+}
+
+RunBrowser.prototype.getTemplatePanel = function(xtid, name) {
+	return this.tBrowser.createViewerPanel(xtid, name);
 };
 
-RunBrowser.prototype.getRunLogPanel = function(data) {
+RunBrowser.prototype.getRunLogPanel = function(exec) {
 	var log = "";
-	for(var i=0; i<data.queue.steps.length; i++) {
-		var step = data.queue.steps[i];
-		if(step.runtimeInfo.status == 'SUCCESS' || step.runtimeInfo.status == 'FAILURE') {
-			log += getLocalName(step.id) + "\n----------------------\n";
+	
+	exec.queue.steps.sort(function (a, b) {
+		return a.runtimeInfo.startTime > b.runtimeInfo.startTime ? 1 
+				: a.runtimeInfostartTime < b.runtimeInfostartTime ? -1 : 0;
+	});
+	for(var i=0; i<exec.queue.steps.length; i++) {
+		var step = exec.queue.steps[i];
+		if(step.runtimeInfo.status != 'QUEUED') {
+			log += "=====================================\n";
+			log += "[ JOB: " + getLocalName(step.id) + " ]";
+			log += "\n[ STARTED: " + new Date(step.runtimeInfo.startTime*1000) + " ]";
+			if(step.runtimeInfo.endTime) {
+				log += "\n[ ENDED: " + new Date(step.runtimeInfo.endTime*1000) + " ]";				
+			}
+			log += "\n[ STATUS: " + step.runtimeInfo.status + " ]\n";
+			log += "=====================================\n";
 			log += step.runtimeInfo.log+"\n";
 		}
 	}
-	for(var i=0; i<data.queue.steps.length; i++) {
-		var step = data.queue.steps[i];
-		if(step.runtimeInfo.status == 'RUNNING') {
-			log += getLocalName(step.id) + "\n-----------RUNNING-------------\n";
-			log += step.runtimeInfo.log+"\n";
-		}
-	}
-	log += data.runtimeInfo.log;
+	log += exec.runtimeInfo.log;
 	return new Ext.Panel({
 		title : 'Run Log',
 		layout : 'border',
@@ -458,14 +489,16 @@ RunBrowser.prototype.getRunLogPanel = function(data) {
 	});
 };
 
-RunBrowser.prototype.getRunDataPanel = function() {
+RunBrowser.prototype.getRunDataPanel = function(data, runid) {
 	var me = this;
-	return new Ext.Panel({
+	var dataPanel = new Ext.Panel({
 		title : 'Data',
 		layout : 'fit',
 		border : false,
 		iconCls : 'icon-file-alt fa-title fa-blue'
 	});
+	dataPanel.add(this.getIODataGrid(data, runid));
+	return dataPanel;
 };
 
 RunBrowser.prototype.refreshOpenRunTabs = function(grid, wRunStore) {

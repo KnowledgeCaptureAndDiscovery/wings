@@ -250,6 +250,28 @@ TemplateBrowser.prototype.guessUnknownNamespaces = function(tstore) {
 		this.nsmap['wflow'] = tstore.props['ont.workflow.url'] + "#";
 };
 
+TemplateBrowser.prototype.createViewerPanel = function(tid, tname) {
+	var tpanel = new Ext.Panel({
+		border : false,
+		layout : 'fit',
+		region : 'center',
+		title : tname,
+		iconCls : 'icon-wflow-alt fa-title fa-blue'
+	});	
+	this.setupTemplateRenderer(tpanel, tid, tname);
+	return tpanel;
+};
+
+TemplateBrowser.prototype.loadTemplateInViewer = function(tpanel, tid) {
+	var url = this.op_url + '/getViewerJSON';
+	tpanel.getLoader().load({
+		url : url,
+		params : {
+			template_id : tid
+		}
+	});	
+};
+
 /**
  * Open a new template in the system tabPanel
  * 
@@ -289,8 +311,7 @@ TemplateBrowser.prototype.openTemplate = function(tid, tname, path, doLayout) {
 
 	if (doLayout) {
 		var layoutfn = function() {
-			if(tpanel.graph.editor.needsLayout())
-				tpanel.graph.editor.layout();
+			tpanel.graph.editor.layout();
 			tpanel.mainTab.un("activate", layoutfn);
 		};
 		tpanel.mainTab.on("activate", layoutfn);
