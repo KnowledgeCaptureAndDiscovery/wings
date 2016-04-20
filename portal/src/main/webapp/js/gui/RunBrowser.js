@@ -455,7 +455,7 @@ RunBrowser.prototype.getRunLogPanel = function(exec) {
 	
 	exec.queue.steps.sort(function (a, b) {
 		return a.runtimeInfo.startTime > b.runtimeInfo.startTime ? 1 
-				: a.runtimeInfostartTime < b.runtimeInfostartTime ? -1 : 0;
+				: a.runtimeInfo.startTime < b.runtimeInfo.startTime ? -1 : 0;
 	});
 	for(var i=0; i<exec.queue.steps.length; i++) {
 		var step = exec.queue.steps[i];
