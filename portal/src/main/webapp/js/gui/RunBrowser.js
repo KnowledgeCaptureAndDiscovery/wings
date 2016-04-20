@@ -454,8 +454,15 @@ RunBrowser.prototype.getRunLogPanel = function(exec) {
 	var log = "";
 	
 	exec.queue.steps.sort(function (a, b) {
-		return a.runtimeInfo.startTime > b.runtimeInfo.startTime ? 1 
-				: a.runtimeInfo.startTime < b.runtimeInfo.startTime ? -1 : 0;
+		if(a.runtimeInfo.startTime != b.runtimeInfo.startTime) {
+			return a.runtimeInfo.startTime > b.runtimeInfo.startTime ? 1 : -1;
+		}
+		else if(a.runtimeInfo.endTime == null)
+			return 1;
+		else if(b.runtimeInfo.endTime == null)
+			return -1;
+		else return a.runtimeInfo.endTime > b.runtimeInfo.endTime ? 1
+				: a.runtimeInfo.endTime < b.runtimeInfo.endTime ? -1 : 0;
 	});
 	for(var i=0; i<exec.queue.steps.length; i++) {
 		var step = exec.queue.steps[i];
