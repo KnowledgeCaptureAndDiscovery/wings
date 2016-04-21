@@ -554,10 +554,10 @@ RunBrowser.prototype.refreshOpenRunTabs = function(grid, wRunStore) {
 		var tab = items[i];
 		if (tab && tab.runid) {
 			var rec = wRunStore.getById(tab.runid);
-			//if (rec.data.status != tab.status || rec.data.status == 'RUNNING') {
+			if (rec.data.status != tab.status || rec.data.status == 'RUNNING') {
 				tab.getLoader().load();
 				tab.status = rec.data.status;
-			//}
+			}
 		}
 	}
 	if (selectedTab && selectedTab.runid) 
