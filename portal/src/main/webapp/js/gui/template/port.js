@@ -42,6 +42,8 @@ function Port(tpl, id, role, color, isVariablePort, x, y) {
 	this.id = id;
 	this.name = role;
 	this.color = color ? color : Port.prototype.color;
+	this.foregroundColor = 'rgba(0,0,0,1)';
+	this.lineWidth = 1;	
 	this.x = x ? x : 0;
 	this.y = y ? x : 0;
 	this.isVariablePort = isVariablePort;
@@ -177,8 +179,8 @@ Port.prototype.createLayerItem = function(id) {
 
 			if(port.partOf.isInactive())
 				ctx.globalAlpha = 0.3;
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = 'rgba(0,0,0,1)';
+			ctx.lineWidth = this.port.lineWidth;
+			ctx.strokeStyle = this.port.foregroundColor;
 
 			var w = this.port.isHighlighted ? this.width : this.port.width;
 			var h = this.port.isHighlighted ? this.height : this.port.height;

@@ -107,19 +107,27 @@ Node.prototype.setConcrete = function(isConcrete) {
 
 Node.prototype.setRuntimeInfo = function(runtimeInfo) {
 	this.runtimeInfo = runtimeInfo;
+	var fgcolor = "rgba(0,0,0,0.6)";
+	var txtcolor = "rgba(72,42,3,1)";
+	var lwidth = 1;
 	if(this.runtimeInfo != null) {
 		if(this.runtimeInfo.status == "SUCCESS") {
-			this.setForegroundColor("rgba(0,200,0,1)");
-			this.setTextColor("rgba(0,160,0,1)");
+			fgcolor = "rgba(0,200,0,1)";
+			txtcolor = "rgba(0,160,0,1)";
 		}
 		else if(this.runtimeInfo.status == "FAILURE") {
-			this.setForegroundColor("rgba(200,0,0,1)");
-			this.setTextColor("rgba(160,0,0,1)");
+			fgcolor = "rgba(200,0,0,1)";
+			txtcolor = "rgba(160,0,0,1)";
 		}
-		this.lineWidth = 4;
+		lwidth = 4;
 	}
-	else {
-		this.lineWidth = 1;
+	this.setForegroundColor(fgcolor);
+	this.setTextColor(txtcolor);
+	this.lineWidth = lwidth;
+	var ports = this.getPorts();
+	for ( var i = 0; i < ports.length; i++) {
+		ports[i].foregroundColor = fgcolor;
+		ports[i].lineWidth = lwidth;
 	}
 }
 
@@ -196,7 +204,7 @@ Node.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 		var tmpstyle = ctx.fillStyle;
 		var len = 2;
 		this.enableShadow(ctx);
-		ctx.lineWidth = 1;
+		ctx.lineWidth = this.lineWidth;
 		for ( var i = len; i >= 1; i--) {
 			ctx.beginPath();
 			this.drawParallelogram(ctx, x + i * 3, y + i * 3, width, height, 4);
@@ -209,7 +217,7 @@ Node.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 		ctx.fillStyle = tmpstyle;
 	}
 	else {
-		ctx.lineWidth = 1;
+		ctx.lineWidth = this.lineWidth;
 		this.enableShadow(ctx);
 	}
 	ctx.beginPath();
