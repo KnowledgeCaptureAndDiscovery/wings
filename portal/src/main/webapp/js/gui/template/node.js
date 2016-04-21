@@ -29,6 +29,7 @@ var Node = function(tpl, id, component, x, y) {
 	this.outputLinks = new Array();
 	this.isConcrete = true;
 	this.binding = null;
+	this.runtimeInfo = null;
 	
 	this.crule = {type:'WTYPE'};
 	this.prule = {type:'STYPE', expr:{'op' : 'XPRODUCT', args: []}};
@@ -94,19 +95,33 @@ Node.prototype.setConcrete = function(isConcrete) {
 	this.isConcrete = isConcrete;
 	if (!this.isConcrete) {
 		this.color = "rgba(204,204,204,1)";
-		this.setBackgroundColor(this.color);
-		var ports = this.getPorts();
-		for ( var i = 0; i < ports.length; i++)
-			ports[i].color = this.color;
 	}
 	else {
 		this.color = "rgba(255,204,153,1)";
-		this.setBackgroundColor(this.color);
-		var ports = this.getPorts();
-		for ( var i = 0; i < ports.length; i++)
-			ports[i].color = this.color;
 	}
+	this.setBackgroundColor(this.color);
+	var ports = this.getPorts();
+	for ( var i = 0; i < ports.length; i++)
+		ports[i].color = this.color;	
 };
+
+Node.prototype.setRuntimeInfo = function(runtimeInfo) {
+	this.runtimeInfo = runtimeInfo;
+	if(this.runtimeInfo != null) {
+		if(this.runtimeInfo.status == "SUCCESS") {
+			this.setForegroundColor("rgba(0,200,0,1)");
+			this.setTextColor("rgba(0,160,0,1)");
+		}
+		else if(this.runtimeInfo.status == "FAILURE") {
+			this.setForegroundColor("rgba(200,0,0,1)");
+			this.setTextColor("rgba(160,0,0,1)");
+		}
+		this.lineWidth = 4;
+	}
+	else {
+		this.lineWidth = 1;
+	}
+}
 
 Node.prototype.setBinding = function(binding) {
 	if (binding) {

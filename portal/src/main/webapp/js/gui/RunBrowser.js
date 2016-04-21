@@ -127,67 +127,7 @@ RunBrowser.prototype.formatSize = function(bytes, precision) {
 
 RunBrowser.prototype.getIODataGrid = function(data, runid) {
 	var This = this;
-	
-	var exec = data.execution;
-	
-	// Get information about the file bindings
-	var filedata = {};
-	var steps = exec.plan.steps;
-	for(var i=0; i<steps.length; i++) {
-		var step = steps[i];
-		for(var j=0; j<step.inputFiles.length; j++) {
-			var file = step.inputFiles[j];
-			for(var key in file.metadata)
-				file.metadata[key] = [file.metadata[key]];
-			filedata[file.id] = file;
-		}
-		for(var j=0; j<step.outputFiles.length; j++) {
-			var file = step.outputFiles[j];
-			for(var key in file.metadata)
-				file.metadata[key] = [file.metadata[key]];
-			filedata[file.id] = file;
-		}
-	}
-	
-	var vmaps = {};
-	var varmap = function(variables, type) {
-		for(var i=0; i<variables.length; i++) {
-			var v = variables[i];
-			var binding = filedata[v.id] ? filedata[v.id] : v.binding;
-			if(v.binding.id)
-				binding.id = v.binding.id;
-			vmaps[v.id] = {v: getLocalName(v.id), b: binding, type: type};
-		}		
-	}
-	// Get mappings of variables to bindings
-	varmap(data.variables.input, "Input");
-	varmap(data.variables.output, "Output");
-	varmap(data.variables.intermediate, "Intermediate");
-
-	// Get variable constraints
-	for(var vid in data.constraints) {
-		if(vmaps[vid] && vmaps[vid].b) {
-			var constraints = data.constraints[vid];
-			var b = vmaps[vid].b;
-			if(!b.metadata)
-				b.metadata = {};
-			for(var i=0; i<constraints.length; i++) {
-				var cons = constraints[i];
-				var pred = cons.p;
-				if(!b.metadata[pred])
-					b.metadata[pred] = [];
-				if(b.metadata[pred].push && 
-						(pred == "type" || b.metadata[pred].length == 0))
-					b.metadata[pred].push(cons.o.isLiteral ? cons.o.value : cons.o.id);				
-			}
-			vmaps[vid].b = b;			
-		}
-	}
-	
-	// Create binding data
-	var bindings = [];
-	for(var vid in vmaps)
-		bindings.push(vmaps[vid]);
+	var bindings = this.getVariableBindingData(data);
 	
 	if (!Ext.ModelManager.isRegistered('workflowRunDetails'))
 		Ext.define('workflowRunDetails', {
@@ -277,6 +217,71 @@ RunBrowser.prototype.getIODataGrid = function(data, runid) {
 	});
 
 	return grid;
+};
+
+RunBrowser.prototype.getVariableBindingData = function(data) {
+	var exec = data.execution;
+
+	// Get information about the file bindings
+	var filedata = {};
+	var steps = exec.plan.steps;
+	for(var i=0; i<steps.length; i++) {
+		var step = steps[i];
+		for(var j=0; j<step.inputFiles.length; j++) {
+			var file = step.inputFiles[j];
+			for(var key in file.metadata)
+				file.metadata[key] = [file.metadata[key]];
+			filedata[file.id] = file;
+		}
+		for(var j=0; j<step.outputFiles.length; j++) {
+			var file = step.outputFiles[j];
+			for(var key in file.metadata)
+				file.metadata[key] = [file.metadata[key]];
+			filedata[file.id] = file;
+		}
+	}
+	
+	var vmaps = {};
+	var varmap = function(variables, type) {
+		for(var i=0; i<variables.length; i++) {
+			var v = variables[i];
+			var binding = filedata[v.id] ? filedata[v.id] : v.binding;
+			if(v.binding.id)
+				binding.id = v.binding.id;
+			vmaps[v.id] = {v: getLocalName(v.id), b: binding, type: type};
+		}		
+	}
+	// Get mappings of variables to bindings
+	varmap(data.variables.input, "Input");
+	varmap(data.variables.output, "Output");
+	varmap(data.variables.intermediate, "Intermediate");
+
+	// Get variable constraints
+	for(var vid in data.constraints) {
+		if(vmaps[vid] && vmaps[vid].b) {
+			var constraints = data.constraints[vid];
+			var b = vmaps[vid].b;
+			if(!b.metadata)
+				b.metadata = {};
+			for(var i=0; i<constraints.length; i++) {
+				var cons = constraints[i];
+				var pred = cons.p;
+				if(!b.metadata[pred])
+					b.metadata[pred] = [];
+				if(b.metadata[pred].push && 
+						(pred == "type" || b.metadata[pred].length == 0))
+					b.metadata[pred].push(cons.o.isLiteral ? cons.o.value : cons.o.id);				
+			}
+			vmaps[vid].b = b;			
+		}
+	}
+	
+	// Create binding data
+	var bindings = [];
+	for(var vid in vmaps)
+		bindings.push(vmaps[vid]);	
+
+	return bindings;
 };
 
 RunBrowser.prototype.stopRun = function(rec) {
@@ -404,41 +409,51 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	});
 	
 	var exec = data.execution;	
-	var tid = exec.originalTemplateId;
+	var tid = exec.seededTemplateId;
 	var xtid = exec.expandedTemplateId;
 
 	var dataPanel = this.getRunDataPanel(data, runid);
 	var logPanel = this.getRunLogPanel(exec);
-	var tPanel = this.getTemplatePanel(tid, 'Original Template');
-	var xtPanel = this.getTemplatePanel(xtid, 'Expanded Template');	
+	var tPanel = this.getTemplatePanel(tid, 'Template');
+	var xtPanel = this.getTemplatePanel(xtid, 'Executable Workflow');	
 	
 	tabPanel.add(dataPanel);	
 	tabPanel.add(logPanel);
 	tabPanel.add(tPanel);
 	tabPanel.add(xtPanel);
 	
+	tabPanel.dataPanel = dataPanel;
+	tabPanel.logPanel = logPanel;
+	tabPanel.tPanel = tPanel;
+	tabPanel.xtPanel = xtPanel;
+	
 	tabPanel.setActiveTab(0);
 	
 	var loadxfn = function() {
 		xtPanel.getLoader().on("load", function(event, response) {
-			// Layout if current data not complete
-			var data = Ext.decode(response.responseText);
-			var tpl = data.template;
+			var xdata = Ext.decode(response.responseText);
+			tpl = xdata.template;
+			// Layout if current layout data missing			
 			for(var i=0; i<tpl.Variables.length; i++) {
 				var variable = tpl.Variables[i];
 				if(!variable.comment) {
 					xtPanel.graph.editor.layout();
-					return;
+					break;
 				}
 			}
+			This.setGraphRuntimeInfo(xtPanel.graph, data);
 		});
-		This.tBrowser.loadTemplateInViewer(xtPanel, xtid);
+		xtPanel.getLoader().load();
 		xtPanel.un("activate", loadxfn);
 	};
 	xtPanel.on("activate", loadxfn);
 	
+	// Seeded Workflow
 	var loadtfn = function() {
-		This.tBrowser.loadTemplateInViewer(tPanel, tid);
+		tPanel.getLoader().on("load", function(event, response) {
+			tPanel.graph.editor.layout();
+		});
+		tPanel.getLoader().load();
 		tPanel.un("activate", loadtfn);
 	};	
 	tPanel.on("activate", loadtfn);
@@ -446,11 +461,27 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	return tabPanel;
 }
 
+RunBrowser.prototype.setGraphRuntimeInfo = function(graph, data) {
+	if(!graph || !graph.editor || !graph.editor.template)
+		return;
+	
+	// Set node runtime infos
+	var tpl = graph.editor.template;
+	for(var i=0; i<data.execution.queue.steps.length; i++) {
+		var step = data.execution.queue.steps[i];
+		var node = tpl.nodes[step.id];
+		if(node != null) {
+			node.setRuntimeInfo(step.runtimeInfo);
+		}
+	}
+	graph.editor.redrawCanvas();	
+};
+
 RunBrowser.prototype.getTemplatePanel = function(xtid, name) {
 	return this.tBrowser.createViewerPanel(xtid, name);
 };
 
-RunBrowser.prototype.getRunLogPanel = function(exec) {
+RunBrowser.prototype.getRunLog = function(exec) {
 	var log = "";
 	
 	exec.queue.steps.sort(function (a, b) {
@@ -479,6 +510,12 @@ RunBrowser.prototype.getRunLogPanel = function(exec) {
 		}
 	}
 	log += exec.runtimeInfo.log;
+	return log;
+};
+
+RunBrowser.prototype.getRunLogPanel = function(exec) {
+	var log = this.getRunLog(exec);
+	
 	return new Ext.Panel({
 		title : 'Run Log',
 		layout : 'border',
@@ -504,52 +541,60 @@ RunBrowser.prototype.getRunDataPanel = function(data, runid) {
 		border : false,
 		iconCls : 'icon-file-alt fa-title fa-blue'
 	});
-	dataPanel.add(this.getIODataGrid(data, runid));
+	dataPanel.grid = this.getIODataGrid(data, runid)
+	dataPanel.add(dataPanel.grid);
 	return dataPanel;
 };
 
 RunBrowser.prototype.refreshOpenRunTabs = function(grid, wRunStore) {
-	var tab = this.tabPanel.getActiveTab();
-	if (tab && tab.runid) {
-		var rec = wRunStore.getById(tab.runid);
-		if (rec.data.status != tab.status || rec.data.status == 'RUNNING') {
-			this.openRunDetails(tab.runid, rec.data.status, tab);
-			tab.status = rec.data.status;
+	var selectedTab = this.tabPanel.getActiveTab();
+	
+	var items = this.tabPanel.items.items;
+	for ( var i = 0; i < items.length; i++) {
+		var tab = items[i];
+		if (tab && tab.runid) {
+			var rec = wRunStore.getById(tab.runid);
+			//if (rec.data.status != tab.status || rec.data.status == 'RUNNING') {
+				tab.getLoader().load();
+				tab.status = rec.data.status;
+			//}
 		}
-		this.selectRunInList(tab.runid);
 	}
+	if (selectedTab && selectedTab.runid) 
+		this.selectRunInList(selectedTab.runid);
 };
 
-RunBrowser.prototype.openRunDetails = function(runid, status, tab) {
+RunBrowser.prototype.openRunDetails = function(runid, status) {
 	var tabName = getLocalName(runid);
 
-	// If a tab is provided, then explicitly refresh
-	// Else, check for matching tab and return if already open
-	if (!tab) {
-		// Check if tab is already open
-		var items = this.tabPanel.items.items;
-		for ( var i = 0; i < items.length; i++) {
-			var tab = items[i];
-			if (tab && tab.title.replace(/^\**/, '') == tabName) {
-				this.tabPanel.setActiveTab(tab);
-				tab.status = status;
-				return null;
-			}
+	// Check if tab is already open
+	var items = this.tabPanel.items.items;
+	for ( var i = 0; i < items.length; i++) {
+		var tab = items[i];
+		if (tab && tab.title.replace(/^\**/, '') == tabName) {
+			this.tabPanel.setActiveTab(tab);
+			tab.status = status;
+			return null;
 		}
-		var tab = new Ext.Panel({
-			layout : 'fit',
-			closable : true,
-			iconCls : 'icon-run fa-title fa-brown',
-			border: false,
-			title : tabName,
-			items : []
-		});
-		this.tabPanel.add(tab);
-		tab.runid = runid;
-		tab.status = status;
-		this.tabPanel.setActiveTab(tab);
 	}
+	
+	// Create a new tab
+	var tab = new Ext.Panel({
+		layout : 'fit',
+		closable : true,
+		iconCls : 'icon-run fa-title fa-brown',
+		border: false,
+		title : tabName,
+		items : []
+	});
+	tab.runid = runid;
+	tab.status = status;
+	
+	// Add tab to tab panel 
+	this.tabPanel.add(tab);
+	this.tabPanel.setActiveTab(tab);
 
+	// Set loader 
 	var This = this;
 	var url = this.op_url + "/getRunDetails";
 	Ext.apply(tab, {
@@ -560,12 +605,25 @@ RunBrowser.prototype.openRunDetails = function(runid, status, tab) {
 				run_id : runid
 			},
 			renderer : function(loader, response, req) {
-				var runJson = Ext.decode(response.responseText);
-				if (runJson) {
-					tab.removeAll();
-					var runDetails = This.getRunDetailsPanel(runJson, runid);
-					tab.add(runDetails);
-					// tab.doLayout(false,true);
+				var rundata = Ext.decode(response.responseText);
+				if (rundata) {
+					if(tab.initialized) {
+						// If already initialized, only update content
+						var bindings = This.getVariableBindingData(rundata);
+						var log = This.getRunLog(rundata.execution);
+						var graph = tab.content.xtPanel.graph;
+						
+						tab.content.dataPanel.grid.getStore().loadData(bindings);
+						tab.content.logPanel.items.items[0].setValue(log);
+						This.setGraphRuntimeInfo(graph, rundata);
+					}
+					else {
+						// Create new content
+						tab.content = This.getRunDetailsPanel(rundata, runid);
+						tab.add(tab.content);
+						// tab.doLayout(false,true);
+						tab.initialized = true;
+					}
 				}
 				else {
 					Ext.get(tab.getId()).update('No Run Details', false);
@@ -726,8 +784,6 @@ RunBrowser.prototype.getRunList = function() {
 
 	if (this.runid) {
 		var fn = function() {
-			// var rec = wRunStore.getById(runid);
-			// openRunDetails(runid, rec.data.status);
 			This.selectRunInList(This.runid);
 			wRunStore.un('load', fn);
 		};
@@ -752,7 +808,7 @@ RunBrowser.prototype.getRunList = function() {
 
 RunBrowser.prototype.selectRunInList = function(runid) {
 	var This = this;
-	this.runList.getSelectionModel().deselectAll();
+	//this.runList.getSelectionModel().deselectAll();
 	this.runList.getStore().each(function(rec) {
 		if (rec.data.id == runid)
 			This.runList.getSelectionModel().select([

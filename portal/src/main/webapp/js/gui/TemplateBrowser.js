@@ -258,18 +258,16 @@ TemplateBrowser.prototype.createViewerPanel = function(tid, tname) {
 		title : tname,
 		iconCls : 'icon-wflow-alt fa-title fa-blue'
 	});	
-	this.setupTemplateRenderer(tpanel, tid, tname);
-	return tpanel;
-};
-
-TemplateBrowser.prototype.loadTemplateInViewer = function(tpanel, tid) {
+	
 	var url = this.op_url + '/getViewerJSON';
-	tpanel.getLoader().load({
+	this.setupTemplateRenderer(tpanel, tid, tname);
+	Ext.apply(tpanel.loader, {
 		url : url,
 		params : {
 			template_id : tid
 		}
-	});	
+	});
+	return tpanel;
 };
 
 /**

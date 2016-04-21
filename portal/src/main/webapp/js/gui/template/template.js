@@ -65,6 +65,7 @@ Template.prototype.initialize = function() {
 		n.setComponentRule(node.crule);
 		n.setPortRule(node.prule);
 		n.derivedFrom = node.derivedFrom;
+		n.setRuntimeInfo(node.runtimeInfo);
 
 		// in case inputPorts/outputPorts are explicitly provided for the nodes
 		if (node.inputPorts) {

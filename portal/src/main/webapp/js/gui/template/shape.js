@@ -33,6 +33,7 @@ Shape.prototype.initialize = function(id, text, x, y, wmul, hmul) {
 	this.width = 0;
 	this.height = 0;
 	this.padding = 8;
+	this.lineWidth = 1;
 	this.font = "13px Courier";
 	this.wmul = wmul ? wmul : 1;
 	this.hmul = hmul ? hmul : 1;
@@ -352,7 +353,7 @@ Shape.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 	ctx.save();
 	ctx.fillStyle = highlight ? this.highlightColor : this.getBackgroundColor();
 	ctx.strokeStyle = this.getForegroundColor();
-	ctx.lineWidth = 1;
+	ctx.lineWidth = this.lineWidth;
 	if (this.shadow) {
 		ctx.shadowOffsetX = 2 * (this.canvas ? this.canvas.scale : 1);
 		ctx.shadowOffsetY = 2 * (this.canvas ? this.canvas.scale : 1);

@@ -178,6 +178,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			xtype : "box"
 		});
 		this.on('resize', this.onResize, this);
+		this.addEvents('graphloaded');
 		Ext.ux.TemplateGraph.superclass.initComponent.apply(this, arguments);
 	},
 
@@ -191,11 +192,24 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		}
 	},
 
+	needsLayout : function() {
+		var noLayout = 0;
+		for(var i=0; i<this.template.variables.length; i++) {
+			var variable = this.template.variables[i];
+			if(variable.x < 40 && variable.y < 40)
+				noLayout++;
+		}
+		if(noLayout == this.template.variables.length)
+			return true;
+		return false;
+	},
+		 
 	onRender : function(ct, position) {
 		Ext.ux.TemplateGraph.superclass.onRender.call(this, ct, position);
 		this.initCanvas();
 		this.initTemplate(this.template_id, this.store);
 		this.initDropZone(this.canvasDom, this.guid + "_ComponentTree");
+		this.fireEvent('graphloaded');
 	},
 
 	initCanvas : function() {
