@@ -31,7 +31,7 @@
     <!-- Local IKCAP Repository (using for pellet jars here) -->
     <repository>
       <id>Local archiva.snapshots repository</id>
-      <url>http://skc.isi.edu:8765/archiva/repository/snapshots/</url>
+      <url>http://www.wings-workflows.org/archiva/repository/snapshots/</url>
     </repository>
   </repositories>
 
