@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-function RunBrowser(guid, runid, op_url, data_url, template_url) {
+function RunBrowser(guid, runid, op_url, data_url, template_url, can_publish) {
 	this.guid = guid;
 	this.runid = runid;
 	this.op_url = op_url;
 	this.data_url = data_url;
 	this.template_url = template_url;
+	this.can_publish = can_publish;
 	
 	this.tabPanel;
 	this.runList;
@@ -356,7 +357,7 @@ RunBrowser.prototype.publishRun = function(runid, tabPanel) {
 			if(resp.url) {
 				var url = resp.url;
 				var win = new Ext.Window({
-					title : 'RDF Turtle',
+					title : 'Pubby',
 					width : '70%',
 					height : '70%',
 					plain : true,
@@ -380,31 +381,67 @@ RunBrowser.prototype.publishRun = function(runid, tabPanel) {
 
 RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	var This = this;
-	var tabPanel = Ext.create('Ext.tab.Panel', {
-			plain: true,
-			margin: 5,
-			tbar : [
-			/*{
-				text : 'Get HTML',
-				iconCls : 'icon-docs fa fa-blue',
-				handler : function() {
-					This.getRunReport(runid, this.up('panel'), 'HTML');
+	var tbar = null;
+	/*var tbar = [];
+	tbar.push({
+		text : 'Get HTML',
+		iconCls : 'icon-docs fa fa-blue',
+		handler : function() {
+			This.getRunReport(runid, this.up('panel'), 'HTML');
+		}
+	});*/
+	
+	if(this.can_publish && data.execution.runtimeInfo.status == "SUCCESS") {
+		if(!tbar)
+			tbar = [];
+		
+		if(data.published_url) {
+			var url = data.published_url;
+			tbar.push({
+				text: 'View Published RDF',
+				iconCls: 'icon-network fa fa-blue',
+				handler: function() {
+					var me = this;
+					var win = new Ext.Window({
+						title : 'Pubby',
+						width : '70%',
+						height : '70%',
+						plain : true,
+						maximizable : true,
+						html : "<div style='padding:5px'>URL: <a target='_blank' href='" + url + "'>" + url
+								+ "</a></div>"
+								+ "<iframe style='border: 1px solid #999; width:100%; height:94%' src='" 
+								+ url + "'></iframe>"
+					});
+					win.show();
 				}
-			},*/
-			{
+			});
+		}
+		else {
+			tbar.push({
 				text: 'Publish RDF',
 				iconCls: 'icon-network fa fa-blue',
 				handler: function() {
 					var me = this;
 					Ext.MessageBox.confirm("Confirm", 
-						"This might take a while to publish. Please don't close this browser window while upload is going on. Are you sure you want to Continue ?", 
-					  	function(b) {
-					     	if(b == "yes") {
-								This.publishRun(runid, me.up('panel'));
-							}
-						});
+							"This might take a while to publish. Please don't close this browser window while upload is going on. Are you sure you want to Continue ?", 
+							function(b) {
+						if(b == "yes") {
+							var panel = me.up('panel');
+							var tab = panel.up('panel');
+							This.publishRun(runid, panel);
+							tab.getLoader().load();							
+						}
+					});
 				}
-			}],
+			});
+		}
+	}
+	
+	var tabPanel = Ext.create('Ext.tab.Panel', {
+			plain: true,
+			margin: 5,
+			tbar: tbar,
 			items: []
 	});
 	

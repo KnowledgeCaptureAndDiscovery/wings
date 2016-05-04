@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 
 import javax.servlet.ServletContext;
@@ -37,10 +38,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import edu.isi.wings.opmm.Mapper;
 import edu.isi.wings.catalog.component.ComponentFactory;
@@ -115,7 +118,8 @@ public class RunController {
                     + runid + "', " + "'"
                     + config.getScriptPath() + "', "
                     + "'" + this.dataUrl + "', "
-                    + "'" + this.templateUrl + "' "
+                    + "'" + this.templateUrl + "', "
+                    + (this.config.getPublisher() != null)
                     + ");\n"
                     + "runViewer_" + guid + ".initialize();\n"
                     + "});");
@@ -185,8 +189,29 @@ public class RunController {
             returnmap.put("constraints", this.getShortConstraints(tpl));            
         }
         returnmap.put("execution", planexe);
+        returnmap.put("published_url", this.getPublishedURL(runid));
         
         return json.toJson(returnmap);
+    }
+    
+    private String getPublishedURL(String runid) {
+      Publisher publisher = config.getPublisher();
+      if(publisher == null)
+        return null;
+
+      Mapper opmm = new Mapper();
+      String tstoreurl = publisher.getTstoreUrl();
+      String puburl = publisher.getUrl();
+      opmm.setPublishExportPrefix(puburl);
+      
+      String rname = runid.substring(runid.indexOf('#') + 1);
+      String runurl = opmm.getRunUrl(rname);
+
+      // Check if run already published
+      if (graphExists(tstoreurl, runurl))
+          return runurl;
+      
+      return null;
     }
     
     private Map<String, Object> getShortConstraints(Template tpl) {
@@ -317,6 +342,14 @@ public class RunController {
                     return json.toJson(retmap);
                 }
                 
+                // Fetch expanded template (to get data binding ids)
+                TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+                Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
+                HashMap<String, String> varBindings = new HashMap<String, String>();
+                for(Variable var: xtpl.getVariables()) {
+                  varBindings.put(var.getID(), var.getBinding().getID());
+                }
+                
                 // Create a temporary directory to upload/move
                 File _tmpdir = File.createTempFile("temp", "");
                 File tempdir = new File(_tmpdir.getParent() + "/" + rname);
@@ -371,11 +404,21 @@ public class RunController {
 
                 for(ExecutionFile file : uploadFiles) {
                   File copyfile = new File(file.getLocation());
-                  // Copy over file to temp directory
-                  FileUtils.copyFileToDirectory(copyfile, datadir);
                   
-                  // Change file path in plan to the web accessible one 
-                  file.setLocation(file.getLocation().replace(ddir, dataurl));
+                  // Only upload files below a threshold file size
+                  long maxsize = publisher.getUploadServer().getMaxUploadSize();
+                  if(maxsize == 0 || copyfile.length() < maxsize) {
+                    // Copy over file to temp directory
+                    FileUtils.copyFileToDirectory(copyfile, datadir);
+                    
+                    // Change file path in plan to the web accessible one 
+                    file.setLocation(file.getLocation().replace(ddir, dataurl));
+                  }
+                  else {
+                    String bindingid = varBindings.get(file.getID());
+                    file.setLocation(config.getServerUrl() + this.dataUrl+
+                        "/fetch?data_id=" + URLEncoder.encode(bindingid, "UTF-8"));
+                  }
                 }
                 for(ExecutionCode code : uploadCodes) {
                   File copydir = null;
@@ -424,8 +467,8 @@ public class RunController {
                 File planfile = new File(execsdir.getAbsolutePath() + "/" + 
                     plan.getPlan().getName() + ".owl");
                 String plandata = plan.getPlan().serialize();
-                plandata = plandata.replace(wfpfx, wflowurl);
-                plandata = plandata.replace(expfx, execsurl);
+                plandata = plandata.replace("\""+wfpfx, "\""+wflowurl);
+                plandata = plandata.replace("\""+expfx, "\""+execsurl);
                 plandata = plandata.replace(dclib, dconturl + "/library.owl");
                 plandata = plandata.replace(dcont, dconturl + "/ontology.owl");
                 plandata = plandata.replace(aclib, aconturl + "/library.owl");
@@ -539,9 +582,18 @@ public class RunController {
 
     private void publishFile(String tstoreurl, String graphurl, String filepath) {
         try {
-            DefaultHttpClient httpClient = new DefaultHttpClient();
+            CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpPut putRequest = new HttpPut(tstoreurl + "?graph=" + graphurl);
 
+            int timeoutSeconds = 5;
+            int CONNECTION_TIMEOUT_MS = timeoutSeconds * 1000;
+            RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
+                .setConnectTimeout(CONNECTION_TIMEOUT_MS)
+                .setSocketTimeout(CONNECTION_TIMEOUT_MS)
+                .build();
+            putRequest.setConfig(requestConfig);
+            
             File file = new File(filepath);
             String rdfxml = FileUtils.readFileToString(file);
             if (rdfxml != null) {
@@ -557,17 +609,27 @@ public class RunController {
     }
 
     private boolean graphExists(String tstoreurl, String graphurl) {
-        try {
-            DefaultHttpClient httpClient = new DefaultHttpClient();
-            HttpGet getRequest = new HttpGet(tstoreurl + "?graph=" + graphurl);
-            HttpResponse response = httpClient.execute(getRequest);
-            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
-                return true;
-            return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+      try {
+        CloseableHttpClient httpClient = HttpClients.createDefault();            
+        HttpGet getRequest = new HttpGet(tstoreurl + "?graph=" + graphurl);
+
+        int timeoutSeconds = 5;
+        int CONNECTION_TIMEOUT_MS = timeoutSeconds * 1000;
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
+            .setConnectTimeout(CONNECTION_TIMEOUT_MS)
+            .setSocketTimeout(CONNECTION_TIMEOUT_MS)
+            .build();
+        getRequest.setConfig(requestConfig);
+
+        HttpResponse response = httpClient.execute(getRequest);
+        if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
+          return true;
+        return false;
+      } catch (IOException e) {
+        e.printStackTrace();
+        return false;
+      }
     }
 
     private String getTemplateMD5(String templateurl) throws Exception {

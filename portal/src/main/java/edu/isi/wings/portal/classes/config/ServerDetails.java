@@ -9,6 +9,7 @@ public class ServerDetails {
     String host;
     String privateKey;
     String hostUserId;
+    long maxUploadSize = 0; // Defaults to No limit
 
     public String getUrl() {
         return url;
@@ -48,5 +49,13 @@ public class ServerDetails {
 
     public void setHostUserId(String hostUserId) {
       this.hostUserId = hostUserId;
+    }
+
+    public long getMaxUploadSize() {
+      return maxUploadSize;
+    }
+
+    public void setMaxUploadSize(long maxUploadSize) {
+      this.maxUploadSize = maxUploadSize;
     }
 }

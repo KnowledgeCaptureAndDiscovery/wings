@@ -185,6 +185,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    HashMap<String, KBObject> vals = new HashMap<String, KBObject>();
 	    for(SparqlQuerySolution col : row)
 	      vals.put(col.getVariable(), col.getObject());
+	    if(vals.get("run") == null)
+	      continue;
 	    RuntimePlan rplan = new RuntimePlan(vals.get("run").getID());
 	    rplan.setOriginalTemplateID(vals.get("template").getID());
 	    RuntimeInfo info = new RuntimeInfo();
@@ -241,10 +243,15 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	@Override
 	public boolean runExists(String runid) {
-		KBObject obj = this.kb.getIndividual(runid);
-		if(obj != null)
-			return true;
-		return false;
+	  try {
+	    KBAPI tkb = this.ontologyFactory.getKB(runid, OntSpec.PLAIN);
+	    if(tkb != null && tkb.getAllTriples().size() > 0)
+	      return true;
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	  }
+	  return false;
 	}
 	
 

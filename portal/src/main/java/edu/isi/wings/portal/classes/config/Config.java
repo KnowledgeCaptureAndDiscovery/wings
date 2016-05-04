@@ -26,6 +26,8 @@ import java.util.Map.Entry;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -34,9 +36,11 @@ import javax.servlet.http.HttpServletResponse;
 import edu.isi.wings.portal.classes.config.ExeEngine;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
+
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.lang.ArrayUtils;
+
 import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
@@ -346,6 +350,7 @@ public class Config {
         if (!uf.exists() && !uf.mkdirs())
             System.err.println("Cannot create community directory : " + uf.getAbsolutePath());
 
+        // Load engine configurations
         this.engines = new HashMap<String, ExeEngine>();
         @SuppressWarnings("unchecked")
         List<SubnodeConfiguration> enginenodes = serverConfig.configurationsAt("execution.engine");
@@ -366,23 +371,55 @@ public class Config {
             }
         }
 
-        String publishUrl = serverConfig.getString("publisher.url");
-        String tstoreUrl = serverConfig.getString("publisher.triple-store");
-        String uploadUrl = serverConfig.getString("publisher.upload-server.url");
-        String uploadDir = serverConfig.getString("publisher.upload-server.directory");
-        String uploadHost = serverConfig.getString("publisher.upload-server.host");
-        String uploadUserId = serverConfig.getString("publisher.upload-server.userid");
-        String uploadKey = serverConfig.getString("publisher.upload-server.private-key");
-        this.publisher = new Publisher();
-        this.publisher.setUrl(publishUrl);
-        this.publisher.setTstoreUrl(tstoreUrl);
-        ServerDetails upserver = new ServerDetails();
-        upserver.setUrl(uploadUrl);
-        upserver.setHostUserId(uploadUserId);
-        upserver.setDirectory(uploadDir);
-        upserver.setHost(uploadHost);
-        upserver.setPrivateKey(uploadKey);
-        this.publisher.setUploadServer(upserver);
+        // Load publishing configuration
+        if(serverConfig.containsKey("publisher.url")) {
+          String publishUrl = serverConfig.getString("publisher.url");
+          String tstoreUrl = serverConfig.getString("publisher.triple-store");
+          String uploadUrl = serverConfig.getString("publisher.upload-server.url");
+          String uploadDir = serverConfig.getString("publisher.upload-server.directory");
+          String uploadHost = serverConfig.getString("publisher.upload-server.host");
+          String uploadUserId = serverConfig.getString("publisher.upload-server.userid");
+          String uploadKey = serverConfig.getString("publisher.upload-server.private-key");
+          String sizeString = serverConfig.getString("publisher.upload-server.max-upload-size");
+          this.publisher = new Publisher();
+          this.publisher.setUrl(publishUrl);
+          this.publisher.setTstoreUrl(tstoreUrl);
+          ServerDetails upserver = new ServerDetails();
+          upserver.setUrl(uploadUrl);
+          upserver.setHostUserId(uploadUserId);
+          upserver.setDirectory(uploadDir);
+          upserver.setHost(uploadHost);
+          upserver.setPrivateKey(uploadKey);
+          long size = this.getSizeFromString(sizeString);
+          upserver.setMaxUploadSize(size);
+          this.publisher.setUploadServer(upserver);
+        }
+    }
+    
+    private long getSizeFromString(String sizeString) {
+      long kb = 1024;
+      long mb = kb*kb;
+      long gb = kb*mb;
+      long tb = kb*gb;
+      
+      Pattern pat = Pattern.compile("(\\d+)\\s*([KkMmGgTt])[Bb]?");
+      Matcher mat = pat.matcher(sizeString);
+      if(mat.find()) {
+        long size=Long.parseLong(mat.group(1));
+        if(mat.groupCount() > 1) {
+          String units = mat.group(2).toLowerCase();
+          if(units.equals("k"))
+            return size*kb;
+          if(units.equals("m"))
+            return size*mb;
+          if(units.equals("g"))
+            return size*gb;
+          if(units.equals("t"))
+            return size*tb;          
+        }
+        return size;
+      }
+      return 0;
     }
 
     private void initializeUserDatabase() {
