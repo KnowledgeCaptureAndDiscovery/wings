@@ -390,8 +390,10 @@ public class Config {
           upserver.setDirectory(uploadDir);
           upserver.setHost(uploadHost);
           upserver.setPrivateKey(uploadKey);
-          long size = this.getSizeFromString(sizeString);
-          upserver.setMaxUploadSize(size);
+          if(sizeString != null) {
+            long size = this.getSizeFromString(sizeString);
+            upserver.setMaxUploadSize(size);
+          }
           this.publisher.setUploadServer(upserver);
         }
     }

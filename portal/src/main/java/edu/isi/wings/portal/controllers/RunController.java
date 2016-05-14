@@ -407,7 +407,8 @@ public class RunController {
                   
                   // Only upload files below a threshold file size
                   long maxsize = publisher.getUploadServer().getMaxUploadSize();
-                  if(maxsize == 0 || copyfile.length() < maxsize) {
+                  if(copyfile.length() > 0 &&
+                      (maxsize == 0 || copyfile.length() < maxsize)) {
                     // Copy over file to temp directory
                     FileUtils.copyFileToDirectory(copyfile, datadir);
                     

@@ -751,14 +751,14 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
 	var This = this;
     var c = node.data.component;
     var cls = node.data.cls;
-    if (!c.concrete && This.load_concrete) {
+    /*if (!c.concrete && This.load_concrete) {
         Ext.MessageBox.show({
             title: 'Cannot delete',
             msg: 'Cannot delete component types from this interface. Go to "Manage Component Types" instead',
             buttons: Ext.Msg.OK
         });
         return;
-    }
+    }*/
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls), function(yesno) {
         if (yesno == "yes") {
             var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');

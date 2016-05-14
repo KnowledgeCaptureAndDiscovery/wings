@@ -283,13 +283,16 @@ public class ComponentKB {
     KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
     KBObject hdcls = this.conceptMap.get("HardwareDependency");
     KBObject minver = this.objPropMap.get("requiresMinimumVersion");
-    //KBObject exver = this.objPropMap.get("requiresExactVersion");
-    for (String softwareId : requirement.getSoftwareIds()) {
-      KBObject sdobj = writerkb.createObjectOfClass(null, sdcls);
-      KBObject verobj = tkb.getResource(softwareId);
-      if(verobj != null)
-        writerkb.setPropertyValue(sdobj, minver, verobj);
-      writerkb.addPropertyValue(compobj, sdprop, sdobj);
+    //KBObject exver = this.objPropMap.get("requiresExactVersion");    
+
+    if(requirement.getSoftwareIds() != null) {
+      for (String softwareId : requirement.getSoftwareIds()) {
+        KBObject sdobj = writerkb.createObjectOfClass(null, sdcls);
+        KBObject verobj = tkb.getResource(softwareId);
+        if(verobj != null)
+          writerkb.setPropertyValue(sdobj, minver, verobj);
+        writerkb.addPropertyValue(compobj, sdprop, sdobj);
+      }
     }
     
     KBObject hdobj = writerkb.createObjectOfClass(null, hdcls);

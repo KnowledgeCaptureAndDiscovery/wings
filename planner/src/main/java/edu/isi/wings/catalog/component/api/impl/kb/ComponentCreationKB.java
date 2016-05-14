@@ -153,14 +153,19 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		if(comp == null) return false;
 		
 		// Remove existing component assertions and re-add the new component details
-		boolean ok1 = this.removeComponent(comp.getID(), false, false);
-		boolean ok2 = this.addComponent(comp, null);
-		
-    if(this.externalCatalog != null)
-      this.externalCatalog.updateComponent(comp);
-    
-		// TODO: If abstract, update all components defined in all libraries !
-		return ok1 && ok2;
+		try {
+		  boolean ok1 = this.removeComponent(comp.getID(), false, false);
+		  boolean ok2 = this.addComponent(comp, null);
+	    if(this.externalCatalog != null)
+	      this.externalCatalog.updateComponent(comp);
+	    
+	    // TODO: If abstract, update all components defined in all libraries !
+	    return ok1 && ok2;		  
+		}
+		catch (Exception e) {
+		  e.printStackTrace();
+		  return false;
+		}
 	}
 
 	@Override
