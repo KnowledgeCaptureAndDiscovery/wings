@@ -244,7 +244,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	@Override
 	public boolean runExists(String runid) {
 	  try {
-	    KBAPI tkb = this.ontologyFactory.getKB(runid, OntSpec.PLAIN);
+	    String runurl = runid.replaceAll("#.*$", "");
+	    KBAPI tkb = this.ontologyFactory.getKB(runurl, OntSpec.PLAIN);
 	    if(tkb != null && tkb.getAllTriples().size() > 0)
 	      return true;
 	  }
