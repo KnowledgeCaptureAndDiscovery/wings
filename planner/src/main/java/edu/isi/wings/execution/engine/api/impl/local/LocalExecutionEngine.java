@@ -332,6 +332,7 @@ class StreamGobbler extends Thread {
   RuntimeStep exe;
   PrintWriter fout;
   ExecutionLoggerAPI logger;
+  int maxLinesLog = 500;
 
   public StreamGobbler (InputStream is, RuntimeStep exe, PrintWriter fout, 
       ExecutionLoggerAPI logger) {
@@ -344,13 +345,20 @@ class StreamGobbler extends Thread {
   public void run() {
     try {
       String line = "";
+      int lineNum = 0;
       BufferedReader b = new BufferedReader(
           new InputStreamReader(this.is));
       while ((line = b.readLine()) != null) {
-        if(fout != null)
-          fout.println(line);
-        else
-          exe.onUpdate(this.logger, line);
+        if(lineNum < maxLinesLog) {
+          if(fout != null)
+            fout.println(line);
+          else
+            exe.onUpdate(this.logger, line);
+        }
+        else if(lineNum == maxLinesLog) {
+          exe.onUpdate(this.logger, ".. Log is too long. Rest is truncated");
+        }
+        lineNum++;
       }
       b.close();
       if(fout != null)
