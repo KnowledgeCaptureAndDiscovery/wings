@@ -40,6 +40,7 @@ import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
+import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
@@ -162,9 +163,12 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 		}
 		else {
 			// Run the runnable steps
-			for(RuntimeStep stepexe : steps) {
+			for(RuntimeStep stepexe : steps)
+			  stepexe.getRuntimeInfo().setStatus(Status.READY);
+
+			for(RuntimeStep stepexe : steps)
 				this.stepEngine.execute(stepexe, exe);
-			}
+
 		}
 	}
 	
@@ -209,7 +213,6 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     			args.add(exe.getStep().getCodeBinding().getLocation());
 
     			PrintWriter fout = null;
-    			
     			for(String argname : exe.getStep().getInvocationArguments().keySet()) {
     				ArrayList<Object> values = exe.getStep().getInvocationArguments().get(argname);
     				if(argname.equals(">")) {
