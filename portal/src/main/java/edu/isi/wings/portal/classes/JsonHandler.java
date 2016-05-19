@@ -251,8 +251,11 @@ class BindingDeserializer implements JsonDeserializer<Binding>{
 			String type = obj.get("type").getAsString();
 			if("uri".equals(type))
 				return new Binding(obj.get("id").getAsString());
-			else if("literal".equals(type))
-				return new ValueBinding(obj.get("value").getAsString(), obj.get("datatype").getAsString());
+			else if("literal".equals(type)) {
+			  String datatype = obj.get("datatype") != null ? obj.get("datatype").getAsString() : 
+			    KBUtils.XSD+"string";
+				return new ValueBinding(obj.get("value").getAsString(), datatype);
+			}
 		}
 		return null;
 	}
