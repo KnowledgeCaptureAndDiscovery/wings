@@ -534,7 +534,8 @@ RunBrowser.prototype.getRunLog = function(exec) {
 	});
 	for(var i=0; i<exec.queue.steps.length; i++) {
 		var step = exec.queue.steps[i];
-		if(step.runtimeInfo.status != 'QUEUED') {
+		if(step.runtimeInfo.status != 'WAITING' &&
+				step.runtimeInfo.status != 'QUEUED') {
 			log += "=====================================\n";
 			log += "[ JOB: " + getLocalName(step.id) + " ]";
 			log += "\n[ STARTED: " + new Date(step.runtimeInfo.startTime*1000) + " ]";

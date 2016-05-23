@@ -129,16 +129,18 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void execute(RuntimePlan exe) {
+	  exe.getRuntimeInfo().setStatus(Status.QUEUED);
 		exe.onStart(this.logger);
 		this.onStepEnd(exe);
 	}
 	
 	@Override
 	public void onStepEnd(RuntimePlan exe) {
-		ArrayList<RuntimeStep> steps = exe.getQueue().getStepsReadyToExecute();
+		ArrayList<RuntimeStep> steps = exe.getQueue().getNextStepsToExecute();
 		if(steps.size() == 0) {
 			// Nothing to execute. Check if finished
-			if(exe.getQueue().getRunningSteps().size() == 0) {
+			if(exe.getQueue().getRunningSteps().size() == 0 &&
+			    exe.getQueue().getQueuedSteps().size() == 0) {
 			  String endlog = "Finished";
 				RuntimeInfo.Status status = RuntimeInfo.Status.FAILURE;
 				if(exe.getQueue().getFinishedSteps().size() 
@@ -163,8 +165,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 		}
 		else {
 			// Run the runnable steps
-			for(RuntimeStep stepexe : steps)
-			  stepexe.getRuntimeInfo().setStatus(Status.READY);
+			for(RuntimeStep stepexe : steps) {
+			  stepexe.getRuntimeInfo().setStatus(Status.QUEUED);
+			  //System.out.println("Queued "+stepexe.getName());
+			}
 
 			for(RuntimeStep stepexe : steps)
 				this.stepEngine.execute(stepexe, exe);
@@ -178,7 +182,6 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 		Future<?> job = 
 		    executor.submit(new StepExecutionThread(exe, planexe, planEngine, logger, machine));
 		exe.setProcess(job);
-    exe.onStart(this.logger);
 	}
 	
   private Machine selectStepMachine(RuntimeStep exe) {
@@ -209,6 +212,9 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
       @Override
       public void run() {
     		try {
+          // Mark job as started
+          this.exe.onStart(this.logger);
+          
     			ArrayList<String> args = new ArrayList<String>();
     			args.add(exe.getStep().getCodeBinding().getLocation());
 
@@ -232,8 +238,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     				}
     			}
     			exe.onUpdate(this.logger, StringUtils.join(args, " "));
-          
-          
+
           // Check if the outputs already exist, if so don't run
           boolean allExist = true;
           for (ExecutionFile file : exe.getStep().getOutputFiles()) {
@@ -245,39 +250,42 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
           if(allExist) {
             exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, 
                 "Outputs already exist. Not running job");
-            return;
           }
-          
-          // Create a temporary directory
-          File tempdir = File.createTempFile(planexe.getName()+"-", "-"+exe.getName());
-          if(!tempdir.delete() || !tempdir.mkdirs())
-             throw new Exception("Cannot create temp directory");
-          
-          HashMap<String, String> environment = new HashMap<String, String>();
-          for(EnvironmentValue eval : machine.getEnvironmentValues()) {
-            environment.put(eval.getVariable(), eval.getValue());
+          else {
+            // Create a temporary directory
+            File tempdir = File.createTempFile(planexe.getName()+"-", "-"+exe.getName());
+            if(!tempdir.delete() || !tempdir.mkdirs())
+               throw new Exception("Cannot create temp directory");
+            
+            HashMap<String, String> environment = new HashMap<String, String>();
+            for(EnvironmentValue eval : machine.getEnvironmentValues()) {
+              environment.put(eval.getVariable(), eval.getValue());
+            }
+            
+      			ProcessBuilder pb = new ProcessBuilder(args);
+      			pb.environment().putAll(environment);
+      			pb.directory(tempdir);
+      			pb.redirectErrorStream(true);
+      			this.process = pb.start();
+      			
+      			//System.out.println("Running "+exe.getName());
+      			// Read output stream
+      			StreamGobbler outputGobbler = new 
+                StreamGobbler(this.process.getInputStream(), exe, fout, this.logger);
+      			outputGobbler.start();
+  
+      			// Wait for the process to exit
+            this.process.waitFor();
+            //System.out.println("Finished "+exe.getName());
+            
+      			// Delete temp directory
+      			FileUtils.deleteDirectory(tempdir);
+            
+      			if(this.process.exitValue() == 0) 
+      				exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
+      			else
+      				exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, "");
           }
-    			ProcessBuilder pb = new ProcessBuilder(args);
-    			pb.environment().putAll(environment);
-    			pb.directory(tempdir);
-    			pb.redirectErrorStream(true);
-    			this.process = pb.start();
-    			
-    			// Read output stream
-    			StreamGobbler outputGobbler = new 
-              StreamGobbler(this.process.getInputStream(), exe, fout, this.logger);
-    			outputGobbler.start();
-
-    			// Wait for the process to exit
-          this.process.waitFor();
-          
-    			// Delete temp directory
-    			FileUtils.deleteDirectory(tempdir);
-          
-    			if(this.process.exitValue() == 0) 
-    				exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
-    			else
-    				exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, "");
     		}
     		catch (InterruptedException e) {
     		  if(this.process != null)

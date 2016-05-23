@@ -20,9 +20,9 @@ package edu.isi.wings.execution.engine.classes;
 import java.util.Date;
 
 public class RuntimeInfo {
-	public static enum Status { QUEUED, READY, RUNNING, SUCCESS, FAILURE };
+	public static enum Status { WAITING, QUEUED, RUNNING, SUCCESS, FAILURE };
 	
-	Status status = Status.QUEUED;
+	Status status = Status.WAITING;
 	String log = "";
 	Date startTime;
 	Date endTime;

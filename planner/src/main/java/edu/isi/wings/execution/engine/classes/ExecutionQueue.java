@@ -20,6 +20,7 @@ package edu.isi.wings.execution.engine.classes;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 
@@ -56,10 +57,10 @@ public class ExecutionQueue {
 		}
 	}
 
-	public ArrayList<RuntimeStep> getStepsReadyToExecute() {
+	public ArrayList<RuntimeStep> getNextStepsToExecute() {
 		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
 		for(RuntimeStep step : this.steps) {
-			if(step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.QUEUED) {
+			if(step.getRuntimeInfo().getStatus() == Status.WAITING) {
 				boolean ok = true;
 				for(RuntimeStep parentStep : step.getParents()) {
 					if(parentStep != null &&
@@ -102,6 +103,15 @@ public class ExecutionQueue {
 				steps.add(step);
 		}
 		return steps;
+	}
+	
+	public ArrayList<RuntimeStep> getQueuedSteps() {
+	  ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
+	  for(RuntimeStep step : this.steps) {
+	    if(step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.QUEUED)
+	      steps.add(step);
+	  }
+	  return steps;
 	}
 
 	public ExecutionPlan getPlan() {

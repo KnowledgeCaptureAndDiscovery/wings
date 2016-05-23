@@ -458,8 +458,9 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 				tkb.createLiteral(rinfo.getStartTime()));
 		tkb.setPropertyValue(exobj, dataPropMap.get("hasEndTime"),
 				tkb.createLiteral(rinfo.getEndTime()));
-		tkb.setPropertyValue(exobj, dataPropMap.get("hasExecutionStatus"),
-				tkb.createLiteral(rinfo.getStatus().toString()));
+		if(rinfo.getStatus() != null)
+		  tkb.setPropertyValue(exobj, dataPropMap.get("hasExecutionStatus"),
+		      tkb.createLiteral(rinfo.getStatus().toString()));
 	}
 
 	private RuntimeInfo getRuntimeInfo(KBAPI tkb, KBObject exobj) {
