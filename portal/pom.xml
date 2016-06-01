@@ -32,11 +32,11 @@
 		</dependency>
 
 		<!-- Wings Pegasus Adapter -->
-		<dependency>
+		<!--dependency>
 			<groupId>edu.isi.wings</groupId>
 			<artifactId>wings-pegasus-adapter</artifactId>
 			<version>${project.parent.version}</version>
-		</dependency>
+		</dependency-->
 
 		<!-- Wings OODT Adapter -->
 		<!--dependency>
