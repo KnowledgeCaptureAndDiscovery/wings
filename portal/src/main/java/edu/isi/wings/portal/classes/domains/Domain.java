@@ -27,10 +27,13 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.io.FileUtils;
+
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
+import edu.isi.wings.catalog.resource.ResourceFactory;
+import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.kb.PropertiesHelper;
 import edu.isi.wings.execution.tools.ExecutionToolsFactory;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
@@ -184,6 +187,7 @@ public class Domain {
 		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
 		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+		ResourceAPI rc = ResourceFactory.getAPI(props);
 
 		Domain todom = Domain.createDefaultDomain(domName, config.getUserDir(), config.getExportUserUrl());
 		props = config.getProperties(todom);
@@ -191,12 +195,15 @@ public class Domain {
 		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
 		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
 		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
+		ResourceAPI torc = ResourceFactory.getAPI(props);
 		
-		// Copy from legacy apis to new apis
+		// Copy from file-based apis to triple-store apis
 		todc.copyFrom(dc);
 		toacc.copyFrom(acc);
 		toccc.copyFrom(ccc);
 		totc.copyFrom(tc);
+		if(rc != null && torc != null)
+		  torc.copyFrom(rc, ccc);
 		
 		// Copy legacy data/code directories to new data/code storage directory
 		File srcDataDir = new File(fromdom.getDomainDirectory() + fsep
@@ -235,6 +242,7 @@ public class Domain {
 		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
 		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+		ResourceAPI rc = ResourceFactory.getAPI(props);
 		
 		File tempdir;
 		try {
@@ -254,12 +262,15 @@ public class Domain {
 		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
 		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
 		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
+		ResourceAPI torc = ResourceFactory.getAPI(props);
 		
 		// Copy into non-triple-store apis
 		todc.copyFrom(dc);
 		toacc.copyFrom(acc);
 		toccc.copyFrom(ccc);
 		totc.copyFrom(tc);
+    if(rc != null && torc != null)
+      torc.copyFrom(rc, ccc);
 		
 		// Copy legacy data/code directories to new data/code storage directory
 		File srcDataDir = new File(fromdom.getDomainDirectory() + fsep

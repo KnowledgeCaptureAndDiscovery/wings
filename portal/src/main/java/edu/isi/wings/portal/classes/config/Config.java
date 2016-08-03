@@ -563,8 +563,14 @@ public class Config {
         if (this.getResourceOntologyUrl() == null)
             this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
         props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
+        
         props.setProperty("lib.resource.url",
                 this.getExportCommunityUrl() + "/resource/library.owl");
+        if (!domain.getUseSharedTripleStore())
+          props.setProperty("lib.resource.map",
+              "file:" + domain.getDomainDirectory() + File.separator + "ontology" 
+                  + File.separator + "resource" + File.separator + "library.owl");
+        
         props.setProperty("lib.provenance.url",
                 this.getExportCommunityUrl() + "/provenance/library.owl");
 

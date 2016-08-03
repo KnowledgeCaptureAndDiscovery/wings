@@ -19,6 +19,7 @@ package edu.isi.wings.catalog.resource.api;
 
 import java.util.ArrayList;
 
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
@@ -72,4 +73,6 @@ public interface ResourceAPI {
   void end();
 
   void delete();
+  
+  void copyFrom(ResourceAPI rc, ComponentCreationAPI dc);
 }

@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
+import edu.isi.wings.catalog.component.classes.Component;
+import edu.isi.wings.catalog.component.classes.ComponentTree;
+import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.EnvironmentValue;
@@ -38,12 +42,14 @@ import edu.isi.wings.ontapi.OntSpec;
 
 public class ResourceKB implements ResourceAPI {
 
-  private String onturl, liburl;
+  String onturl, liburl;
   private String tdbRepository;
 
   private OntFactory ontologyFactory;
 
-  private KBAPI kb, libkb;
+  private KBAPI ontkb, libkb;
+  
+  String localhost;
 
   HashMap<String, KBObject> pmap;
   HashMap<String, KBObject> cmap;
@@ -55,7 +61,8 @@ public class ResourceKB implements ResourceAPI {
   public ResourceKB(Properties props) {
     this.onturl = props.getProperty("ont.resource.url");
     this.liburl = props.getProperty("lib.resource.url");
-
+    this.localhost = this.onturl+"#Localhost";
+    
     this.tdbRepository = props.getProperty("tdb.repository.dir");
     if (tdbRepository == null) {
       this.ontologyFactory = new OntFactory(OntFactory.JENA);
@@ -69,11 +76,10 @@ public class ResourceKB implements ResourceAPI {
 
   protected void initializeAPI() {
     try {
-      this.kb = this.ontologyFactory.getKB(liburl, OntSpec.PELLET, true);
-      this.kb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN,
-          true, true));
+      this.ontkb = this.ontologyFactory.getKB(onturl, OntSpec.PELLET, false, true);
       this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
       this.initializeMaps();
+      this.initializeLibrary();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -82,23 +88,46 @@ public class ResourceKB implements ResourceAPI {
   private void initializeMaps() {
     this.pmap = new HashMap<String, KBObject>();
     this.cmap = new HashMap<String, KBObject>();
-    for (KBObject prop : this.kb.getAllObjectProperties()) {
+    for (KBObject prop : this.ontkb.getAllObjectProperties()) {
       this.pmap.put(prop.getName(), prop);
     }
-    for (KBObject prop : this.kb.getAllDatatypeProperties()) {
+    for (KBObject prop : this.ontkb.getAllDatatypeProperties()) {
       this.pmap.put(prop.getName(), prop);
     }
-    for (KBObject cls : this.kb.getAllClasses()) {
+    this.pmap.put("type", this.ontkb.getProperty(KBUtils.RDF+"type"));
+    for (KBObject cls : this.ontkb.getAllClasses()) {
       if(!cls.isAnonymous())
         this.cmap.put(cls.getName(), cls);
     }
   }
   
+  private void initializeLibrary() {
+    Machine m = this.getMachine(this.localhost);
+    if(m == null) {
+      m = new Machine(this.localhost);
+      m.setHealthy(true);
+      m.setHostName("Localhost");
+      if(this.addMachine(this.localhost) && this.saveMachine(m))
+        this.save();
+    }
+    else if(!m.isHealthy()) {
+      m.setHealthy(true);
+      if(this.saveMachine(m))
+        this.save();
+    }
+  }
+  
+  private ArrayList<KBObject> getInstancesOfClass(KBObject cls, KBAPI kb) {
+    ArrayList<KBObject> insts = new ArrayList<KBObject>();
+    for (KBTriple triple : kb.genericTripleQuery(null, this.pmap.get("type"), cls))
+      insts.add(triple.getSubject());
+    return insts;
+  }
+  
   @Override
   public ArrayList<String> getMachineIds() {
     ArrayList<String> machineIds = new ArrayList<String>();
-    for (KBObject mobj : this.kb.getInstancesOfClass(this.cmap.get("Machine"),
-        true))
+    for (KBObject mobj : this.getInstancesOfClass(this.cmap.get("Machine"), this.libkb))
       machineIds.add(mobj.getID());
     return machineIds;
   }
@@ -106,18 +135,16 @@ public class ResourceKB implements ResourceAPI {
   @Override
   public ArrayList<String> getSoftwareIds() {
     ArrayList<String> softwareIds = new ArrayList<String>();
-    for (KBObject swobj : this.kb.getInstancesOfClass(this.cmap.get("SoftwareGroup"),
-        true)) {
+    for (KBObject swobj : this.getInstancesOfClass(this.cmap.get("SoftwareGroup"), this.libkb))
       softwareIds.add(swobj.getID());
-    }
     return softwareIds;
   }
 
   @Override
   public ArrayList<String> getSoftwareVersionIds(String softwareid) {
     ArrayList<String> versionIds = new ArrayList<String>();
-    KBObject swobj = this.kb.getIndividual(softwareid);
-    for (KBTriple vtriple : this.kb.genericTripleQuery(null,
+    KBObject swobj = this.libkb.getIndividual(softwareid);
+    for (KBTriple vtriple : this.libkb.genericTripleQuery(null,
         this.pmap.get("hasSoftwareGroup"), swobj))
       versionIds.add(vtriple.getSubject().getID());
     return versionIds;
@@ -153,13 +180,13 @@ public class ResourceKB implements ResourceAPI {
   @Override
   public boolean removeMachine(String machineid) {
     Machine m = this.getMachine(machineid);
-    KBObject mobj = this.kb.getIndividual(machineid);
+    KBObject mobj = this.libkb.getIndividual(machineid);
     if(mobj == null)
       return false;
     ArrayList<KBObject> evalues = 
-        this.kb.getPropertyValues(mobj, pmap.get("hasEnvironment"));
+        this.libkb.getPropertyValues(mobj, pmap.get("hasEnvironment"));
     for(KBObject evalue : evalues) {
-      for(KBTriple t : this.kb.genericTripleQuery(evalue, null, null))
+      for(KBTriple t : this.libkb.genericTripleQuery(evalue, null, null))
         this.libkb.removeTriple(t);
     }
     KBUtils.removeAllTriplesWith(this.libkb, machineid, false);
@@ -184,32 +211,35 @@ public class ResourceKB implements ResourceAPI {
   @Override
   public Machine getMachine(String machineid) {
     Machine machine = new Machine(machineid);
-    KBObject mobj = this.kb.getIndividual(machineid);
-    KBObject hostName = this.kb.getPropertyValue(mobj, 
+    KBObject mobj = this.libkb.getIndividual(machineid);
+    if(mobj == null)
+      return null;
+    
+    KBObject hostName = this.libkb.getPropertyValue(mobj, 
         pmap.get("hasHostName"));
-    KBObject hostIP = this.kb.getPropertyValue(mobj, 
+    KBObject hostIP = this.libkb.getPropertyValue(mobj, 
         pmap.get("hasHostIP"));
-    KBObject userId = this.kb.getPropertyValue(mobj, 
+    KBObject userId = this.libkb.getPropertyValue(mobj, 
         pmap.get("hasUserID"));
-    KBObject userKey = this.kb.getPropertyValue(mobj, 
+    KBObject userKey = this.libkb.getPropertyValue(mobj, 
         pmap.get("hasUserKey"));
-    KBObject storageGB = this.kb.getPropertyValue(mobj,
+    KBObject storageGB = this.libkb.getPropertyValue(mobj,
         pmap.get("hasStorageGB"));
-    KBObject memoryGB = this.kb.getPropertyValue(mobj, 
+    KBObject memoryGB = this.libkb.getPropertyValue(mobj, 
         pmap.get("hasMemoryGB"));
-    KBObject is64Bit = this.kb.getPropertyValue(mobj, 
+    KBObject is64Bit = this.libkb.getPropertyValue(mobj, 
         pmap.get("is64Bit"));
-    KBObject isHealthy = this.kb.getPropertyValue(mobj, 
+    KBObject isHealthy = this.libkb.getPropertyValue(mobj, 
         pmap.get("isHealthy"));
-    KBObject storageFolder = this.kb.getPropertyValue(mobj,
+    KBObject storageFolder = this.libkb.getPropertyValue(mobj,
         pmap.get("hasWingsStorageFolder"));
-    KBObject executionFolder = this.kb.getPropertyValue(mobj,
+    KBObject executionFolder = this.libkb.getPropertyValue(mobj,
         pmap.get("hasExecutionFolder"));
-    KBObject os = this.kb.getPropertyValue(mobj, 
+    KBObject os = this.libkb.getPropertyValue(mobj, 
         pmap.get("hasOperatingSystem"));
-    ArrayList<KBObject> softwares = this.kb.getPropertyValues(mobj,
+    ArrayList<KBObject> softwares = this.libkb.getPropertyValues(mobj,
         pmap.get("hasSoftware"));
-    ArrayList<KBObject> environment = this.kb.getPropertyValues(mobj,
+    ArrayList<KBObject> environment = this.libkb.getPropertyValues(mobj,
         pmap.get("hasEnvironment"));
     if(hostName != null)
       machine.setHostName((String)hostName.getValue());
@@ -238,9 +268,9 @@ public class ResourceKB implements ResourceAPI {
       machine.addSoftware(software.getID());
     
     for(KBObject env : environment) {
-      KBObject evar = this.kb.getPropertyValue(env, 
+      KBObject evar = this.libkb.getPropertyValue(env, 
           pmap.get("hasEnvironmentVariable"));
-      KBObject evalue = this.kb.getPropertyValue(env, 
+      KBObject evalue = this.libkb.getPropertyValue(env, 
           pmap.get("hasEnvironmentValue"));
       if(evar != null && evalue != null) {
         EnvironmentValue eval = new EnvironmentValue();
@@ -255,10 +285,12 @@ public class ResourceKB implements ResourceAPI {
   @Override
   public Software getSoftware(String softwareid) {
     Software software = new Software(softwareid);
-    KBObject mobj = this.kb.getIndividual(softwareid);
+    KBObject mobj = this.libkb.getIndividual(softwareid);
+    if(mobj == null)
+      return null;
     
     ArrayList<KBObject> evars = 
-        this.kb.getPropertyValues(mobj, pmap.get("hasEnvironmentVariable"));
+        this.libkb.getPropertyValues(mobj, pmap.get("hasEnvironmentVariable"));
     for(KBObject evar : evars) {
       if(evar.getValue() != null)
         software.addEnvironmentVariable((String)evar.getValue());
@@ -273,10 +305,8 @@ public class ResourceKB implements ResourceAPI {
   @Override 
   public ArrayList<SoftwareVersion> getAllSoftwareVersions() {
     ArrayList<SoftwareVersion> versions = new ArrayList<SoftwareVersion>();
-    for (KBObject verobj : 
-      this.kb.getInstancesOfClass(this.cmap.get("SoftwareVersion"), true)) {
-        versions.add(this.getSoftwareVersion(verobj.getID()));
-    }
+    for (KBObject verobj : this.getInstancesOfClass(this.cmap.get("SoftwareVersion"), this.libkb))
+      versions.add(this.getSoftwareVersion(verobj.getID()));
     return versions;
   }
   
@@ -284,10 +314,9 @@ public class ResourceKB implements ResourceAPI {
   public ArrayList<SoftwareEnvironment> getAllSoftwareEnvironment() {
     ArrayList<SoftwareEnvironment> environment = 
         new ArrayList<SoftwareEnvironment>();
-    for (KBObject swobj : 
-      this.kb.getInstancesOfClass(this.cmap.get("SoftwareGroup"), true)) {
+    for (KBObject swobj : this.getInstancesOfClass(this.cmap.get("SoftwareGroup"), this.libkb)) {
         ArrayList<KBObject> evars = 
-          this.kb.getPropertyValues(swobj, pmap.get("hasEnvironmentVariable"));
+          this.libkb.getPropertyValues(swobj, pmap.get("hasEnvironmentVariable"));
         for(KBObject evar : evars) {
           SoftwareEnvironment env = new SoftwareEnvironment();
           env.setSoftwareGroupId(swobj.getID());
@@ -303,13 +332,16 @@ public class ResourceKB implements ResourceAPI {
   @Override
   public SoftwareVersion getSoftwareVersion(String versionid) {
     SoftwareVersion version = new SoftwareVersion(versionid);
-    KBObject mobj = this.kb.getIndividual(versionid);
+    KBObject mobj = this.libkb.getIndividual(versionid);
+    if(mobj == null)
+      return null;
+    
     KBObject vernum = 
-        this.kb.getPropertyValue(mobj, pmap.get("hasVersionNumber"));
+        this.libkb.getPropertyValue(mobj, pmap.get("hasVersionNumber"));
     KBObject vertext = 
-        this.kb.getPropertyValue(mobj, pmap.get("hasVersionText"));
+        this.libkb.getPropertyValue(mobj, pmap.get("hasVersionText"));
     KBObject group = 
-        this.kb.getPropertyValue(mobj, pmap.get("hasSoftwareGroup"));
+        this.libkb.getPropertyValue(mobj, pmap.get("hasSoftwareGroup"));
     if(vernum != null)
         version.setVersionNumber((Integer)vernum.getValue());
     if(vertext != null)
@@ -383,7 +415,7 @@ public class ResourceKB implements ResourceAPI {
   
   @Override
   public boolean saveMachine(Machine machine) {
-    KBObject mobj = this.kb.getIndividual(machine.getID());
+    KBObject mobj = this.libkb.getIndividual(machine.getID());
     if(mobj == null)
       return false;
     
@@ -391,7 +423,7 @@ public class ResourceKB implements ResourceAPI {
     this.removeMachine(machine.getID());
     this.addMachine(machine.getID());
     
-    if(!machine.getID().equals(this.onturl+"#Localhost")) {
+    if(!machine.getID().equals(this.localhost)) {
       this.libkb.setPropertyValue(mobj, pmap.get("hasHostName"), 
           this.libkb.createLiteral(machine.getHostName()));
       this.libkb.setPropertyValue(mobj, pmap.get("hasHostIP"), 
@@ -502,7 +534,7 @@ public class ResourceKB implements ResourceAPI {
 
   @Override
   public boolean saveSoftwareVersion(SoftwareVersion version) {
-    KBObject mobj = this.kb.getIndividual(version.getID());
+    KBObject mobj = this.libkb.getIndividual(version.getID());
     if(mobj == null)
       return false;
     
@@ -518,6 +550,52 @@ public class ResourceKB implements ResourceAPI {
     this.machineWhiteList = whitelist;
   }
   
+  private String convertNS(String id, ResourceKB rc) {
+    if(id.startsWith(rc.liburl))
+      return id.replace(rc.liburl, this.liburl);
+    return id;
+  }
+  
+  public void copyFrom(ResourceAPI rc, ComponentCreationAPI cc) {
+    ResourceKB rckb = (ResourceKB)rc;
+    
+    HashMap<String, SoftwareVersion> sws = new HashMap<String, SoftwareVersion>();
+    ComponentTree tree = cc.getComponentHierarchy(true);
+    ArrayList<ComponentTreeNode> nodes = new ArrayList<ComponentTreeNode>();
+    nodes.add(tree.getRoot());
+    while(!nodes.isEmpty()) {
+      ComponentTreeNode node = nodes.remove(0);
+      Component comp = node.getCls().getComponent();
+      if(comp != null && comp.getType() == Component.CONCRETE) {
+        for(String swid : comp.getComponentRequirement().getSoftwareIds()) {
+          sws.put(swid, rc.getSoftwareVersion(swid));
+        }
+      }
+      nodes.addAll(node.getChildren());
+    }
+    
+    for(String verid : sws.keySet()) {
+      SoftwareVersion ver = sws.get(verid);
+      Software sw = rc.getSoftware(ver.getSoftwareGroupId());
+      
+      String myverid = this.convertNS(ver.getID(), rckb);
+      String myswid = this.convertNS(sw.getID(), rckb);
+      
+      if(this.getSoftwareVersion(myverid) == null) {
+        Software mysw = this.getSoftware(myswid);
+        if(mysw == null) {
+          this.addSoftware(myswid);
+          mysw = this.getSoftware(myswid);
+          mysw.setEnvironmentVariables(sw.getEnvironmentVariables());
+        }
+        ver.setID(myverid);
+        mysw.addVersion(ver);
+        this.saveSoftware(mysw);
+      }
+    } 
+    this.save();
+  }
+  
   @Override
   public boolean save() {
     if (this.libkb != null)
@@ -527,8 +605,8 @@ public class ResourceKB implements ResourceAPI {
 
   @Override
   public void end() {
-    if (this.kb != null)
-      this.kb.end();
+    if (this.ontkb != null)
+      this.ontkb.end();
     if (this.libkb != null)
       this.libkb.end();
   }
