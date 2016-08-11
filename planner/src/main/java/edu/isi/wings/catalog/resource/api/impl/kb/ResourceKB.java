@@ -42,7 +42,7 @@ import edu.isi.wings.ontapi.OntSpec;
 
 public class ResourceKB implements ResourceAPI {
 
-  String onturl, liburl;
+  public String onturl, liburl;
   private String tdbRepository;
 
   private OntFactory ontologyFactory;
@@ -196,8 +196,23 @@ public class ResourceKB implements ResourceAPI {
 
   @Override
   public boolean removeSoftware(String softwareid) {
-    for(String verid : this.getSoftwareVersionIds(softwareid))
-      this.removeSoftwareVersion(verid);
+    Software sw = this.getSoftware(softwareid);
+    
+    // Remove environment variables
+    for(String var : sw.getEnvironmentVariables()) {
+      for (KBTriple t : this.libkb.genericTripleQuery(null, 
+          pmap.get("hasEnvironmentVariable"), this.libkb.createLiteral(var))) {
+        for (KBTriple st : this.libkb.genericTripleQuery(null, 
+            pmap.get("hasEnvironment"), t.getSubject())) 
+          this.libkb.removeTriple(st);
+      }
+    }
+    
+    // Remove software versions
+    for(SoftwareVersion ver : sw.getVersions())
+      this.removeSoftwareVersion(ver.getID());
+    
+    // Remove software
     KBUtils.removeAllTriplesWith(this.libkb, softwareid, false);
     return true;
   }
@@ -288,6 +303,7 @@ public class ResourceKB implements ResourceAPI {
     KBObject mobj = this.libkb.getIndividual(softwareid);
     if(mobj == null)
       return null;
+    software.setName(mobj.getName());
     
     ArrayList<KBObject> evars = 
         this.libkb.getPropertyValues(mobj, pmap.get("hasEnvironmentVariable"));
@@ -396,6 +412,8 @@ public class ResourceKB implements ResourceAPI {
         //  - OR a higher version of the same software
         for(String mswid : machine.getSoftwareIds()) {
           SoftwareVersion mswver = swcache.get(mswid);
+          if(mswver == null || swver == null)
+            continue;
           if(mswver.getSoftwareGroupId().equals(swver.getSoftwareGroupId()) &&
               mswver.getVersionNumber() >= swver.getVersionNumber()) {
             swmatch = true;
@@ -550,15 +568,7 @@ public class ResourceKB implements ResourceAPI {
     this.machineWhiteList = whitelist;
   }
   
-  private String convertNS(String id, ResourceKB rc) {
-    if(id.startsWith(rc.liburl))
-      return id.replace(rc.liburl, this.liburl);
-    return id;
-  }
-  
   public void copyFrom(ResourceAPI rc, ComponentCreationAPI cc) {
-    ResourceKB rckb = (ResourceKB)rc;
-    
     HashMap<String, SoftwareVersion> sws = new HashMap<String, SoftwareVersion>();
     ComponentTree tree = cc.getComponentHierarchy(true);
     ArrayList<ComponentTreeNode> nodes = new ArrayList<ComponentTreeNode>();
@@ -576,10 +586,13 @@ public class ResourceKB implements ResourceAPI {
     
     for(String verid : sws.keySet()) {
       SoftwareVersion ver = sws.get(verid);
+      if(ver == null)
+        continue;
+      
       Software sw = rc.getSoftware(ver.getSoftwareGroupId());
       
-      String myverid = this.convertNS(ver.getID(), rckb);
-      String myswid = this.convertNS(sw.getID(), rckb);
+      String myverid = this.liburl + "#" + ver.getName();
+      String myswid = this.liburl + "#" + sw.getName();
       
       if(this.getSoftwareVersion(myverid) == null) {
         Software mysw = this.getSoftware(myswid);

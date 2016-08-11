@@ -83,6 +83,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 var emptyText = 'Select ' + (item.dim ? 'multiple files': 'a file') + '...';
                 copts = setURLComboListOptions(copts, item.options, item.binding, emptyText, !item.dim, item.dim);
                 var formitem = new Ext.form.field.ComboBox(copts);
+                // Allow shift selection etc
+                formitem.getPicker().getSelectionModel().setSelectionMode('MULTI');
             } else if (item.type == "param") {
                 dtypes[item.name] = item.dtype;
                 // Store datatype for this param to be sent to server
@@ -121,8 +123,10 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
         this.items.push(tmp);
 
         var me = this;
-        Ext.apply(this, {
-            tbar: [{
+        
+        var tbar = [];
+        if(!this.light_reasoner) {
+        	tbar = [{
                 text: 'Suggest Data',
                 iconCls: 'icon-help fa fa-blue',
                 cls: 'highlightIcon',
@@ -185,39 +189,39 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                         }
                     });
                 }
-            }, '-', 
-            /*{
-						text: 'Suggest Components',
-						iconCls: 'compIcon',
-						handler: function() {
-							op = 'getComponents';
-							var cbindings = me.getComponentBindings();
-							if(!me.checkValidity(op,'Please fill in all fields before querying for Components')) return false;
-							var title = 'Suggested Components for '+me.template_id;
-							me.getForm().submit(
-									{
-										submitEmptyText: false,
-										url : me.plan_url + "/" + op,
-										params : {
-											__template_id : me.template_id,
-											__cbindings : cbindings,
-											__paramdtypes : Ext.encode(dtypes)
-										},
-										submitEmptyText: false,
-										waitMsg:'Getting Suggested Components...',
-										timeout:Ext.Ajax.timeout,
-										success: function(form, action) { 
-											showWingsBindings(action.result.data, title, me.flatItems, "param"); 
-										}, 
-										failure: function(form, action) { 
-											showWingsError("No parameter values are compatible with your datasets for the template: "
-												+ me.template_id + " !", title, action.result); 
-										}
-									});
-						}
-					},
-					'-',*/
-            {
+            }, '-' ];
+        	/*{
+			text: 'Suggest Components',
+			iconCls: 'compIcon',
+			handler: function() {
+				op = 'getComponents';
+				var cbindings = me.getComponentBindings();
+				if(!me.checkValidity(op,'Please fill in all fields before querying for Components')) return false;
+				var title = 'Suggested Components for '+me.template_id;
+				me.getForm().submit(
+						{
+							submitEmptyText: false,
+							url : me.plan_url + "/" + op,
+							params : {
+								__template_id : me.template_id,
+								__cbindings : cbindings,
+								__paramdtypes : Ext.encode(dtypes)
+							},
+							submitEmptyText: false,
+							waitMsg:'Getting Suggested Components...',
+							timeout:Ext.Ajax.timeout,
+							success: function(form, action) { 
+								showWingsBindings(action.result.data, title, me.flatItems, "param"); 
+							}, 
+							failure: function(form, action) { 
+								showWingsError("No parameter values are compatible with your datasets for the template: "
+									+ me.template_id + " !", title, action.result); 
+							}
+						});
+					}
+				} */
+        }
+        tbar.push ({
                 text: 'Plan Workflow',
                 iconCls: 'icon-run fa fa-brown',
                 cls: 'highlightIcon',
@@ -253,9 +257,9 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                         }
                     });
                 }
-            }, {
-                xtype: 'tbfill'
-            }, {
+            });
+        tbar.push({ xtype: 'tbfill'});
+        tbar.push({
                 text: 'Clear',
                 iconCls: 'icon-trash fa fa-grey',
                 handler: function() {
@@ -265,7 +269,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                         item.allowBlank = true;
                     }
                 }
-            }, {
+            });
+        tbar.push({
                 text: 'Reload',
                 iconCls: 'icon-reload fa fa-green',
                 handler: function() {
@@ -275,9 +280,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                         url: url
                     });
                 }
-            }]
             });
-
+        Ext.apply(this, { tbar: tbar });
         Ext.ux.form.SeedForm.superclass.initComponent.apply(this, config);
     },
 

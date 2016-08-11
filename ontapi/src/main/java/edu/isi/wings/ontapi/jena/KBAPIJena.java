@@ -694,11 +694,11 @@ public class KBAPIJena implements KBAPI {
       Property p = pred != null ? (Property) pred.getInternalNode() : null;
       RDFNode o = null;
       Model posit = null;
-      if (obj != null && obj.isLiteral()) {
+      if(obj != null && obj.getInternalNode() != null)
+        o = (RDFNode) obj.getInternalNode();
+      else if (obj != null && obj.isLiteral()) {
         posit = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
         o = posit.createTypedLiteral(obj.getValue());
-      } else if (obj != null) {
-        o = getIndividual((Resource) obj.getInternalNode());
       }
 
       StmtIterator sts = null;

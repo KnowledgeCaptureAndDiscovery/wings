@@ -146,30 +146,37 @@ public class PlanController {
 		}
 		
 		ArrayList<Template> bts = new ArrayList<Template>();
-		for(Template t : candidates)
-			bts.addAll(wg.selectInputDataObjects(t));
-		if(bts.size() == 0) {
-			printError();
-			return;
-		}
-		if(op.equals("getData")) {
-			printDataBindingsJSON(bts, noexplain);
-			return;
-		}
+    if(config.isLightReasoner())
+      bts = candidates;
+    else {
+  		for(Template t : candidates)
+  			bts.addAll(wg.selectInputDataObjects(t));
+  		if(bts.size() == 0) {
+  			printError();
+  			return;
+  		}
+    }
+    if(op.equals("getData")) {
+      if(config.isLightReasoner())
+        printError();
+      else
+        printDataBindingsJSON(bts, noexplain);
+      return;
+    }
 		
 		wg.setDataMetricsForInputDataObjects(bts);
 
 		ArrayList<Template> cts = new ArrayList<Template>();
 		for(Template bt : bts)
-			cts.addAll(wg.configureTemplates(bt));
+		  cts.addAll(wg.configureTemplates(bt));
 		if(cts.size() == 0) {
-			printError();
-			return;
+		  printError();
+		  return;
 		}
-		if(op.equals("getParameters")) {
-			printParameterBindingsJSON(cts, noexplain);
-			return;
-		}
+    if(op.equals("getParameters")) {
+      printParameterBindingsJSON(cts, noexplain);
+      return;
+    }
 
 		ArrayList<Template> ets = new ArrayList<Template>();
 		for(Template ct : cts)

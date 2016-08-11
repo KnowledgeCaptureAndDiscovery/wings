@@ -85,6 +85,8 @@ public class Config {
     private String exportServletPath = "/export";
     private boolean isSandboxed = false;
 
+    private boolean isLightReasoner = false;
+    
     // The following are set from the "request" variable
     private String viewerId;
     private String userId;
@@ -339,6 +341,9 @@ public class Config {
         this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
         this.executionOntologyUrl = serverConfig.getString("ontology.execution");
         this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
+        
+        if(serverConfig.containsKey("light-reasoner"))
+          this.isLightReasoner = serverConfig.getBoolean("light-reasoner");
 
         this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
                 + communityRelativeDir;
@@ -810,6 +815,14 @@ public class Config {
 
     public void setSandboxed(boolean isSandboxed) {
         this.isSandboxed = isSandboxed;
+    }
+
+    public boolean isLightReasoner() {
+      return isLightReasoner;
+    }
+
+    public void setLightReasoner(boolean isLightReasoner) {
+      this.isLightReasoner = isLightReasoner;
     }
 
     public String getDotFile() {

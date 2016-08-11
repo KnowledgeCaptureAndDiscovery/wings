@@ -146,7 +146,8 @@ public class TemplateController {
 					+ "'" + this.dcdomns + "', "
 					+ "'" + this.dclibns + "', "
 					+ "'" + this.pcdomns + "', "
-					+ "'" + this.wflowns + "'"
+					+ "'" + this.wflowns + "', "
+					+ config.isLightReasoner()				
 					+ ");\n"
 					+ "tBrowser_" + guid + ".initialize(" 
 					+ (tid != null ? "'"+tid+"'" : "")

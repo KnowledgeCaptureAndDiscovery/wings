@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
+
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentHolder;
@@ -379,6 +380,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.absurl, this.absurl, false);
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.liburl, this.liburl, false);
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.dconturl, this.dconturl, false);
+		
+		//FIXME: A hack to get the imported domain's resource namespace. Should be explicit
+		String dcreslibns = dckb.liburl.replaceAll("\\/export\\/users\\/.+$", 
+		    "/export/common/resource/library.owl#");
+		KBUtils.renameTripleNamespace(this.writerkb, dcreslibns, this.resliburl+"#");
+		
 		this.writerkb.save();
 		
 		this.initializeAPI(true, true);

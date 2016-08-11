@@ -16,7 +16,8 @@
  */
 
 function TemplateBrowser(guid, opts, store, editor, tellme, op_url, plan_url,
-		run_url, results_url, prov_url, wliburl, dcdomns, dclibns, pcdomns, wflowns) {
+		run_url, results_url, prov_url, wliburl, dcdomns, dclibns, pcdomns, wflowns,
+		light_reasoner) {
 	this.guid = guid;
 	this.opts = opts;
 	this.store = store;
@@ -25,6 +26,7 @@ function TemplateBrowser(guid, opts, store, editor, tellme, op_url, plan_url,
 	this.run_url = run_url;
 	this.results_url = results_url;
 	this.prov_url = prov_url;
+	this.light_reasoner = light_reasoner;
 
 	if (editor)
 		this.reasoner = new Reasoner(store);
@@ -104,6 +106,7 @@ TemplateBrowser.prototype.getSeedForm = function(template_id, formdata,
 		results_url : This.results_url,
 		templatePanel : templatePanel,
 		template_id : template_id,
+		light_reasoner : This.light_reasoner,
 		browser : This
 	});
 };
