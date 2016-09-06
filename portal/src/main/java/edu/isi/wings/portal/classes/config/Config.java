@@ -571,7 +571,8 @@ public class Config {
         
         props.setProperty("lib.resource.url",
                 this.getExportCommunityUrl() + "/resource/library.owl");
-        if (!domain.getUseSharedTripleStore())
+
+        if (domain != null && !domain.getUseSharedTripleStore())
           props.setProperty("lib.resource.map",
               "file:" + domain.getDomainDirectory() + File.separator + "ontology" 
                   + File.separator + "resource" + File.separator + "library.owl");
