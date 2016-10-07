@@ -60,8 +60,6 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
     @Override
     public void execute(RuntimePlan exe) {
-        String codedir = props.getProperty("lib.domain.code.storage") + File.separator;
-        String datadir = props.getProperty("lib.domain.data.storage") + File.separator;
         String pegasusHome = props.getProperty("pegasus.home") + File.separator;
         String siteCatalog = props.getProperty("pegasus.site-catalog");
         String site = props.getProperty("pegasus.site", "local");
@@ -73,7 +71,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             FileUtils.forceMkdir(baseDir);
 
             this.baseDir = baseDir.getAbsolutePath() + File.separator;
-            this.adapter = new PegasusWorkflowAdapter(pegasusHome, codedir, datadir);
+            this.adapter = new PegasusWorkflowAdapter(this.props);
 
             String submitDir = this.baseDir + "submit" + File.separator;
 

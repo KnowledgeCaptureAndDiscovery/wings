@@ -19,6 +19,10 @@ package edu.isi.wings.execution.engine.api.impl.pegasus;
 
 import edu.isi.pegasus.planner.dax.*;
 import edu.isi.pegasus.planner.dax.File;
+import edu.isi.wings.catalog.component.ComponentFactory;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
+import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
@@ -27,9 +31,7 @@ import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 public class PegasusWorkflowAdapter {
     ADAG adag = null;
@@ -38,20 +40,23 @@ public class PegasusWorkflowAdapter {
     String dataDir = null;
     String pegasusHome = null;
 
+    Properties props = null;
+
     Set<String> inputs = null;
     Set<String> executables = null;
+
+    private Map<String, ComponentRequirement> req = null;
 
     private Logger log = null;
 
     /**
-     * @param pegasusHome Pegasus base directory. Must contain a bin sub-directory containing Pegasus executable
-     * @param codeDir     Wings directory containing all component codes
-     * @param dataDir     Wings directory location for all input/output data
+     * @param props Properties with lib.domain.code.storage, lib.domain.data.storage, and pegasus.home properties.
      */
-    public PegasusWorkflowAdapter(String pegasusHome, String codeDir, String dataDir) throws Exception {
-        this.codeDir = codeDir;
-        this.dataDir = dataDir;
-        this.pegasusHome = pegasusHome;
+    public PegasusWorkflowAdapter(Properties props) throws Exception {
+        this.props = props;
+        this.codeDir = props.getProperty("lib.domain.code.storage") + java.io.File.separator;
+        this.dataDir = props.getProperty("lib.domain.data.storage") + java.io.File.separator;
+        this.pegasusHome = props.getProperty("pegasus.home") + java.io.File.separator;
         this.inputs = new HashSet<String>();
         this.executables = new HashSet<String>();
         this.log = Logger.getLogger(this.getClass());
@@ -72,6 +77,9 @@ public class PegasusWorkflowAdapter {
     public ADAG runWorkflow(RuntimePlan plan, String siteCatalog, String site, String baseDir) throws Exception {
         log.debug("Plan Workflow: " + plan.getName());
         adag = new ADAG(plan.getName());
+
+        // Construct map for components' requirement.
+        constructComponentRequirementMap();
 
         // Add jobs to the workflow
         for (RuntimeStep step : plan.getQueue().getAllSteps()) {
@@ -186,6 +194,23 @@ public class PegasusWorkflowAdapter {
     */
 
     /**
+     *
+     */
+    private void constructComponentRequirementMap() {
+        this.req = new HashMap<String, ComponentRequirement>();
+
+        ComponentCreationAPI api = ComponentFactory.getCreationAPI(this.props, true);
+
+        for (ComponentTreeNode n : api.getComponentHierarchy(true).flatten()) {
+            if (n.getCls().getComponent() == null) {
+                continue;
+            }
+            log.debug("Component ID: " + n.getCls().getComponent().getID());
+            this.req.put(n.getCls().getComponent().getID(), n.getCls().getComponent().getComponentRequirement());
+        }
+    }
+
+    /**
      * Wings components can contain of multiple files.
      * Example: wings-labkey/{run,io.sh,sub-dir-1/file-1,sub-dir-2/{file-1,file-2}}
      * The method identifies all dependencies, registers files with x bit as executables, and rest as data files
@@ -282,7 +307,9 @@ public class PegasusWorkflowAdapter {
      */
     private Job buildAndRegisterJob(RuntimePlan plan, RuntimeStep rStep) throws Exception {
         ExecutionStep eStep = rStep.getStep();
+        String componentID = eStep.getCodeBinding().getID();
         String componentName = Paths.get(eStep.getCodeBinding().getCodeDirectory()).getFileName().toString();
+
         Job job = new Job(rStep.getName(), componentName);
         log.debug("Workflow " + plan.getName());
         log.debug("\tJob Name: " + job.getName() + " Job ID: " + job.getId());
@@ -309,6 +336,12 @@ public class PegasusWorkflowAdapter {
         // Output Files
         for (ExecutionFile output : eStep.getOutputFiles()) {
             job.uses(new File(output.getBinding()), File.LINK.OUTPUT);
+        }
+
+        ComponentRequirement tmp = this.req.get(componentID);
+        if (tmp.getMemoryGB() > 0) {
+            job.addProfile(Profile.NAMESPACE.pegasus, "memory", (Math.round(Math.ceil(tmp.getMemoryGB() * 1024))) + "");
+
         }
 
         adag.addJob(job);
