@@ -30,7 +30,6 @@ import edu.isi.wings.common.logging.LogEvent;
 import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.pegasus.dax.DAX;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
@@ -423,51 +422,6 @@ public class Wings {
 
 		return daxes;
 	}*/
-
-	public void writeDaxes(ArrayList<DAX> daxes) {
-		if (!PropertiesHelper.createDir(PropertiesHelper.getOutputDir())) {
-			String tmpdir = System.getProperty("java.io.tmpdir");
-			System.err.println("Using temporary directory: " + tmpdir);
-			PropertiesHelper.setOutputDir(tmpdir);
-		}
-
-		String outputDir = PropertiesHelper.getOutputDir() + "/" + this.requestId;
-		new File(outputDir).mkdir();
-		for (DAX dax : daxes) {
-			dax.write(outputDir + "/" + dax.getFile());
-			if (dax.getOutputFormat() == DAX.SHELL) {
-				File file = new File(outputDir + "/" + dax.getFile());
-				file.setExecutable(true);
-			}
-			dax.writeMapping(outputDir + "/" + dax.getFile() + ".map");
-		}
-	}
-
-	public void writeLogSummary(ArrayList<Template> candidateWorkflows,
-			ArrayList<Template> boundWorkflows, ArrayList<Template> configuredWorkflows,
-			ArrayList<DAX> daxes) {
-
-		logger.info("Workflow Generation produced " + candidateWorkflows.size()
-				+ " candidate workflows: ");
-		for (Template template : candidateWorkflows) {
-			logger.info("     Candidate Workflow: " + template.getID() + " " + template);
-		}
-
-		logger.info("and " + boundWorkflows.size() + " bound workflows: ");
-		for (Template template : boundWorkflows) {
-			logger.info("     Bound Workflow: " + template.getID() + " " + template);
-		}
-
-		logger.info("and " + configuredWorkflows.size() + " configured workflows: ");
-		for (Template template : configuredWorkflows) {
-			logger.info("     Configured Workflow: " + template.getID() + " " + template);
-		}
-
-		logger.info("and " + daxes.size() + " DAXes: ");
-		for (DAX dax : daxes) {
-			logger.info("     Executable Workflow: " + dax.getFile());
-		}
-	}
 
 	private ArrayList<Template> randomSelection(ArrayList<Template> items, int num) {
 		ArrayList<Template> ret = new ArrayList<Template>();

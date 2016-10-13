@@ -453,6 +453,65 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 			}
 		}
 
+		/*HashMap<String, ArrayList<KBTriple>> varConstraints = 
+		    new HashMap<String, ArrayList<KBTriple>>();
+    HashMap<String, HashSet<String>> varGroups = 
+        new HashMap<String, HashSet<String>>();
+		HashMap<String, HashSet<String>> varDeps = 
+		    new HashMap<String, HashSet<String>>();
+		HashMap<String, HashSet<String>> depVars =
+		    new HashMap<String, HashSet<String>>();
+		
+		for(String vid : inputVariableIds) {
+		  ArrayList<KBTriple> constraints = 
+		      specializedTemplate.getConstraintEngine().getConstraints(vid);
+	    
+		  HashSet<String> vargroup = new HashSet<String>();
+		  varDeps.put(vid, new HashSet<String>());
+		  for(KBTriple triple : constraints) {
+		    if(!triple.getObject().isLiteral()) {
+		      String objid = triple.getObject().getID();
+		      if(triple.getPredicate().getNamespace().equals(this.wNS))
+		        vargroup.add(objid);
+		      else if(objid.startsWith(triple.getSubject().getNamespace())) {
+		        varDeps.get(vid).add(objid);
+		        if(!depVars.containsKey(objid))
+		          depVars.put(objid, new HashSet<String>());
+		        depVars.get(objid).add(vid);
+		      }
+		    }
+		  }
+      varConstraints.put(vid, constraints);
+		  varGroups.put(vid, vargroup);
+		}
+		
+		System.out.println("----------------");
+		System.out.println(varGroups);
+		System.out.println(depVars);
+		System.out.println(varDeps);
+		
+		// 1. Create a map of:
+		//    - varcons: inputVariableId with Constraints
+		//    - vardeps: inputVariableId with other dependencies (wflow namespace terms)
+		//    - depvars: dependencyId terms with inputVariableIds
+		//
+		// 2. For each input variable id, check vardeps:
+		//    - queryvarids: array of inputVariableIds. Start with just one.
+		//    - For each queryvid in queryvarids:
+		//      - For each depid in vardeps[queryvid]:
+		//        - queryvarids.addAll(depvars[depid]) // Remove duplicates
+		//        - unset depvars[depid]
+		//    - For each queryvarid in queryvarids:
+		//      - queryconstraints.addAll(queryvarid)
+		//    - Send query to DC with queryvarids & queryconstraints
+		//    - Remove queryvarids from input variable id list
+
+		for(String vid : inputVariableIds) {
+		  System.out.println(vid);
+		  for(KBTriple triple : specializedTemplate.getConstraintEngine().getConstraints(vid))
+		    System.out.println(triple.shortForm());
+		}*/
+		
 		logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "3.1")
 				.addList(LogEvent.QUERY_ARGUMENTS, inputConstraints));
 
@@ -461,6 +520,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 		ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings = dc
 				.findDataSources(inputConstraints);
 
+		//ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings = null;
 		if (listsOfVariableDataObjectMappings == null
 				|| listsOfVariableDataObjectMappings.isEmpty()) {
 			logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "3.1")

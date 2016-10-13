@@ -82,6 +82,8 @@ Variable.prototype.setDefaultColors = function() {
 		if (this.isInput) {
 			this.color = "rgba(51,102,153," + alpha + ")";
 			this.setTextColor("rgba(230,230,255," + alpha + ")");
+			if(this.autofill)
+				this.setTextColor("rgba(0,0,0," + alpha + ")");
 		}
 		else {
 			if(!this.breakpoint) {

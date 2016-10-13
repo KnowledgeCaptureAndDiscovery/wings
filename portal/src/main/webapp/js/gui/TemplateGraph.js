@@ -743,7 +743,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			if (item.dim)
 				html += "<div><b>Dimensionality:</b> " + item.dim + "-D Collection</div>";
 			if (item.autofill)
-				html += "<div><b>Autofill</b> parameter values, don't ask user</div>";
+				html += "<div><b>Autofill</b> values, don't ask user</div>";
 		}
 		else {
 			var items = this.cmap ? this.cmap[item.component.binding.id] : null;
@@ -837,9 +837,8 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			if (!item.isInput && item.type == "DATA") {
 				source['b_breakpoint'] = (item.breakpoint ? true : false);
 			}
-			if (item.isInput && item.type == "PARAM") {
+			if (item.isInput)
 				source['c_varAutoFill'] = (item.autofill ? true : false);
-			}
 		}
 		else {
 			var links = this.template.getLinksToNode(item);
@@ -870,7 +869,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 				'a_varName' : 'Variable Name',
 				'b_varColl' : 'Input Data should be a Collection',
 				'b_breakpoint' : 'Set Breakpoint for fetching metadata',
-				'c_varAutoFill' : 'Automatically Set Parameter Value (Don\'t ask user)',
+				'c_varAutoFill' : 'Automatically Select Value (Don\'t ask user)',
 				'a_pruleS' : 'Use all Input Data in the same workflow',
 				'c_cruleS' : 'Use all Components of this Type in the same workflow'
 			}

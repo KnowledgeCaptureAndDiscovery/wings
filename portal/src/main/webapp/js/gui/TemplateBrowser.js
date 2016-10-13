@@ -1258,7 +1258,7 @@ TemplateBrowser.prototype.saveTemplateStore = function(template, consTable) {
 			// objects. The prefix is just cosmetic to differentiate
 			// variables from non-variables in the template namespace
 			if ((typeof object.id == "string") && object.id.match(/^\?/))
-				object.id = object.id.replace(/^\?/, '');
+				object.id = template.ns + object.id.replace(/^\?/, '');
 			else if (prop.type == 1)
 				object = {
 					isLiteral : true,

@@ -341,17 +341,18 @@ public class EventLogMessage {
 	 *      "Best Practices" format</a>
 	 */
 	public String toString() {
-		if (micro2 > 0) {
+		/*if (micro2 > 0) {
 			addTimeStamp();
 			micro2 = 0;
-		}
+		}*/
 		return buf.toString();
 	}
 
 	/**
 	 * Add a timestamp to the message.
 	 */
-	private void addTimeStamp() {
+	@SuppressWarnings("unused")
+  private void addTimeStamp() {
 		// re-use or re-set whole seconds
 		if (micro2 / 1000000L != micro1 / 1000000L) {
 			timeStringLock.lock();

@@ -524,15 +524,15 @@ public class TemplateKB extends URIEntity implements Template {
 					if (paramValue != null && paramValue.getValue() != null) {
 						var.setBinding(readValueBindingObjectFromKB(kb, paramValue));
 					}
-	        KBObject autoFill = kb.getPropertyValue(varObj, pmap.get("autoFill"));
-	        if(autoFill != null && (Boolean)autoFill.getValue())
-	          var.setAutoFill(true);
-	        
-	        KBObject dvar = kb.getPropertyValue(varObj,  propertyObjMap.get("derivedFrom"));
-	        if(dvar != null)
-	          var.setDerivedFrom(dvar.getID());
 					varMap.put(varObj.getID(), var);
 				}
+        KBObject dvar = kb.getPropertyValue(varObj,  propertyObjMap.get("derivedFrom"));
+        if(dvar != null)
+          var.setDerivedFrom(dvar.getID());
+        
+        KBObject autoFill = kb.getPropertyValue(varObj, pmap.get("autoFill"));
+        if(autoFill != null && (Boolean)autoFill.getValue())
+          var.setAutoFill(true);
 			}
 			if (var != null) {
 	      String lid = linkObj.getID();
@@ -1725,11 +1725,11 @@ public class TemplateKB extends URIEntity implements Template {
 					tkb.addPropertyValue(vobj, pmap.get("hasParameterValue"),
 							writeValueBindingObjectToKB(tkb, (ValueBinding)v.getBinding()));
 				}
-				if(v.isAutoFill()) {
-				  tkb.addPropertyValue(vobj, pmap.get("autoFill"), 
-				      tkb.createLiteral(true));
-				}
 			}
+      if(v.isAutoFill()) {
+        tkb.addPropertyValue(vobj, pmap.get("autoFill"), 
+            tkb.createLiteral(true));
+      }
       if(v.getDerivedFrom() != null)
         tkb.addPropertyValue(vobj, propertyObjMap.get("derivedFrom"), 
             tkb.getResource(v.getDerivedFrom()));
@@ -2012,6 +2012,11 @@ public class TemplateKB extends URIEntity implements Template {
   }
   
   public void autoLayout() {
+    int MAX_LINKS = 500;
+    
+    if(this.getLinks().length > MAX_LINKS)
+      return;
+    
     String dotexe = this.props.getProperty("dot.path");
     if(dotexe == null)
       return;
@@ -2064,7 +2069,7 @@ public class TemplateKB extends URIEntity implements Template {
       String vid = cleanID(v.getID());
       String vtext = v.getName();
       if(v.getBinding() != null) {
-        vtext += " =\\n" + v.getBinding();
+        vtext += " =\\n" + v.getBinding().toString().replaceAll("\\s", "\\\\n");
       }
       int fsize = 13;       
       dotstr += nl + tab + vid + "[label=\"{{|<ip>|}|{" + vtext + "}|{|<op>|}}\", fontsize=\"" + fsize + "\"];";
