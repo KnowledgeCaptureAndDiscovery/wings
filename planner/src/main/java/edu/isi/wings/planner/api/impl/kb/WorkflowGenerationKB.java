@@ -1229,10 +1229,17 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				ComponentVariable c = n.getComponentVariable();
 
 				LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<Role, Variable>();
-				for (Link outputLink : template.getOutputLinks(n))
-					roleMap.put(outputLink.getOriginPort().getRole(), outputLink.getVariable());
+				for (Link outputLink : template.getOutputLinks(n)) {
+				  Role or = outputLink.getOriginPort().getRole();
+				  Role r = new Role(or.getID());
+				  r.setRoleId(or.getRoleId());
+					roleMap.put(r, outputLink.getVariable());
+				}
 				for (Link inputLink : template.getInputLinks(n)) {
-					roleMap.put(inputLink.getDestinationPort().getRole(), inputLink.getVariable());
+          Role dr = inputLink.getDestinationPort().getRole();
+          Role r = new Role(dr.getID());
+          r.setRoleId(dr.getRoleId());
+					roleMap.put(dr, inputLink.getVariable());
 				}
 
 				ComponentPacket mapsComponentDetails = new ComponentPacket(c, roleMap, new ArrayList<KBTriple>());
