@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE Context>
 <Context>
-    <ResourceLink name="users" global="UserDatabase" />
+    <ResourceLink name="users" global="UserDatabase" type="org.apache.catalina.UserDatabase" />
 </Context>
