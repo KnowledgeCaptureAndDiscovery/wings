@@ -28,7 +28,6 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -73,6 +72,7 @@ public class Mapper {
      * @param queryIn input query
      * @return 
      */
+    @SuppressWarnings("unused")
     private ResultSet queryLocalOPMRepository(String queryIn) {
         return queryLocalRepository(queryIn, OPMWModel);
     }
@@ -150,13 +150,14 @@ public class Mapper {
      */
     public void loadResultFileToLocalRepository(String executionResults, String mode){
         //InputStream in2 = FileManager.get().open(executionResults);
+        System.out.println("Loading: "+executionResults);
         InputStream in2 = FileManager.get().open(executionResults.replaceAll("#.*$", ""));
         if (in2 == null){
             throw new IllegalArgumentException("File: " + executionResults + " not found");
         }
         
         WINGSExecutionResults.read(in2, null, mode);
-        System.out.println("File "+executionResults+" loaded into the execution results");
+        System.out.println("\\__Loaded: "+executionResults);
     }
 
     /**
@@ -540,6 +541,7 @@ public class Mapper {
  * @return 
  */
     //public String transformWINGSResultsToOPMW(String resultFile, String libraryFile, String modeFile, String outFilenameOPMW, String outFilenamePROV){
+    @SuppressWarnings("unused")
     public String transformWINGSResultsToOPMW(String resultFile, String libraryFile, String modeFile, 
         String outFilenameOPMW, String outFilenamePROV, String suffix){
         //clean previous transformations        
@@ -816,17 +818,18 @@ public class Mapper {
             OPMWModel.getResource(procURI).
                     addProperty(OPMWModel.createOntProperty(Constants.OPMW_PROP_HAS_EXECUTABLE_COMPONENT), 
                             blankNode);
-            /*************************
-            * PROV-O INTEROPERABILITY
+            
+           /*************************
+            * PROV-O INTEROPERABILITY (commented because it makes it more difficult to understand. It is done through the hasExecutableComponent relationship
             *************************/ 
-            Resource bnodeProv = PROVModel.createResource();
+            /*Resource bnodeProv = PROVModel.createResource();
             bnodeProv.addProperty(PROVModel.createOntProperty(Constants.PROV_AT_LOCATION),
-                    sCode).
-                    addProperty(PROVModel.createOntProperty(Constants.RDFS_LABEL), 
-                            "Executable Component associated to "+stepName);
+                     sCode).
+                     addProperty(PROVModel.createOntProperty(Constants.RDFS_LABEL), 
+                             "Executable Component associated to "+stepName);
             PROVModel.getResource(procURI).
-                    addProperty(PROVModel.createOntProperty(Constants.OPM_PROP_USED), 
-                            bnodeProv);
+                     addProperty(PROVModel.createOntProperty(Constants.PROV_USED), 
+                             bnodeProv);*/
             
             //link node  to the process templates
             this.addProperty(OPMWModel,Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS+"/"+stepName+date,
@@ -992,7 +995,7 @@ public class Mapper {
                         Constants.P_PLAN_PROP_CORRESPONDS_TO_VAR);
             }else
             //metadata
-            if(prop.contains("type")){
+            if(prop.contains("http://www.w3.org/2000/01/rdf-schema#type")){
                 //the objects are resources in this case
                 //String auxP = encode(Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT+"/"+var+date);
                 cP = OPMWModel.createClass(obj);
