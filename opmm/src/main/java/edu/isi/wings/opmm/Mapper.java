@@ -1152,7 +1152,7 @@ public class Mapper {
         String nom = name.replace(prenom, "");
         if(name.length()>255){
             try {
-                nom = MD5.MD5(name);
+                nom = MD5.getMD5(name);
             } catch (Exception ex) {
                 System.err.println("Error when encoding in MD5: "+ex.getMessage() );
             }
@@ -1176,7 +1176,7 @@ public class Mapper {
         catch (Exception ex) {
             try {
                 System.err.println("Problem encoding the URI:" + nom + " " + ex.getMessage() +". We encode it in MD5");
-                nom = MD5.MD5(name);
+                nom = MD5.getMD5(name);
                 System.err.println("MD5 encoding: "+nom);
             } catch (Exception ex1) {
                 System.err.println("Could not encode in MD5:" + name + " " + ex1.getMessage());

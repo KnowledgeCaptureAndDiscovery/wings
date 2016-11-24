@@ -42,7 +42,7 @@ public class MD5 {
         return buf.toString();
     }
 
-    public static String MD5(String text)
+    public static String getMD5(String text)
     throws NoSuchAlgorithmException, UnsupportedEncodingException  {
         MessageDigest md;
         md = MessageDigest.getInstance("MD5");
