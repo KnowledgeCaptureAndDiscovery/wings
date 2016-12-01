@@ -122,6 +122,9 @@ public class HandleUpload extends HttpServlet {
 		}
 		
 		if(chunks == 0 || chunk == chunks - 1) {
+      File storageDirFile = new File(storageDir);
+      if (!storageDirFile.exists())
+        storageDirFile.mkdirs();
 			// Done upload
 			File finalUpload = new File(storageDir + File.separator + name);
 			tempfile.renameTo(finalUpload);
