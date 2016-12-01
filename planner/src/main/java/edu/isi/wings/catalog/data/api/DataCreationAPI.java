@@ -18,6 +18,7 @@
 package edu.isi.wings.catalog.data.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import edu.isi.wings.catalog.data.classes.DataItem;
 import edu.isi.wings.catalog.data.classes.DataTree;
@@ -37,6 +38,8 @@ public interface DataCreationAPI {
 	DataTree getMetricsHierarchy(); // Tree List of Metrics and Metric types
 
 	ArrayList<String> getAllDatatypeIds();
+	
+	HashMap<String, ArrayList<String>> getAllDatatypeDatasets();
 
 	MetadataProperty getMetadataProperty(String propid);
 

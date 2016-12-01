@@ -127,6 +127,8 @@ public class ManageData extends HttpServlet {
       out.println(dv.getDatatypeJSON(dtype));
     } else if (op.equals("getDataHierarchyJSON")) {
       out.println(dv.getDataHierarchyJSON());
+    } else if (op.equals("getDataListJSON")) {
+      out.println(dv.getDataListJSON());
     }
     // Writer functions
     else if (op.equals("saveDataJSON")) {

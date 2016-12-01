@@ -87,6 +87,9 @@ public class Config {
 
     private boolean isLightReasoner = false;
     
+    // Comma separated list of spellbook client hosts
+    private String clients;
+    
     // The following are set from the "request" variable
     private String viewerId;
     private String userId;
@@ -336,6 +339,7 @@ public class Config {
         this.tdbDirectory = serverConfig.getString("storage.tdb");
         this.serverUrl = serverConfig.getString("server");
         this.dotFile = serverConfig.getString("graphviz");
+        this.clients = serverConfig.getString("clients");
         this.dataOntologyUrl = serverConfig.getString("ontology.data");
         this.componentOntologyUrl = serverConfig.getString("ontology.component");
         this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
@@ -834,6 +838,14 @@ public class Config {
         this.dotFile = dotFile;
     }
 
+    public String getClients() {
+        return clients;
+    }
+
+    public void setClients(String clients) {
+        this.clients = clients;
+    }
+    
     public String getStorageDirectory() {
         return storageDirectory;
     }

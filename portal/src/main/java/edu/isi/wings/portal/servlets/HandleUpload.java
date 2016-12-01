@@ -66,6 +66,7 @@ public class HandleUpload extends HttpServlet {
 		String name = null;
 		String id = null;
 		String storageDir = dom.getDomainDirectory() + "/";
+    File tempfile = File.createTempFile("upload", ".part"); 
 		int chunk = 0;
 		int chunks = 0;
 		boolean isComponent = false;
@@ -102,12 +103,10 @@ public class HandleUpload extends HttpServlet {
 								chunk = Integer.parseInt(value);
 							else if ("chunks".equals(fieldName))
 								chunks = Integer.parseInt(value);
-						} else if (name != null) {
-							File storageDirFile = new File(storageDir);
-							if (!storageDirFile.exists())
-								storageDirFile.mkdirs();
-							File uploadFile = new File(storageDirFile.getPath() + "/" + name + ".part");
-							saveUploadFile(input, uploadFile, chunk);
+						} else {
+						  if(name == null) 
+						    name = item.getName();
+							saveUploadFile(input, tempfile, chunk);
 						}
 					} catch (Exception e) {
 						this.printError(out, e.getMessage());
@@ -124,9 +123,8 @@ public class HandleUpload extends HttpServlet {
 		
 		if(chunks == 0 || chunk == chunks - 1) {
 			// Done upload
-			File partUpload = new File(storageDir + File.separator + name + ".part");
 			File finalUpload = new File(storageDir + File.separator + name);
-			partUpload.renameTo(finalUpload);
+			tempfile.renameTo(finalUpload);
 			
       String mime = new Tika().detect(finalUpload);
       if(mime.equals("application/x-sh") || mime.startsWith("text/"))

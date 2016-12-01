@@ -19,6 +19,7 @@ package edu.isi.wings.catalog.data.api.impl.kb;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +33,7 @@ import edu.isi.wings.catalog.data.classes.MetadataValue;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.KBTriple;
+import edu.isi.wings.ontapi.SparqlQuerySolution;
 
 public class DataCreationKB extends DataKB implements DataCreationAPI {
 	String topclass;
@@ -105,6 +107,32 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 			list.add(type.getID());
 		}
 		return list;
+	}
+	
+	@Override
+	public HashMap<String, ArrayList<String>> getAllDatatypeDatasets()	{
+	  HashMap<String, ArrayList<String>> typedata = new HashMap<String, ArrayList<String>>();
+    String query =   
+        "SELECT ?s ?type\n" + 
+        "WHERE {\n" + 
+        "?s a ?type .\n" + 
+        "FILTER ( STRSTARTS(STR(?type), \"" + this.dcdomns + "\"))\n" + 
+        "}";
+    
+    ArrayList<ArrayList<SparqlQuerySolution>> result = this.libkb.sparqlQuery(query);
+    for(ArrayList<SparqlQuerySolution> row : result) {
+      HashMap<String, KBObject> vals = new HashMap<String, KBObject>();
+      for(SparqlQuerySolution col : row)
+        vals.put(col.getVariable(), col.getObject());
+      if(vals.get("type") == null)
+        continue;
+      String typeid = vals.get("type").getID();
+      String instid = vals.get("s").getID();
+      if(!typedata.containsKey(typeid))
+        typedata.put(typeid, new ArrayList<String>());
+      typedata.get(typeid).add(instid);
+    }
+	  return typedata;
 	}
 
 	@Override

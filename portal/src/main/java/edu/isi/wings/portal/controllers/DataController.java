@@ -216,6 +216,19 @@ public class DataController {
 		}
 	}
 
+	public String getDataListJSON() {
+    try {
+      if(dc == null)
+        return null;
+      HashMap<String, ArrayList<String>> typeInstances = dc.getAllDatatypeDatasets();
+      return json.toJson(typeInstances);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }	  
+	}
+	
 	public String getMetricsHierarchyJSON() {
 		try {
 			if(dc == null)

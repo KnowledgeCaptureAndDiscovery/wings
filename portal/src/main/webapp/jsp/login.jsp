@@ -1,3 +1,4 @@
+<%@page import="edu.isi.wings.portal.filters.CORSHeaders"%>
 <%
 // Licensed to the Apache Software Foundation (ASF) under one or more contributor
 // license agreements.  See the NOTICE.txt file distributed with this work for
@@ -27,7 +28,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <title>Login to Wings</title>
 <%
-  Config configx = new Config(request);
+CORSHeaders.addHeaders(request, response);
+Config configx = new Config(request);
 PrintWriter outx = new PrintWriter(out);
 JSLoader.loadConfigurationJS(outx, configx);
 JSLoader.loadLoginViewer(outx, configx.getContextRootPath());
