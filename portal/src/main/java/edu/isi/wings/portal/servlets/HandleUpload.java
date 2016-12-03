@@ -127,7 +127,7 @@ public class HandleUpload extends HttpServlet {
         storageDirFile.mkdirs();
 			// Done upload
 			File finalUpload = new File(storageDir + File.separator + name);
-			tempfile.renameTo(finalUpload);
+			FileUtils.moveFile(tempfile, finalUpload);
 			
       String mime = new Tika().detect(finalUpload);
       if(mime.equals("application/x-sh") || mime.startsWith("text/"))
