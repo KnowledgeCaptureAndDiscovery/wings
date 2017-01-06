@@ -100,11 +100,11 @@ public class PegasusWorkflowAdapter {
         adag.writeToFile(baseDir + plan.getName() + ".dax");
 
         // Write Properties file to submit dir
-        writePropertiesFile(baseDir, siteCatalog);
+        String props = writePropertiesFile(baseDir, siteCatalog);
 
         try {
             // Execute pegasus-plan
-            Process process = new ProcessBuilder(pegasusHome + "bin/pegasus-plan", "--conf", baseDir + "pegasus.properties",
+            Process process = new ProcessBuilder(pegasusHome + "bin/pegasus-plan", props,
                     "--dax", baseDir + plan.getName() + ".dax",
                     "--dir", baseDir,
                     "--relative-submit-dir", "submit",
@@ -158,40 +158,14 @@ public class PegasusWorkflowAdapter {
      * @param submitDir   Directory where the properties file should be written
      * @param siteCatalog Location of site-catalog file
      */
-    private void writePropertiesFile(String submitDir, String siteCatalog) {
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(submitDir + "pegasus.properties", "UTF-8");
-            writer.println("pegasus.catalog.site.file = " + siteCatalog);
-            writer.println("pegasus.catalog.master.url = " + "sqlite:///" + submitDir + "master.db");
-            writer.println("pegasus.metrics.app = wings");
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage(), e);
-        } catch (UnsupportedEncodingException e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
+    private String writePropertiesFile(String submitDir, String siteCatalog) {
+        StringBuilder props = new StringBuilder();
+        props.append("-Dpegasus.catalog.site.file=" + siteCatalog + " ");
+        props.append("-Dpegasus.catalog.master.url=" + "sqlite:///" + submitDir + "master.db ");
+        props.append("-Dpegasus.metrics.app=wings");
+
+        return props.toString();
     }
-
-    /*
-    private void registerWithReplicaCatalog(RuntimeStep rStep) throws Exception {
-        ExecutionStep eStep = rStep.getStep();
-
-        for (ExecutionFile input : eStep.getInputFiles()) {
-            java.io.File pfn = new java.io.File(dataDir + input.getBinding());
-
-            if (pfn.isFile() && !inputs.contains(input.getBinding())) {
-                File file = new File(input.getBinding());
-                file.addPhysicalFile(new PFN("file://" + pfn.getAbsolutePath()));
-                adag.addFile(file);
-                inputs.add(input.getBinding());
-            }
-        }
-    }
-    */
 
     /**
      *
