@@ -219,7 +219,7 @@ class BindingSerializer implements JsonSerializer<Binding>{
 			if (binding.isURIBinding()) {
 				obj.add("id", new JsonPrimitive(binding.getID()));
 				obj.add("type", new JsonPrimitive("uri"));
-			} else {
+			} else if(binding.getValue() != null) {
 				ValueBinding vb = (ValueBinding) binding;
 				String datatype = vb.getDatatype();
 				if(datatype== null)

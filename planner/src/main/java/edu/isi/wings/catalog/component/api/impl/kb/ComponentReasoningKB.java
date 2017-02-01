@@ -19,15 +19,19 @@ package edu.isi.wings.catalog.component.api.impl.kb;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
+
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
+import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
+import edu.isi.wings.catalog.component.classes.ComponentRole;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.ontapi.*;
+import edu.isi.wings.ontapi.rules.KBRuleList;
 import edu.isi.wings.workflow.template.api.ConstraintEngine;
 import edu.isi.wings.workflow.template.api.impl.kb.ConstraintEngineKB;
 import edu.isi.wings.workflow.template.classes.Role;
@@ -43,25 +47,82 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
 
-public class ComponentReasoningKB extends ComponentKB implements ComponentReasoningAPI {
+public class ComponentReasoningKB extends ComponentCreationKB implements ComponentReasoningAPI {
 	private Logger logger = Logger.getLogger(this.getClass());
 
+	private HashMap<String, Component> ccache =
+	    new HashMap<String, Component>();
+  private HashMap<String, ArrayList<String>> abscache =
+      new HashMap<String, ArrayList<String>>();	
+	private HashMap<String, ArrayList<KBTriple>> kbcache =
+      new HashMap<String, ArrayList<KBTriple>>();
+	
 	public ComponentReasoningKB(Properties props) {
-		super(props, true, false, false);
+		super(props, true);
 	}
 
 	protected KBObject copyObjectIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
 			String excludeNS, boolean direct) {
 		// Add component to the temporary KB (add all its classes explicitly)
-		KBObject tobj = tkb.createObjectOfClass(id, this.kb.getClassOfInstance(obj));
-		copyObjectClassesIntoKB(id, obj, tkb, includeNS, excludeNS, direct);
-		return tobj;
+		for(KBTriple triple : this.getTriplesForObject(id, obj, includeNS, excludeNS, direct)) {
+		  tkb.addTriple(triple);
+		}
+		return tkb.getIndividual(id);
+	}
+	
+	protected KBObject copyObjectClassesIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
+	    String excludeNS, boolean direct) {
+	  // Add component to the temporary KB (add all its classes explicitly)
+	  for(KBTriple triple : this.getObjectClassTriples(id, obj, includeNS, excludeNS, direct)) {
+	    tkb.addTriple(triple);
+	  }
+	  return tkb.getIndividual(id);
+	}
+	
+	protected ArrayList<String> getConcreteComponentsForAbstract(String id) {
+	  if(abscache.containsKey(id))
+	    return abscache.get(id);
+	  
+    KBObject cls = this.kb.getClassOfInstance(this.kb.getIndividual(id));
+    if (cls == null) {
+      this.abscache.put(id, null);
+      return null;
+    }
+    ArrayList<KBObject> insts = this.kb.getInstancesOfClass(cls, false);
+    ArrayList<String> ids = new ArrayList<String>();
+    for(KBObject inst : insts)
+      ids.add(inst.getID());
+    this.abscache.put(id, ids);
+    return ids;
+	}
+	
+	protected ArrayList<KBTriple> getTriplesForObject(String id, KBObject obj, 
+	    String includeNS, String excludeNS, boolean direct) {
+	  ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
+	  triples.add(ontologyFactory.getTriple(
+	      ontologyFactory.getObject(id), 
+	      ontologyFactory.getObject(KBUtils.RDF+"type"),
+	      this.kb.getClassOfInstance(obj)));
+	  triples.addAll(getObjectClassTriples(id, obj, includeNS, excludeNS, direct));
+	  return triples;
 	}
 
-	protected KBObject copyObjectClassesIntoKB(String id, KBObject obj, KBAPI tkb,
+	protected ArrayList<KBTriple> getObjectClassTriples(String id, KBObject obj,
 			String includeNS, String excludeNS, boolean direct) {
 		// Add component to the temporary KB (add all its classes explicitly)
-		KBObject tobj = tkb.getResource(id);
+	  ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
+	  
+    if(kbcache.containsKey(obj.getID())) {
+      for(KBTriple triple : kbcache.get(obj.getID())) {
+        triples.add(ontologyFactory.getTriple(
+            ontologyFactory.getObject(id), 
+            triple.getPredicate(), 
+            triple.getObject()));
+      }
+      return triples;
+    }
+    
+		KBObject tobj = ontologyFactory.getObject(id);
 		ArrayList<KBObject> objclses;
 		if (direct)
 			objclses = kb.getAllClassesOfInstance(obj, direct);
@@ -74,12 +135,12 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		for (KBObject objcls : objclses) {
 			if ((includeNS != null && objcls.getNamespace().equals(includeNS))
 					|| (excludeNS != null && !objcls.getNamespace().equals(excludeNS))) {
-				tkb.addTriple(tobj, tkb.getProperty(KBUtils.RDF + "type"), objcls);
-				// System.out.println("-- adding class: "+objcls.getID()+" to "+tobj.getID());
-				// tkb.addClassForInstance(tobj, objcls);
+				triples.add(ontologyFactory.getTriple(
+				    tobj, ontologyFactory.getObject(KBUtils.RDF + "type"), objcls));
 			}
 		}
-		return tobj;
+    kbcache.put(id, triples);
+		return triples;
 	}
 
 	protected boolean checkTypeCompatibility(KBAPI tkb, String varid, String argid) {
@@ -156,7 +217,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 		HashMap<String, KBObject> omap = this.objPropMap;
 		HashMap<String, KBObject> dmap = this.dataPropMap;
-		HashMap<String, KBObject> cmap = this.conceptMap;
 
 		// Extract info from details object
 		ComponentVariable c = details.getComponent();
@@ -177,19 +237,17 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		}
 		
 		// Get List of all concrete components
-		ArrayList<KBObject> ccomps = new ArrayList<KBObject>();
+		ArrayList<Component> ccomps = new ArrayList<Component>();
 		for(String cbid : cbindings) {
-			KBObject comp = this.kb.getIndividual(cbid);
+			Component comp = this.getCachedComponent(cbid);
 			if (comp == null) {
-				logger.debug(comp + " is not a valid component");
-				details.addExplanations(comp + " is not a valid component");
+				logger.debug(cbid + " is not a valid component");
+				details.addExplanations(cbid + " is not a valid component");
 				details.setInvalidFlag(true);
 				list.add(details);
 				return list;
 			}
-			KBObject icobj = this.kb.getDatatypePropertyValue(comp, dmap.get("isConcrete"));
-			boolean isConcrete = (icobj != null && icobj.getValue() != null && ((Boolean) icobj
-					.getValue()).booleanValue());
+			boolean isConcrete = (comp.getType() == Component.CONCRETE);
 			if (!specialize) {
 				// If no specialization required, add component as is
 				ccomps.add(comp);
@@ -208,18 +266,11 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				 * 	- [conc2 (isConcrete: true)] 
 				 * Note: Only 1 Component Instance per Class
 				 */
-				KBObject cls = this.kb.getClassOfInstance(comp);
-				if (cls == null) {
-					// TODO: Add explanation here that class could not be found
-					return list;
-				}
-				ArrayList<KBObject> insts = this.kb.getInstancesOfClass(cls, false);
-				for (KBObject inst : insts) {
-					icobj = this.kb.getDatatypePropertyValue(inst, dmap.get("isConcrete"));
-					isConcrete = (icobj != null && icobj.getValue() != null && ((Boolean) icobj
-							.getValue()).booleanValue());
-					if (isConcrete) {
-						ccomps.add(inst);
+			  ArrayList<String> concreteids = this.getConcreteComponentsForAbstract(comp.getID());
+				for (String concreteid : concreteids) {
+				  Component instcomp = this.getCachedComponent(concreteid);
+					if (instcomp != null && instcomp.getType() == Component.CONCRETE) {
+						ccomps.add(instcomp);
 					}
 				}
 			}
@@ -237,13 +288,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// Get Metrics property hierarchy triples for adding into the temporary
 		// kb
 
-		for (KBObject ccomp : ccomps) {
-			// Get input and output arguments of the specialized component
-			ArrayList<KBObject> inputArgs = this.kb.getPropertyValues(ccomp, omap.get("hasInput"));
-			ArrayList<KBObject> outputArgs = this.kb.getPropertyValues(ccomp, omap.get("hasOutput"));
-
+		for (Component ccomp : ccomps) {
 			HashMap<Role, Variable> sRoleMap = new HashMap<Role, Variable>();
-
 			ArrayList<String> varids = new ArrayList<String>();
 
 			// Create a new temporary kb
@@ -254,17 +300,18 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 			tkb.addTriples(redbox);
 			tkb.addTriples(domainKnowledge);
 
+			KBObject ccompobj = this.kb.getIndividual(ccomp.getID());
 			// Create a copy of the specialized component in the temporary kb
-			KBObject tcomp = this.copyObjectIntoKB(incompid, ccomp, tkb, this.pcdomns, null,
+			KBObject tcomp = this.copyObjectIntoKB(incompid, ccompobj, tkb, this.pcdomns, null,
 					false);
 
 			boolean typesOk = true;
 
-			// For all arguments of the specialized component :
-			ArrayList<KBObject> allArgs = new ArrayList<KBObject>(inputArgs);
-			allArgs.addAll(outputArgs);
+			// For all argument roles of the specialized component :
+			ArrayList<ComponentRole> allArgs = new ArrayList<ComponentRole>(ccomp.getInputs());
+			allArgs.addAll(ccomp.getOutputs());
 
-			ArrayList<String> explanations = new ArrayList<String>();
+			HashSet<String> explanations = new HashSet<String>();
 			ComponentPacket cmr;
 			ComponentVariable concreteComponent = new ComponentVariable(incompid);
 			concreteComponent.setBinding(new Binding(ccomp.getID()));
@@ -275,11 +322,11 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 			ArrayList<String> inputRoles = new ArrayList<String>();
 			
-			for (KBObject arg : allArgs) {
+			for (ComponentRole arg : allArgs) {
 				// Get the argument ID for the specialized argument
-				KBObject argid = this.kb.getDatatypePropertyValue(arg, dmap.get("hasArgumentID"));
+				String argid = arg.getRoleName();
 
-				Variable var = roleMaps.get(argid.getValue());
+				Variable var = roleMaps.get(argid);
 				String varid = null;
 				String roleid = null;
 				if (var == null) {
@@ -289,13 +336,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 					roleid = ccomp.getID() + "_" + argid + "_role";
 					
 					short type = 0;
-					if (this.kb.isA(arg, cmap.get("ParameterArgument"))) {
+					if (arg.isParam())
 						type = VariableType.PARAM;
-					} else if (this.kb.isA(arg, cmap.get("DataArgument"))) {
+					else
 						type = VariableType.DATA;
-					} else {
-						// TODO: Add Explanation & Logger warning for the error
-					}
 					var = new Variable(varid, type);
 				} else {
 					varid = var.getID();
@@ -314,20 +358,16 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				}
 
 				// Copy over the argument's classes to the variable
-				KBObject varobj = this.copyObjectClassesIntoKB(varid, arg, tkb, this.dcdomns,
+				KBObject argobj = this.kb.getIndividual(arg.getID());
+				KBObject varobj = this.copyObjectClassesIntoKB(varid, argobj, tkb, this.dcdomns,
 						null, false);
 
 				// create hasArgumentID property for the variable
-				tkb.addTriple(varobj, dmap.get("hasArgumentID"), argid);
+				tkb.addTriple(varobj, dmap.get("hasArgumentID"), tkb.createLiteral(argid));
 
 				Role r = new Role(roleid);
-				r.setRoleId((String) argid.getValue());
-				
-				KBObject dim = this.kb
-						.getDatatypePropertyValue(arg, dmap.get("hasDimensionality"));
-				if (dim != null && dim.getValue() != null) {
-					r.setDimensionality((Integer) dim.getValue());
-				}
+				r.setRoleId(argid);
+				r.setDimensionality(arg.getDimensionality());
 
 				if (var.isDataVariable() && var.getBinding() != null
 						&& var.getBinding().getName() != null) {
@@ -339,10 +379,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				}
 
 				// assign this variable as an input or output to the component
-				if (inputArgs.contains(arg)) {
+				if (ccomp.getInputs().contains(arg)) {
 					inputRoles.add(r.getRoleId());
 					tkb.addTriple(tcomp, omap.get("hasInput"), varobj);
-				} else if (outputArgs.contains(arg)) {
+				} else {
 					tkb.addTriple(tcomp, omap.get("hasOutput"), varobj);
 				}
 				sRoleMap.put(r, var);
@@ -365,7 +405,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 			}
 
 			// ** Run Rules **
-			if (useRules) {
+			if (useRules && ccomp.hasRules()) {
 				// Redirect output to a byte stream
 				ByteArrayOutputStream bost = new ByteArrayOutputStream();
 				PrintStream oldout = System.out;
@@ -439,6 +479,20 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		return list;
 	}
 
+	
+	private Component getCachedComponent(String compid) {
+    // Get Component
+    Component comp = null;
+    if(ccache.containsKey(compid)) { 
+      comp = ccache.get(compid);
+    }
+    else {
+      comp = this.getComponent(compid, true);
+      ccache.put(compid, comp);
+    }
+    return comp;
+	}
+	
 	/**
 	 * <b>Query 4.2</b><br/>
 	 * This function is supposed to <b>SET</b> the DataSet Metrics, or Parameter
@@ -464,11 +518,12 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	 *         empty in Q4.2 though)
 	 */
 	public ArrayList<ComponentPacket> findOutputDataPredictedDescriptions(ComponentPacket details) {
-
 		ArrayList<ComponentPacket> list = new ArrayList<ComponentPacket>();
 
 		HashMap<String, KBObject> omap = this.objPropMap;
 		HashMap<String, KBObject> dmap = this.dataPropMap;
+		
+		// If the component has no rules, then simplify !!
 
 		// Extract info from details object
 		ComponentVariable c = details.getComponent();
@@ -476,45 +531,44 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 		ArrayList<KBTriple> redbox = details.getRequirements();
 
-		// Get Component
-		KBObject comp = this.kb.getIndividual(c.getBinding().getID());
+		Component comp = this.getCachedComponent(c.getBinding().getID());
 		if (comp == null) {
-			logger.debug(comp + " is not a valid component");
-			details.addExplanations(comp + " is not a valid component");
+			logger.debug(c.getBinding().getID() + " is not a valid component");
+			details.addExplanations(c.getBinding().getID() + " is not a valid component");
 			details.setInvalidFlag(true);
 			list.add(details);
 			return list;
 		}
 		
-		ComponentRequirement requirement = this.getComponentRequirements(comp, this.kb);
-		c.setRequirements(requirement);
-
-		// Get a mapping of ArgID's to arg for the Component
-		// Also note which roles are inputs
-		HashMap<String, KBObject> argMaps = new HashMap<String, KBObject>();
-		HashMap<String, Boolean> sInputRoles = new HashMap<String, Boolean>();
-
-		ArrayList<KBObject> inputArgs = this.kb.getPropertyValues(comp, omap.get("hasInput"));
-		ArrayList<KBObject> outputArgs = this.kb.getPropertyValues(comp, omap.get("hasOutput"));
-		for (KBObject iarg : inputArgs) {
-			KBObject argid = this.kb.getDatatypePropertyValue(iarg, dmap.get("hasArgumentID"));
-			String rolestr = (String) argid.getValue();
-			argMaps.put(rolestr, iarg);
-			sInputRoles.put(rolestr, true);
+		c.setRequirements(comp.getComponentRequirement());
+		
+		if(!comp.hasRules()) {
+		  // No rules. Just set default parameter values (if not already set)
+		  ArrayList<String> inputRoles = new ArrayList<String>();
+		  for(ComponentRole role : comp.getInputs()) {
+		    inputRoles.add(role.getRoleName());
+		    Variable v = sRoleMap.get(role.getRoleName());
+		    if(role.isParam()) {
+          if(v.getBinding() == null)
+            v.setBinding(new ValueBinding(role.getParamDefaultalue()));		      
+          else if(v.getBinding().getValue() == null)
+		        v.getBinding().setValue(role.getParamDefaultalue());
+		    }
+		  }
+		  details.setInputRoles(inputRoles);
+		  list.add(details);
+		  return list;
 		}
-		for (KBObject oarg : outputArgs) {
-			KBObject argid = this.kb.getDatatypePropertyValue(oarg, dmap.get("hasArgumentID"));
-			String rolestr = (String) argid.getValue();
-			argMaps.put(rolestr, oarg);
-		}
-
+    
 		// Create a new temporary KB store to run rules on
-		KBAPI tkb = this.ontologyFactory.getKB(OntSpec.MICRO);
+		KBAPI tkb = this.ontologyFactory.getKB(OntSpec.PLAIN);
 
+		KBObject compobj = this.kb.getIndividual(comp.getID());
+		
 		// Add component to the temporary KB store (add all its classes
 		// explicitly)
 		KBObject tcomp = this
-				.copyObjectIntoKB(comp.getID(), comp, tkb, this.pcdomns, null, false);
+				.copyObjectIntoKB(comp.getID(), compobj, tkb, this.pcdomns, null, false);
 
 		// Keep a map of variable object to variable name
 		HashMap<Variable, String> variableNameMap = new HashMap<Variable, String>();
@@ -544,11 +598,23 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
         obj = t.getObject();
       tkb.addTriple(subj, t.getPredicate(), obj);
     }
+
+    // Get a mapping of ArgID's to arg for the Component
+    // Also note which roles are inputs
+    HashMap<String, ComponentRole> argMaps = new HashMap<String, ComponentRole>();
+    HashMap<String, Boolean> sInputRoles = new HashMap<String, Boolean>();
+    for (ComponentRole role : comp.getInputs()) {
+      argMaps.put(role.getRoleName(), role);
+      sInputRoles.put(role.getRoleName(), true);
+    }
+    for (ComponentRole role : comp.getOutputs()) {
+      argMaps.put(role.getRoleName(), role);
+    }
     
 		// Convert metrics to Property assertions in the Temporary KB
 		for (String rolestr : sRoleMap.keySet()) {
 			Variable var = sRoleMap.get(rolestr);
-			KBObject arg = argMaps.get(rolestr);
+			ComponentRole arg = argMaps.get(rolestr);
 			if(arg == null) {
 				details.addExplanations("ERROR Component catalog cannot recognize role id "+rolestr);
 				continue;
@@ -653,7 +719,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				// If the Variable/Argument is a Parameter
 
 				// Get any default value for the argument specified in catalog
-				KBObject arg_value = this.kb.getPropertyValue(arg, dmap.get("hasValue"));
+				KBObject arg_value = null;
+				if(arg.getParamDefaultalue() != null)
+				  arg_value = tkb.createLiteral(arg.getParamDefaultalue());
 				ValueBinding parambinding = (ValueBinding) var.getBinding();
 				if (parambinding != null && parambinding.getValue() != null) {
 					// If the template has any value specified, use that instead
@@ -673,7 +741,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 
 			// Copy argument classes from Catalog as classes for the temporary
 			// variable in the temporary kb store
-			this.copyObjectClassesIntoKB(varobj.getID(), arg, tkb, null, null, true);
+	    KBObject argobj = kb.getIndividual(arg.getID());
+			this.copyObjectClassesIntoKB(varobj.getID(), argobj, tkb, null, null, true);
 
 			// Set the temporary variable's argumentID so rules can get/set
 			// triples based on the argument
@@ -730,25 +799,27 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
       }
     }
     
-		// Redirect Standard output to a byte stream
-		ByteArrayOutputStream bost = new ByteArrayOutputStream();
-		PrintStream oldout = System.out;
-		System.setOut(new PrintStream(bost, true));
-
-		// *** Run propagation rules on the temporary ontmodel ***
-		tkb.setRulePrefixes(this.rulePrefixes);
-		tkb.applyRules(this.getComponentRules(comp.getID()));
-		//tkb.applyRulesFromString(allrules);
-
-		// Add printouts from rules as explanations
-		if (!bost.toString().equals("")) {
-			for (String exp : bost.toString().split("\\n")) {
-				details.addExplanations(exp);
-			}
-		}
-
-		// Reset the Standard output
-		System.setOut(oldout);
+    KBRuleList rules = this.getComponentRules(comp.getID());
+    if(rules.getRules().size() > 0) {
+  		// Redirect Standard output to a byte stream
+  		ByteArrayOutputStream bost = new ByteArrayOutputStream();
+  		PrintStream oldout = System.out;
+  		System.setOut(new PrintStream(bost, true));
+  
+  		// *** Run propagation rules on the temporary ontmodel ***
+  		tkb.setRulePrefixes(this.rulePrefixes);
+  		tkb.applyRules(this.getComponentRules(comp.getID()));
+  		//tkb.applyRulesFromString(allrules);
+  
+  		// Add printouts from rules as explanations
+  		if (!bost.toString().equals("")) {
+  			for (String exp : bost.toString().split("\\n")) {
+  				details.addExplanations(exp);
+  			}
+  		}
+  		// Reset the Standard output
+  		System.setOut(oldout);
+    }
 
 		// Check if the rules marked this component as invalid for
 		// the current component details packet

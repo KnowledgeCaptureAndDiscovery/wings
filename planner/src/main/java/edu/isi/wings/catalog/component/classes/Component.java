@@ -90,10 +90,18 @@ public class Component extends URIEntity {
     }
   }
 
+  public ArrayList<String> getInheritedRules() {
+    return this.inheritedRules;
+  }
+  
   public void setInheritedRules(KBRuleList rules) {
     for (KBRule rule : rules.getRules()) {
       this.inheritedRules.add(rule.getInternalRuleObject().toString());
     }
+  }
+  
+  public boolean hasRules() {
+    return (this.rules.size() + this.inheritedRules.size()) > 0;
   }
 
   public String getLocation() {

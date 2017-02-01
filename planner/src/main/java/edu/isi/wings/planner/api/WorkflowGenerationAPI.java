@@ -21,6 +21,7 @@ import java.util.ArrayList;
 
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
+import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.template.api.Seed;
 import edu.isi.wings.workflow.template.api.Template;
@@ -39,7 +40,9 @@ public interface WorkflowGenerationAPI {
 
 	public ArrayList<Template> specializeTemplates(Template template);
 
-	public ArrayList<Template> selectInputDataObjects(Template specializedTemplate);
+	public ArrayList<VariableBindingsList> selectInputDataObjects(Template specializedTemplate);
+	
+	public Template bindTemplate(Template specializedTemplate, VariableBindingsList bindings);
 
 	public void setDataMetricsForInputDataObjects(ArrayList<Template> boundTemplates);
 

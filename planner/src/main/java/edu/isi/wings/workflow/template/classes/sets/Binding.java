@@ -34,7 +34,7 @@ public class Binding extends WingsSet implements Serializable {
 	protected Object value;
 	protected Metrics metrics = new Metrics();
 
-	protected HashMap<String, Object> data;
+	protected HashMap<String, Object> data = new HashMap<String, Object>();;
 
 	public Binding() {
 	}
@@ -42,7 +42,6 @@ public class Binding extends WingsSet implements Serializable {
 	public Binding(String id) {
 		setID(id);
 		this.obj = this.id;
-		this.data = new HashMap<String, Object>();
 	}
 
 	public Binding(Binding b) {

@@ -38,7 +38,7 @@ Layout.prototype.layoutDot = function(msgTarget, ed, op_url) {
 			msgTarget.unmask();
 			// Copy over xy positions from new store
 			var nstore = Ext.decode(response.responseText);
-			for(var i=0; i<nstore.template.Nodes.length; i++) {
+			for(var i in nstore.template.Nodes) {
 				var node = nstore.template.Nodes[i];
 				var n = ed.template.nodes[node.id];
 				if(n) {
@@ -49,7 +49,7 @@ Layout.prototype.layoutDot = function(msgTarget, ed, op_url) {
 						n.centercoords = true;
 				}
 			}
-			for(var i=0; i<nstore.template.Variables.length; i++) {
+			for(var i in nstore.template.Variables) {
 				var vr = nstore.template.Variables[i];
 				var v = ed.template.variables[vr.id];
 				if(v) {

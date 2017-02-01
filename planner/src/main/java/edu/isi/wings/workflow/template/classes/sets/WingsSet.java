@@ -123,7 +123,7 @@ public class WingsSet extends ArrayList<WingsSet> {
 	}
 
 	public boolean equals(Object s) {
-		if (hashCode() == s.hashCode())
+		if (s != null && hashCode() == s.hashCode())
 			return true;
 		return false;
 	}

@@ -208,9 +208,9 @@ Template.prototype.initialize = function() {
 };
 
 Template.prototype.saveToStore = function(showFullPorts) {
-	this.store.Nodes = [];
-	this.store.Links = [];
-	this.store.Variables = [];
+	this.store.Nodes = {};
+	this.store.Links = {};
+	this.store.Variables = {};
 	this.store.inputRoles = {};
 	this.store.outputRoles = {};
 	var cnt = 1;
@@ -245,7 +245,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			ports[op.id] = op;
 			ops[op.id] = op;
 		}
-		this.store.Nodes.push({
+		this.store.Nodes[n.id] = {
 			id : n.id,
 			comment : "x="+n.x+",y="+n.y,
 			crule : n.crule,
@@ -261,12 +261,12 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			inputPorts : ips,
 			outputPorts : ops,
 			machineIds : n.machineIds
-		});
+		};
 		cnt++;
 	}
 	for ( var i in this.variables) {
 		var v = this.variables[i];
-		this.store.Variables.push({
+		this.store.Variables[v.id] = {
 			id : v.id,
 			comment : "x="+v.x+",y="+v.y,
 			type : v.type == 'DATA' ? 1 : 2,
@@ -277,7 +277,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 			unknown : v.unknown, 
 			autofill : v.autofill,
 			breakpoint: v.breakpoint
-		});
+		};
 	}
 	for ( var i in this.links) {
 		var l = this.links[i];
@@ -325,7 +325,7 @@ Template.prototype.saveToStore = function(showFullPorts) {
 				id : l.variable.id+"_orole"
 			};
 		}
-		this.store.Links.push(link);
+		this.store.Links[l.id] = link;
 	}
 
 	this.mergeLinks(); // Cleanup

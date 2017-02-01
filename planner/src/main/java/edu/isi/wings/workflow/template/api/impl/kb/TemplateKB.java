@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,9 +76,16 @@ public class TemplateKB extends URIEntity implements Template {
 	protected String wflowns;
 
 	
-	private Node[] Nodes = new Node[0];
-	private Link[] Links = new Link[0];
-	private Variable[] Variables = new Variable[0];
+	private HashMap<String, Node> Nodes = new HashMap<String, Node>();
+	private HashMap<String, Link> Links = new HashMap<String, Link>();
+	private HashMap<String, Variable> Variables = new HashMap<String, Variable>();
+	
+	private transient HashMap<String, TreeSet<Link>> nodeInputLinks = 
+	    new HashMap<String, TreeSet<Link>>();
+  private transient HashMap<String, TreeSet<Link>> nodeOutputLinks = 
+      new HashMap<String, TreeSet<Link>>();
+  private transient HashMap<String, TreeSet<Link>> variableLinks = 
+      new HashMap<String, TreeSet<Link>>();  
 
 	// Map of variable ids to template roles
 	private HashMap<String, Role> inputRoles = new HashMap<String, Role>();
@@ -165,9 +173,6 @@ public class TemplateKB extends URIEntity implements Template {
 		this.props = t.props;
 		this.initVariables(this.props);
 		
-		Variables = new Variable[0];
-		Links = new Link[0];
-		Nodes = new Node[0];
 		copyBookkeepingInfo(t);
 
 		// copy rules
@@ -291,16 +296,11 @@ public class TemplateKB extends URIEntity implements Template {
 		return n;
 	}
 
-	private Node getNode(KBObject obj, Node[] nodes) {
+	private Node getNode(KBObject obj, HashMap<String, Node> nodes) {
 		if (obj == null) {
 			return null;
 		}
-		for (Node element : nodes) {
-			if (element.getID().equals(obj.getID())) {
-				return element;
-			}
-		}
-		return null;
+		return nodes.get(obj.getID());
 	}
 
 	protected void readTemplate() {
@@ -320,10 +320,21 @@ public class TemplateKB extends URIEntity implements Template {
 		for (String id : subtemplates.keySet()) {
 			Template t = subtemplates.get(id);
 			if (t.getParent() == null) {
-				Links = t.getLinks();
-				Variables = t.getVariables();
-				Nodes = t.getNodes();
-				metadata = t.getMetadata();
+			  Links.clear();
+			  nodeInputLinks.clear();
+			  nodeOutputLinks.clear();
+			  variableLinks.clear();
+			  Variables.clear();
+			  Nodes.clear();
+			  
+			  for(Link l : t.getLinks())
+			    this.addLink(l);
+        for(Variable v : t.getVariables())
+          this.addVariable(v);
+        for(Node n : t.getNodes())
+          this.addNode(n);
+				
+        metadata = t.getMetadata();
 				rules = t.getRules();
 				inputRoles = t.getInputRoles();
 				outputRoles = t.getOutputRoles();
@@ -368,20 +379,11 @@ public class TemplateKB extends URIEntity implements Template {
 		ArrayList<KBObject> linkObjs = kb.getPropertyValues(templateObj, pmap.get("hasLink"));
 		ArrayList<KBObject> nodeObjs = kb.getPropertyValues(templateObj, pmap.get("hasNode"));
 
-		Node[] nodes = new Node[nodeObjs.size()];
-		Link[] links = new Link[linkObjs.size()];
-
-		HashMap<String, Variable> varMap = new HashMap<String, Variable>();
-		// Variables = new Variable[links.size()];
-
-		int i = 0;
 		for (KBObject nodeObj : nodeObjs) {
 			Node node = readNodeFromKB(nodeObj);
 			if (node.getComponentVariable().getTemplate() != null) {
 				node.getComponentVariable().getTemplate().setParent(t);
 			}
-			nodes[i] = node;
-			i++;
 			String comment = kb.getComment(nodeObj);
 			if (comment != null)
 				node.setComment(comment);
@@ -446,13 +448,13 @@ public class TemplateKB extends URIEntity implements Template {
 				SetExpression expr = new SetExpression(SetOperator.XPRODUCT);
 				node.addPortSetRule(new PortSetCreationRule(SetType.WTYPE, expr));
 			}
+			t.addNode(node);
 		}
 
-		i = 0;
 		for (KBObject linkObj : linkObjs) {
-			Node fromNode = getNode(kb.getPropertyValue(linkObj, pmap.get("hasOriginNode")), nodes);
+			Node fromNode = getNode(kb.getPropertyValue(linkObj, pmap.get("hasOriginNode")), t.Nodes);
 			Node toNode = getNode(kb.getPropertyValue(linkObj, pmap.get("hasDestinationNode")),
-					nodes);
+					t.Nodes);
 
 			Port fromPort = null;
 			Port toPort = null;
@@ -504,7 +506,7 @@ public class TemplateKB extends URIEntity implements Template {
 			}
 
       KBObject varObj = kb.getPropertyValue(linkObj, pmap.get("hasVariable"));
-      Variable var = varMap.get(varObj.getID());			
+      Variable var = t.getVariable(varObj.getID());			
 
 			if (var == null) {
 				if (kb.isA(varObj, cmap.get("DataVariable"))) {
@@ -516,7 +518,6 @@ public class TemplateKB extends URIEntity implements Template {
           KBObject breakPoint = kb.getPropertyValue(varObj, pmap.get("breakPoint"));
           if(breakPoint != null && (Boolean)breakPoint.getValue())
             var.setBreakpoint(true);
-					varMap.put(varObj.getID(), var);
 				} else if (kb.isA(varObj, cmap.get("ParameterVariable"))) {
 					var = new ParameterVariable(varObj.getID());
 					KBObject paramValue = kb.getDatatypePropertyValue(varObj,
@@ -524,7 +525,6 @@ public class TemplateKB extends URIEntity implements Template {
 					if (paramValue != null && paramValue.getValue() != null) {
 						var.setBinding(readValueBindingObjectFromKB(kb, paramValue));
 					}
-					varMap.put(varObj.getID(), var);
 				}
         KBObject dvar = kb.getPropertyValue(varObj,  propertyObjMap.get("derivedFrom"));
         if(dvar != null)
@@ -535,22 +535,19 @@ public class TemplateKB extends URIEntity implements Template {
           var.setAutoFill(true);
 			}
 			if (var != null) {
+        String comment = kb.getComment(varObj);
+        if (comment != null)
+          var.setComment(comment);
+        t.addVariable(var);
+        
 	      String lid = linkObj.getID();
 	      if(lid == null) 
 	          lid = this.createLinkId(fromPort, toPort, var);
-	      links[i] = new Link(lid, fromNode, toNode, fromPort, toPort);
-			  
-				links[i].setVariable(var);
-				String comment = kb.getComment(varObj);
-				if (comment != null)
-					var.setComment(comment);
+	      Link link = new Link(lid, fromNode, toNode, fromPort, toPort);
+				link.setVariable(var);
+        t.addLink(link);
 			}
-			i++;
 		}
-
-		t.Links = links;
-		t.Nodes = nodes;
-		t.Variables = varMap.values().toArray(new Variable[0]);
 
 		readTemplateRolesFromKB(this.kb, t, templateObj);
 		t.autoUpdateTemplateRoles();
@@ -674,7 +671,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 	public void fillInDefaultSetCreationRules() {
 		// Add default set creation rules if they are not present
-		for (Node n : Nodes) {
+		for (Node n : Nodes.values()) {
 			this.addDefaultSetCreationRulesForNode(n);
 		}
 	}
@@ -819,7 +816,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 	public Link[] getInputLinks() {
 		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
+		for (Link l : Links.values()) {
 			if (l.isInputLink()) {
 				links.add(l);
 			}
@@ -828,14 +825,7 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Link[] getInputLinks(Node n) {
-		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
-			if (l.getDestinationNode() != null && l.getDestinationNode().equals(n)) {
-				links.add(l);
-			}
-		}
-		Collections.sort(links);
-		return links.toArray(new Link[0]);
+    return this.nodeInputLinks.get(n.getID()).toArray(new Link[0]);
 	}
 
 	public Variable[] getInputVariables() {
@@ -848,7 +838,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 	public Link[] getIntermediateLinks() {
 		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
+		for (Link l : Links.values()) {
 			if (l.isInOutLink()) {
 				links.add(l);
 			}
@@ -861,21 +851,22 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Link getLink(Node fromN, Node toN, Port fromPort, Port toPort) {
-		for (Link l : Links) {
-			boolean ok = true;
-			if(l.getOriginNode() != null && fromN != null && !l.getOriginNode().getID().equals(fromN.getID()))
-				ok = false;
+	  
+	  ArrayList<Link> links = new ArrayList<Link>();
+	  if(fromN != null && nodeOutputLinks.containsKey(fromN.getID())) {
+	    links.addAll(this.nodeOutputLinks.get(fromN.getID()));
+	    if(toN != null && nodeInputLinks.containsKey(toN.getID()))
+	      links.retainAll(this.nodeInputLinks.get(toN.getID()));
+	  }
+	  else if(toN != null && nodeInputLinks.containsKey(toN.getID())) {
+	    links.addAll(this.nodeInputLinks.get(toN.getID()));
+	  }
+	  for(Link l : links) {
+	    boolean ok = true;
 			if(l.getOriginPort() != null && fromPort != null && !l.getOriginPort().getID().equals(fromPort.getID()))
-				ok = false;
-			if(l.getDestinationNode() != null && toN != null && !l.getDestinationNode().getID().equals(toN.getID()))
 				ok = false;
 			if(l.getDestinationPort() != null && toPort != null && !l.getDestinationPort().getID().equals(toPort.getID()))
 				ok = false;
-			if(l.getOriginNode() == null && fromN != null)
-				ok = false;
-			if(l.getDestinationNode() == null && toN != null)
-				ok = false;
-			
 			if(ok)
 				return l;
 		}
@@ -883,44 +874,24 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Link[] getLinks() {
-		return Links;
+		return Links.values().toArray(new Link[0]);
 	}
 
 	public Link[] getLinks(Node fromN, Node toN) {
-		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
-		  boolean from_match = false;
-		  boolean to_match = false;
-		  if(fromN == null && l.getOriginNode() == null)
-		    from_match = true;
-		  if(toN == null && l.getDestinationNode() == null)
-		    to_match = true;
-			if (fromN != null && fromN.equals(l.getOriginNode()))
-			  from_match = true;
-		  if (toN != null && toN.equals(l.getDestinationNode()))
-        to_match = true;
-		  if(from_match && to_match)
-				links.add(l);
-		}
+		ArrayList<Link> links = new ArrayList<Link>(this.nodeOutputLinks.get(fromN.getID()));
 		return links.toArray(new Link[0]);
 	}
 
 	public Link[] getLinks(Variable v) {
-		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
-			if (l.getVariable().equals(v)) {
-				links.add(l);
-			}
-		}
-		return links.toArray(new Link[0]);
+	  return this.variableLinks.get(v.getID()).toArray(new Link[0]);
 	}
 
 	public Node[] getNodes() {
-		return Nodes;
+		return Nodes.values().toArray(new Node[0]);
 	}
 
 	public ComponentVariable getComponentVariable(String cid) {
-		for (Node n : Nodes) {
+		for (Node n : Nodes.values()) {
 			if (n.getComponentVariable().getID().equals(cid))
 				return n.getComponentVariable();
 		}
@@ -928,35 +899,20 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Node getNode(String id) {
-		for (Node n : Nodes) {
-			if (n.getID().equals(id)) {
-				return n;
-			}
-		}
-		return null;
+	  return Nodes.get(id);
 	}
 
 	public Link getLink(String id) {
-		for (Link l : Links) {
-			if (l.getID().equals(id)) {
-				return l;
-			}
-		}
-		return null;
+		return Links.get(id);
 	}
 
 	public Variable getVariable(String id) {
-		for (Variable v : Variables) {
-			if (v.getID().equals(id)) {
-				return v;
-			}
-		}
-		return null;
+		return Variables.get(id);
 	}
 
 	public Link[] getOutputLinks() {
 		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
+		for (Link l : Links.values()) {
 			if (l.isOutputLink()) {
 				links.add(l);
 			}
@@ -965,14 +921,7 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Link[] getOutputLinks(Node n) {
-		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link l : Links) {
-			if (l.getOriginNode() != null && l.getOriginNode().equals(n)) {
-				links.add(l);
-			}
-		}
-    Collections.sort(links);	
-		return links.toArray(new Link[0]);
+	  return this.nodeOutputLinks.get(n.getID()).toArray(new Link[0]);
 	}
 
 	public Variable[] getOutputVariables() {
@@ -984,7 +933,7 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public Variable[] getVariables() {
-		return Variables;
+		return Variables.values().toArray(new Variable[0]);
 	}
 
 	private String createLinkId(Port fromPort, Port toPort, Variable var) {
@@ -1005,18 +954,24 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 	
 	public Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var) {
-	  String olid = this.createLinkId(fromPort, toPort, var);
-	    	
-		int i = 1;
-		String lid = olid;
-		while (getLink(lid) != null) {
-			lid = olid + "_" + String.format("%04d", i);
-			i++;
-		}
+	  return addLink(null, fromN, toN, fromPort, toPort, var);
+	}
+	
+	private Link addLink(String lid, Node fromN, Node toN, Port fromPort, Port toPort, Variable var) {
+	  if(lid == null) {
+  	  String olid = this.createLinkId(fromPort, toPort, var);
+  		int i = 1;
+  		lid = olid;
+  		while (getLink(lid) != null) {
+  			lid = olid + "_" + String.format("%04d", i);
+  			i++;
+  		}
+	  }
 
 		Link l = new Link(lid, fromN, toN, fromPort, toPort);
-		if (toN != null && toN.findInputPort(toPort.getID()) == null)
+		if (toN != null && toN.findInputPort(toPort.getID()) == null) {
 			toN.addInputPort(toPort);
+		}
 
 		if (fromN != null && fromN.findInputPort(fromPort.getID()) == null)
 			fromN.addOutputPort(fromPort);
@@ -1026,27 +981,57 @@ public class TemplateKB extends URIEntity implements Template {
 				addVariable(var);
 			l.setVariable(var);
 		}
-
-		Link[] links = new Link[Links.length + 1];
-		for (i = 0; i < Links.length; i++) {
-			links[i] = Links[i];
-		}
-		links[Links.length] = l;
-		Links = links;
+		this.addLinkMaps(l);
+		Links.put(lid, l);
 
 		return l;
 	}
+	
+	protected void addLinkMaps(Link l) {
+	  if(l.getOriginNode() != null) {
+	    TreeSet<Link> links = nodeOutputLinks.get(l.getOriginNode().getID());
+	    if(links == null)
+	      links = new TreeSet<Link>();
+	    links.add(l);
+	    nodeOutputLinks.put(l.getOriginNode().getID(), links);
+	  }
+    if(l.getDestinationNode() != null) {
+      TreeSet<Link> links = nodeInputLinks.get(l.getDestinationNode().getID());
+      if(links == null)
+        links = new TreeSet<Link>();
+      links.add(l);
+      nodeInputLinks.put(l.getDestinationNode().getID(), links);
+    }
+    if(l.getVariable() != null) {
+      TreeSet<Link> links = variableLinks.get(l.getVariable().getID());
+      if(links == null)
+        links = new TreeSet<Link>();
+      links.add(l);
+      variableLinks.put(l.getVariable().getID(), links);
+    }
+	}
+	
+	 private void removeLinkMaps(Link l) {
+	    if(l.getOriginNode() != null) {
+	      TreeSet<Link> links = nodeOutputLinks.get(l.getOriginNode().getID());
+	      if(links != null)
+	        links.remove(l);
+	    }
+	    if(l.getDestinationNode() != null) {
+	      TreeSet<Link> links = nodeInputLinks.get(l.getDestinationNode().getID());
+        if(links != null)
+          links.remove(l);
+	    }
+	    if(l.getVariable() != null) {
+	      TreeSet<Link> links = variableLinks.get(l.getVariable().getID());
+        if(links != null)
+          links.remove(l);
+	    }
+	  }
 
 	public void deleteLink(Link l) {
-		Link[] links = new Link[Links.length - 1];
-		int j = 0;
-		for (Link el : Links) {
-			if (!el.equals(l)) {
-				links[j] = el;
-				j++;
-			}
-		}
-		Links = links;
+	  Links.remove(l.getID());
+	  this.removeLinkMaps(l);
 
 		if (this.getLinks(l.getVariable()).length == 0) {
 			deleteVariable(l.getVariable());
@@ -1058,26 +1043,12 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	private void addVariable(Variable var) {
-		Variable[] variables = new Variable[Variables.length + 1];
-		for (int i = 0; i < Variables.length; i++) {
-			variables[i] = Variables[i];
-		}
-		variables[Variables.length] = var;
-		Variables = variables;
+	  Variables.put(var.getID(), var);
 	}
 
 	public void deleteVariable(Variable v) {
-		if (Variables.length == 0)
-			return;
-		Variable[] variables = new Variable[Variables.length - 1];
-		int j = 0;
-		for (Variable el : Variables) {
-			if (!el.equals(v)) {
-				variables[j] = el;
-				j++;
-			}
-		}
-		Variables = variables;
+	  Variables.remove(v.getID());
+	  variableLinks.remove(v.getID());
 	}
 
 	public Variable addVariable(String varid, short type) {
@@ -1098,7 +1069,15 @@ public class TemplateKB extends URIEntity implements Template {
 		this.addVariable(v);
 		return v;
 	}
-	
+
+	public void addNode(Node n) {
+	  this.Nodes.put(n.getID(),  n);
+	}
+
+	public void addLink(Link l) {
+	  this.addLinkMaps(l);
+	  this.Links.put(l.getID(),  l);
+  }
 	
 	public Node addNode(ComponentVariable c) {
 		String cid = c.getName();
@@ -1109,32 +1088,24 @@ public class TemplateKB extends URIEntity implements Template {
 			nid = nodeid + "_" + i;
 			i++;
 		}
-		Node n = new Node(nid);
+		return this.addNode(nid, c);
+	}
+	
+	
+	private Node addNode(String id, ComponentVariable c) {
+		Node n = new Node(id);
 		n.setComponentVariable(c);
-
-		Node[] nodes = new Node[Nodes.length + 1];
-		for (i = 0; i < Nodes.length; i++) {
-			nodes[i] = Nodes[i];
-		}
-		nodes[Nodes.length] = n;
-		Nodes = nodes;
-
+		Nodes.put(id, n);
 		// this.addDefaultSetCreationRulesForNode(n);
 		return n;
 	}
 
 	public void deleteNode(Node n) {
-		Node[] nodes = new Node[Nodes.length - 1];
-		int j = 0;
-		for (Node element : Nodes) {
-			if (!element.equals(n)) {
-				nodes[j] = element;
-				j++;
-			}
-		}
-		Nodes = nodes;
-
-		// Delete or Modify input/output links to/from the node
+	  Nodes.remove(n.getID());
+    this.nodeInputLinks.remove(n.getID());
+    this.nodeOutputLinks.remove(n.getID());
+    
+	  // Delete or Modify input/output links to/from the node
 		for (Link l : getInputLinks(n)) {
 			if (l.isInputLink()) {
 				deleteLink(l);
@@ -1189,7 +1160,7 @@ public class TemplateKB extends URIEntity implements Template {
 		t.setID(this.getID());
 		HashMap<Node, Node> map = new HashMap<Node, Node>();
 
-		for (Node e : Nodes) {
+		for (Node e : Nodes.values()) {
 			// Add New Nodes
 			ComponentVariable ev = e.getComponentVariable();
 			ComponentVariable cv;
@@ -1214,8 +1185,7 @@ public class TemplateKB extends URIEntity implements Template {
 			}
 			
 			// Copy node details
-			Node n = t.addNode(cv);
-			n.setID(e.getID());
+			Node n = t.addNode(e.getID(), cv);
 			n.setComment(e.getComment());
 			n.setInactive(e.isInactive());
 
@@ -1252,8 +1222,8 @@ public class TemplateKB extends URIEntity implements Template {
 		ArrayList<String> varids = new ArrayList<String>();
 
 		// Copy links
-		for (int i = 0; i < Links.length; i++) {
-			Link l = Links[i];
+		for (Link l : Links.values()) {
+		  String lid = l.getID();
 			Node fromNode = null, toNode = null;
 			Port fromPort = null, toPort = null;
 			if (l.getOriginNode() != null) {
@@ -1285,8 +1255,8 @@ public class TemplateKB extends URIEntity implements Template {
 				vv.setBreakpoint(v.isBreakpoint());
 			}
 			if (vv != null) {
-				Link ll = t.addLink(fromNode, toNode, fromPort, toPort, vv);
-				ll.setID(Links[i].getID());
+				Link ll = t.addLink(lid, fromNode, toNode, fromPort, toPort, vv);
+				ll.setID(lid);
 
 				varids.add(vv.getID());
 			}
@@ -1332,9 +1302,9 @@ public class TemplateKB extends URIEntity implements Template {
 		String closeParen = ")";
 		StringBuilder componentDescription = new StringBuilder();
 
-		int size = Nodes.length;
+		int size = Nodes.size();
 		int counter = 0;
-		for (Node node : Nodes) {
+		for (Node node : Nodes.values()) {
 			// String cname = this.getURIName(node.getComponent().getID());
 			String cname = node.getComponentVariable().toString();
 			componentDescription.append(cname);
@@ -1430,9 +1400,7 @@ public class TemplateKB extends URIEntity implements Template {
 				.getBytes()), this.getNamespace(), OntSpec.PLAIN);
 
 		if (includeDataConstraints) {
-			ArrayList<String> varids = new ArrayList<String>();
-			for (Variable v : Variables)
-				varids.add(v.getID());
+			ArrayList<String> varids = new ArrayList<String>(Variables.keySet());
 			tkb.addTriples(this.constraintEngine.getConstraints(varids));
 		}
 
@@ -1461,7 +1429,7 @@ public class TemplateKB extends URIEntity implements Template {
 		// If this template has no ontology backing it, then initialize the API
 		if(ontologyFactory == null || kb == null) {
 			this.initVariables(this.props);
-			this.initializeKB(this.props, this.Nodes.length == 0); 
+			this.initializeKB(this.props, this.Nodes.size() == 0); 
 		}
 		// Create a plain new KBAPI
 		KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
@@ -1589,7 +1557,7 @@ public class TemplateKB extends URIEntity implements Template {
 		KBObject tobj = tkb.createObjectOfClass(this.getID(), cmap.get("WorkflowTemplate"));
 
 		// Create the Nodes
-		for (Node n : Nodes) {
+		for (Node n : Nodes.values()) {
 			KBObject nobj = tkb.createObjectOfClass(n.getID(), cmap.get("Node"));
 			tkb.addPropertyValue(tobj, pmap.get("hasNode"), nobj);
 
@@ -1707,7 +1675,7 @@ public class TemplateKB extends URIEntity implements Template {
 		}
 
 		// Create Variables
-		for (Variable v : Variables) {
+		for (Variable v : Variables.values()) {
 			KBObject vobj = null;
 			if (v.isDataVariable()) {
 				vobj = tkb.createObjectOfClass(v.getID(), cmap.get("DataVariable"));
@@ -1740,7 +1708,7 @@ public class TemplateKB extends URIEntity implements Template {
 		}
 
 		// Create Links
-		for (Link l : Links) {
+		for (Link l : Links.values()) {
 			KBObject lc = null;
 			if (l.isInputLink())
 				lc = cmap.get("InputLink");
@@ -2035,7 +2003,7 @@ public class TemplateKB extends URIEntity implements Template {
     HashMap<String, Node> nodeidmap = new HashMap<String, Node>();
     HashMap<String, Variable> varidmap = new HashMap<String, Variable>();
     
-    for ( Node n : this.getNodes()) {
+    for ( Node n : this.Nodes.values()) {
       String nid = cleanID(n.getID());
       String ntext = n.getName();
       if(n.getMachineIds() != null && n.getMachineIds().size() > 0) {
@@ -2065,7 +2033,7 @@ public class TemplateKB extends URIEntity implements Template {
       nodeidmap.put(nid, n);
     }
 
-    for ( Variable v : this.getVariables()) {
+    for ( Variable v : this.Variables.values()) {
       String vid = cleanID(v.getID());
       String vtext = v.getName();
       if(v.getBinding() != null) {
@@ -2078,7 +2046,7 @@ public class TemplateKB extends URIEntity implements Template {
     }
 
     HashMap<String, Boolean> donelinks = new HashMap<String, Boolean>();
-    for ( Link l : this.getLinks()) {
+    for ( Link l : this.Links.values()) {
       if (l.getOriginPort() != null) {
         String lid = cleanID(l.getOriginNode().getID()) + ":" 
               + cleanID(l.getOriginPort().getID()) + " -> "

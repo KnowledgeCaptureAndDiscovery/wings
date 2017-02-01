@@ -107,7 +107,7 @@ public class ComponentKB {
 			this.ontologyFactory = new OntFactory(OntFactory.JENA, tdbRepository);
 		}
 		KBUtils.createLocationMappings(props, this.ontologyFactory);
-
+		
 		this.initializeAPI(create_writers, create_if_empty);
 	}
 	

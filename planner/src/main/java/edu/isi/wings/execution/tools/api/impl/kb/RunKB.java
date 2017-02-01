@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
+import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
@@ -452,12 +453,15 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	private void updateRuntimeInfo(KBAPI tkb, KBObject exobj, RuntimeInfo rinfo) {
-		tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
-				tkb.createLiteral(rinfo.getLog()));
-		tkb.setPropertyValue(exobj, dataPropMap.get("hasStartTime"),
-				tkb.createLiteral(rinfo.getStartTime()));
-		tkb.setPropertyValue(exobj, dataPropMap.get("hasEndTime"),
-				tkb.createLiteral(rinfo.getEndTime()));
+	  if(rinfo.getLog() != null)
+	    tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
+	        tkb.createLiteral(rinfo.getLog()));
+		if(rinfo.getStartTime() != null)
+		  tkb.setPropertyValue(exobj, dataPropMap.get("hasStartTime"),
+		      tkb.createLiteral(rinfo.getStartTime()));
+		if(rinfo.getEndTime() != null)
+		  tkb.setPropertyValue(exobj, dataPropMap.get("hasEndTime"),
+		      tkb.createLiteral(rinfo.getEndTime()));
 		if(rinfo.getStatus() != null)
 		  tkb.setPropertyValue(exobj, dataPropMap.get("hasExecutionStatus"),
 		      tkb.createLiteral(rinfo.getStatus().toString()));
@@ -501,8 +505,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           "No Specialized templates after planning");
 
     ArrayList<Template> bts = new ArrayList<Template>();
-    for(Template t : candidates)
-      bts.addAll(wg.selectInputDataObjects(t));
+    for(Template t : candidates) {
+      ArrayList<VariableBindingsList> bindings = wg.selectInputDataObjects(t);
+      for(VariableBindingsList binding : bindings)
+        bts.add(wg.bindTemplate(t, binding));     
+    }
     if(bts.size() == 0) 
       return this.setPlanError(planexe, 
           "No Bound templates after planning");

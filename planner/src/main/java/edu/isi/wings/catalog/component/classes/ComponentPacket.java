@@ -18,11 +18,14 @@
 package edu.isi.wings.catalog.component.classes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import edu.isi.wings.ontapi.KBTriple;
 import edu.isi.wings.workflow.template.classes.Role;
+import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.*;
 
 /**
@@ -44,7 +47,7 @@ public class ComponentPacket {
 	// Keep a reverse mapping
 	private LinkedHashMap<Variable, Role> variableMap;
 	// Reasoner explanations (provided by component catalog)
-	private ArrayList<String> explanations;
+	private HashSet<String> explanations;
 	// If the reasoner marked this ComponentDetails packet as invalid
 	public boolean isInvalid;
 	
@@ -56,7 +59,7 @@ public class ComponentPacket {
 		this.roleMap = new LinkedHashMap<Role, Variable>(roleMap);
 		this.variableMap = createReverseMap(roleMap);
 		this.requirements = requirements;
-		this.explanations = new ArrayList<String>();
+		this.explanations = new HashSet<String>();
 		inputRoles = new ArrayList<String>();
 		this.isInvalid = false;
 	}
@@ -177,7 +180,7 @@ public class ComponentPacket {
 	 *            The reasoning explaining the contents of this CMR (usually
 	 *            returned from the Catalog)
 	 */
-	public void addExplanations(ArrayList<String> explanations) {
+	public void addExplanations(HashSet<String> explanations) {
 		this.explanations.addAll(explanations);
 	}
 
@@ -209,7 +212,7 @@ public class ComponentPacket {
 	 * @return The reasoning explaining the contents of this CMR (usually
 	 *         returned from the Catalog)
 	 */
-	public ArrayList<String> getExplanations() {
+	public HashSet<String> getExplanations() {
 		return this.explanations;
 	}
 
@@ -235,7 +238,53 @@ public class ComponentPacket {
 
 	@Override
 	public String toString() {
-		return "ComponentDetails{" + "component=" + component + ", roleMap=" + roleMap
+		return "ComponentDetails{invalid=" + this.isInvalid 
+		    + ",component=" + component + ", roleMap=" + roleMap
 				+ ", requirements=" + requirements + '}';
 	}
+	
+  public String toKey() {
+    ArrayList<String> metricstrs = new ArrayList<String>();
+    ArrayList<String> rolestrs = new ArrayList<String>();
+    for(Role role : roleMap.keySet()) {
+      Variable v = roleMap.get(role);
+      String rolekey = role.getName() + "=" + v.getName();
+      String metricskey = "";
+      if(v.isParameterVariable()) {
+        rolekey += "(" + v.getBinding() + ")";
+        rolestrs.add(rolekey);
+      }
+      else if(v.isDataVariable() && v.getBinding() != null) {
+        for(String prop : v.getBinding().getMetrics().getMetrics().keySet()) {
+          v.getBinding().getMetrics().getMetrics().get(prop);
+        }
+        metricskey += "{" + v.getName() + ":" + v.getBinding().getMetrics() + "}";
+        metricstrs.add(metricskey);
+      }
+    }
+    metricstrs.sort(null);
+    rolestrs.sort(null);
+    return component.getBinding() + rolestrs.toString() + metricstrs.toString();
+  }
+  
+  public ComponentPacket clone() {
+    // Clone the packet
+    // We just need to have separate variable bindings
+    HashMap<Role, Variable> roleMap = this.getRoleMap();
+    HashMap<Role, Variable> sendMap = new HashMap<Role, Variable>();
+
+    for (Role r : roleMap.keySet()) {
+      Variable var = roleMap.get(r);
+      Variable sendVar = new Variable(var.getID(), var.getVariableType());
+      sendVar.setBreakpoint(var.isBreakpoint());
+      if (var.getBinding() != null)
+        sendVar.setBinding((Binding) var.getBinding().clone());
+      sendMap.put(r, sendVar);
+    }
+    ComponentPacket pthis = new ComponentPacket(this.getComponent(), sendMap,
+        this.getRequirements());
+    pthis.addExplanations(this.getExplanations());
+    pthis.setInvalidFlag(this.getInvalidFlag());
+    return pthis;
+  }
 }

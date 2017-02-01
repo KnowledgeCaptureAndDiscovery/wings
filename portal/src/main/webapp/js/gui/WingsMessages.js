@@ -23,9 +23,11 @@ function getWingsDebugOutput(data) {
 }
 
 function getWingsExplanation(data) {
-	data.explanations = Ext.Array.unique(data.explanations);
+	//data.explanations = Ext.Array.unique(data.explanations);
     for (var i = 0; i < data.explanations.length; i++) {
         // Replace urls with local names
+    	if(data.explanations[i] == null)
+    		continue;
         data.explanations[i] = data.explanations[i].replace(/http.*?#/g, '');
         data.explanations[i] = data.explanations[i].replace(/\^\^\w+/g, '');
     }
@@ -162,7 +164,7 @@ function formatTemplateSummary(value, meta, record, rowind, colind, store) {
     var tpl = record.data.field1.template;
     var time = record.data.field1.time;
     var numJobs = {};
-    for (var i = 0; i < tpl.Nodes.length; i++) {
+    for (var i in tpl.Nodes) {
     	if(tpl.Nodes[i].inactive)
     		continue;
         var jobname = getLocalName(tpl.Nodes[i].componentVariable.binding.id);
@@ -182,9 +184,6 @@ function formatTemplateSummary(value, meta, record, rowind, colind, store) {
         s += "<li>" + job + " : " + num + " job" + (num > 1 ? "s": "") + "</li>";
     }
     s += "</ul>";
-    //s += "<li>" + tpl.Nodes.length + " jobs</li>";
-    //s += "<li>" + tpl.Variables.length + " files</li>";
-    //s += "<li>" + tpl.Links.length + " links</li>";
     return s;
 }
 
@@ -245,8 +244,9 @@ function showWingsBindings(data, title, formItems, type) {
     }
     
     var myStore = new Ext.data.Store({
+    	pageSize: 50,
     	proxy: {
-    		type: 'memory',
+    		type: 'pagingmemory',
             reader: {
                 type: 'json',
                 useSimpleAccessors: true
@@ -254,7 +254,7 @@ function showWingsBindings(data, title, formItems, type) {
     	},
         fields: fields,
         sorters: fields.length > 0 ? [fields[0].name] : [],
-        autoLoad: true,
+        autoLoad: false,
         data: nbindings
     });
 
@@ -317,8 +317,16 @@ function showWingsBindings(data, title, formItems, type) {
                 }
                 win.close();
             }
-        }]
-        });
+        }],
+        // paging bar on the bottom
+        bbar: Ext.create('Ext.PagingToolbar', {
+            store: myStore,
+            displayInfo: true,
+            displayMsg: 'Displaying Suggestions {0} - {1} of {2}',
+            emptyMsg: "No suggestions to display",
+            inputItemWidth: 35
+        }),        
+    });
 
     var explanationsGrid = getWingsExplanation(data);
     explanationsGrid.on("expand", function() {
@@ -519,8 +527,8 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
         // Show the template on selection in grid
         var tstore = rec.raw[0];
         var varMaps = [];
-        for (var i = 0; i < tstore.template.Variables.length; i++)
-            varMaps[tstore.template.Variables[i].id] = 1;
+        for (var id in tstore.template.Variables)
+            varMaps[id] = 1;
         
         var storetid = tstore.template.id;
         var gridPanel = templatePanel.down('#grid');
@@ -530,7 +538,10 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
 
         var graph = templatePanel.down('#graph');
 
-        if (tstore.template.Links.length > MAX_LINKS) {
+        var numlinks = 0;
+        for(var i in tstore.template.Links)
+        	numlinks ++;
+        if (numlinks > MAX_LINKS) {
             graph.editor.clearCanvas();
             alert("This graph is too big to display");
             return;

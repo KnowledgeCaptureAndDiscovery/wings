@@ -18,7 +18,6 @@
 package edu.isi.wings.catalog.data.classes;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import edu.isi.wings.ontapi.KBObject;
 
@@ -32,7 +31,7 @@ public class VariableBindings {
 	/**
 	 * dataObjects from the dc namespace
 	 */
-	public HashSet<KBObject> dataObjects = new HashSet<KBObject>();
+	public ArrayList<KBObject> dataObjects = new ArrayList<KBObject>();
 
 	public VariableBindings() {
 	}
@@ -85,7 +84,7 @@ public class VariableBindings {
 	 * 
 	 * @return Value for property 'dataObjects'.
 	 */
-	public HashSet<KBObject> getDataObjects() {
+	public ArrayList<KBObject> getDataObjects() {
 		return dataObjects;
 	}
 
@@ -95,7 +94,7 @@ public class VariableBindings {
 	 * @param dataObject
 	 *            Value to set for property 'dataObjects'.
 	 */
-	public void setDataObjects(HashSet<KBObject> dataObjects) {
+	public void setDataObjects(ArrayList<KBObject> dataObjects) {
 		this.dataObjects = dataObjects;
 	}
 

@@ -135,7 +135,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     if (!me.checkValidity(op, ''))
                         return false;
                     var cbindings = me.getComponentBindings();
-                    var title = 'Suggested Data for ' + me.template_id;
+                    var tname = getLocalName(me.template_id);
+                    var title = 'Suggested Data for ' + tname;
                     me.getForm().submit({
                         url: me.plan_url + "/" + op,
                         params: {
@@ -169,7 +170,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     if (!me.checkValidity(op, 'Please fill in all Data fields before querying for Parameters'))
                         return false;
                     var cbindings = me.getComponentBindings();
-                    var title = 'Suggested Parameters for ' + me.template_id;
+                    var tname = getLocalName(me.template_id);
+                    var title = 'Suggested Parameters for ' + tname;
                     me.getForm().submit({
                         url: me.plan_url + "/" + op,
                         params: {
@@ -197,7 +199,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
 				op = 'getComponents';
 				var cbindings = me.getComponentBindings();
 				if(!me.checkValidity(op,'Please fill in all fields before querying for Components')) return false;
-				var title = 'Suggested Components for '+me.template_id;
+				var tname = getLocalName(me.template_id);
+				var title = 'Suggested Components for '+tname;
 				me.getForm().submit(
 						{
 							submitEmptyText: false,
