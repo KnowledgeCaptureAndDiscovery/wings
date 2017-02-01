@@ -114,7 +114,9 @@ public interface Template extends Serializable {
 	void deleteNode(Node n);
 
 	Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var);
-
+	
+	void updateLinkDetails(Link l);
+	
 	void deleteLink(Link l);
 
 	void setVariableBinding(Variable v, Binding b);

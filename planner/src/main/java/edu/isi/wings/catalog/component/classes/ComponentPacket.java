@@ -242,30 +242,6 @@ public class ComponentPacket {
 		    + ",component=" + component + ", roleMap=" + roleMap
 				+ ", requirements=" + requirements + '}';
 	}
-	
-  public String toKey() {
-    ArrayList<String> metricstrs = new ArrayList<String>();
-    ArrayList<String> rolestrs = new ArrayList<String>();
-    for(Role role : roleMap.keySet()) {
-      Variable v = roleMap.get(role);
-      String rolekey = role.getName() + "=" + v.getName();
-      String metricskey = "";
-      if(v.isParameterVariable()) {
-        rolekey += "(" + v.getBinding() + ")";
-        rolestrs.add(rolekey);
-      }
-      else if(v.isDataVariable() && v.getBinding() != null) {
-        for(String prop : v.getBinding().getMetrics().getMetrics().keySet()) {
-          v.getBinding().getMetrics().getMetrics().get(prop);
-        }
-        metricskey += "{" + v.getName() + ":" + v.getBinding().getMetrics() + "}";
-        metricstrs.add(metricskey);
-      }
-    }
-    metricstrs.sort(null);
-    rolestrs.sort(null);
-    return component.getBinding() + rolestrs.toString() + metricstrs.toString();
-  }
   
   public ComponentPacket clone() {
     // Clone the packet

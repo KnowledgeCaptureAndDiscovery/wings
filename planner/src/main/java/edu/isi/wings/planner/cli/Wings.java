@@ -222,13 +222,15 @@ public class Wings {
 		ArrayList<Template> boundWorkflows = new ArrayList<Template>();
 		for (Template candidateWorkflow : candidateWorkflows) {
       ArrayList<VariableBindingsList> bindings = wg.selectInputDataObjects(candidateWorkflow);
-      for(VariableBindingsList binding : bindings) {
-        Template partial = wg.bindTemplate(candidateWorkflow, binding);  		  
-				partial.setCreatedFrom(candidateWorkflow);
-				partial.getMetadata().addCreationSource(
-						candidateWorkflow.getCreatedFrom().getName() + "(Bound)");
-				boundWorkflows.add(partial);
-			}
+      if(bindings != null) {
+        for(VariableBindingsList binding : bindings) {
+          Template partial = wg.bindTemplate(candidateWorkflow, binding);  		  
+  				partial.setCreatedFrom(candidateWorkflow);
+  				partial.getMetadata().addCreationSource(
+  						candidateWorkflow.getCreatedFrom().getName() + "(Bound)");
+  				boundWorkflows.add(partial);
+  			}
+      }
 		}
 
 		logger.info(event.createLogMsg().addWQ(

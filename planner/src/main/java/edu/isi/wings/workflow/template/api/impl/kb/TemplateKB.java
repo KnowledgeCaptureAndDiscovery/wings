@@ -953,6 +953,11 @@ public class TemplateKB extends URIEntity implements Template {
 		return lid;
 	}
 	
+	public void updateLinkDetails(Link l) {
+	  this.removeLinkMaps(l);
+	  this.addLinkMaps(l);
+	}
+
 	public Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var) {
 	  return addLink(null, fromN, toN, fromPort, toPort, var);
 	}
@@ -1011,23 +1016,23 @@ public class TemplateKB extends URIEntity implements Template {
     }
 	}
 	
-	 private void removeLinkMaps(Link l) {
-	    if(l.getOriginNode() != null) {
-	      TreeSet<Link> links = nodeOutputLinks.get(l.getOriginNode().getID());
-	      if(links != null)
-	        links.remove(l);
-	    }
-	    if(l.getDestinationNode() != null) {
-	      TreeSet<Link> links = nodeInputLinks.get(l.getDestinationNode().getID());
-        if(links != null)
-          links.remove(l);
-	    }
-	    if(l.getVariable() != null) {
-	      TreeSet<Link> links = variableLinks.get(l.getVariable().getID());
-        if(links != null)
-          links.remove(l);
-	    }
+	private void removeLinkMaps(Link l) {
+	  if(l.getOriginNode() != null) {
+	    TreeSet<Link> links = nodeOutputLinks.get(l.getOriginNode().getID());
+	    if(links != null)
+	      links.remove(l);
 	  }
+	  if(l.getDestinationNode() != null) {
+	    TreeSet<Link> links = nodeInputLinks.get(l.getDestinationNode().getID());
+	    if(links != null)
+	      links.remove(l);
+	  }
+	  if(l.getVariable() != null) {
+	    TreeSet<Link> links = variableLinks.get(l.getVariable().getID());
+	    if(links != null)
+	      links.remove(l);
+	  }
+	}
 
 	public void deleteLink(Link l) {
 	  Links.remove(l.getID());
@@ -1102,9 +1107,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 	public void deleteNode(Node n) {
 	  Nodes.remove(n.getID());
-    this.nodeInputLinks.remove(n.getID());
-    this.nodeOutputLinks.remove(n.getID());
-    
+
 	  // Delete or Modify input/output links to/from the node
 		for (Link l : getInputLinks(n)) {
 			if (l.isInputLink()) {
@@ -1114,6 +1117,8 @@ public class TemplateKB extends URIEntity implements Template {
 				l.setDestinationPort(null);
 			}
 		}
+    this.nodeInputLinks.remove(n.getID());
+    
 		for (Link l : getOutputLinks(n)) {
 			if (l.isOutputLink()) {
 				deleteLink(l);
@@ -1122,6 +1127,7 @@ public class TemplateKB extends URIEntity implements Template {
 				l.setOriginPort(null);
 			}
 		}
+    this.nodeOutputLinks.remove(n.getID());
 	}
 
 	public void setVariableBinding(Variable v, Binding b) {

@@ -1526,6 +1526,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 											if(l.getDestinationNode() == null) {
 												l.setDestinationNode(newNode);
 												l.setDestinationPort(newPort);
+												curt.updateLinkDetails(l);
 											}
 											else {
 												Link curl = curt.getLink(l.getOriginNode(), newNode,  l.getOriginPort(), newPort);
