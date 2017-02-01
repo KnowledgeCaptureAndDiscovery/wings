@@ -21,6 +21,7 @@ import java.util.Date;
 
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
+import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 
@@ -98,6 +99,7 @@ public class RuntimePlan extends URIEntity {
 	}
 	
 	public void abort() {
+	  this.runtimeInfo.setStatus(Status.FAILURE);
 		for(RuntimeStep exe : this.getQueue().getRunningSteps()) {
 			exe.abort();
 		}

@@ -126,6 +126,7 @@ public class JsonHandler {
 				l.setDestinationNode(tpl.getNode(l.getDestinationNode().getID()));
 			}
 			l.setVariable(tpl.getVariable(l.getVariable().getID()));
+			tpl.updateLinkDetails(l);
 		}
 	}
 	

@@ -136,8 +136,15 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void onStepEnd(RuntimePlan exe) {
+	  // If aborted, shut it down
+	  if(exe.getRuntimeInfo().getStatus() == Status.FAILURE) {
+	    exe.onEnd(this.logger, Status.FAILURE, "Finished");
+      this.shutdown();
+      return;
+	  }
+	  
 		ArrayList<RuntimeStep> steps = exe.getQueue().getNextStepsToExecute();
-		if(steps.size() == 0) {
+		if(steps.size() == 0 ) {
 			// Nothing to execute. Check if finished
 			if(exe.getQueue().getRunningSteps().size() == 0 &&
 			    exe.getQueue().getQueuedSteps().size() == 0) {

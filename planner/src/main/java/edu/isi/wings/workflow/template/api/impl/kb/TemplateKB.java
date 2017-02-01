@@ -74,18 +74,14 @@ public class TemplateKB extends URIEntity implements Template {
 
 	protected String onturl;
 	protected String wflowns;
-
 	
 	private HashMap<String, Node> Nodes = new HashMap<String, Node>();
 	private HashMap<String, Link> Links = new HashMap<String, Link>();
 	private HashMap<String, Variable> Variables = new HashMap<String, Variable>();
 	
-	private transient HashMap<String, TreeSet<Link>> nodeInputLinks = 
-	    new HashMap<String, TreeSet<Link>>();
-  private transient HashMap<String, TreeSet<Link>> nodeOutputLinks = 
-      new HashMap<String, TreeSet<Link>>();
-  private transient HashMap<String, TreeSet<Link>> variableLinks = 
-      new HashMap<String, TreeSet<Link>>();  
+	private transient HashMap<String, TreeSet<Link>> nodeInputLinks;
+  private transient HashMap<String, TreeSet<Link>> nodeOutputLinks;
+  private transient HashMap<String, TreeSet<Link>> variableLinks;
 
 	// Map of variable ids to template roles
 	private HashMap<String, Role> inputRoles = new HashMap<String, Role>();
@@ -107,12 +103,14 @@ public class TemplateKB extends URIEntity implements Template {
 
 	public TemplateKB(String id) {
 		super(id);
+		this.initMaps();
 	}
 
 	// This constructor loads in a template from a url
 	public TemplateKB(Properties props, String id) {
 		super(id);
 		this.props = props;
+		this.initMaps();
 		this.initVariables(props);
 		this.initializeKB(props);
 		this.readTemplate();
@@ -122,6 +120,7 @@ public class TemplateKB extends URIEntity implements Template {
 	public TemplateKB(Properties props, String id, boolean createNew) {
 		super(id);
 		this.props = props;
+		this.initMaps();
 		this.initVariables(props);
 		this.initializeKB(props, false);
 		kb.createObjectOfClass(this.getID(), kb.getConcept(wflowns + "WorkflowTemplate"));
@@ -133,7 +132,13 @@ public class TemplateKB extends URIEntity implements Template {
 		this.onturl = props.getProperty("ont.workflow.url");
 		this.wflowns = this.onturl + "#";
 		propertyObjMap = new HashMap<String, KBObject>();
-		conceptObjMap = new HashMap<String, KBObject>();
+		conceptObjMap = new HashMap<String, KBObject>(); 		
+	}
+	
+	protected void initMaps() {
+    nodeInputLinks = new HashMap<String, TreeSet<Link>>();
+    nodeOutputLinks = new HashMap<String, TreeSet<Link>>();
+    variableLinks = new HashMap<String, TreeSet<Link>>(); 	  
 	}
 	
 	protected void initializeKB(Properties props) {
@@ -171,6 +176,7 @@ public class TemplateKB extends URIEntity implements Template {
 	public TemplateKB(TemplateKB t) {
 		super(t.getID());
 		this.props = t.props;
+		this.initMaps();
 		this.initVariables(this.props);
 		
 		copyBookkeepingInfo(t);
@@ -954,6 +960,8 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 	
 	public void updateLinkDetails(Link l) {
+    if(this.nodeInputLinks == null)
+      this.initMaps();	  
 	  this.removeLinkMaps(l);
 	  this.addLinkMaps(l);
 	}
