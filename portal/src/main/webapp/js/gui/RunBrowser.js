@@ -846,7 +846,8 @@ RunBrowser.prototype.getRunList = function() {
 
 RunBrowser.prototype.selectRunInList = function(runid) {
 	var This = this;
-	//this.runList.getSelectionModel().deselectAll();
+	if(!runid)
+		this.runList.getSelectionModel().deselectAll();
 	this.runList.getStore().each(function(rec) {
 		if (rec.data.id == runid)
 			This.runList.getSelectionModel().select([

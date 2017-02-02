@@ -95,7 +95,7 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     }
     KBUtils.createLocationMappings(this.props, fac);
 
-    KBAPI kb = fac.getKB(this.getURL(), OntSpec.MICRO);
+    KBAPI kb = fac.getKB(this.getURL(), OntSpec.PLAIN);
     kb.importFrom(fac.getKB(wfinst, OntSpec.PLAIN, true));
     kb.importFrom(fac.getKB(pplan, OntSpec.PLAIN, true));
     kb.importFrom(fac.getKB(wfont, OntSpec.PLAIN, true, true));
