@@ -82,6 +82,22 @@ public class WingsSet extends ArrayList<WingsSet> {
 			this.add(child);
 		}
 	}
+	
+	public void reduceDimensionBy(int decrease) {
+	  for(int j=0; j<decrease; j++) {
+  	  WingsSet[] children = this.toArray(new WingsSet[0]);
+  	  for(int i=0; i<children.length; i++) {
+  	    WingsSet child = children[i];
+  	    if(child.getMaxDimension() == 1) {
+  	      this.remove(child);
+  	      this.addAll(child);
+  	    }
+  	    else {
+  	      child.reduceDimensionBy(1);
+  	    }
+  	  }
+	  }
+	}
 
 	public void shift() {
 		if (!isSet())
@@ -94,9 +110,7 @@ public class WingsSet extends ArrayList<WingsSet> {
 	}
 
 	public boolean isSet() {
-		if (!isEmpty())
-			return true;
-		return false;
+	  return !isEmpty();
 	}
 
 	public Object getValue() {

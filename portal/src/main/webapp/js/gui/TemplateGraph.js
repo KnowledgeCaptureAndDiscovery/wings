@@ -583,16 +583,20 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 
 	selectItem : function(item, scrollTo) {
 		if (typeof (item) == "string") {
-			var item = this.template.variables[item];
+			var itemid = this.template.ns + item;
+			var item = this.template.variables[itemid];
 			if (!item)
-				item = this.template.nodes[item];
+				item = this.template.nodes[itemid];
 		}
 		if (item) {
 			this.template_layer.selectedItems = [
 				item
 			];
-			if (scrollTo)
-				this.scrollTo(item.x, item.y);
+			if (scrollTo) {
+				this.scrollTo(item.x - 
+						(this.panelWidth/2 - item.width)/this.canvas.scale, 
+						item.y - 20 );
+			}
 			this.redrawCanvas();
 			this.showSelectedItemInfo();
 		}

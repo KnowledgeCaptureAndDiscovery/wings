@@ -26,7 +26,9 @@ import java.util.Properties;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
+import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.catalog.resource.ResourceFactory;
+import edu.isi.wings.common.CollectionsHelper;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.execution.engine.classes.ExecutionQueue;
@@ -506,9 +508,16 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
     ArrayList<Template> bts = new ArrayList<Template>();
     for(Template t : candidates) {
-      ArrayList<VariableBindingsList> bindings = wg.selectInputDataObjects(t);
-      for(VariableBindingsList binding : bindings)
-        bts.add(wg.bindTemplate(t, binding));     
+      VariableBindingsListSet bindingset = wg.selectInputDataObjects(t);
+      if(bindingset != null) {
+        ArrayList<VariableBindingsList> bindings = 
+            CollectionsHelper.combineVariableDataObjectMappings(bindingset);
+        for(VariableBindingsList binding : bindings) {
+          Template bt = wg.bindTemplate(t, binding);
+          if(bt != null)
+            bts.add(bt);
+        }
+      }
     }
     if(bts.size() == 0) 
       return this.setPlanError(planexe, 

@@ -24,8 +24,10 @@ import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
+import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
+import edu.isi.wings.common.CollectionsHelper;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.kb.PropertiesHelper;
 import edu.isi.wings.common.logging.LogEvent;
@@ -221,14 +223,19 @@ public class Wings {
 		// wg.setCurrentLogEvent(event);
 		ArrayList<Template> boundWorkflows = new ArrayList<Template>();
 		for (Template candidateWorkflow : candidateWorkflows) {
-      ArrayList<VariableBindingsList> bindings = wg.selectInputDataObjects(candidateWorkflow);
-      if(bindings != null) {
+		  VariableBindingsListSet bindingset = wg.selectInputDataObjects(candidateWorkflow);
+      if(bindingset != null) {
+        ArrayList<VariableBindingsList> bindings = 
+            CollectionsHelper.combineVariableDataObjectMappings(bindingset);
+        // TODO : Trim if the bindings are too many
         for(VariableBindingsList binding : bindings) {
-          Template partial = wg.bindTemplate(candidateWorkflow, binding);  		  
-  				partial.setCreatedFrom(candidateWorkflow);
-  				partial.getMetadata().addCreationSource(
-  						candidateWorkflow.getCreatedFrom().getName() + "(Bound)");
-  				boundWorkflows.add(partial);
+          Template partial = wg.bindTemplate(candidateWorkflow, binding);
+          if(partial != null) {
+    				partial.setCreatedFrom(candidateWorkflow);
+    				partial.getMetadata().addCreationSource(
+    						candidateWorkflow.getCreatedFrom().getName() + "(Bound)");
+    				boundWorkflows.add(partial);
+          }
   			}
       }
 		}

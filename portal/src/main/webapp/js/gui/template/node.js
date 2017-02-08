@@ -202,10 +202,10 @@ Node.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 	ctx.strokeStyle = this.getForegroundColor();
 	if (this.dim) {
 		var tmpstyle = ctx.fillStyle;
-		var len = 2;
+		var len = parseInt(this.dim);;
 		this.enableShadow(ctx);
 		ctx.lineWidth = this.lineWidth;
-		for ( var i = len; i >= 1; i--) {
+		for ( var i = len; i > 0; i--) {
 			ctx.beginPath();
 			this.drawParallelogram(ctx, x + i * 3, y + i * 3, width, height, 4);
 			ctx.closePath();

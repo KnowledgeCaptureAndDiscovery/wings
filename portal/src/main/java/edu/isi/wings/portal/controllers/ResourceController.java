@@ -49,7 +49,7 @@ public class ResourceController {
     this.guid = guid;
     this.config = config;
     this.isSandboxed = config.isSandboxed();
-    json = JsonHandler.createPrettyGson();
+    json = JsonHandler.createGson();
     this.props = config.getProperties();
 
     api = ResourceFactory.getAPI(props);

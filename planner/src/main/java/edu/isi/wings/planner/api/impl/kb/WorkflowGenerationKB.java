@@ -26,6 +26,7 @@ import edu.isi.wings.catalog.component.classes.ComponentPacket;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
+import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
@@ -211,134 +212,154 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
 
 				Link currentLink = links.remove(0);
-				if (currentLink.isInputLink()) {
-					// continue;
-					// no op
+				if (currentLink.isInputLink()) 
+				  continue;
+
+				Node originNode = currentLink.getOriginNode();
+
+				roleMap.put(currentLink.getOriginPort().getRole(), currentLink.getVariable());
+
+				ArrayList<String> variableIds = new ArrayList<String>();
+				Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
+
+				// Check that the node does not have any outputs to any unprocessed nodes
+				boolean comebacklater = false;
+				for (Link outputLink : outputLinks) {
+				  if(outputLink.getDestinationNode() != null &&
+				      !nodesDone.contains(outputLink.getDestinationNode().getID())) {
+				    comebacklater = true;
+				    break;
+				  }
+				}
+				if(comebacklater) {
+				  links.add(currentLink);
+				  continue;
+				}
+        
+				// Remove node's output links from processing queue
+				for (Link outputLink : outputLinks) {
+				  Variable variable = outputLink.getVariable();
+				  roleMap.put(outputLink.getOriginPort().getRole(), variable);
+				  variableIds.add(variable.getID());
+				  links.remove(outputLink);
+				}
+        
+				// Add node's input links to processing queue
+				Link[] inputLinks = currentTemplate.getInputLinks(originNode);
+				for (Link inputLink : inputLinks) {
+				  Variable variable = inputLink.getVariable();
+				  roleMap.put(inputLink.getDestinationPort().getRole(), variable);
+				  variableIds.add(variable.getID());
+				  links.add(inputLink);
+				}
+        
+        // Skip if node has been processed already
+        if (nodesDone.contains(originNode.getID())) {
+          continue;
+        }
+        
+				ArrayList<KBTriple> redBox = currentTemplate.getConstraintEngine()
+				    .getConstraints(variableIds);
+
+				ComponentVariable component = originNode.getComponentVariable();
+				if (component.isTemplate())
+				  pc = this.tc;
+				else
+				  pc = this.pc;
+
+				ComponentPacket sentMapsComponentDetails = new ComponentPacket(component,
+				    roleMap, redBox);
+
+				if (logger.isInfoEnabled()) {
+				  HashMap<String, Object> args = new HashMap<String, Object>();
+				  args.put("component", component);
+				  args.put("roleMap", roleMap);
+				  args.put("redBox", redBox);
+				  logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "2.1")
+				      .addMap(LogEvent.QUERY_ARGUMENTS, args));
+				}
+
+				this.addExplanation("INFO: Specialize and get input metadata for component: " 
+				    + component.getBinding());
+				//System.out.println("Specializing " + component.getBinding());
+				ArrayList<ComponentPacket> allcmrs = pc
+				    .specializeAndFindDataDetails(sentMapsComponentDetails);
+
+				ArrayList<ComponentPacket> componentDetailsList = new ArrayList<ComponentPacket>();
+				for (ComponentPacket cmr : allcmrs) {
+				  this.addExplanations(cmr.getExplanations());
+				  if (!cmr.getInvalidFlag())
+				    componentDetailsList.add(cmr);
+				  else {
+				    // Template t = currentTemplate.createCopy();
+				    // rejectedTemplates.add(t);
+				  }
+				}
+				//System.out.println("- Returning "+componentDetailsList.size());
+        
+				if (componentDetailsList.isEmpty()) {
+				  logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "2.1")
+				      .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
+				  currentTemplate = null;
+				  break;
 				} else {
-					roleMap.put(currentLink.getOriginPort().getRole(), currentLink.getVariable());
-					ArrayList<String> variableIds = new ArrayList<String>();
-					Node originNode = currentLink.getOriginNode();
+				  if (logger.isInfoEnabled()) {
+				    ArrayList<ComponentVariable> components = new ArrayList<ComponentVariable>();
+				    for (ComponentPacket componentMapsAndRequirement : componentDetailsList) {
+				      components.add(componentMapsAndRequirement.getComponent());
+				    }
+				    logger.info(event
+				        .createLogMsg()
+				        .addWQ(LogEvent.QUERY_NUMBER, "2.1")
+				        .addList(LogEvent.QUERY_RESPONSE + ".components",
+				            components));
+				  }
 
-					Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
-					for (Link outputLink : outputLinks) {
-						Variable variable = outputLink.getVariable();
-						roleMap.put(outputLink.getOriginPort().getRole(), variable);
-						variableIds.add(variable.getID());
-						links.remove(outputLink);
-					}
-
-					Link[] inputLinks = currentTemplate.getInputLinks(originNode);
-					for (Link inputLink : inputLinks) {
-						Variable variable = inputLink.getVariable();
-						roleMap.put(inputLink.getDestinationPort().getRole(), variable);
-						variableIds.add(variable.getID());
-						links.add(inputLink);
-					}
-
-					if (nodesDone.contains(originNode.getID())) {
-						// continue;
-						// no op
-					} else {
-						ArrayList<KBTriple> redBox = currentTemplate.getConstraintEngine()
-								.getConstraints(variableIds);
-
-						ComponentVariable component = originNode.getComponentVariable();
-						if (component.isTemplate())
-							pc = this.tc;
-						else
-							pc = this.pc;
-
-						ComponentPacket sentMapsComponentDetails = new ComponentPacket(component,
-								roleMap, redBox);
-
-						if (logger.isInfoEnabled()) {
-							HashMap<String, Object> args = new HashMap<String, Object>();
-							args.put("component", component);
-							args.put("roleMap", roleMap);
-							args.put("redBox", redBox);
-							logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "2.1")
-									.addMap(LogEvent.QUERY_ARGUMENTS, args));
-						}
-						
-						this.addExplanation("INFO: Specialize component, get input metadata for component: " 
-						    + component.getBinding());
-						ArrayList<ComponentPacket> allcmrs = pc
-								.specializeAndFindDataDetails(sentMapsComponentDetails);
-						ArrayList<ComponentPacket> componentDetailsList = new ArrayList<ComponentPacket>();
-						for (ComponentPacket cmr : allcmrs) {
-							this.addExplanations(cmr.getExplanations());
-							if (!cmr.getInvalidFlag())
-								componentDetailsList.add(cmr);
-							else {
-								// Template t = currentTemplate.createCopy();
-								// rejectedTemplates.add(t);
-							}
-						}
-
-						if (componentDetailsList.isEmpty()) {
-							logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "2.1")
-									.addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
-							currentTemplate = null;
-							break;
-						} else {
-							if (logger.isInfoEnabled()) {
-								ArrayList<ComponentVariable> components = new ArrayList<ComponentVariable>();
-								for (ComponentPacket componentMapsAndRequirement : componentDetailsList) {
-									components.add(componentMapsAndRequirement.getComponent());
-								}
-								logger.info(event
-										.createLogMsg()
-										.addWQ(LogEvent.QUERY_NUMBER, "2.1")
-										.addList(LogEvent.QUERY_RESPONSE + ".components",
-												components));
-							}
-
-							nodesDone.add(originNode.getID());
-							done.put(currentTemplate, nodesDone);
-
-							// note this is over the rest of the cmrs
-							ComponentSetCreationRule crule = originNode.getComponentSetRule();
-							if (crule == null || crule.getType() == SetType.WTYPE) {
-								for (int i = 1; i < componentDetailsList.size(); i++) {
-									ComponentPacket cmr = componentDetailsList.get(i);
-									this.addExplanations(cmr.getExplanations());
-									Template specializedTemplate = currentTemplate.createCopy();
-									specializedTemplate.setID(
-											UuidGen.generateURIUuid((URIEntity)currentTemplate));
-									Node specializedNode = specializedTemplate.getNode(originNode
-											.getID());
-									boolean ok = this.modifyTemplate(specializedTemplate,
-											specializedNode,
-											new ComponentPacket[] { componentDetailsList.get(i) });
-									if (ok) {
-										templates.add(specializedTemplate);
-									}
-									done.put(specializedTemplate, new ArrayList<String>(nodesDone));
-								}
-								ComponentPacket firstCmr = componentDetailsList.get(0);
-								boolean ok = this.modifyTemplate(currentTemplate, originNode,
-										new ComponentPacket[] { firstCmr });
-								if (!ok) {
-									currentTemplate = null;
-									break;
-								}
-							} else if (crule != null && crule.getType() == SetType.STYPE) {
-								boolean ok = this.modifyTemplate(currentTemplate, originNode,
-										componentDetailsList.toArray(new ComponentPacket[0]));
-								if (!ok) {
-									currentTemplate = null;
-									break;
-								}
-							}
-						}
-					}
+	        nodesDone.add(originNode.getID());
+	        done.put(currentTemplate, nodesDone);
+	        
+				  // note this is over the rest of the cmrs
+				  ComponentSetCreationRule crule = originNode.getComponentSetRule();
+				  if (crule == null || crule.getType() == SetType.WTYPE) {
+				    for (int i = 1; i < componentDetailsList.size(); i++) {
+				      ComponentPacket cmr = componentDetailsList.get(i);
+				      this.addExplanations(cmr.getExplanations());
+				      Template specializedTemplate = currentTemplate.createCopy();
+				      specializedTemplate.setID(
+				          UuidGen.generateURIUuid((URIEntity)currentTemplate));
+				      Node specializedNode = specializedTemplate.getNode(originNode
+				          .getID());
+				      boolean ok = this.modifyTemplate(specializedTemplate,
+				          specializedNode,
+				          new ComponentPacket[] { componentDetailsList.get(i) });
+				      if (ok) {
+				        templates.add(specializedTemplate);
+				      }
+				      done.put(specializedTemplate, new ArrayList<String>(nodesDone));
+				    }
+				    ComponentPacket firstCmr = componentDetailsList.get(0);
+				    boolean ok = this.modifyTemplate(currentTemplate, originNode,
+				        new ComponentPacket[] { firstCmr });
+				    if (!ok) {
+				      currentTemplate = null;
+				      break;
+				    }
+				  } else if (crule != null && crule.getType() == SetType.STYPE) {
+				    boolean ok = this.modifyTemplate(currentTemplate, originNode,
+				        componentDetailsList.toArray(new ComponentPacket[0]));
+				    if (!ok) {
+				      currentTemplate = null;
+				      break;
+				    }
+				  }
 				}
 			}
+			
 			if (currentTemplate != null) {
-				currentTemplate.autoUpdateTemplateRoles(); // If any new input/output
-				// variables have been
-				// created
+        // If any new input/output variables have been created			  
+				currentTemplate.autoUpdateTemplateRoles(); 
 				currentTemplate.fillInDefaultSetCreationRules();
+				
 				processedTemplates.add(currentTemplate);
 			}
 		}
@@ -503,7 +524,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 	 *            a specialized template
 	 * @return a list of variable bindings (or null if no data objects)
 	 */
-	public ArrayList<VariableBindingsList> selectInputDataObjects(Template specializedTemplate) {
+	public VariableBindingsListSet selectInputDataObjects(Template specializedTemplate) {
 
 	  this.addExplanation("INFO: --------- Binding data for the template ---------");
     this.addExplanation("Template: " + specializedTemplate);
@@ -566,7 +587,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 		  }
 		}
 
-    ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings = null;
+		VariableBindingsListSet listsOfVariableDataObjectMappings = 
+        new VariableBindingsListSet();
     
     HashMap<String, Boolean> varQueried = new HashMap<String, Boolean>();
     
@@ -592,12 +614,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
         break;
       }
       
-      // Combine Datasets for different variable sets
-      if(listsOfVariableDataObjectMappings == null)
-        listsOfVariableDataObjectMappings = list;
-      else
-        listsOfVariableDataObjectMappings = 
-          combineVariableDataObjectMappings(list, listsOfVariableDataObjectMappings);      
+      listsOfVariableDataObjectMappings.add(list); 
+      //combineVariableDataObjectMappings(list, listsOfVariableDataObjectMappings);      
     }
     
     // Check the final dataset combination list
@@ -1483,6 +1501,8 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								boolean dataCollection = false;
 								while(!queue.isEmpty()) {
 									Binding cb = queue.remove(0);
+									if(cb == null)
+									  continue;
 									// Expanding collections into multiple variables
 									if(cb.isSet()) {
 									  if(cb.size() > 1)
@@ -1890,36 +1910,6 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 		return groupedList;
 	}
 
-	 /**
-   * Helper function to combine variable object bindings from two lists
-   * 
-   * @param list1
-   *            a list of variable object bindings
-   * @param list2
-   *            a list of variable object bindings (with different variables than list)
-   * 
-   * @return the combined list of variable object bindings
-   */
-
-  private ArrayList<VariableBindingsList> combineVariableDataObjectMappings(
-      ArrayList<VariableBindingsList> list1,
-      ArrayList<VariableBindingsList> list2) {
-    ArrayList<VariableBindingsList> combinedList = new ArrayList<VariableBindingsList>();
-    
-    // - TODO : Try to limit combos if the size is too big
-    for (VariableBindingsList map1 : list1) {
-      for (VariableBindingsList map2 : list2) {
-        VariableBindingsList cmap = new VariableBindingsList();        
-        for (VariableBindings vb1 : map1)
-          cmap.add(vb1);
-        for (VariableBindings vb2 : map2)
-          cmap.add(vb2);
-        combinedList.add(cmap);
-      }
-    }
-    return combinedList;
-  }
-  
   
   /**
    * Helper function to remove non-variable bindings
@@ -2217,6 +2207,11 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 			int len = component.getBinding().size();
 
 			Binding allCB = component.getBinding();
+			if(!allCB.isSet()) {
+			  allCB = new Binding();
+			  allCB.add(component.getBinding());
+			}
+			
 			component.setBinding(new Binding());
 
 			for (WingsSet cbs : allCB) {
@@ -2283,7 +2278,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				if (ccmr.getComponent().isTemplate())
 					pc = this.tc;
         
-        this.addExplanation("INFO: Getting output data predictions");
+        this.addExplanation("INFO: Getting output data predictions for " + 
+            ccmr.getComponent().getBinding());
+        
 				// No new roles introduced by the forward sweep call
 				ArrayList<ComponentPacket> allcmrs = pc.findOutputDataPredictedDescriptions(ccmr);
         
@@ -2300,6 +2297,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 				if (rcmr.isEmpty()) {
 					logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.2")
 							.addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
+					this.addExplanation("INFO: invalid configuration");
 					continue;
 				} else {
 					logger.info(event
@@ -2341,6 +2339,9 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
 								Variable v = mRoleMap.get(r);
 
 								Binding b = v.getBinding();
+								if(b == null)
+								  continue;
+								
 								newpb.put(new_sRolePortMap.get(r.getRoleId()), b);
 								// opb.put(newRolePort.get(r.getRoleId()), b);
 

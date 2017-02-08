@@ -148,8 +148,10 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                         waitMsg: 'Getting Suggested Data...',
                         timeout: Ext.Ajax.timeout,
                         success: function(form, action) {
-                            if (action.result && action.result.data)
+                            if (action.result && action.result.data) {
+                            	action.result.data.bindings = me.computeDataBindings(action.result.data.bindings);
                                 showWingsBindings(action.result.data, title, me.flatItems, "data");
+                            }
                             else
                                 showWingsError("Wings couldn't find Data for the template: " 
                                 		+ getLocalName(me.template_id), title, {});
@@ -288,6 +290,32 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
         Ext.ux.form.SeedForm.superclass.initComponent.apply(this, config);
     },
 
+    computeDataBindings: function(bindingslistset) {
+    	var bindings = [];
+    	for(var i=0; i<bindingslistset.length; i++) {
+    		var list = bindingslistset[i];
+    		if(bindings.length == 0) {
+    			bindings = list;
+    			continue;
+    		}
+    		else {
+    			var tlist = [];
+    			for(var j=0; j<bindings.length; j++) {
+    				for(var k=0; k<list.length; k++) {
+    					var map = {};
+    					for(var key in bindings[j]) 
+    						map[key] = bindings[j][key];
+    					for(var key in list[k]) 
+    						map[key] = list[k][key];
+    					tlist.push(map);
+    				}
+    			}
+    			bindings = tlist;
+    		}
+    	}
+    	return bindings;
+    },
+    
     getComponentBindings: function() {
         var compbindings = {};
         if (!this.graph)

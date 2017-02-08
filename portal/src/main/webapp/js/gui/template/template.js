@@ -67,7 +67,6 @@ Template.prototype.initialize = function() {
 		n.derivedFrom = node.derivedFrom;
 		n.setRuntimeInfo(node.runtimeInfo);
 
-		// in case inputPorts/outputPorts are explicitly provided for the nodes
 		if (node.inputPorts) {
 			for(var portid in node.inputPorts) {
 				var p = node.inputPorts[portid];
@@ -139,38 +138,36 @@ Template.prototype.initialize = function() {
 				this.ports[link.fromPort.id] = new Port(this, link.fromPort.id, link.fromPort.role.roleid);
 				this.ports[link.fromPort.id].dim = parseInt(link.fromPort.role.dimensionality);
 			}
+			fromPort = this.ports[link.fromPort.id];
 			var n = this.nodes[link.fromNode.id];
-			n.addOutputPort(this.ports[link.fromPort.id]);
-			this.ports[link.fromPort.id].type = this.variables[link.variable.id].type;
-				
 			var v = this.variables[link.variable.id];
-			if (link.fromPort.role.dimensionality)
-				v.setDimensionality(parseInt(link.fromPort.role.dimensionality));
+			fromPort.type = v.type;
+			if (fromPort.dim)
+				v.setDimensionality(fromPort.dim);
 			if (!link.toPort)
 				v.setIsOutput(true);
 			if(!n.isInactive())
 				v.setInactive(false);
 
-			fromPort = this.ports[link.fromPort.id];
+			n.addOutputPort(fromPort);
 		}
 		if (link.toPort && link.toPort.id) {
 			if (!this.ports[link.toPort.id]) {
 				this.ports[link.toPort.id] = new Port(this, link.toPort.id, link.toPort.role.roleid);
 				this.ports[link.toPort.id].dim = parseInt(link.toPort.role.dimensionality);
 			}
+			toPort = this.ports[link.toPort.id];
 			var n = this.nodes[link.toNode.id];
-			n.addInputPort(this.ports[link.toPort.id]);
-			this.ports[link.toPort.id].type = this.variables[link.variable.id].type;
-
 			var v = this.variables[link.variable.id];
-			if (link.toPort.role.dimensionality)
-				v.setDimensionality(parseInt(link.toPort.role.dimensionality));
+			toPort.type = v.type;
+			if (toPort.dim)
+				v.setDimensionality(toPort.dim);
 			if (!link.fromPort)
 				v.setIsInput(true);
 			if(!n.isInactive())
 				v.setInactive(false);
 			
-			toPort = this.ports[link.toPort.id];
+			n.addInputPort(toPort);
 		}
 		link = new Link(this, fromPort, toPort, this.variables[link.variable.id]);
 		
@@ -1039,6 +1036,27 @@ Template.prototype.deRegisterCanvasItem = function(item) {
 	}
 };
 
+Template.prototype.getPortDimensionAdjustment = function(expr) {
+	var portdims = {};
+	var dim = 0;
+	if(typeof expr === 'object') {
+		if(expr.op == "REDUCEDIM")
+			dim = -1;
+		if(expr.op == "INCREASEDIM")
+			dim = 1;
+		for(var i=0; i<expr.args.length; i++) {
+			var cpdims = this.getPortDimensionAdjustment(expr.args[i]);
+			for(var port in cpdims) {
+				portdims[port] = cpdims[port] + dim;
+			}
+		}
+	}
+	else {
+		portdims[expr] = 0;
+	}
+	return portdims;
+};
+
 /**
  * Forward sweep through the template to setup variable dimensionalities
  */
@@ -1063,35 +1081,39 @@ Template.prototype.forwardSweep = function() {
 		if (!n)
 			continue;
 
-		var extraDim = 0;
-		var ok = true;
+		var ok = true;		
 		for ( var i = 0; i < n.inputLinks.length; i++) {
 			var il = n.inputLinks[i];
 			if (!doneLinks[il.id]) {
 				ok = false;
 				break;
 			}
-			var tmpDim = il.variable.dim - il.toPort.dim;
-			if (extraDim < tmpDim)
-				extraDim = tmpDim;
 		}
 		if (!ok) {
 			links.push(l);
 			continue;
 		}
-
-		n.dim = 0;
+		
+		var pdim = 0;
+		if(n.prule.type == 'STYPE') {
+			var portDims = this.getPortDimensionAdjustment(n.prule.expr);
+			for ( var i = 0; i < n.inputLinks.length; i++) {
+				var il = n.inputLinks[i];
+				var dimadj = portDims[il.toPort.id] || 0;
+				var tmpDim = il.variable.dim - il.toPort.dim + dimadj;
+				if (pdim < tmpDim)
+					pdim = tmpDim;		
+			}
+		}
+		var cdim = 0;
+		if(n.crule.type == 'STYPE') {
+			cdim = 1;
+		}		
+		n.dim = pdim + cdim;
+		
 		for ( var i = 0; i < n.outputLinks.length; i++) {
 			var ol = n.outputLinks[i];
-			if (n.prule.type == 'STYPE') {
-				ol.variable.setDimensionality(ol.fromPort.dim + extraDim);
-				// n.dim = ol.fromPort.dim + extraDim;
-				n.dim = extraDim;
-			}
-			else {
-				ol.variable.setDimensionality(ol.fromPort.dim);
-				// n.dim = ol.fromPort.dim;
-			}
+			ol.variable.setDimensionality(ol.fromPort.dim + pdim + cdim);
 			links.push(ol);
 		}
 	}

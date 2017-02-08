@@ -33,10 +33,12 @@ import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
+import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
+import edu.isi.wings.common.CollectionsHelper;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
 import edu.isi.wings.ontapi.KBObject;
@@ -148,39 +150,55 @@ public class PlanController {
 			printError();
 			return;
 		}
+		//System.out.println("Specialized sets : " + candidates.size());
 		
 		ArrayList<Template> bts = new ArrayList<Template>();
-    ArrayList<VariableBindingsList> allbindings = new ArrayList<VariableBindingsList>();
+    VariableBindingsListSet allbindingsets = 
+        new VariableBindingsListSet();
     
     if(config.isLightReasoner())
       bts = candidates;
     else {
   		for(Template t : candidates) {
-  		  ArrayList<VariableBindingsList> bindings = wg.selectInputDataObjects(t);
-  		  if(bindings == null)
-  		    continue;
-  		  
-        allbindings.addAll(bindings);
-        // Do not create bound templates if only asking for data suggestions
-        // -- gets memory intensive
-  		  if(!op.equals("getData")) {
-  		    for(VariableBindingsList binding : bindings)
-  		      bts.add(wg.bindTemplate(t, binding));
+  		  VariableBindingsListSet bindingset = wg.selectInputDataObjects(t);
+        if(bindingset == null)
+          continue;
+        
+  		  if(op.equals("getData")) {
+          if(allbindingsets.isEmpty()) {
+            allbindingsets = bindingset;
+          }
+          else {
+            for(int i=0; i<bindingset.size(); i++)
+              allbindingsets.get(i).addAll(bindingset.get(i));
+          }
+  		  }
+  		  else {
+  		    ArrayList<VariableBindingsList> bindings = 
+  		        CollectionsHelper.combineVariableDataObjectMappings(bindingset);
+  		    for(VariableBindingsList binding : bindings) {
+            Template bt = wg.bindTemplate(t, binding);
+            if(bt != null)
+              bts.add(bt);
+  		    }
   		  }
   		}
-  		if(allbindings.size() == 0) {
+  		if(allbindingsets.isEmpty() && bts.isEmpty()) {
   			printError();
   			return;
   		}
     }
+    /*System.out.println("Bound sets : " + bts.size());
+    System.out.println(bts);*/
+    
     if(op.equals("getData")) {
       if(config.isLightReasoner())
         printError();
       else
-        printDataBindingsJSON(allbindings, noexplain);
+        printDataBindingsJSON(allbindingsets, noexplain);
       return;
     }
-		
+		    
 		wg.setDataMetricsForInputDataObjects(bts);
 
 		ArrayList<Template> cts = new ArrayList<Template>();
@@ -194,7 +212,7 @@ public class PlanController {
       printParameterBindingsJSON(cts, noexplain);
       return;
     }
-
+    
 		ArrayList<Template> ets = new ArrayList<Template>();
 		for(Template ct : cts)
 			ets.add(wg.getExpandedTemplate(ct));
@@ -237,12 +255,12 @@ public class PlanController {
 		this.printEncodedResults(map); 
 	}
 	
-	private void printDataBindingsJSON(ArrayList<VariableBindingsList> bts, boolean noexplain) {
+	private void printDataBindingsJSON(VariableBindingsListSet sets, boolean noexplain) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		if(!noexplain)
 		  map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
-		map.put("bindings", getDataBindings(bts));
+		map.put("bindings", getDataBindings(sets));
 		map.put("output",  "");
 		this.printEncodedResults(map); 
 	}
@@ -278,36 +296,41 @@ public class PlanController {
 		json.toJson(results, this.out);
 	}
 	
-	private ArrayList<TreeMap<String, Binding>> getDataBindings(
-	    ArrayList<VariableBindingsList> bindings) {
-		ArrayList<TreeMap<String, Binding>> blist = new ArrayList<TreeMap<String, Binding>>();
-		HashMap<String, Boolean> bindingstrs = new HashMap<String, Boolean>(); 
-		
-		for(VariableBindingsList binding: bindings) {
-      TreeMap<String, Binding> xbindings = new TreeMap<String, Binding>();
+	private ArrayList<ArrayList<TreeMap<String, Binding>>> getDataBindings(
+	    VariableBindingsListSet bindingsets) {
+	  ArrayList<ArrayList<TreeMap<String, Binding>>> blistsets = 
+	      new ArrayList<ArrayList<TreeMap<String, Binding>>>();
 
-		  for(VariableBindings vb : binding) {
-		    String vname = vb.getDataVariable().getName();
-		    Binding b = new Binding();
-		    for(KBObject obj : vb.getDataObjects()) {
-		      Binding cb = new Binding(obj.getID());
-		      if(vb.getDataObjects().size() == 1)
-		        b = cb;
-		      else
-		        b.add(cb);
-		    }
-		    xbindings.put(vname, b);
-		  }
-			String bstr = "";
-			for(String v : xbindings.keySet()) {
-				bstr += xbindings.get(v).toString() + ",";
-			}
-			if(!bindingstrs.containsKey(bstr)) {
-				bindingstrs.put(bstr, true);
-				blist.add(xbindings);
-			}
+		for(ArrayList<VariableBindingsList> bindings : bindingsets) {
+	    HashMap<String, Boolean> bindingstrs = new HashMap<String, Boolean>(); 
+		  ArrayList<TreeMap<String, Binding>> blist = new ArrayList<TreeMap<String, Binding>>();
+  		for(VariableBindingsList binding: bindings) {
+        TreeMap<String, Binding> xbindings = new TreeMap<String, Binding>();
+  
+  		  for(VariableBindings vb : binding) {
+  		    String vname = vb.getDataVariable().getName();
+  		    Binding b = new Binding();
+  		    for(KBObject obj : vb.getDataObjects()) {
+  		      Binding cb = new Binding(obj.getID());
+  		      if(vb.getDataObjects().size() == 1)
+  		        b = cb;
+  		      else
+  		        b.add(cb);
+  		    }
+  		    xbindings.put(vname, b);
+  		  }
+  			String bstr = "";
+  			for(String v : xbindings.keySet()) {
+  				bstr += xbindings.get(v).toString() + ",";
+  			}
+  			if(!bindingstrs.containsKey(bstr)) {
+  				bindingstrs.put(bstr, true);
+  				blist.add(xbindings);
+  			}
+  		}
+  		blistsets.add(blist);
 		}
-		return blist;
+		return blistsets;
 	}
 	
 	private ArrayList<TreeMap<String, Binding>> getParameterBindings(ArrayList<Template> cts) {

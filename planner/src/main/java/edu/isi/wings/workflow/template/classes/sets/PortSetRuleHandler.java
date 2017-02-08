@@ -147,21 +147,8 @@ public class PortSetRuleHandler {
 					expr.setOperator(null);
 				}
 				if (expr.getOperator() == SetOperator.REDUCEDIM && !cexpr.isSet()) {
-					Binding b = portBindings.get(cexpr.getPort());
-					if (b.isSet() && b.size() > 0) {
-						Binding newb = new Binding();
-						// If other items in the collection are also sets, then
-						// merge all their elements in, else add
-						for (int ri = 0; ri < b.size(); ri++) {
-							Binding cb = (Binding) b.get(ri);
-							if (cb.isSet() && b.isSet())
-								newb.addAll(cb);
-							else
-							  newb.add(cb);
-						}
-						portBindings.put(cexpr.getPort(), newb);
-					}
-					expr.setOperator(null);
+				  portBindings.get(cexpr.getPort()).reduceDimensionBy(1);
+          expr.setOperator(null);
 				}
 				if (expr.getOperator() == SetOperator.SHIFT && !cexpr.isSet()) {
 					portBindings.get(cexpr.getPort()).shift();

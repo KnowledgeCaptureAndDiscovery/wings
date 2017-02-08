@@ -29,6 +29,7 @@ import edu.isi.wings.workflow.template.classes.sets.SetExpression;
 import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.sets.SetExpression.SetOperator;
 
+@SuppressWarnings("unused")
 public class Test {
 
 	// TODO: Need a flatten function
@@ -95,8 +96,7 @@ public class Test {
 
 		// n.getInputMap(t.getInputMap(n), t.getOutputMap(n),
 		// t.getConstraints(n));
-		// Binding var = new Binding(new Binding(new
-		// String[]{ns+"var1",ns+"var2"}));
+		// Binding var = new Binding(new String[]{ns+"var1",ns+"var2"});
 		// var.add(new ValueBinding(new ValueBinding(new String[] { ns+"x",
 		// ns+"y" })));
 		// var.add(new Binding(ns+"tmp"));
@@ -113,45 +113,57 @@ public class Test {
 		// System.out.println(var.getSize());
 
 		// Binding a = new ValueBinding(1);
-		Binding a = new ValueBinding(new String[] { "a", "b", "c" });
-		Binding b = new ValueBinding(new String[] { "d", "e" });
-		Binding c = new ValueBinding(new String[] { "f", "g" });
+		Binding a = new ValueBinding(new String[] { "msg", "myr", "xt" });
+		Binding b = new ValueBinding(new String[] { "s1", "s2" });
+		Binding c = new ValueBinding(new String[] { "hg19" });
 		// Binding c = new ValueBinding(new Integer[]{ 3, 4 });
-		// Binding d = new ValueBinding(new ValueBinding(new String[]{ "y", "z"
-		// }));
+		// Binding d = new ValueBinding(new ValueBinding(new String[]{ "y", "z" }));
 		// Binding d = new ValueBinding(new ValueBinding(new ValueBinding(new
 		// ValueBinding(new String[]{ "y", "z" }))));
-		Binding d = new ValueBinding(new ValueBinding(new String[] { "y1", "z1" }));
-		d.add(new ValueBinding(new String[] { "y2", "z2" }));
+		//Binding d = new ValueBinding(new ValueBinding(new String[] { "y1", "z1" }));
+		//d.add(new ValueBinding(new String[] { "y2", "z2" }));
 		// d.add(new ValueBinding("M"));
+		Binding d = new Binding();
+		Binding e = new Binding();
+		Binding f = new Binding();
+		e.add(a);
+		e.add(b);
+		d.add(c);
+		f.add(d);
+		f.add(e);
+		System.out.println(f);
+		System.out.println(f.getMaxDimension());
+		f.reduceDimensionBy(1);
+		System.out.println(f);
+		System.out.println(f.getMaxDimension());
 
-		Port p1 = new Port(ns + "p1");
-		Port p2 = new Port(ns + "p2");
-		Port p3 = new Port(ns + "p3");
-		Port p4 = new Port(ns + "p4");
+		/*Port p1 = new Port(ns + "param");
+		Port p2 = new Port(ns + "sample");
+		Port p3 = new Port(ns + "fasta");
+		//Port p4 = new Port(ns + "p4");
 
 		p1.setRole(new Role(ns + "arole"));
-		// p1.getRole().setDimensionality(1);
+		//p1.getRole().setDimensionality(0);
 		p2.setRole(new Role(ns + "brole"));
-		// p2.getRole().setDimensionality(1);
+		//p2.getRole().setDimensionality(0);
 		p3.setRole(new Role(ns + "crole"));
-		p4.setRole(new Role(ns + "drole"));
-
+		//p2.getRole().setDimensionality(0);
+		//p4.setRole(new Role(ns + "drole"));
 		// p4.getRole().setDimensionality(1);
 
 		PortBinding portBindings = new PortBinding();
 		portBindings.put(p1, a);
 		portBindings.put(p2, b);
 		portBindings.put(p3, c);
-		portBindings.put(p4, d);
+		//portBindings.put(p4, d);
 
 //		SetExpression s = new SetExpression(SetOperator.XPRODUCT, new Port[] { p1, p2 });
 //		SetExpression s1 = new SetExpression(SetOperator.INCREASEDIM, new Port[] { p2 });
 //		s.add(s1);
-		SetExpression s = new SetExpression(SetOperator.XPRODUCT, new Port[] { p1, p2 });
+		SetExpression s = new SetExpression(SetOperator.XPRODUCT, new Port[] { p2, p3 });
 //		SetExpression s2 = new SetExpression(SetOperator.NWISE, new Port[] { p3, p4 });
-		s.add(new SetExpression(SetOperator.SHIFT, new Port[] { p3 }));
-		s.add(new SetExpression(SetOperator.REDUCEDIM, new Port[] { p4 }));
+		s.add(new SetExpression(SetOperator.INCREASEDIM, new Port[] { p1 }));
+		//s.add(new SetExpression(SetOperator.REDUCEDIM, new Port[] { p4 }));
 		//s.add(s2);
 
 		System.out.println("Expression: " + s);
@@ -159,14 +171,14 @@ public class Test {
 		PortBindingList possibleBindings = new PortBindingList();
 		possibleBindings = PortSetRuleHandler.handlePortSetRule(s, s, portBindings,
 				possibleBindings);
-		System.out.println("Final possible Bindings: \n" + possibleBindings);
+		System.out.println("Final possible Bindings: \n" + possibleBindings);*?
 		/*
 		 * possibleBindings =
 		 * PortSetRuleHandler.flattenPortBindingList(possibleBindings, 1);
 		 * System.out.println("Flattened: \n"+possibleBindings);
 		 */
 
-		PortBinding pb = PortSetRuleHandler.deNormalizePortBindings(possibleBindings);
-		System.out.println("Denormalized: \n" + pb);
+		/*PortBinding pb = PortSetRuleHandler.deNormalizePortBindings(possibleBindings);
+		System.out.println("Denormalized: \n" + pb);*/
 	}
 }

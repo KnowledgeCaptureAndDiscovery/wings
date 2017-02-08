@@ -52,13 +52,38 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 
 	private HashMap<String, Component> ccache =
 	    new HashMap<String, Component>();
+	private HashMap<String, KBRuleList> rulescache =
+      new HashMap<String, KBRuleList>();
   private HashMap<String, ArrayList<String>> abscache =
       new HashMap<String, ArrayList<String>>();	
+  private HashMap<String, ArrayList<KBObject>> classcache =
+      new HashMap<String, ArrayList<KBObject>>();   
 	private HashMap<String, ArrayList<KBTriple>> kbcache =
       new HashMap<String, ArrayList<KBTriple>>();
 	
+	private ArrayList<KBTriple> metricTriples;
+	private ArrayList<KBObject> metricProps;
+	
 	public ComponentReasoningKB(Properties props) {
 		super(props, true);
+		this.initializeMetrics();
+	}
+	
+	private void initializeMetrics() {
+    KBObject rdfsProp = this.kb.getProperty(KBUtils.RDFS + "subPropertyOf");
+    KBObject dcProp = this.kb.getProperty(this.dcns + "hasMetrics");
+    KBObject dcPropD = this.kb.getProperty(this.dcns + "hasDataMetrics");
+    
+    // Get all metric properties
+    this.metricTriples = this.kb.genericTripleQuery(null, rdfsProp, dcProp);
+    // Get all data metric properties
+    this.metricTriples.addAll(this.kb.genericTripleQuery(null, rdfsProp, dcPropD));
+    
+    // Get a list of all metrics and datametrics properties in the catalog
+    this.metricProps = this.kb
+        .getSubPropertiesOf(this.objPropMap.get("hasMetrics"), false);
+    this.metricProps.addAll(this.kb
+        .getSubPropertiesOf(this.dataPropMap.get("hasDataMetrics"), false));
 	}
 
 	protected KBObject copyObjectIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
@@ -123,15 +148,8 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
     }
     
 		KBObject tobj = ontologyFactory.getObject(id);
-		ArrayList<KBObject> objclses;
-		if (direct)
-			objclses = kb.getAllClassesOfInstance(obj, direct);
-		else {
-			objclses = new ArrayList<KBObject>();
-			for (KBTriple t : kb.genericTripleQuery(obj, kb.getProperty(KBUtils.RDF + "type"),
-					null))
-				objclses.add(t.getObject());
-		}
+		ArrayList<KBObject> objclses = 
+		    this.getAllCachedClassesOfInstance(obj.getID(), direct);
 		for (KBObject objcls : objclses) {
 			if ((includeNS != null && objcls.getNamespace().equals(includeNS))
 					|| (excludeNS != null && !objcls.getNamespace().equals(excludeNS))) {
@@ -143,15 +161,33 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 		return triples;
 	}
 
+	private ArrayList<KBObject> getAllClassesOfInstance(KBAPI tkb, String id) {
+	  ArrayList<KBObject> clses = new ArrayList<KBObject>();
+	  for(KBTriple t : 
+	    tkb.genericTripleQuery(tkb.getResource(id), 
+	        tkb.getProperty(KBUtils.RDF+"type"), null)) {
+	    clses.add(this.conceptMap.get(t.getObject().getID()));
+	  }
+	  return clses;
+	}
+	
+	 private ArrayList<KBObject> getAllCachedClassesOfInstance(String id, boolean direct) {
+	   String key = id + ":" + direct;
+	   if(classcache.containsKey(key))
+	     return classcache.get(key);
+	   ArrayList<KBObject> clses = kb.getAllClassesOfInstance(kb.getResource(id), direct);
+	   classcache.put(key, clses);
+	   return clses;
+	 }
+	
 	protected boolean checkTypeCompatibility(KBAPI tkb, String varid, String argid) {
-		ArrayList<KBObject> varclses = tkb.getAllClassesOfInstance(tkb.getResource(varid), true);
-		ArrayList<KBObject> argclses = kb.getAllClassesOfInstance(kb.getResource(argid), true);
+		ArrayList<KBObject> varclses = this.getAllClassesOfInstance(tkb, varid);
+		ArrayList<KBObject> argclses = this.getAllCachedClassesOfInstance(argid, true);
 		for (KBObject argcls : argclses) {
 			if (argcls.getNamespace().equals(this.dcdomns)) {
 				for (KBObject varcls : varclses) {
-					KBObject varcl = kb.getConcept(varcls.getID());
-					if (varcl.getNamespace().equals(this.dcdomns)) {
-						if (!kb.hasSubClass(argcls, varcl) && !kb.hasSubClass(varcl, argcls))
+					if (varcls.getNamespace().equals(this.dcdomns)) {
+						if (!kb.hasSubClass(argcls, varcls) && !kb.hasSubClass(varcls, argcls))
 							return false;
 					}
 				}
@@ -159,6 +195,22 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 		}
 		return true;
 	}
+	
+	 protected boolean checkTypeCompatibility(ArrayList<String> varclassids, String argid) {
+	    ArrayList<KBObject> argclses = this.getAllCachedClassesOfInstance(argid, true);
+	    for (KBObject argcls : argclses) {
+	      if (argcls.getNamespace().equals(this.dcdomns)) {
+	        for (String varclassid : varclassids) {
+	          KBObject varcl = this.conceptMap.get(varclassid);
+	          if (varcl.getNamespace().equals(this.dcdomns)) {
+	            if (!kb.hasSubClass(argcls, varcl) && !kb.hasSubClass(varcl, argcls))
+	              return false;
+	          }
+	        }
+	      }
+	    }
+	    return true;
+	  }
 
 	/**
 	 * <b>Query 2.1</b><br/>
@@ -293,7 +345,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 			ArrayList<String> varids = new ArrayList<String>();
 
 			// Create a new temporary kb
-			KBAPI tkb = this.ontologyFactory.getKB(OntSpec.MICRO);
+			KBAPI tkb = this.ontologyFactory.getKB(OntSpec.PLAIN);
 
 			// Add the redbox (i.e. datavariable constraints) to the temporary
 			// kb, along with domain knowledge about the data catalog
@@ -350,7 +402,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 					if (!checkTypeCompatibility(tkb, varid, arg.getID())) {
 						logger.debug(arg.getID() + " is not type compatible with variable: "
 								+ varid);
-						explanations.add("INFO "+tcomp + " is not selectable because " + arg.getID()
+						explanations.add("INFO "+ccomp + " is not selectable because " + arg.getID()
 								+ " is not type compatible with variable: " + varid);
 						typesOk = false;
 						break;
@@ -369,6 +421,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 				r.setRoleId(argid);
 				r.setDimensionality(arg.getDimensionality());
 
+				// Set variable data binding
 				if (var.isDataVariable() && var.getBinding() != null
 						&& var.getBinding().getName() != null) {
 					tkb.addTriple(varobj, dmap.get("hasBindingID"),
@@ -376,6 +429,22 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 				} else {
 					tkb.addTriple(varobj, dmap.get("hasBindingID"),
 							tkb.createLiteral(""));
+				}
+				
+				// Set variable parameter binding (default if none set)
+				if(var.isParameterVariable()) {
+	        KBObject arg_value = null;
+	        ValueBinding parambinding = (ValueBinding) var.getBinding();
+	        if (parambinding != null && parambinding.getValue() != null) {
+	          arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
+	              parambinding.getDatatype());
+	        }
+	        else if(arg.getParamDefaultalue() != null) {
+	          arg_value = tkb.createLiteral(arg.getParamDefaultalue());
+	        }
+	        if (arg_value != null) {
+	          tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
+	        }				  
 				}
 
 				// assign this variable as an input or output to the component
@@ -394,8 +463,8 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 
 			// Return if there was some problem with types
 			if (!typesOk) {
-				logger.debug(tcomp + " is not selectable ");
-				explanations.add("INFO " + tcomp + " is not selectable ");
+				logger.debug(ccomp + " is not selectable ");
+				explanations.add("INFO " + ccomp + " is not selectable ");
 				cmr = new ComponentPacket(concreteComponent, sRoleMap, empty);
 				cmr.setInputRoles(inputRoles);
 				cmr.addExplanations(explanations);
@@ -413,7 +482,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 
 				// Run propagation rules on the temporary kb
 				tkb.setRulePrefixes(this.rulePrefixes);
-				tkb.applyRules(this.getComponentRules(ccomp.getID()));
+				tkb.applyRules(this.getCachedComponentRules(ccomp));
 				//tkb.applyRulesFromString(allrules);
 
 				// Get printouts from Rules and store as Explanations
@@ -430,8 +499,8 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 			KBObject invalidProp = tkb.getProperty(this.pcns + "isInvalid");
 			KBObject isInvalid = tkb.getPropertyValue(tcomp, invalidProp);
 			if (isInvalid != null && (Boolean) isInvalid.getValue()) {
-				logger.debug(tcomp + " is not selectable ");
-				explanations.add("INFO " + tcomp + " is not selectable ");
+				logger.debug(ccomp + " is not selectable ");
+				explanations.add("INFO " + ccomp + " is not selectable ");
 				cmr = new ComponentPacket(concreteComponent, sRoleMap, empty);
 				cmr.setInputRoles(inputRoles);
 				cmr.addExplanations(explanations);
@@ -493,6 +562,19 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
     return comp;
 	}
 	
+	private KBRuleList getCachedComponentRules(Component comp) {
+	  if(rulescache.containsKey(comp.getID()))
+	    return rulescache.get(comp.getID());
+	  String rulestr = "";
+	  for(String str : comp.getRules())
+	    rulestr += str + "\n";
+	  for(String str : comp.getInheritedRules())
+	    rulestr += str + "\n";
+	  KBRuleList rules = this.ontologyFactory.parseRules(rulestr);
+	  rulescache.put(comp.getID(), rules);
+	  return rules;
+	}
+	
 	/**
 	 * <b>Query 4.2</b><br/>
 	 * This function is supposed to <b>SET</b> the DataSet Metrics, or Parameter
@@ -518,8 +600,8 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 	 *         empty in Q4.2 though)
 	 */
 	public ArrayList<ComponentPacket> findOutputDataPredictedDescriptions(ComponentPacket details) {
-		ArrayList<ComponentPacket> list = new ArrayList<ComponentPacket>();
-
+		ArrayList<ComponentPacket> list = new ArrayList<ComponentPacket>();   
+  
 		HashMap<String, KBObject> omap = this.objPropMap;
 		HashMap<String, KBObject> dmap = this.dataPropMap;
 		
@@ -541,21 +623,49 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 		}
 		
 		c.setRequirements(comp.getComponentRequirement());
+
+		boolean typesOk = true;
 		
+    // Set default parameter values (if not already set)
+		// - Also recheck type compatibility
+    ArrayList<String> inputRoles = new ArrayList<String>();
+    for(ComponentRole role : comp.getInputs()) {
+      inputRoles.add(role.getRoleName());
+      Variable v = sRoleMap.get(role.getRoleName());
+      if(role.isParam()) {
+        if(v.getBinding() == null)
+          v.setBinding(new ValueBinding(role.getParamDefaultalue()));         
+        else if(v.getBinding().getValue() == null)
+          v.getBinding().setValue(role.getParamDefaultalue());
+      }
+      else {
+        ArrayList<String> varclassids = new ArrayList<String>();     
+        ArrayList<Metric> vartypes = 
+            v.getBinding().getMetrics().getMetrics().get(KBUtils.RDF + "type");
+        if(vartypes != null) {
+          for(Metric m : vartypes) {
+            varclassids.add(m.getValueAsString());
+          }
+          // Check type compatibility of roles
+          if (!checkTypeCompatibility(varclassids, role.getID())) {
+            details.addExplanations("INFO "+comp + " is not selectable because " + role.getID()
+                + " is not type compatible with variable binding: " + v.getBinding());
+            typesOk = false;
+            break;
+          }
+        }
+      }
+    }
+    details.setInputRoles(inputRoles);
+
+    if(!typesOk) {
+      details.setInvalidFlag(true);
+      list.add(details);
+      return list;
+    }
+    
 		if(!comp.hasRules()) {
 		  // No rules. Just set default parameter values (if not already set)
-		  ArrayList<String> inputRoles = new ArrayList<String>();
-		  for(ComponentRole role : comp.getInputs()) {
-		    inputRoles.add(role.getRoleName());
-		    Variable v = sRoleMap.get(role.getRoleName());
-		    if(role.isParam()) {
-          if(v.getBinding() == null)
-            v.setBinding(new ValueBinding(role.getParamDefaultalue()));		      
-          else if(v.getBinding().getValue() == null)
-		        v.getBinding().setValue(role.getParamDefaultalue());
-		    }
-		  }
-		  details.setInputRoles(inputRoles);
 		  list.add(details);
 		  return list;
 		}
@@ -569,7 +679,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 		// explicitly)
 		KBObject tcomp = this
 				.copyObjectIntoKB(comp.getID(), compobj, tkb, this.pcdomns, null, false);
-
+    
 		// Keep a map of variable object to variable name
 		HashMap<Variable, String> variableNameMap = new HashMap<Variable, String>();
 
@@ -598,7 +708,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
         obj = t.getObject();
       tkb.addTriple(subj, t.getPredicate(), obj);
     }
-
+    
     // Get a mapping of ArgID's to arg for the Component
     // Also note which roles are inputs
     HashMap<String, ComponentRole> argMaps = new HashMap<String, ComponentRole>();
@@ -717,21 +827,13 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 				// end if (var.isDataVariable())
 			} else if (var.isParameterVariable()) {
 				// If the Variable/Argument is a Parameter
-
-				// Get any default value for the argument specified in catalog
-				KBObject arg_value = null;
-				if(arg.getParamDefaultalue() != null)
-				  arg_value = tkb.createLiteral(arg.getParamDefaultalue());
 				ValueBinding parambinding = (ValueBinding) var.getBinding();
 				if (parambinding != null && parambinding.getValue() != null) {
 					// If the template has any value specified, use that instead
 					//arg_value = tkb.createLiteral(var.getBinding().getValue());
-					arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
+				  KBObject arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
 					    parambinding.getDatatype());
-				}
-				if (arg_value != null) {
-					// Set argument value in the temporary kb store to run rules on
-					tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
+				  tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
 				}
 				if(dmap.containsKey("hasBindingID"))
 					// Set the hasBindingID term
@@ -756,25 +858,9 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 			}
 			// end of for (String rolestr : sRoleMap.keySet())
 		}
-		// Set input roles
-		details.setInputRoles(new ArrayList<String>(sInputRoles.keySet()));
-
-		// Add Metrics property hierarchy triples into the temporary store
-		KBObject rdfsProp = this.kb.getProperty(KBUtils.RDFS + "subPropertyOf");
-		KBObject dcProp = this.kb.getProperty(this.dcns + "hasMetrics");
-		KBObject dcPropD = this.kb.getProperty(this.dcns + "hasDataMetrics");
-		// Get all metric properties
-		ArrayList<KBTriple> metricTriples = this.kb.genericTripleQuery(null, rdfsProp, dcProp);
-		// Get all data metric properties
-		metricTriples.addAll(this.kb.genericTripleQuery(null, rdfsProp, dcPropD));
+    
 		// Add all metrics and datametrics properties to temporary store
-		tkb.addTriples(metricTriples);
-		
-
-    // Get a list of all metrics and datametrics properties in the catalog
-    ArrayList<KBObject> metricProps = this.kb
-        .getSubPropertiesOf(omap.get("hasMetrics"), false);
-    metricProps.addAll(this.kb.getSubPropertiesOf(dmap.get("hasDataMetrics"), false));
+    tkb.addTriples(metricTriples);
     
 		// Set current output variable metrics to do a diff with later
     for (String rolestr : sRoleMap.keySet()) {
@@ -799,7 +885,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
       }
     }
     
-    KBRuleList rules = this.getComponentRules(comp.getID());
+    KBRuleList rules = this.getCachedComponentRules(comp);
     if(rules.getRules().size() > 0) {
   		// Redirect Standard output to a byte stream
   		ByteArrayOutputStream bost = new ByteArrayOutputStream();
@@ -808,7 +894,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
   
   		// *** Run propagation rules on the temporary ontmodel ***
   		tkb.setRulePrefixes(this.rulePrefixes);
-  		tkb.applyRules(this.getComponentRules(comp.getID()));
+  		tkb.applyRules(rules);
   		//tkb.applyRulesFromString(allrules);
   
   		// Add printouts from rules as explanations
@@ -820,10 +906,10 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
   		// Reset the Standard output
   		System.setOut(oldout);
     }
-
+    
 		// Check if the rules marked this component as invalid for
 		// the current component details packet
-		KBObject invalidProp = tkb.getProperty(this.pcns + "isInvalid");
+		KBObject invalidProp = this.dataPropMap.get("isInvalid");
 		KBObject isInvalid = tkb.getPropertyValue(tcomp, invalidProp);
 		if (isInvalid != null && (Boolean) isInvalid.getValue()) {
 			details.addExplanations("INFO "+tcomp + " is not valid for its inputs");
@@ -840,7 +926,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 		  if(req.getMemoryGB() != 0)
 		    c.getRequirements().setMemoryGB(req.getMemoryGB());
       if(req.getStorageGB() != 0)
-        c.getRequirements().setMemoryGB(req.getStorageGB());
+        c.getRequirements().setStorageGB(req.getStorageGB());
 		}
 		
 		// Set values of variables by looking at values set by rules
@@ -877,6 +963,8 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 				    continue;
 				  for(KBObject val : vals) {
 				    if(vals.size() > 1) {
+				      if(!curmetrics.getMetrics().containsKey(metricProp.getID()))
+				        continue;
 				      // If multiple values present, ignore value that is equal to current value
 				      for(Metric mval : curmetrics.getMetrics().get(metricProp.getID())) {
   				      if(!val.isLiteral() && val.getID().equals(mval.getValue()))
@@ -894,7 +982,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
                   new Metric(Metric.URI, val.getID()));
 				  }
 				}
-				ArrayList<KBObject> clses = tkb.getAllClassesOfInstance(varobj, true);
+				ArrayList<KBObject> clses = this.getAllClassesOfInstance(tkb, varobj.getID());
 				for (KBObject cls : clses)
 					metrics.addMetric(KBUtils.RDF + "type", new Metric(Metric.URI, cls.getID()));
         
@@ -1014,7 +1102,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 				// end if(dim > 0)
 			}
 		}
-
+		
 		// FIXME: Handle multiple configurations
 		list.add(details);
 		return list;

@@ -566,7 +566,7 @@ TemplateBrowser.prototype.getConstraintsTableViewer = function(tid, tstore) {
 	var This = this;
 	var tns = getNamespace(tid);
 	var varMaps = [];
-	for ( var i = 0; i < tstore.template.Variables.length; i++) {
+	for ( var i in tstore.template.Variables) {
 		varMaps[tstore.template.Variables[i].id] = 1;
 	}
 	tstore.constraints = this.replaceConstraintObjects(tid, tstore.constraints,
@@ -735,7 +735,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 	var vars = [];
 	var dataVars = [];
 	var varMaps = [];
-	for ( var i = 0; i < tstore.template.Variables.length; i++) {
+	for ( var i in tstore.template.Variables) {
 		var v = tstore.template.Variables[i];
 		varMaps[v.id] = 1;
 		var vitem = {
@@ -1423,7 +1423,7 @@ TemplateBrowser.prototype.inferElaboratedTemplate = function(store) {
 										+ tname, "Error in " + tname, store);
 					} else {
 						var varMaps = [];
-						for ( var i = 0; i < store.template.Variables.length; i++) {
+						for ( var i in store.template.Variables) {
 							varMaps[store.template.Variables[i].id] = 1;
 						}
 						store.constraints = This.replaceConstraintObjects(tid,

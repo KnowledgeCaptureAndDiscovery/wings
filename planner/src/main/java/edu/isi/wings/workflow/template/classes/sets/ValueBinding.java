@@ -49,6 +49,12 @@ public class ValueBinding extends Binding {
 		}
 	}
 
+	public ValueBinding(Object[] values, String datatype) {
+	  for (Object val : values) {
+	    this.add(new ValueBinding(val, datatype));
+	  }
+	}
+	 
 	public String getDatatype() {
 		return datatype;
 	}
@@ -57,6 +63,13 @@ public class ValueBinding extends Binding {
 		this.datatype = datatype;
 	}
 
+	public int hashCode() {
+	  if (isSet())
+	    return super.hashCode();
+	  else if (value != null)
+	    return value.hashCode();
+	  return 0;
+	}
 	 
   public String getValueAsString() {
     if(this.value instanceof Date) {

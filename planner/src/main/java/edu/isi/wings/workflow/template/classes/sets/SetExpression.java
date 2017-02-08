@@ -89,7 +89,7 @@ public class SetExpression extends ArrayList<SetExpression> {
 			return port.getName();
 		int i = 0;
 		String str = (op == SetOperator.SHIFT ? "Shift" : "");
-		str += (op == SetOperator.INCREASEDIM ? "[ " : (op == SetOperator.REDUCEDIM ? "/" : "( "));
+		str += (op == SetOperator.INCREASEDIM ? " [" : (op == SetOperator.REDUCEDIM ? "/" : " ("));
 		for (SetExpression s : this) {
 			if (i > 0)
 				str += (op == SetOperator.XPRODUCT ? " x " : (op == SetOperator.NWISE ? " || "

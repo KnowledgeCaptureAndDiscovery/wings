@@ -176,10 +176,10 @@ Variable.prototype.drawShape = function(ctx, x, y, width, height, highlight) {
 	ctx.strokeStyle = this.getForegroundColor();
 	if (this.dim) {
 		var tmpstyle = ctx.fillStyle;
-		var len = parseInt(this.dim) + 1;
+		var len = parseInt(this.dim);
 		this.enableShadow(ctx);
 		ctx.lineWidth = 1;
-		for ( var i = len; i >= 1; i--) {
+		for ( var i = len; i > 0; i--) {
 			ctx.beginPath();
 			this.drawRoundedRectangle(ctx, x + i * 3, y + i * 3, width, height);
 			ctx.closePath();

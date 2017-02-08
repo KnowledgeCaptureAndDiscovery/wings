@@ -282,6 +282,11 @@ function showWingsBindings(data, title, formItems, type) {
         sm: new Ext.selection.RowModel({
             singleSelect: true
         }),
+        listeners: {
+        	'sortchange' : function( ct, column, direction, eOpts ) {
+        		bindingsGrid.getView().refresh();
+        	}
+        },
         tbar: [{
             text: 'Use Selected ' + (type == 'param' ? 'Parameters' : 'Data'),
             iconCls: 'icon-select-alt fa fa-green',

@@ -163,12 +163,15 @@ public class ComponentKB {
 
 		for (KBObject prop : kb.getAllObjectProperties()) {
 			this.objPropMap.put(prop.getName(), prop);
+			this.conceptMap.put(prop.getID(), prop);
 		}
 		for (KBObject con : kb.getAllClasses()) {
 			this.conceptMap.put(con.getName(), con);
+			this.conceptMap.put(con.getID(), con);
 		}
 		for (KBObject odp : kb.getAllDatatypeProperties()) {
 			this.dataPropMap.put(odp.getName(), odp);
+			this.dataPropMap.put(odp.getID(), odp);
 		}
 		
 		// Legacy ontologies don't have some properties. Add them in here

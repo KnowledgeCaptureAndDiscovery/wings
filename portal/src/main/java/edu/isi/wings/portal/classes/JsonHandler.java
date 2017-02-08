@@ -18,6 +18,7 @@
 package edu.isi.wings.portal.classes;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,35 +61,40 @@ public class JsonHandler {
 		GsonBuilder gson = new GsonBuilder();
 		gson.registerTypeAdapter(Date.class, new DateSerializer());
 		gson.registerTypeAdapter(Binding.class, new BindingSerializer());		
-		gson.registerTypeAdapter(ValueBinding.class, new BindingSerializer());		
-		return gson.disableHtmlEscaping().setPrettyPrinting().create();
+		gson.registerTypeAdapter(ValueBinding.class, new BindingSerializer());
+		return gson.disableHtmlEscaping().create();
+		//return gson.disableHtmlEscaping().setPrettyPrinting().create();
 	}
 
   public static Gson createDataGson() {
     GsonBuilder gson = new GsonBuilder();
     gson.setDateFormat("yyyy-MM-dd");
-    return gson.disableHtmlEscaping().setPrettyPrinting().create();
+    return gson.disableHtmlEscaping().create();
+    //return gson.disableHtmlEscaping().setPrettyPrinting().create();
   }
   
   public static Gson createComponentJson() {
     GsonBuilder gson = new GsonBuilder();
     gson.setDateFormat("yyyy-MM-dd");
-    return gson.disableHtmlEscaping().setPrettyPrinting().create();
+    return gson.disableHtmlEscaping().create();
+    //return gson.disableHtmlEscaping().setPrettyPrinting().create();
   }
   
 	public static Gson createTemplateGson() {
 		GsonBuilder gson = new GsonBuilder();
 		gson.registerTypeAdapter(Link.class, new LinkSerializer());
-//		gson.registerTypeAdapter(Node.class, new NodeSerializer());
+		//gson.registerTypeAdapter(Node.class, new NodeSerializer());
 		gson.registerTypeAdapter(Binding.class, new BindingSerializer());
 		gson.registerTypeAdapter(Binding.class, new BindingDeserializer());
 		gson.registerTypeAdapter(ValueBinding.class, new BindingSerializer());
 		gson.registerTypeAdapter(ValueBinding.class, new BindingDeserializer());
 		gson.registerTypeAdapter(SetExpression.class, new SetExpressionSerializer());
 		gson.registerTypeAdapter(SetExpression.class, new SetExpressionDeserializer());
+		//gson.registerTypeAdapter(URI.class, new URISerializer());
+		//gson.registerTypeAdapter(String.class, new StringSerializer());
 		gson.setDateFormat("yyyy-MM-dd");
 		gson.disableHtmlEscaping();
-		gson.setPrettyPrinting();
+		//gson.setPrettyPrinting();
 		return gson.create();
 	}
 	
@@ -120,10 +126,14 @@ public class JsonHandler {
 	private static void fillTemplateLinks(Template tpl) {
 		for(Link l : tpl.getLinks()) {
 			if(l.getOriginNode() != null) {
-				l.setOriginNode(tpl.getNode(l.getOriginNode().getID()));
+			  Node n = tpl.getNode(l.getOriginNode().getID());
+			  l.setOriginPort(n.findOutputPort(l.getOriginPort().getID()));
+				l.setOriginNode(n);
 			}
 			if(l.getDestinationNode() != null) {
-				l.setDestinationNode(tpl.getNode(l.getDestinationNode().getID()));
+			  Node n = tpl.getNode(l.getDestinationNode().getID());
+        l.setDestinationPort(n.findInputPort(l.getDestinationPort().getID()));
+				l.setDestinationNode(n);
 			}
 			l.setVariable(tpl.getVariable(l.getVariable().getID()));
 			tpl.updateLinkDetails(l);
@@ -179,11 +189,17 @@ class LinkSerializer implements JsonSerializer<Link>{
       JsonObject varobj = new JsonObject();
       varobj.addProperty("id", link.getVariable().getID());
       obj.add("variable", varobj);      
-    }		
-		if(link.getOriginPort() != null)
-			obj.add("fromPort", context.serialize(link.getOriginPort()));
-		if(link.getDestinationPort() != null)
-			obj.add("toPort", context.serialize(link.getDestinationPort()));
+    }
+    if(link.getOriginPort() != null) {
+      JsonObject varobj = new JsonObject();
+      varobj.addProperty("id", link.getOriginPort().getID());
+      obj.add("fromPort", varobj);      
+    }
+    if(link.getDestinationPort() != null) {
+      JsonObject varobj = new JsonObject();
+      varobj.addProperty("id", link.getDestinationPort().getID());
+      obj.add("toPort", varobj);      
+    }
 		return obj;
 	}
 }
@@ -314,5 +330,29 @@ class DateSerializer implements JsonSerializer<Date> {
   public JsonElement serialize(Date date, Type typeOfSrc,
       JsonSerializationContext context) {
     return context.serialize(date.getTime()/1000);
+  }
+}
+
+/**
+ * URI Serializer
+ * Convert to Prefixed ns
+ */
+class URISerializer implements JsonSerializer<URI> {
+  public JsonElement serialize(URI uri, Type typeOfSrc,
+      JsonSerializationContext context) {
+    return new JsonPrimitive(uri.getFragment());
+  }
+}
+
+/**
+ * String Serializer
+ * Search for uris and convert to prefixed
+ */
+class StringSerializer implements JsonSerializer<String> {
+  public JsonElement serialize(String str, Type typeOfSrc,
+      JsonSerializationContext context) {
+    if(str.startsWith("http://") || str.startsWith("https://"))
+      return new JsonPrimitive(str.substring(str.indexOf('#')+1));
+    return new JsonPrimitive(str);
   }
 }
