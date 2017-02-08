@@ -180,10 +180,27 @@ Shape.prototype.createLayerItem = function(lid, ltext, lx, ly) {
 					// If the shape being clicked is not currently selected,
 					// then remove all currently selected shapes and just select this
 					// shape
-					if (lyr.selectedItems.indexOf(this.shape) == -1)
+					if (lyr.selectedItems.indexOf(this.shape) == -1) {
 						lyr.selectedItems = [
 							this.shape
 						];
+					}
+					else {
+						// If already selected & a node, then select the variables too
+						if(this.shape.isnode) {
+							var n = this.shape;
+							var inputs = n.getInputLinks();
+							var outputs = n.getOutputLinks();
+							for(var i=0; i<inputs.length; i++) {
+								if(lyr.selectedItems.indexOf(inputs[i].variable) == -1)
+									lyr.selectedItems.push(inputs[i].variable);
+							}
+							for(var i=0; i<outputs.length; i++) {
+								if(lyr.selectedItems.indexOf(outputs[i].variable) == -1)
+									lyr.selectedItems.push(outputs[i].variable);
+							}
+						}
+					}
 					lyr.dragging = [];
 					for ( var i = 0; i < lyr.selectedItems.length; i++) {
 						lyr.dragging.push({

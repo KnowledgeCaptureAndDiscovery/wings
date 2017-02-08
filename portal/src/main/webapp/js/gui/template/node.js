@@ -30,6 +30,7 @@ var Node = function(tpl, id, component, x, y) {
 	this.isConcrete = true;
 	this.binding = null;
 	this.runtimeInfo = null;
+	this.isnode = true;
 	
 	this.crule = {type:'WTYPE'};
 	this.prule = {type:'STYPE', expr:{'op' : 'XPRODUCT', args: []}};

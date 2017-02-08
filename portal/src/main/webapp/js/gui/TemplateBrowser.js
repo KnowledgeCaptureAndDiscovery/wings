@@ -653,12 +653,12 @@ TemplateBrowser.prototype.replaceConstraintObjects = function(tid, constraints,
 		} else if (!varMaps[cons.object.id]
 				&& (getNamespace(cons.object.id) == tns)) {
 			// if this isn't a variable & belongs to the current namespace
-			newcons.object = "?" + newcons.object;
+			newcons.object = "?" + getLocalName(newcons.object);
 		}
 		if (!varMaps[cons.subject.id] && (getNamespace(cons.subject.id) == tns)) {
 			// if the subject isn't a variable & belongs to the current
 			// namespace
-			newcons.subject = "?" + newcons.subject;
+			newcons.subject = "?" + getLocalName(newcons.subject);
 		}
 
 		/*

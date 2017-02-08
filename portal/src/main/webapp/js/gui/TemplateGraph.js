@@ -973,7 +973,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		if (this.canvasDom.parentNode.parentNode) {
 			var cmp = Ext.get(this.canvasDom.parentNode.parentNode.id);
 			this.canvasDom.parentNode.parentNode.scrollLeft = this.canvas.scale * x - this.graphPadding;
-			cmp.scrollTo('top', this.canvas.scale * y - this.graphPadding, true);
+			cmp.scrollTo('top', this.canvas.scale * y - this.graphPadding, false);
 		}
 	},
 
