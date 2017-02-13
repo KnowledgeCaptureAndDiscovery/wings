@@ -1355,7 +1355,7 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 	var url = This.op_url + '/saveTemplateJSON';
 	var msgTarget = Ext.get(tab.getId());
 	msgTarget.mask('Saving...', 'x-mask-loading');
-	Ext.Ajax.request({
+	Ext.Ajax.requestGZ({
 		url : url,
 		params : {
 			template_id : tid,
@@ -1412,7 +1412,7 @@ TemplateBrowser.prototype.inferElaboratedTemplate = function(store) {
 	var msgTarget = Ext.get(tab.getId());
 	msgTarget.mask('Elaborating...', 'x-mask-loading');
 	Ext.Ajax
-			.request({
+			.requestGZ({
 				url : url,
 				params : {
 					template_id: tid,
