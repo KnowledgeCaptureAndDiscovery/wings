@@ -99,14 +99,23 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	@Override
 	public ArrayList<String> getAllDatatypeIds() {
 		ArrayList<String> list = new ArrayList<String>();
-		KBObject top = this.kb.getConcept(this.topclass);
-		ArrayList<KBObject> types = this.kb.getSubClasses(top, false);
-		for (KBObject type : types) {
-			if (!type.getNamespace().equals(this.dcdomns) && !type.getNamespace().equals(this.dcns))
-				continue;
-			list.add(type.getID());
-		}
-		return list;
+    String query =   
+        "SELECT ?type\n" + 
+        "WHERE {\n" + 
+        "?type a <"+KBUtils.OWL+"Class> .\n" + 
+        "FILTER ( STRSTARTS(STR(?type), \"" + this.dcdomns + "\"))\n" + 
+        "}";
+    ArrayList<ArrayList<SparqlQuerySolution>> result = this.kb.sparqlQuery(query);
+    for(ArrayList<SparqlQuerySolution> row : result) {
+      HashMap<String, KBObject> vals = new HashMap<String, KBObject>();
+      for(SparqlQuerySolution col : row)
+        vals.put(col.getVariable(), col.getObject());
+      if(vals.get("type") == null)
+        continue;
+      String typeid = vals.get("type").getID();
+      list.add(typeid);
+    }
+    return list;		
 	}
 	
 	@Override
