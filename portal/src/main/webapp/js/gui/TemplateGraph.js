@@ -220,13 +220,24 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	initTemplate : function(template_id, store) {
+		var MAX_LINKS = 500;
+		
 		this.store = store;
 		this.template_id = template_id;
 
+        var numlinks = 0;
+        for(var i in this.store.Links)
+        	numlinks ++;
+        if (numlinks > MAX_LINKS) {
+            //this.clearCanvas();
+            alert("This graph is too big to display");
+            return;
+        }
+        
 		this.template = new Template(this.template_id, this.store, this);
 		this.template.markErrors();
 		this.canvas.template = this.template;
-
+        
 		this.initTemplateLayer();
 		this.initLayerItems();
 
@@ -1030,6 +1041,9 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		var maxX = this.graphPadding;
 		var maxY = this.graphPadding;
 
+		if(!this.template_layer)
+			return;
+		
 		if (preferredWidth || preferredHeight)
 			this.template_layer.draw();
 
