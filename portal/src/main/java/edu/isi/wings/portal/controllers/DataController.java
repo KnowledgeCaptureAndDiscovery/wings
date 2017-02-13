@@ -18,9 +18,6 @@
 package edu.isi.wings.portal.controllers;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -30,10 +27,10 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
@@ -48,9 +45,7 @@ import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
+import edu.isi.wings.portal.classes.StorageHandler;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -58,30 +53,23 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class DataController {
-	private int guid;
+	public String dcns;
+	public String domns;
+	public String libns;
 
-	private String dcns;
-	private String domns;
-	private String libns;
+	public DataCreationAPI dc;
+	public ProvenanceAPI prov;
 	
-	private String uploadScript;
-	private String provScript;
+	public boolean loadExternal;
+	public Config config;
+	public Properties props;
 
-	private DataCreationAPI dc;
-	private ProvenanceAPI prov;
-	
-	private boolean isSandboxed;
-	private boolean loadExternal;
-	private Config config;
-	private Properties props;
+	public Gson json;
 
-	private Gson json;
-
-	public DataController(int guid, Config config, boolean load_external) {
-		this.guid = guid;
+	public DataController(Config config, boolean load_external) {
 		this.config = config;
-		this.isSandboxed = config.isSandboxed();
 		this.loadExternal = load_external;
+
 		json = JsonHandler.createDataGson();
 		this.props = config.getProperties();
 
@@ -89,57 +77,10 @@ public class DataController {
 		if(this.loadExternal)
 		  dc = dc.getExternalCatalog();
 		prov = ProvenanceFactory.getAPI(props);
-		
-		this.dcns = (String) props.get("ont.data.url") + "#";
-		this.domns = (String) props.get("ont.domain.data.url") + "#";
-		this.libns = (String) props.get("lib.domain.data.url") + "#";
-		
-		this.uploadScript = config.getUserDomainUrl() + "/upload";
-		this.provScript = config.getCommunityPath() + "/provenance";
-	}
 
-	public void show(PrintWriter out) {
-		// Get Hierarchy
-		try {
-			String tree = this.getDataHierarchyJSON();
-			String metrics = this.getMetricsHierarchyJSON();
-	
-			HTMLLoader.printHeader(out);
-			out.println("<head>");
-			out.println("<title>Manage Data</title>");
-			JSLoader.loadConfigurationJS(out, config);
-			CSSLoader.loadDataViewer(out, config.getContextRootPath());
-			JSLoader.loadDataViewer(out, config.getContextRootPath());
-			out.println("</head>");
-	
-			out.println("<script>");
-			out.println("var dataViewer_" + guid + ";");
-			out.println("Ext.onReady(function() {"
-					+ "dataViewer_" + guid + " = new DataViewer('" + guid + "', { "
-							+ "tree: " + tree + ", "
-							+ "metrics: " + metrics 
-						+ " }, " 
-						+ "'" + config.getScriptPath() + "', "
-						+ "'" + this.uploadScript + "', "
-						+ "'" + this.provScript + "', "
-						+ "'" + this.dcns + "', " 
-						+ "'" + this.domns + "', " 
-						+ "'" + this.libns + "', " 
-						+ !this.isSandboxed + ", "
-						+ false + ", "
-						+ (this.dc != null && this.dc.getExternalCatalog() != null)
-						+ ");\n"
-						+ "dataViewer_" + guid + ".initialize();\n"
-					+ "});");
-			out.println("</script>");
-	
-			HTMLLoader.printFooter(out);
-		}
-		finally {
-			if(dc != null) 
-				dc.end();
-			//prov.end();
-		}
+    this.dcns = (String) props.get("ont.data.url") + "#";
+    this.domns = (String) props.get("ont.domain.data.url") + "#";
+    this.libns = (String) props.get("lib.domain.data.url") + "#";
 	}
 
 	/*
@@ -245,7 +186,7 @@ public class DataController {
 		}
 	}
 	
-	public void streamData(String dataid, HttpServletResponse response, ServletContext context) {
+	public Response streamData(String dataid, ServletContext context) {
 		try {
 			String location = dc.getDataLocation(dataid);
 			if(location != null) {
@@ -261,33 +202,14 @@ public class DataController {
 				if(f == null)
 					f = new File(location);
 
-				if(f.canRead()) {
-					try {
-						String mimeType = context.getMimeType(location);
-						response.setContentType(mimeType);
-						response.setHeader("Content-Disposition", "attachment; filename=\"" + f.getName() + "\"");
-						FileInputStream fin = new FileInputStream(f);
-						IOUtils.copyLarge(fin, response.getOutputStream());
-						fin.close();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				else {
-					try {
-						PrintWriter out = response.getWriter();
-						out.println("File not on server\nLocation: "+location);
-						out.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+		    return StorageHandler.streamFile(f.getAbsolutePath(), context);
 			}
 		}
 		finally {
 			dc.end();
 			prov.end();
 		}
+		return null;
 	}
 
 	/*

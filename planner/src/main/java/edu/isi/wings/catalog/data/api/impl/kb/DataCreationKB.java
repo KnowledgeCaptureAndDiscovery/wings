@@ -42,7 +42,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	DataCreationAPI externalCatalog;
 
 	public DataCreationKB(Properties props) {
-		super(props, true);
+		super(props, true, true);
 		this.topclass = this.dcns + "DataObject";
 		this.topmetric = this.dcns + "Metrics";
 
@@ -169,6 +169,10 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		ArrayList<DataItem> list = new ArrayList<DataItem>();
 		for (KBObject data : datas) {
 			list.add(new DataItem(data.getID(), DataItem.DATA));
+		}
+		if(!direct && datatype != null) {
+		  for(KBObject cls : this.kb.getSubClasses(datatype, direct))
+		    list.addAll(this.getDataForDatatype(cls.getID(), direct));
 		}
 		return list;
 	}
@@ -527,7 +531,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBUtils.renameAllTriplesWith(this.ontkb, dckb.onturl, this.onturl, false);
 		this.ontkb.save();
 		
-		this.initializeAPI(true, true);
+		this.initializeAPI(true, true, true);
 	}
 	
 	@Override

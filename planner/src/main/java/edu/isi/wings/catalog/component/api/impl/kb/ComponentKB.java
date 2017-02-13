@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Scanner;
 
+import edu.isi.wings.catalog.component.classes.Component;
+import edu.isi.wings.catalog.component.classes.ComponentRole;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.kb.KBUtils;
@@ -81,7 +83,7 @@ public class ComponentKB {
 	 *            ont.workflow.url tdb.repository.dir (optional)
 	 */
 	public ComponentKB(Properties props, boolean load_concrete, 
-			boolean create_writers, boolean create_if_empty) {
+			boolean create_writers, boolean create_if_empty, boolean plainkb) {
 		this.props = props;
 		
 		String hash = "#";
@@ -108,12 +110,13 @@ public class ComponentKB {
 		}
 		KBUtils.createLocationMappings(props, this.ontologyFactory);
 		
-		this.initializeAPI(create_writers, create_if_empty);
+		this.initializeAPI(create_writers, create_if_empty, plainkb);
 	}
 	
-	protected void initializeAPI(boolean create_writers, boolean create_if_empty) {
+	protected void initializeAPI(boolean create_writers, boolean create_if_empty, boolean plainkb) {
 		try {
-			this.kb = this.ontologyFactory.getKB(absurl, OntSpec.PELLET, create_if_empty);
+			this.kb = this.ontologyFactory.getKB(absurl, 
+			    plainkb ? OntSpec.PLAIN : OntSpec.PELLET, create_if_empty);
 		}
 		catch(Exception e) {
 			// Legacy Porting:  
@@ -481,7 +484,97 @@ public class ComponentKB {
 		}
 		return result_line;
 	}
+	
+  public Component getComponent(String cid, boolean details) {
+    KBObject compobj = kb.getIndividual(cid);
+    if(compobj == null) return null;
+    
+    KBObject concobj = kb.getDatatypePropertyValue(compobj, this.dataPropMap.get("isConcrete"));
+    boolean isConcrete = false;
+    if(concobj != null && concobj.getValue() != null)
+      isConcrete = ((Boolean) concobj.getValue()).booleanValue();
+    int ctype = isConcrete ? Component.CONCRETE : Component.ABSTRACT;
 
+    Component comp = new Component(compobj.getID(), ctype);
+    if (isConcrete) {
+      comp.setLocation(this.getComponentLocation(cid));
+    }
+
+    if (details) {
+      comp.setDocumentation(this.getComponentDocumentation(compobj));
+      comp.setComponentRequirement(
+          this.getComponentRequirements(compobj, this.kb));
+      
+      ArrayList<KBObject> inobjs = this.getComponentInputs(compobj);
+      for (KBObject inobj : inobjs) {
+        comp.addInput(this.getRole(inobj));
+      }
+      ArrayList<KBObject> outobjs = this.getComponentOutputs(compobj);
+      for (KBObject outobj : outobjs) {
+        comp.addOutput(this.getRole(outobj));
+      }
+      comp.setRules(this.getDirectComponentRules(cid));
+      comp.setInheritedRules(this.getInheritedComponentRules(cid));
+    }
+    return comp;
+  }	
+  
+  protected ArrayList<KBObject> getComponentInputs(KBObject compobj) {
+    KBObject inProp = kb.getProperty(this.pcns + "hasInput");
+    return kb.getPropertyValues(compobj, inProp);
+  }
+
+  protected ArrayList<KBObject> getComponentOutputs(KBObject compobj) {
+    KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
+    return kb.getPropertyValues(compobj, outProp);
+  }
+
+  protected String getComponentDocumentation(KBObject compobj) {
+    KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
+    KBObject doc = kb.getPropertyValue(compobj, docProp);
+    if(doc != null && doc.getValue() != null)
+        return doc.getValueAsString();
+    return null;
+  }
+  
+  protected ComponentRole getRole(KBObject argobj) {
+    ComponentRole arg = new ComponentRole(argobj.getID());
+    KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");
+    KBObject dimProp = kb.getProperty(this.pcns + "hasDimensionality");
+    KBObject pfxProp = kb.getProperty(this.pcns + "hasArgumentName");
+    KBObject valProp = kb.getProperty(this.pcns + "hasValue");
+
+    ArrayList<KBObject> alltypes = kb.getAllClassesOfInstance(argobj, true);
+
+    for (KBObject type : alltypes) {
+      if (type.getID().equals(this.pcns + "ParameterArgument"))
+        arg.setParam(true);
+      else if (type.getID().equals(this.pcns + "DataArgument"))
+        arg.setParam(false);
+      else if (type.getNamespace().equals(this.dcdomns)
+          || type.getNamespace().equals(this.dcns))
+        arg.setType(type.getID());
+    }
+    KBObject role = kb.getPropertyValue(argobj, argidProp);
+    KBObject dim = kb.getPropertyValue(argobj, dimProp);
+    KBObject pfx = kb.getPropertyValue(argobj, pfxProp);
+
+    if (arg.isParam()) {
+      KBObject val = kb.getPropertyValue(argobj, valProp);
+      if (val != null) {
+        arg.setType(val.getDataType());
+        arg.setParamDefaultalue(val.getValue());
+      }
+    }
+    if (role != null && role.getValue() != null)
+      arg.setRoleName(role.getValueAsString());
+    if (dim != null && dim.getValue() != null)
+      arg.setDimensionality((Integer) dim.getValue());
+    if (pfx != null && pfx.getValue() != null)
+      arg.setPrefix(pfx.getValueAsString());
+    return arg;
+  }
+  
 	/**
 	 * Set Rule Prefix-Namespace Mappings Prefixes allowed in Rules: rdf, rdfs,
 	 * owl, xsd -- usual dc, dcdom -- data catalog pc, pcdom -- component

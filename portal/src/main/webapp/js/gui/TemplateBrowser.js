@@ -149,11 +149,14 @@ TemplateBrowser.prototype.createNewTemplate = function() {
                 showError('Template "' + tname + '" already exists');
                 return;
             }
-			var url = This.op_url + '/newTemplate?template_id=' + escape(tid);
+			var url = This.op_url + '/newTemplate';
 			var msgTarget = Ext.get(This.treePanel.getId());
 			msgTarget.mask('Creating...', 'x-mask-loading');
 			Ext.Ajax.request({
 				url : url,
+				params: {
+					template_id: tid
+				},
 				success : function(response) {
 					msgTarget.unmask();
 					if (response.responseText == "OK") {
@@ -181,11 +184,14 @@ TemplateBrowser.prototype.createNewTemplate = function() {
 
 TemplateBrowser.prototype.deleteTemplate = function(tid, tname) {
 	var This = this;
-	var url = This.op_url + '/deleteTemplate?template_id=' + escape(tid);
+	var url = This.op_url + '/deleteTemplate';
 	var msgTarget = Ext.get(This.treePanel.getId());
 	msgTarget.mask('Deleting...', 'x-mask-loading');
 	Ext.Ajax.request({
 		url : url,
+		params: {
+			template_id: tid
+		},
 		success : function(response) {
 			msgTarget.unmask();
 			_console(response.responseText);
@@ -266,6 +272,7 @@ TemplateBrowser.prototype.createViewerPanel = function(tid, tname) {
 	this.setupTemplateRenderer(tpanel, tid, tname);
 	Ext.apply(tpanel.loader, {
 		url : url,
+		method : 'get',
 		params : {
 			template_id : tid
 		}
@@ -305,6 +312,7 @@ TemplateBrowser.prototype.openTemplate = function(tid, tname, path, doLayout) {
 	var url = This.op_url + '/' + fetchOp;
 	tpanel.getLoader().load({
 		url : url,
+		method : 'get',
 		params : {
 			template_id : tid
 		}
@@ -1344,12 +1352,13 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 
 	var imagedata = tab.graphPanel.editor.getImageData(1, false);
 
-	var url = This.op_url + '/saveTemplateJSON?template_id=' + escape(tid);
+	var url = This.op_url + '/saveTemplateJSON';
 	var msgTarget = Ext.get(tab.getId());
 	msgTarget.mask('Saving...', 'x-mask-loading');
 	Ext.Ajax.request({
 		url : url,
 		params : {
+			template_id : tid,
 			json : Ext.encode(store),
 			constraints_json : Ext.encode(constraints),
 		// imagedata: imagedata
@@ -1399,14 +1408,14 @@ TemplateBrowser.prototype.inferElaboratedTemplate = function(store) {
 	var constraints = store.constraints;
 	store.constraints = null;
 
-	var url = This.plan_url + '/elaborateTemplateJSON?__template_id='
-			+ escape(tid);
+	var url = This.plan_url + '/elaborateTemplateJSON';
 	var msgTarget = Ext.get(tab.getId());
 	msgTarget.mask('Elaborating...', 'x-mask-loading');
 	Ext.Ajax
 			.request({
 				url : url,
 				params : {
+					template_id: tid,
 					json : Ext.encode(store),
 					constraints_json : Ext.encode(constraints)
 				},
@@ -1489,12 +1498,15 @@ TemplateBrowser.prototype.getTemplatePanel = function(tid, tabname, path) {
 						handler : function() {
 							var fetchOp = This.editor_mode ? 'getEditorJSON'
 									: 'getViewerJSON';
-							var url = This.op_url + '/' + fetchOp
-									+ '?template_id=' + escape(tid);
 							var tpanel = this.up('panel');
+							var url = This.op_url + "/" + fetchOp;
 							if(!This.opts.hide_documentation) tpanel = tpanel.down('panel');
 							tpanel.getLoader().load({
-								url : url
+								url : url,
+								method : 'get',
+								params: {
+									template_id: tid
+								}
 							});
 							if (This.tellMe)
 								This.tellMe.clear();

@@ -25,6 +25,12 @@ public class CSSLoader {
 	  , "css/fontello/css/wings-icons.css" };
 	static String[] animation_css = { "css/fontello/css/animation.css" };
 	static String[] extjs_css = { "lib/extjs/resources/ext-theme-"+theme+"/ext-theme-"+theme+"-all.css" };
+	
+	public static String getViewerStyles(String path) {
+	  return 
+	      getCssTags(path, site_css) +
+	      getCssTags(path, extjs_css);
+	}
 
 	public static void loadLoginViewer(PrintWriter out, String path) {
 		showCssTags(out, path, site_css);
@@ -74,5 +80,16 @@ public class CSSLoader {
 		    url = href;
 			out.println("<link rel=\"stylesheet\" href=\"" + url + "\"/>");
 		}
+	}
+	
+	private static String getCssTags(String path, String[] css) {
+	  String str = "";
+	  for (String href : css) {
+	    String url = path + "/" + href;
+	    if(href.matches("http:.*"))
+	      url = href;
+	    str += "<link rel=\"stylesheet\" href=\"" + url + "\"/>\n";
+	  }
+	  return str;
 	}
 }

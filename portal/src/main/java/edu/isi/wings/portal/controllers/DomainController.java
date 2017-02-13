@@ -20,7 +20,6 @@ package edu.isi.wings.portal.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,12 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.io.FileUtils;
+
 import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.config.Config;
@@ -43,68 +44,29 @@ import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.classes.domains.Permission;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 public class DomainController {
-	private int guid;
-	private String uploadScript;
-	private Config config;
-	private Gson json;
+	public Config config;
+	public Gson json;
 	
 	private Domain domain;
 	private HashMap<String, DomainInfo> user_domains;
 	private String defaultDomainName = "blank";
 	
-	String userdir;
-	String userConfigFile;
+	private String userdir;
+	private String userConfigFile;
 
-	public DomainController(int guid, Config config) {
-		this.guid = guid;
+	public DomainController(Config config) {
 		this.config = config;
 		this.json = JsonHandler.createGson();
-		this.uploadScript = config.getUserDomainUrl() + "/upload";
 		this.user_domains = new HashMap<String, DomainInfo>();
 		this.userConfigFile = config.getUserDir() + "/user.properties";
 		
 		this.initializeDomainList(config.getDomainId());
-	}
-
-	public void show(PrintWriter out) {
-		// Get Hierarchy
-		try {
-			String list = this.getDomainsListJSON();
-			//System.out.println(list);
-			HTMLLoader.printHeader(out);
-			out.println("<head>");
-			out.println("<title>Manage Domains</title>");
-			JSLoader.loadConfigurationJS(out, config);
-			CSSLoader.loadDomainViewer(out, config.getContextRootPath());
-			JSLoader.loadDomainViewer(out, config.getContextRootPath());
-			out.println("</head>");
-	
-			out.println("<script>");
-			out.println("var domainViewer_" + guid + ";");
-			out.println("Ext.onReady(function() {"
-					+ "domainViewer_" + guid + " = new DomainViewer("
-						+ "'" + guid + "', " 
-						+ list + ", " 
-						+ "'" + config.getScriptPath() + "', "
-						+ "'" + this.uploadScript + "'" 
-						+ ");\n"
-						+ "domainViewer_" + guid + ".initialize();\n"
-					+ "});");
-			out.println("</script>");
-			HTMLLoader.printFooter(out);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public String getDomainsListJSON() {
@@ -167,8 +129,11 @@ public class DomainController {
   
 	public String getDomainJSON (String domain) {
 		DomainInfo dominfo = this.user_domains.get(domain);
-		Domain dom = new Domain(dominfo);
-		return json.toJson(dom);
+		if(dominfo != null) {
+		  Domain dom = new Domain(dominfo);
+		  return json.toJson(dom);
+		}
+		return null;
 	}
 	
 	public Domain getUserDomain() {
@@ -314,23 +279,24 @@ public class DomainController {
 		return false;
 	}
 	
-	public boolean streamDomain(String domName, HttpServletResponse response, ServletContext context) {
+	public Response streamDomain(String domName, ServletContext context) {
 		DomainInfo dominfo = this.user_domains.get(domName);
 		if(dominfo == null)
-			return false;
+			return Response.status(Status.NOT_FOUND).build();
 		
 		Domain dom = new Domain(dominfo);
 		File f = Domain.exportDomain(dom, this.config);  
 		if(f == null)
-		  return false;
-		StorageHandler.streamFile(f.getAbsolutePath() + File.separator + dom.getDomainName(), 
-				response, context);
-		try {
+		  return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		
+		return StorageHandler.streamFile(f.getAbsolutePath() + File.separator + dom.getDomainName(), 
+				context);
+		
+		/*try {
 			FileUtils.deleteDirectory(f);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-		return true;
+		}*/
 	}
 	
   public boolean setDomainExecutionEngine(String domain, String engine) {

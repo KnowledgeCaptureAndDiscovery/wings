@@ -480,7 +480,7 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 			}
 			This.setGraphRuntimeInfo(xtPanel.graph, data);
 		});
-		xtPanel.getLoader().load();
+		xtPanel.getLoader().load({method: 'get'});
 		xtPanel.un("activate", loadxfn);
 	};
 	xtPanel.on("activate", loadxfn);
@@ -490,7 +490,7 @@ RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 		tPanel.getLoader().on("load", function(event, response) {
 			tPanel.graph.editor.layout();
 		});
-		tPanel.getLoader().load();
+		tPanel.getLoader().load({method : 'get'});
 		tPanel.un("activate", loadtfn);
 	};	
 	tPanel.on("activate", loadtfn);

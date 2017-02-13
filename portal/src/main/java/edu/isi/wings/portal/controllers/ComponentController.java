@@ -17,13 +17,10 @@
 
 package edu.isi.wings.portal.controllers;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
@@ -37,37 +34,27 @@ import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
-
 import com.google.gson.Gson;
 
 public class ComponentController {
-	private int guid;
-	private String pcdomns;
-	private String dcdomns;
-	private String liburl;
-	
-	private String uploadScript;
-	private String resourceScript;
-	private String provScript;
+	public String pcdomns;
+	public String dcdomns;
+	public String liburl;
 
-	private ComponentCreationAPI cc;
-	private DataCreationAPI dc;
-	private ProvenanceAPI prov;
+	public ComponentCreationAPI cc;
+	public DataCreationAPI dc;
+	public ProvenanceAPI prov;
 	
-	private boolean isSandboxed;
-	private boolean loadConcrete;
-	private boolean loadExternal;
+	public boolean isSandboxed;
+	public boolean loadConcrete;
+	public boolean loadExternal;
 	
-	private Config config;
-	private Properties props;
-	private Gson json;
+	public Config config;
+	public Properties props;
+	public Gson json;
 
-	public ComponentController(int guid, Config config, 
+	public ComponentController(Config config, 
 	    boolean loadConcrete, boolean loadExternal) {
-		this.guid = guid;
 		this.config = config;
 		this.loadConcrete = loadConcrete;
 		this.isSandboxed = config.isSandboxed();
@@ -85,54 +72,6 @@ public class ComponentController {
 		this.pcdomns = (String) props.get("ont.domain.component.ns");
 		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";
 		this.liburl = (String) props.get("lib.concrete.url");
-		
-		this.uploadScript = config.getUserDomainUrl() + "/upload";
-		this.resourceScript = config.getCommunityPath() + "/resources";
-		this.provScript = config.getCommunityPath() + "/provenance";
-	}
-
-	public void show(PrintWriter out) {
-		// Get Hierarchy
-		try {
-			String tree = json.toJson(cc.getComponentHierarchy(false).getRoot());
-			String types = json.toJson(dc.getAllDatatypeIds());
-			HTMLLoader.printHeader(out);
-			out.println("<head>");
-			out.println("<title>Manage Component" + (this.loadConcrete ? "s" : " Types") + "</title>");
-			JSLoader.loadConfigurationJS(out, config);
-			CSSLoader.loadComponentViewer(out, config.getContextRootPath());
-			JSLoader.loadComponentViewer(out, config.getContextRootPath());
-			out.println("</head>");
-	
-			out.println("<script>");
-			out.println("var compViewer_" + guid + ";");
-			out.println("Ext.onReady(function() {"
-					+ "compViewer_" + guid + " = new ComponentViewer('"+ guid + "', { " 
-						+ "tree: " + tree + ", " 
-						+ "types: " + types 
-					+ " }, " 
-					+ "'" + config.getScriptPath() + "', "
-					+ "'" + this.resourceScript + "', "
-					+ "'" + this.uploadScript + "', "
-					+ "'" + this.provScript + "', "
-					+ "'" + this.pcdomns + "', "
-					+ "'" + this.dcdomns + "', " 
-					+ "'" + this.liburl + "', " 
-					+ loadConcrete + ", " 
-					+ !isSandboxed 
-					+ ");"
-					+ "compViewer_" + guid + ".initialize();\n"
-					+ "});\n"
-					);
-			out.println("</script>");
-	
-			HTMLLoader.printFooter(out);
-		}
-		finally {
-			cc.end();
-			dc.end();
-			prov.end();
-		}
 	}
 
 	public String getComponentJSON(String cid) {
@@ -146,24 +85,10 @@ public class ComponentController {
 		}
 	}
 	
-	public void streamComponent(String cid, HttpServletResponse response, ServletContext context) {
+	public Response streamComponent(String cid, ServletContext context) {
 		try {
 			String location = cc.getComponentLocation(cid);
-			if(location != null) {
-				File f = new File(location);
-				if(f.canRead()) {
-					StorageHandler.streamFile(f.getAbsolutePath(), response, context);
-				}
-				else {
-					try {
-						PrintWriter out = response.getWriter();
-						out.println("File not on server\nLocation: "+location);
-						out.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
+			return StorageHandler.streamFile(location, context);
 		}
 		finally {
 			dc.end();

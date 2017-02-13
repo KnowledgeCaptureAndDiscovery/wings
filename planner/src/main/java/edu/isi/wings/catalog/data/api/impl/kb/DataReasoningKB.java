@@ -52,7 +52,7 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 	 *            (optional)
 	 */
 	public DataReasoningKB(Properties props) {
-		super(props, false);
+		super(props, false, false);
 	}
 
 	/**

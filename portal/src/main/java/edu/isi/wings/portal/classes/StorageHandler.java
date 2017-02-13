@@ -23,9 +23,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -33,31 +33,46 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 
 public class StorageHandler {
-	
-	public static void streamFile(String location, HttpServletResponse response, ServletContext context) {
-		File f = new File(location);
-		if(f.canRead()) {
-			if(f.isDirectory())
-				streamDirectory(f, response, context);
-			else
-				streamFile(f, response, context);
-		}
-		else {
-			try {
-				PrintWriter out = response.getWriter();
-				out.println("File not on server\nLocation: "+location);
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	public static Response streamFile(String location, ServletContext context) {
+    final File f = new File(location);
+    if(!f.exists())
+      return Response.status(Status.NOT_FOUND).build();
+    if(!f.canRead()) 
+      return Response.status(Status.FORBIDDEN).build();
+    
+    StreamingOutput stream = new StreamingOutput() {
+      @Override
+      public void write(OutputStream os) throws IOException {
+        try {
+          if(f.isDirectory())
+            streamDirectory(f, os);
+          else
+            streamFile(f, os);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    };
+    
+    String filename = f.getName();
+    String mime = context.getMimeType(f.getAbsolutePath());
+    if(f.isDirectory()) {
+      filename += ".zip";
+      mime = "application/zip";
+    }
+    
+    return Response.ok(stream, mime)
+        .header("content-disposition", "attachment; filename = "+ filename)
+        .build();
 	}
 
 	public static String unzipFile(File f, String todirname, String toDirectory) {
@@ -152,30 +167,21 @@ public class StorageHandler {
 		Files.walkFileTree(src.toPath(), opts, Integer.MAX_VALUE, tc);
 	}*/
     
-	private static void streamFile(File f, HttpServletResponse response, 
-			ServletContext context) {
+	private static void streamFile(File f, OutputStream os) {
 		try {
-			String mimeType = context.getMimeType(f.getAbsolutePath());
-			response.setContentType(mimeType);
-			response.setHeader("Content-Disposition", "attachment; filename=\"" + f.getName() + "\"");
 			FileInputStream fin = new FileInputStream(f);
-			IOUtils.copyLarge(fin, response.getOutputStream());
+			IOUtils.copyLarge(fin, os);
 			fin.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static void streamDirectory(File directory, HttpServletResponse response, 
-	    ServletContext context) {
+	private static void streamDirectory(File directory, OutputStream os) {
 	  try {
-	    response.setContentType("application/zip");
-	    response.setHeader("Content-Disposition",
-	        "attachment; filename=\"" + directory.getName() + ".zip\"");
-
 	    // Start the ZipStream reader. Whatever is read is streamed to response
 	    PipedInputStream pis = new PipedInputStream(2048);
-	    ZipStreamer pipestreamer = new ZipStreamer(pis, response);
+	    ZipStreamer pipestreamer = new ZipStreamer(pis, os);
 	    pipestreamer.start();
 
 	    // Start Zipping folder and piping to the ZipStream reader
@@ -184,7 +190,6 @@ public class StorageHandler {
 	    zipAndStream(directory, zos, directory.getName() + "/");
 	    zos.flush();
 	    zos.close();
-
 	  } catch (Exception e) {
 	    e.printStackTrace();
 	  }
@@ -214,17 +219,17 @@ public class StorageHandler {
 
 class ZipStreamer extends Thread {
 	public PipedInputStream pis;
-	public HttpServletResponse response;
+	public OutputStream os;
 	
-	public ZipStreamer(PipedInputStream pis, HttpServletResponse response) {
+	public ZipStreamer(PipedInputStream pis, OutputStream os) {
 		super();
 		this.pis = pis;
-		this.response = response;
+		this.os = os;
 	}
 	
 	public void run() {
 		try {
-			IOUtils.copyLarge(pis, response.getOutputStream());
+			IOUtils.copyLarge(pis, os);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

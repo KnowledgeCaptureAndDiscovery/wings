@@ -29,11 +29,10 @@ Layout.prototype.layoutDot = function(msgTarget, ed, op_url) {
 	var store = ed.template.store;
 
 	var url = op_url + "/layoutTemplate";
-	Ext.Ajax.request({
+	// Gzipped Request
+	Ext.Ajax.requestGZ({
 		url : url,
-		params : {
-			json : Ext.encode(store)
-		},
+		rawData : Ext.encode(store),
 		success : function(response) {
 			msgTarget.unmask();
 			// Copy over xy positions from new store
@@ -65,7 +64,7 @@ Layout.prototype.layoutDot = function(msgTarget, ed, op_url) {
 		},
 		failure : function(response) {
 			if (window.console)
-				window.console.log(response.responseText);
+				window.console.log(response);
 		}
 	});
 };

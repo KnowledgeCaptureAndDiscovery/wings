@@ -76,7 +76,7 @@ public class ResourceKB implements ResourceAPI {
 
   protected void initializeAPI() {
     try {
-      this.ontkb = this.ontologyFactory.getKB(onturl, OntSpec.PELLET, false, true);
+      this.ontkb = this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true);
       this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
       this.initializeMaps();
       this.initializeLibrary();

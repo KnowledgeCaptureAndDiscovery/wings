@@ -188,6 +188,8 @@ function formatTemplateSummary(value, meta, record, rowind, colind, store) {
 }
 
 function showWingsBindings(data, title, formItems, type) {
+    var wtype = (type == 'Data' ? 'data' : 'param');
+
     // if(window.console) window.console.log(data);
     var bindings = data.bindings;
     if (!bindings || bindings.length == 0) {
@@ -203,13 +205,13 @@ function showWingsBindings(data, title, formItems, type) {
     for (var i = 0; i < formItems.length; i++) {
         var item = formItems[i];
         // if(item.wtype == type && !item.getValue())
-        if (item.wtype == type) {
+        if (item.wtype == wtype) {
             var name = item.name;
             //var id = item.uri;
             cols.push({
                 dataIndex: name,
                 header: name,
-                renderer: type == "data" ? formatDataBindings: formatParameterBindings,
+                renderer: type == "Data" ? formatDataBindings: formatParameterBindings,
                 resizable: true,
                 sortable: true,
                 flex: 1,
@@ -219,7 +221,7 @@ function showWingsBindings(data, title, formItems, type) {
             	name: name,
             	sortType: function(a) {
             		a = a[0] ? a[0] : a;
-            		return type == 'param' ? a.value : a.id;
+            		return type == 'Parameters' ? a.value : a.id;
             	}
             });
         }
@@ -235,7 +237,7 @@ function showWingsBindings(data, title, formItems, type) {
           var field = fields[j];
           var val = bindings[i][field.name];
           nbinding[field.name] = val;
-          bstr += (type == 'data' ? formatDataBindings(val) : formatParameterBindings(val))+"|";
+          bstr += (type == 'Data' ? formatDataBindings(val) : formatParameterBindings(val))+"|";
        }
        if(!bstrs[bstr]) {
           nbindings.push(nbinding);
@@ -288,7 +290,7 @@ function showWingsBindings(data, title, formItems, type) {
         	}
         },
         tbar: [{
-            text: 'Use Selected ' + (type == 'param' ? 'Parameters' : 'Data'),
+            text: 'Use Selected ' + type,
             iconCls: 'icon-select-alt fa fa-green',
             handler: function() {
                 var recs = bindingsGrid.getSelectionModel().getSelection();
@@ -318,7 +320,10 @@ function showWingsBindings(data, title, formItems, type) {
                     		val[j] = (selection[j].type == "uri") ? selection[j].id : selection[j].value; 
                     	}
                     }
+                    item.focusInGraph = false;
                     item.setValue(val);
+                    item.focus();
+                    item.focusInGraph = true;
                 }
                 win.close();
             }
@@ -501,14 +506,14 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
                 var msgTarget = Ext.get(win.getId());
                 
                 msgTarget.mask('Running...', 'x-mask-loading');
-                Ext.Ajax.request({
+                Ext.Ajax.requestGZ({
                     url: url,
                     params: {
-                    		json: Ext.encode(tstore.template),
-                    		constraints_json: Ext.encode(tstore.constraints),
-                    		seed_json: Ext.encode(data.seed.template),
-                    		seed_constraints_json: Ext.encode(data.seed.constraints),
-                    		template_id: tid
+                    	json: Ext.encode(tstore.template),
+                    	constraints_json: Ext.encode(tstore.constraints),
+                    	seed_json: Ext.encode(data.seed.template),
+                    	seed_constraints_json: Ext.encode(data.seed.constraints),
+                    	template_id: tid
                     },
                     success: function(response) {
                         msgTarget.unmask();

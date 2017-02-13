@@ -1,4 +1,3 @@
-<%@page import="edu.isi.wings.portal.filters.CORSHeaders"%>
 <%
 // Licensed to the Apache Software Foundation (ASF) under one or more contributor
 // license agreements.  See the NOTICE.txt file distributed with this work for
@@ -28,13 +27,22 @@
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <title>Login to Wings</title>
 <%
-CORSHeaders.addHeaders(request, response);
-Config configx = new Config(request);
-PrintWriter outx = new PrintWriter(out);
-JSLoader.loadConfigurationJS(outx, configx);
-JSLoader.loadLoginViewer(outx, configx.getContextRootPath());
-CSSLoader.loadLoginViewer(outx, configx.getContextRootPath());
-%><script>
+Config configx = new Config(request, null, null); //(Config) request.getAttribute("config");
+%>
+
+<!-- Load Viewer Javascript -->
+<%=JSLoader.getLoginViewer(configx.getContextRootPath())%>
+
+<!-- Load Viewer Stylesheets -->
+<%=CSSLoader.getViewerStyles(configx.getContextRootPath())%>
+</head>
+
+<body>
+<script>
+// Global Configuration Variables
+<%=JSLoader.getConfigurationJS(configx)%>
+
+// Initialize Login Box
 var message="<%=request.getParameter("message")%>";
 Ext.onReady(function() {
 	var mainpanel = new Ext.Viewport({

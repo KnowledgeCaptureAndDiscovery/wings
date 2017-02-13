@@ -52,7 +52,7 @@ public class ExportGraph extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		PrintWriter out = response.getWriter();
-		Config config = new Config(request);
+		Config config = new Config(request, null, null);
 		//if(!config.checkDomain(request, response))
 		//	return;
 		

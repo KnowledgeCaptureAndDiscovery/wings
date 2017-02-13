@@ -28,7 +28,8 @@ import com.google.gson.Gson;
 public class JSLoader {
 	static String[] common_scripts = { "lib/extjs/ext-all.js", "js/util/common.js", 
 	  "js/util/PagingMemoryProxy.js", "js/gui/WingsMessages.js", 
-	  "js/util/TreeMod.js", "js/gui/ProvenanceViewer.js" };
+	  "js/util/TreeMod.js", "js/gui/ProvenanceViewer.js",
+    "js/util/jsonc.min.js", "js/util/AjaxGzip.js", "js/util/encoder.js" };
 	static String[] component_scripts = { "js/gui/ComponentViewer.js" };
 	static String[] domain_scripts = { "js/gui/DomainViewer.js" };
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };
@@ -39,7 +40,7 @@ public class JSLoader {
 			"js/gui/template/port.js", "js/gui/template/shape.js", "js/gui/template/link.js",
 			"js/gui/template/node.js", "js/gui/template/variable.js", "js/gui/template/template.js",
 			"js/gui/template/layout.js", "js/gui/template/reasoner.js",
-			"js/gui/TemplateBrowser.js", "js/gui/TemplateGraph.js", };
+			"js/gui/TemplateBrowser.js", "js/gui/TemplateGraph.js" };
 	static String[] rule_scripts = { "js/gui/jenarules/RulesParser.js",
 			"js/gui/jenarules/RuleFunctionType.js", "js/gui/jenarules/RuleFunction.js",
 			"js/gui/jenarules/Rule.js", "js/gui/jenarules/Constants.js", 
@@ -47,8 +48,8 @@ public class JSLoader {
 	static String[] tellme_scripts = { "js/gui/tellme/tellme.js",
 			"js/gui/tellme/tellme_history.js", "js/beamer/ControlList.js", "js/beamer/MatchedTask.js",
 			"js/beamer/Paraphrase.js", "js/beamer/Task.js", "js/beamer/TodoItemMatches.js",
-			"js/beamer/TodoListParser.js", "js/beamer/Token.js", "js/beamer/Trie.js", 
-			"js/util/lz-string-min.js"};
+			"js/beamer/TodoListParser.js", "js/beamer/Token.js", "js/beamer/Trie.js",
+			"js/util/lz-string.min.js"};
 
 	static String[] plupload_scripts = { "js/util/pluploadPanel.js", "lib/plupload/plupload.full.min.js" };
 
@@ -110,11 +111,11 @@ public class JSLoader {
 		showScriptTags(out, path, template_scripts);
 	}
 
-	public static void loadTemplateViewer(PrintWriter out, String path, boolean loadtellme) {
+	public static void loadTemplateViewer(PrintWriter out, String path, boolean gettellme) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, template_scripts);
 		showScriptTags(out, path, component_scripts);
-		if (loadtellme)
+		if (gettellme)
 			showScriptTags(out, path, tellme_scripts);
 	}
 
@@ -133,4 +134,94 @@ public class JSLoader {
 		}
 		out.println("</script>");
 	}
+	
+  public static String getConfigurationJS(Config config) {
+    HashMap<String, Object> jsvars = new HashMap<String, Object>();
+    jsvars.put("DOMAIN_ID", config.getDomainId());
+    jsvars.put("USER_ID",  config.getUserId());
+    jsvars.put("VIEWER_ID",  config.getViewerId());
+    
+    jsvars.put("CONTEXT_ROOT",  config.getContextRootPath());
+    jsvars.put("COM_ROOT", config.getCommunityPath());
+    jsvars.put("USER_ROOT", config.getUserPath());
+    jsvars.put("USERDOM_ROOT", config.getUserDomainUrl());
+    jsvars.put("SCRIPT_PATH", config.getScriptPath());
+    
+    jsvars.put("DOMAINS", config.getDomainsList());
+    jsvars.put("USERS", config.getUsersList());
+    jsvars.put("ISADMIN", config.isAdminViewer());
+    
+    return JSLoader.getScriptKeyVals(jsvars);
+  }
+
+  public static String getLoginViewer(String path) {
+    return getScriptTags(path, common_scripts);    
+  }
+    
+  public static String getDataViewer(String path) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, data_scripts) +
+        getScriptTags(path, plupload_scripts);
+  }
+
+  public static String getUserViewer(String path) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, user_scripts);
+  }
+
+  public static String getComponentViewer(String path) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, component_scripts) +
+        //getScriptTags(path, rule_scripts) +
+        getScriptTags(path, plupload_scripts);
+  }
+
+  public static String getDomainViewer(String path) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, domain_scripts) +
+        getScriptTags(path, plupload_scripts);
+  }
+
+  public static String getResourceViewer(String path) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, resource_scripts);
+  }
+   
+  public static String getRunViewer(String path) {
+    return
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, run_scripts) +
+        getScriptTags(path, template_scripts);
+  }
+
+  public static String getTemplateViewer(String path, boolean gettellme) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, template_scripts) +
+        getScriptTags(path, component_scripts) +
+        (gettellme ? getScriptTags(path, tellme_scripts) : "");
+  }
+
+  private static String getScriptTags(String path, String[] scripts) {
+    String str = "";
+    for (String script : scripts) {
+      str += "<script src=\"" + path + "/" + script + "\"></script>\n";
+    }
+    return str;
+  }
+
+  public static String getScriptKeyVals(HashMap<String, Object> map) {
+    Gson json = JsonHandler.createGson();
+    String str = "";
+    for (String key : map.keySet()) {
+      Object val = map.get(key);
+      str += "var " + key + " = " + json.toJson(val) + ";\n";
+    }
+    return str;
+  }	
 }

@@ -2,15 +2,16 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
   <display-name>Wings Portal</display-name>
   <servlet>
-    <description>Servlet to Manage Datatypes and Data</description>
-    <display-name>Manage Data</display-name>
-    <servlet-name>ManageData</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.ManageData</servlet-class>
+    <description>Login page</description>
+    <display-name>Login page</display-name>
+    <servlet-name>Login</servlet-name>
+    <servlet-class>edu.isi.wings.portal.servlets.Login</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>ManageData</servlet-name>
-    <url-pattern>/data/*</url-pattern>
+    <servlet-name>Login</servlet-name>
+    <url-pattern>/login/*</url-pattern>
   </servlet-mapping>
+  
   <servlet>
     <description>Servlet to Export Graph</description>
     <display-name>Graph Exporter</display-name>
@@ -21,66 +22,7 @@
     <servlet-name>ExportGraph</servlet-name>
     <url-pattern>/export/*</url-pattern>
   </servlet-mapping>
-  <servlet>
-    <description>Servlet to Manage Components and Component Types</description>
-    <display-name>Manage Components</display-name>
-    <servlet-name>ManageComponents</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.ManageComponents</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManageComponents</servlet-name>
-    <url-pattern>/components/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description>Servlet to Manage Template Editing and Creation</description>
-    <display-name>ManageTemplates</display-name>
-    <servlet-name>ManageTemplates</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.ManageTemplates</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManageTemplates</servlet-name>
-    <url-pattern>/workflows/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description>Servlet to do Template Planning and Reasoning</description>
-    <display-name>Planner</display-name>
-    <servlet-name>Planner</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.Planner</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>Planner</servlet-name>
-    <url-pattern>/plan/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>HandleUpload</display-name>
-    <servlet-name>HandleUpload</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.HandleUpload</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>HandleUpload</servlet-name>
-    <url-pattern>/upload</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description>Servlet to Handle Domains</description>
-    <display-name>ManageDomains</display-name>
-    <servlet-name>ManageDomains</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.ManageDomains</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManageDomains</servlet-name>
-    <url-pattern>/domains/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description>Servlet to Handle Runs</description>
-    <display-name>ManageRuns</display-name>
-    <servlet-name>ManageRuns</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.ManageRuns</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManageRuns</servlet-name>
-    <url-pattern>/executions/*</url-pattern>
-  </servlet-mapping>
+
   <servlet>
     <description></description>
     <display-name>SparqlEndpoint</display-name>
@@ -91,46 +33,37 @@
     <servlet-name>SparqlEndpoint</servlet-name>
     <url-pattern>/sparql</url-pattern>
   </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>DescribeResources</display-name>
-    <servlet-name>DescribeResources</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.DescribeResources</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>DescribeResources</servlet-name>
-    <url-pattern>/common/resources/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>ManageUsers</display-name>
-    <servlet-name>ManageUsers</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.ManageUsers</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ManageUsers</servlet-name>
-    <url-pattern>/common/users/*</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>QueryProvenance</display-name>
-    <servlet-name>QueryProvenance</servlet-name>
-    <servlet-class>edu.isi.wings.portal.servlets.QueryProvenance</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>QueryProvenance</servlet-name>
-    <url-pattern>/common/provenance/*</url-pattern>
-  </servlet-mapping>
   
+  <!-- 
+  	CORS & Compression filters for Non-REST-API servlets
+  	The Jersey REST-APIs have their own filters and interceptors
+  -->
+  <filter>
+    <filter-name>CompressionFilter</filter-name>
+    <filter-class>edu.isi.wings.portal.filters.servlets.CompressionFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>CompressionFilter</filter-name>
+    <url-pattern>/js/*</url-pattern>
+    <url-pattern>/css/*</url-pattern>
+    <url-pattern>/lib/*</url-pattern>
+    <url-pattern>/jsp/*</url-pattern>
+    <url-pattern>/html/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
+  </filter-mapping>
   <filter>
     <filter-name>CORSFilter</filter-name>
-    <filter-class>edu.isi.wings.portal.filters.CORSFilter</filter-class>
+    <filter-class>edu.isi.wings.portal.filters.servlets.CORSFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>CORSFilter</filter-name>
-    <url-pattern>/*</url-pattern>
+    <url-pattern>/login/*</url-pattern>
+    <url-pattern>/jsp/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
   </filter-mapping>
-
+  
   <session-config>
     <session-timeout>43200</session-timeout>
   </session-config>
@@ -146,15 +79,7 @@
     <web-resource-collection>
       <web-resource-name>User Application</web-resource-name>
       <url-pattern>/users/*</url-pattern>
-      <url-pattern>/domains/*</url-pattern>
-      <url-pattern>/data/*</url-pattern>
-      <url-pattern>/components/*</url-pattern>
-      <url-pattern>/workflows/*</url-pattern>
-      <url-pattern>/executions/*</url-pattern>
-      <url-pattern>/upload/*</url-pattern>
-      <url-pattern>/plan/*</url-pattern>
-      <url-pattern>/common/provenance/*</url-pattern>
-      <url-pattern>/common/resources/*</url-pattern>
+      <url-pattern>/login/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>WingsUser</role-name>
@@ -164,7 +89,7 @@
     <display-name>SecurityConstraint</display-name>
     <web-resource-collection>
       <web-resource-name>Admin Application</web-resource-name>
-      <url-pattern>/common/users/*</url-pattern>
+      <url-pattern>/users/common/list/*</url-pattern>
       <url-pattern>/sparql/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
@@ -175,8 +100,23 @@
   <login-config>
     <auth-method>FORM</auth-method>
     <form-login-config>
-      <form-login-page>/jsp/login.jsp</form-login-page>
-      <form-error-page>/jsp/login_failed.jsp</form-error-page>
+      <form-login-page>/jsp/login/login.jsp</form-login-page>
+      <form-error-page>/jsp/login/login_failed.jsp</form-error-page>
     </form-login-config>
   </login-config>
+  
+	<!-- Wings API -->
+	<!-- servlet>
+		<servlet-name>WingsServer</servlet-name>
+		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+		<init-param>
+			<param-name>javax.ws.rs.Application</param-name>
+			<param-value>edu.isi.wings.portal.WingsServer</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WingsServer</servlet-name>
+		<url-pattern>/users/*</url-pattern>
+	</servlet-mapping-->  
 </web-app>

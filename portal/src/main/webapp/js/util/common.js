@@ -122,51 +122,54 @@ function showWarning(msg) {
 
 function getPortalHeader() {
 	var homepath = CONTEXT_ROOT;
-	var userpath = USER_ID ? USER_ROOT : CONTEXT_ROOT;
-	var userdompath = USER_ID ? USERDOM_ROOT : CONTEXT_ROOT;
+	var userpath = USER_ROOT;
+	var userdompath = USERDOM_ROOT;
 	var compath = COM_ROOT;
 
 	var html = "<div class=\"menu\"><ul>"
-		+ "<li class=\"first active\">"
-		+ "<a href=\""+homepath+"\"><i class=\"icon-home\"></i> Home</a></li>"
-		+ "<li><a href=\"#\">Analysis</a><ul>\n"
-		+ "<li class=\"first\"><a href=\""
-		+ userdompath
-		+ "/workflows/edit\">Edit Workflows</a></li>\n"
-		+ "<li><a href=\""
-		+ userdompath
-		+ "/workflows\">Run Workflows</a></li>\n"
-		+ "<li class=\"last\"><a href=\""
-		+ userdompath
-		+ "/executions\">Access Runs</a></li>\n"
-		+ "</ul></li>\n"
-		+ "<li><a href=\"#\">Advanced</a><ul>\n"
-		+ "<li class=\"first\"><a href=\""
-		+ userdompath
-		+ "/data\">Manage Data</a></li>\n"
-		+ "<li><a href=\""
-		+ userdompath
-		+ "/components/type\">Manage Component Types</a></li>\n"
-		+ "<li><a href=\""
-		+ userdompath
-		+ "/components\">Manage Components</a></li>\n"
-		+ "<li class=\"last\"><a href=\""
-		+ userpath
-		+ "/domains\">Manage Domain</a></li>\n"
-		+ "</ul></li>\n";
-
-	if(ISADMIN) {
-		html +=  "<li><a href=\"#\">Admin</a><ul>\n"
+			+ "<li class=\"first active\">"
+			+ "<a href=\""+homepath+"\"><i class=\"icon-home\"></i> Home</a></li>";
+	
+	if(USER_ID) {
+		html += "<li><a href=\"#\">Analysis</a><ul>\n"
+			+ "<li class=\"first\"><a href=\""
+			+ userdompath
+			+ "/workflows/edit\">Edit Workflows</a></li>\n"
 			+ "<li><a href=\""
-			+ compath
-			+ "/users\">Manage Users</a></li>\n"
+			+ userdompath
+			+ "/workflows\">Run Workflows</a></li>\n"
+			+ "<li class=\"last\"><a href=\""
+			+ userdompath
+			+ "/executions\">Access Runs</a></li>\n"
+			+ "</ul></li>\n"
+			+ "<li><a href=\"#\">Advanced</a><ul>\n"
+			+ "<li class=\"first\"><a href=\""
+			+ userdompath
+			+ "/data\">Manage Data</a></li>\n"
 			+ "<li><a href=\""
-			+ compath
-			+ "/resources\">Describe Resources</a></li>\n"
+			+ userdompath
+			+ "/components/type\">Manage Component Types</a></li>\n"
+			+ "<li><a href=\""
+			+ userdompath
+			+ "/components\">Manage Components</a></li>\n"
+			+ "<li class=\"last\"><a href=\""
+			+ userpath
+			+ "/domains\">Manage Domain</a></li>\n"
 			+ "</ul></li>\n";
+		
+		if(ISADMIN) {
+			html +=  "<li><a href=\"#\">Admin</a><ul>\n"
+				+ "<li><a href=\""
+				+ compath
+				+ "/list\">Manage Users</a></li>\n"
+				+ "<li><a href=\""
+				+ compath
+				+ "/resources\">Describe Resources</a></li>\n"
+				+ "</ul></li>\n";
+		}
 	}
 	html += "</ul></div>";
-	// End of Left menu
+	// End of Left menu		
 	
 	// Start of Right menu
 	html += "<div class='rightmenu'><ul>";
@@ -207,7 +210,7 @@ function getPortalHeader() {
 		}
 		html += "<li class=\"first\"><a href=\""
 			+ homepath
-			+ "/jsp/logout.jsp\">Logout <span class='user'>"
+			+ "/jsp/login/logout.jsp\">Logout <span class='user'>"
 			+ VIEWER_ID
 			+ "</span></a></li>";
 
@@ -225,8 +228,8 @@ function getPortalHeader() {
 	}
 	else {
 		html += "<li><a href=\""
-			+ userpath
-			+ "/domains\">Login</a></li>";
+			+ homepath
+			+ "/login\">Login</a></li>";
 	}
 	
 	html += "</ul></div>";

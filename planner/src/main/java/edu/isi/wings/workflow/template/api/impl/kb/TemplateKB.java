@@ -2018,7 +2018,7 @@ public class TemplateKB extends URIEntity implements Template {
     HashMap<String, Variable> varidmap = new HashMap<String, Variable>();
     
     for ( Node n : this.Nodes.values()) {
-      String nid = cleanID(n.getID());
+      String nid = cleanID(n.getName());
       String ntext = n.getName();
       if(n.getMachineIds() != null && n.getMachineIds().size() > 0) {
         ntext += "\\n[Run on ";
@@ -2030,9 +2030,9 @@ public class TemplateKB extends URIEntity implements Template {
       ArrayList<String> ips = new ArrayList<String>();
       ArrayList<String> ops = new ArrayList<String>();
       for(Port p : n.getInputPorts())
-        ips.add(cleanID(p.getID()));
+        ips.add(cleanID(p.getName()));
       for(Port p : n.getOutputPorts())
-        ops.add(cleanID(p.getID()));
+        ops.add(cleanID(p.getName()));
       Collections.sort(ips);
       Collections.sort(ops);
       int fsize = 13;
@@ -2048,7 +2048,7 @@ public class TemplateKB extends URIEntity implements Template {
     }
 
     for ( Variable v : this.Variables.values()) {
-      String vid = cleanID(v.getID());
+      String vid = cleanID(v.getName());
       String vtext = v.getName();
       if(v.getBinding() != null) {
         vtext += " =\\n" + v.getBinding().toString().replaceAll("\\s", "\\\\n");
@@ -2062,18 +2062,18 @@ public class TemplateKB extends URIEntity implements Template {
     HashMap<String, Boolean> donelinks = new HashMap<String, Boolean>();
     for ( Link l : this.Links.values()) {
       if (l.getOriginPort() != null) {
-        String lid = cleanID(l.getOriginNode().getID()) + ":" 
-              + cleanID(l.getOriginPort().getID()) + " -> "
-              + cleanID(l.getVariable().getID()) + ":ip;";
+        String lid = cleanID(l.getOriginNode().getName()) + ":" 
+              + cleanID(l.getOriginPort().getName()) + " -> "
+              + cleanID(l.getVariable().getName()) + ":ip;";
         if(!donelinks.containsKey(lid)) {
           dotstr += nl + tab + lid;
           donelinks.put(lid, true);
         }
       }
       if (l.getDestinationPort() != null) {
-        String lid = cleanID(l.getVariable().getID()) + ":op -> "
-            + cleanID(l.getDestinationNode().getID()) + ":" 
-            + cleanID(l.getDestinationPort().getID()) + ";";
+        String lid = cleanID(l.getVariable().getName()) + ":op -> "
+            + cleanID(l.getDestinationNode().getName()) + ":" 
+            + cleanID(l.getDestinationPort().getName()) + ";";
         if(!donelinks.containsKey(lid)) {
           dotstr += nl + tab + lid;
           donelinks.put(lid, true);

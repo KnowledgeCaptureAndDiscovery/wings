@@ -107,9 +107,8 @@ public class SparqlEndpoint extends HttpServlet {
 			throws IOException {
 		Query query = QueryFactory.create(queryString);
 		if(query.isSelectType()) {
-			Config config = new Config(request);
-			if(!config.checkDomain(request, response))
-				return;
+			Config config = new Config(request, null, null);
+
 			ResultsFormat fmt = ResultsFormat.lookup(request.getParameter("format"));
 			
 			Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
@@ -130,7 +129,7 @@ public class SparqlEndpoint extends HttpServlet {
 	
 	private void updateDataset(String updateString, HttpServletRequest request, HttpServletResponse response) 
 			throws IOException {
-		Config config = new Config(request);
+		Config config = new Config(request, null, null);
 		if(!config.checkDomain(request, response))
 			return;
 		Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
@@ -212,7 +211,7 @@ public class SparqlEndpoint extends HttpServlet {
     for(String userid : config.getUsersList()) {
       config.setUserId(userid);
       config.setViewerId(userid);
-      DomainController dc = new DomainController(1, config);
+      DomainController dc = new DomainController(config);
       for(String domname : dc.getDomainsList()) {
         DomainInfo dominfo = dc.getDomainInfo(domname);
         String url = dominfo.getUrl();

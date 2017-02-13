@@ -45,6 +45,7 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
@@ -70,7 +71,6 @@ public class PlanController {
 	private WorkflowGenerationAPI wg;
 
 	private Config config;
-	private PrintWriter out;
 	
 	private Gson json;
 	private Properties props;
@@ -82,9 +82,8 @@ public class PlanController {
 	private String wflowns;
 	private String resontns;
 	
-	public PlanController(Config config, PrintWriter out) {
+	public PlanController(Config config) {
 		this.config = config;
-		this.out = out;
 		this.json = JsonHandler.createTemplateGson();
 		this.props = config.getProperties();
 
@@ -114,40 +113,43 @@ public class PlanController {
     }
 	}
 	
-	@SuppressWarnings("rawtypes")
-	public void printSuggestedDataJSON(String tplid, Map keyvals, boolean noexplain) {
-		printPlannerJSON(tplid, keyvals, "getData", noexplain);
+	public void printSuggestedDataJSON(TemplateBindings template_bindings,
+	    boolean noexplain, PrintWriter out) {
+		printPlannerJSON(template_bindings, "getData", noexplain, out);
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void printSuggestedParametersJSON(String tplid, Map keyvals, boolean noexplain) {
-		printPlannerJSON(tplid, keyvals, "getParameters", noexplain);
+	public void printSuggestedParametersJSON(TemplateBindings template_bindings,
+	    boolean noexplain, PrintWriter out) {
+		printPlannerJSON(template_bindings, "getParameters", noexplain, out);
 	} 
 	
-	@SuppressWarnings("rawtypes")
-	public void printExpandedTemplatesJSON(String tplid, Map keyvals, boolean noexplain) {
-		printPlannerJSON(tplid, keyvals, "getExpansions", noexplain);
+	public void printExpandedTemplatesJSON(TemplateBindings template_bindings, 
+	    boolean noexplain, PrintWriter out) {
+		printPlannerJSON(template_bindings, "getExpansions", noexplain, out);
 	}
 
-	public void printElaboratedTemplateJSON(String tplid, String templatejson, String consjson) {
+	public void printElaboratedTemplateJSON(String tplid, String templatejson, String consjson, 
+	    PrintWriter out) {
 		Template tpl = JsonHandler.getTemplateFromJSON(this.json, templatejson, consjson);
 		tpl = wg.getInferredTemplate(tpl);
 		tpl.setID(tplid);
 		
 		HashMap<String, Object> extra = new HashMap<String, Object>();
 		extra.put("explanations", wg.getExplanations());
-		this.out.println(JsonHandler.getTemplateJSON(json, tpl, extra));
+		out.println(JsonHandler.getTemplateJSON(json, tpl, extra));
 	}
 	
-	@SuppressWarnings("rawtypes")
-	private void printPlannerJSON(String tplid, Map keyvals, String op, boolean noexplain) {
+	private void printPlannerJSON(TemplateBindings template_bindings,
+	    String op, boolean noexplain, PrintWriter out) {
+	  
+	  String tplid = template_bindings.getTemplateId();
 		Template tpl = tc.getTemplate(tplid);
-		this.addTemplateBindings(tpl, keyvals);
+		this.addTemplateBindings(tpl, template_bindings);
 		
 		Template itpl = wg.getInferredTemplate(tpl);
 		ArrayList<Template> candidates = wg.specializeTemplates(itpl);
 		if(candidates.size() == 0) {
-			printError();
+			printError(out);
 			return;
 		}
 		//System.out.println("Specialized sets : " + candidates.size());
@@ -184,7 +186,7 @@ public class PlanController {
   		  }
   		}
   		if(allbindingsets.isEmpty() && bts.isEmpty()) {
-  			printError();
+  			printError(out);
   			return;
   		}
     }
@@ -193,9 +195,9 @@ public class PlanController {
     
     if(op.equals("getData")) {
       if(config.isLightReasoner())
-        printError();
+        printError(out);
       else
-        printDataBindingsJSON(allbindingsets, noexplain);
+        printDataBindingsJSON(allbindingsets, noexplain, out);
       return;
     }
 		    
@@ -205,11 +207,11 @@ public class PlanController {
 		for(Template bt : bts)
 		  cts.addAll(wg.configureTemplates(bt));
 		if(cts.size() == 0) {
-		  printError();
+		  printError(out);
 		  return;
 		}
     if(op.equals("getParameters")) {
-      printParameterBindingsJSON(cts, noexplain);
+      printParameterBindingsJSON(cts, noexplain, out);
       return;
     }
     
@@ -217,15 +219,15 @@ public class PlanController {
 		for(Template ct : cts)
 			ets.add(wg.getExpandedTemplate(ct));
 		if(ets.size() == 0) {
-			printError();
+			printError(out);
 			return;
 		}
 		if(op.equals("getExpansions")) {
-			printTemplatesJSON(ets, tplid, tpl, noexplain);
+			printTemplatesJSON(ets, tplid, tpl, noexplain, out);
 			return;
 		}
 		
-		printError();
+		printError(out);
 	}
 
 	private HashMap<String, Object> getTemplateDetails(Template t) {
@@ -239,7 +241,7 @@ public class PlanController {
 	}
 	
 	private void printTemplatesJSON(ArrayList<Template> ts, String tplid,
-	    Template seedtpl, boolean noexplain) {
+	    Template seedtpl, boolean noexplain, PrintWriter out) {
 		ArrayList<Object> template_stores = new ArrayList<Object>();
 		for(Template t : ts) {
 			template_stores.add(this.getTemplateDetails(t));
@@ -252,48 +254,48 @@ public class PlanController {
     map.put("output",  "");
 		map.put("seed", this.getTemplateDetails(seedtpl));
 		
-		this.printEncodedResults(map); 
+		this.printEncodedResults(map, out); 
 	}
 	
-	private void printDataBindingsJSON(VariableBindingsListSet sets, boolean noexplain) {
+	private void printDataBindingsJSON(VariableBindingsListSet sets, boolean noexplain, PrintWriter out) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		if(!noexplain)
 		  map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
 		map.put("bindings", getDataBindings(sets));
 		map.put("output",  "");
-		this.printEncodedResults(map); 
+		this.printEncodedResults(map, out); 
 	}
 	
-	private void printParameterBindingsJSON(ArrayList<Template> cts, boolean noexplain) {
+	private void printParameterBindingsJSON(ArrayList<Template> cts, boolean noexplain, PrintWriter out) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		if(!noexplain)
 		  map.put("explanations", wg.getExplanations());
 		map.put("error",  false);
 		map.put("bindings", getParameterBindings(cts));
 		map.put("output",  "");
-		this.printEncodedResults(map); 
+		this.printEncodedResults(map, out); 
 	}
 	
-	private void printError(Template tpl) {
+	private void printError(Template tpl, PrintWriter out) {
 		tpl.delete();
-		printError();
+		printError(out);
 	}
 	
-	private void printError() {
+	private void printError(PrintWriter out) {
 		HashMap<String, Object> map = new HashMap<String, Object>(); 
 		map.put("explanations", wg.getExplanations());
 		map.put("error",  true);
 		map.put("bindings", new ArrayList<String>());
-		this.printEncodedResults(map);
+		this.printEncodedResults(map, out);
 	}
 	
-	private void printEncodedResults(HashMap<String, Object> map) {
+	private void printEncodedResults(HashMap<String, Object> map, PrintWriter out) {
 		Boolean error = (Boolean) map.get("error");
 		HashMap<String, Object> results = new HashMap<String, Object>();
 		results.put("success", (Boolean)!error);
 		results.put("data", map);
-		json.toJson(results, this.out);
+		json.toJson(results, out);
 	}
 	
 	private ArrayList<ArrayList<TreeMap<String, Binding>>> getDataBindings(
@@ -397,63 +399,46 @@ public class PlanController {
 	}
 
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void addTemplateBindings(Template tpl, Map keyvals) {
-		String pdtypejson = (String) ((Object[])keyvals.get("__paramdtypes"))[0];
-		HashMap<String, String> paramdtypes = json.fromJson(pdtypejson, HashMap.class);
+	private void addTemplateBindings(Template tpl, TemplateBindings tb) {
 
-		String tplns = tpl.getNamespace();
+	  // Set data bindings
+		for(String key : tb.getDataBindings().keySet()) {
+		  Binding b = new Binding();
+		  ArrayList<String> list = tb.getDataBindings().get(key);
+		  if(list.size() == 0)
+		    continue;
+		  if(list.size() == 1)
+		    b.setID(list.get(0));
+		  else {
+		    for(String bid : list) {
+		      b.add(new Binding(bid));
+		    }
+		  }
+		  Variable var = tpl.getVariable(key);
+		  if(var != null)
+		    var.setBinding(b);
+		}
 		
-		// Set Component bindings from cbindings
-		String[] cbindingsarr = (String[]) keyvals.get("__cbindings");
-		if (cbindingsarr != null && cbindingsarr.length > 0) {
-			JsonElement cbindings = new JsonParser().parse(cbindingsarr[0]);
-			JsonObject cbindingsobj = cbindings.getAsJsonObject();
-			for (Map.Entry<String, JsonElement> entry : cbindingsobj.entrySet()) {
-				String compid = entry.getKey();
-				ComponentVariable cv = tpl.getComponentVariable(compid);
-				if (cv == null)
-					continue;
-
-				// Create binding
-				JsonElement bindingel = entry.getValue();
-				Binding b = new Binding();
-				if (bindingel.isJsonArray()) {
-					for (JsonElement cb : bindingel.getAsJsonArray()) {
-						b.add(new Binding(cb.getAsString()));
-					}
-				} else if (bindingel.isJsonPrimitive()) {
-					b.setID(bindingel.getAsString());
-				}
-				cv.setBinding(b);
-			}
-		}
-
-		// Set Data and Parameter Bindings from keyvals
-		for(Object key : keyvals.keySet()) {
-			if(((String)key).startsWith("__")) continue;
-			String varid = tplns + key;
-			Variable var = tpl.getVariable(varid);
-			if(var != null) {
-				Object[] vals = (Object[])keyvals.get(key);
-				Binding b = var.isDataVariable() ? new Binding() : new ValueBinding();
-				for(Object val : vals) {
-					if(val.equals("")) continue;
-					if(var.isDataVariable()) 
-						b.add(new Binding(val.toString()));
-					else {
-						String dtype = paramdtypes.get(key);
-						if(dtype == null)
-							b.add(new ValueBinding(val.toString()));
-						else
-							b.add(new ValueBinding(val.toString(), dtype));
-					}
-				}	
-				if(b.size() == 0)  continue;
-				if(b.size() == 1) b = (Binding) b.get(0);
-				tpl.setVariableBinding(var, b);
-			}
-		}
+		// Set parameter bindings
+    for(String key : tb.getParameterBindings().keySet()) {
+      Object value = tb.getParameterBindings().get(key);
+      String datatype = tb.getParameterTypes().get(key);
+      if(datatype == null)
+        continue;
+      ValueBinding b = new ValueBinding(value, datatype);
+      Variable var = tpl.getVariable(key);
+      if(var != null) 
+        var.setBinding(b);
+    }
+    
+    // Set component bindings
+    /*for(String key : tb.getComponentBindings().keySet()) {
+      String cid = tb.getComponentBindings().get(key);
+      Binding b = new Binding(cid);
+      ComponentVariable cv = tpl.getComponentVariable(key);
+      if(cv != null) 
+        cv.setBinding(b);
+    }*/
 	}
 	
 	private Template createTemporaryTemplate(Template tpl) {

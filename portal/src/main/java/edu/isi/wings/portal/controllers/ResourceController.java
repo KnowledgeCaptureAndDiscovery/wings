@@ -17,8 +17,6 @@
 
 package edu.isi.wings.portal.controllers;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Properties;
 
 import edu.isi.wings.catalog.resource.ResourceFactory;
@@ -28,25 +26,20 @@ import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
 
 import com.google.gson.Gson;
 
 public class ResourceController {
-  private int guid;
-  private String rns;
-  private String libns;
+  public String rns;
+  public String libns;
 
-  private ResourceAPI api;
-  private boolean isSandboxed;
-  private Config config;
-  private Properties props;
-  private Gson json;
+  public ResourceAPI api;
+  public boolean isSandboxed;
+  public Config config;
+  public Properties props;
+  public Gson json;
 
-  public ResourceController(int guid, Config config) {
-    this.guid = guid;
+  public ResourceController(Config config) {
     this.config = config;
     this.isSandboxed = config.isSandboxed();
     json = JsonHandler.createGson();
@@ -56,42 +49,6 @@ public class ResourceController {
 
     this.rns = (String) props.get("ont.resource.url") + "#";
     this.libns = (String) props.get("lib.resource.url") + "#";
-  }
-
-  public void show(PrintWriter out) {
-    // Get Hierarchy
-    try {
-      ArrayList<String> machineIds = api.getMachineIds();
-      ArrayList<String> softwareIds = api.getSoftwareIds();
-      HTMLLoader.printHeader(out);
-      out.println("<head>");
-      out.println("<title>Describe Resources</title>");
-      JSLoader.loadConfigurationJS(out, config);
-      CSSLoader.loadResourceViewer(out, config.getContextRootPath());
-      JSLoader.loadResourceViewer(out, config.getContextRootPath());
-      out.println("</head>");
-
-      out.println("<script>");
-      out.println("var resViewer_" + guid + ";");
-      out.println("Ext.onReady(function() {"
-          + "resViewer_" + guid + " = new ResourceViewer('"+ guid + "', { " 
-          + "machines: " + json.toJson(machineIds) + ", "
-          + "softwares: " + json.toJson(softwareIds) 
-          + " }, "
-          + "'" + config.getScriptPath() + "', " 
-          + "'" + this.rns + "', "
-          + "'" + this.libns + "', " 
-          + !isSandboxed 
-          + ");"
-          + "resViewer_" + guid + ".initialize();\n"
-          + "});\n"
-          );
-      out.println("</script>");
-      
-      HTMLLoader.printFooter(out);
-    } finally {
-      api.end();
-    }
   }
 
   // Query

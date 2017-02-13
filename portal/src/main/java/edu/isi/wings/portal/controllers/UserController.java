@@ -27,9 +27,6 @@ import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
 import edu.isi.wings.portal.classes.users.User;
 import edu.isi.wings.portal.classes.users.UsersDB;
 
@@ -37,52 +34,16 @@ import com.google.gson.Gson;
 
 @SuppressWarnings("unused")
 public class UserController {
-  private int guid;
-  private Config config;
-  private Properties props;
-  private Gson json;
-  private UsersDB api;
-  private String provScript;
+  public Config config;
+  public Properties props;
+  public Gson json;
+  public UsersDB api;
 
-  public UserController(int guid, Config config) {
-    this.guid = guid;
+  public UserController(Config config) {
     this.config = config;
     json = JsonHandler.createDataGson();
     this.props = config.getProperties();
     this.api = new UsersDB();
-    this.provScript = config.getCommunityPath() + "/provenance";
-  }
-
-  public void show(PrintWriter out) {
-    try {
-      ArrayList<edu.isi.wings.portal.classes.users.User> users = api.getUsers();
-      
-      HTMLLoader.printHeader(out);
-      out.println("<head>");
-      out.println("<title>Manage Users</title>");
-      JSLoader.loadConfigurationJS(out, config);
-      CSSLoader.loadUserViewer(out, config.getContextRootPath());
-      JSLoader.loadUserViewer(out, config.getContextRootPath());
-      out.println("</head>");
-  
-      out.println("<script>");
-      out.println("var communityViewer_" + guid + ";");
-      out.println("Ext.onReady(function() {"
-          + "userViewer_" + guid + " = new UserViewer('" + guid + "', { "
-              + "users: " + json.toJson(users)
-            + " }, " 
-            + "'" + config.getScriptPath() + "', "
-            + "'" + this.provScript + "', "
-            + config.isAdminViewer()
-            + ");\n"
-            + "userViewer_" + guid + ".initialize();\n"
-          + "});");
-      out.println("</script>");
-      HTMLLoader.printFooter(out);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 
   public String getUserJSON(String userid) {
@@ -152,7 +113,7 @@ public class UserController {
         // Remove user domains
         config.setUserId(userid);
         config.setViewerId(userid);
-        DomainController dc = new DomainController(this.guid, this.config);
+        DomainController dc = new DomainController(this.config);
         for(String domain : dc.getDomainsList()) {
           dc.deleteDomain(domain);
         }

@@ -10,7 +10,7 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 .fa-menu,
 .fa-title
 {
-	top: -1px !important;
+	/*top: -1px !important;*/
 	font-size: 14px !important;
 	text-rendering: auto;
 	-webkit-font-smoothing: antialiased;
@@ -28,7 +28,7 @@ div.inactive-grid div.x-grid-view table.x-grid-table tr.x-grid-row td.x-grid-cel
 	top: -4px !important;
 }
 .fa-menu {
-	top: 0px !important;
+	/*top: 0px !important;*/
 	font-size: 12px !important;
 }
 .fa-title {

@@ -1,0 +1,144 @@
+package edu.isi.wings.portal.resources;
+
+import javax.annotation.PostConstruct;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import edu.isi.wings.portal.controllers.ComponentController;
+
+@Path("{user}/{domain}/components{type:(/type)?}{external:(/external)?}")
+public class ComponentResource extends WingsResource {
+  ComponentController cc;
+
+  @PathParam("external") String external;
+  @PathParam("type") String type;
+  
+  boolean loadExternal, loadConcrete;
+  
+  @PostConstruct
+  public void init() {
+    super.init();
+    this.loadExternal = "/external".equals(external);
+    this.loadConcrete = !"/type".equals(type);
+    
+    if(this.hasPermissions() && !this.isPage("intro"))
+      this.cc = new ComponentController(config, loadConcrete, loadExternal);
+  }
+  
+  @GET
+  @Produces(MediaType.TEXT_HTML)
+  public String getHTML() {
+    if(this.cc != null) {
+      request.setAttribute("controller", this.cc);
+      return this.callViewer("ComponentViewer");
+    }
+    return null;
+  }
+  
+  @GET
+  @Path("intro")
+  public void getIntroduction() {
+    String introPage = "ManageComponent" + (loadConcrete ? "s" : "Types");
+    this.loadIntroduction(introPage);
+  }
+  
+  @GET
+  @Path("getComponentJSON")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getComponentJSON(  
+      @QueryParam("cid") String cid) {
+    if(this.cc != null)
+      return this.cc.getComponentJSON(cid);
+    return null;
+  }
+  
+  @GET
+  @Path("fetch")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response fetchData(
+      @QueryParam("cid") String cid) {
+    if(this.cc != null)
+      return this.cc.streamComponent(cid, context);
+    return Response.status(Status.FORBIDDEN).build();    
+  }
+  
+  @POST
+  @Path("saveComponentJSON")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String saveComponentJSON(
+      @FormParam("cid") String cid,
+      @FormParam("component_json") String json) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.saveComponentJSON(cid, json))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("addComponent")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String addComponent(
+      @FormParam("cid") String cid,
+      @FormParam("parent_cid") String parent_cid,
+      @FormParam("parent_type") String parent_type) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() && 
+        this.cc.addComponent(cid, parent_cid, parent_type))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("addCategory")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String addCategory(
+      @FormParam("cid") String cid,
+      @FormParam("parent_type") String parent_type) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() && 
+        this.cc.addCategory(cid, parent_type))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("delComponent")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String delComponent(
+      @FormParam("cid") String cid) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.delComponent(cid))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("delCategory")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String delCategory(
+      @FormParam("cid") String cid) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.delCategory(cid))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("setComponentLocation")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String setComponentLocation(
+      @FormParam("cid") String cid,
+      @FormParam("location") String location) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.setComponentLocation(cid, location))
+      return "OK";
+    return null;
+  }
+
+}

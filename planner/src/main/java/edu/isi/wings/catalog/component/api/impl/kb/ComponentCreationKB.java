@@ -39,9 +39,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   ComponentCreationAPI externalCatalog;
   
 	public ComponentCreationKB(Properties props, boolean load_concrete) {
-		super(props, load_concrete, true, false);
+		super(props, load_concrete, true, false, true);
 		
-
     String extern = props.getProperty("extern_component_catalog");
     if(extern != null) {
       try {
@@ -103,41 +102,6 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		return tree;
 	}
 
-	@Override
-	public Component getComponent(String cid, boolean details) {
-		KBObject compobj = kb.getIndividual(cid);
-		if(compobj == null) return null;
-		
-		KBObject concobj = kb.getDatatypePropertyValue(compobj, this.dataPropMap.get("isConcrete"));
-		boolean isConcrete = false;
-		if(concobj != null && concobj.getValue() != null)
-			isConcrete = ((Boolean) concobj.getValue()).booleanValue();
-		int ctype = isConcrete ? Component.CONCRETE : Component.ABSTRACT;
-
-		Component comp = new Component(compobj.getID(), ctype);
-		if (isConcrete) {
-			comp.setLocation(this.getComponentLocation(cid));
-		}
-
-		if (details) {
-			comp.setDocumentation(this.getComponentDocumentation(compobj));
-			comp.setComponentRequirement(
-			    this.getComponentRequirements(compobj, this.kb));
-			
-			ArrayList<KBObject> inobjs = this.getComponentInputs(compobj);
-			for (KBObject inobj : inobjs) {
-				comp.addInput(this.getRole(inobj));
-			}
-			ArrayList<KBObject> outobjs = this.getComponentOutputs(compobj);
-			for (KBObject outobj : outobjs) {
-				comp.addOutput(this.getRole(outobj));
-			}
-			comp.setRules(this.getDirectComponentRules(cid));
-			comp.setInheritedRules(this.getInheritedComponentRules(cid));
-		}
-		return comp;
-	}
-	
 	@Override
 	public boolean setComponentLocation(String cid, String location) {
 		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
@@ -388,7 +352,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		this.writerkb.save();
 		
-		this.initializeAPI(true, true);
+		this.initializeAPI(true, true, true);
 	}
 
 
@@ -413,65 +377,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	 * Private helper functions
 	 */
 	
-	private ArrayList<KBObject> getComponentInputs(KBObject compobj) {
-		KBObject inProp = kb.getProperty(this.pcns + "hasInput");
-		return kb.getPropertyValues(compobj, inProp);
-	}
-
-	private ArrayList<KBObject> getComponentOutputs(KBObject compobj) {
-		KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
-		return kb.getPropertyValues(compobj, outProp);
-	}
-	
-	private String getComponentDocumentation(KBObject compobj) {
-		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
-		KBObject doc = kb.getPropertyValue(compobj, docProp);
-		if(doc != null && doc.getValue() != null)
-		    return doc.getValueAsString();
-		return null;
-	}
-	
 	private void setComponentDocumentation(KBObject compobj, String doc) {
 		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
 		kb.setPropertyValue(compobj, docProp, kb.createLiteral(doc));
-	}
-	 
-	private ComponentRole getRole(KBObject argobj) {
-		ComponentRole arg = new ComponentRole(argobj.getID());
-		KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");
-		KBObject dimProp = kb.getProperty(this.pcns + "hasDimensionality");
-		KBObject pfxProp = kb.getProperty(this.pcns + "hasArgumentName");
-		KBObject valProp = kb.getProperty(this.pcns + "hasValue");
-
-		ArrayList<KBObject> alltypes = kb.getAllClassesOfInstance(argobj, true);
-
-		for (KBObject type : alltypes) {
-			if (type.getID().equals(this.pcns + "ParameterArgument"))
-				arg.setParam(true);
-			else if (type.getID().equals(this.pcns + "DataArgument"))
-				arg.setParam(false);
-			else if (type.getNamespace().equals(this.dcdomns)
-					|| type.getNamespace().equals(this.dcns))
-				arg.setType(type.getID());
-		}
-		KBObject role = kb.getPropertyValue(argobj, argidProp);
-		KBObject dim = kb.getPropertyValue(argobj, dimProp);
-		KBObject pfx = kb.getPropertyValue(argobj, pfxProp);
-
-		if (arg.isParam()) {
-			KBObject val = kb.getPropertyValue(argobj, valProp);
-			if (val != null) {
-				arg.setType(val.getDataType());
-				arg.setParamDefaultalue(val.getValue());
-			}
-		}
-		if (role != null && role.getValue() != null)
-			arg.setRoleName(role.getValueAsString());
-		if (dim != null && dim.getValue() != null)
-			arg.setDimensionality((Integer) dim.getValue());
-		if (pfx != null && pfx.getValue() != null)
-			arg.setPrefix(pfx.getValueAsString());
-		return arg;
 	}
 
 	private KBObject createRole(ComponentRole role) {

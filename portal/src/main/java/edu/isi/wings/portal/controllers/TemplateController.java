@@ -22,7 +22,6 @@ import java.io.File;
 //import java.io.FileNotFoundException;
 //import java.util.Scanner;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
@@ -40,9 +39,6 @@ import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
@@ -60,31 +56,16 @@ import com.google.gson.Gson;
 //import edu.isi.wings.classes.kb.PropertiesHelper;
 
 public class TemplateController {
-	private int guid;
-
-	private DataCreationAPI dc;
-	private ComponentCreationAPI cc;
-	private TemplateCreationAPI tc;
-	private ProvenanceAPI prov;
+	public DataCreationAPI dc;
+	public ComponentCreationAPI cc;
+	public TemplateCreationAPI tc;
+	public ProvenanceAPI prov;
 	
-	private Config config;
-
-	private Gson json;
-	private Properties props;
-
-	private String wliburl;
-	private String dcdomns;
-	private String dclibns;
-	private String pcdomns;
-	private String wflowns;
+	public Config config;
+	public Gson json;	
+	public Properties props;
 	
-	private String planScript;
-	private String runScript;
-	private String provScript;
-	private String thisScript;
-	
-	public TemplateController(int guid, Config config) {
-		this.guid = guid;
+	public TemplateController(Config config) {
 		this.config = config;
 		this.json = JsonHandler.createTemplateGson();
 		this.props = config.getProperties();
@@ -93,20 +74,9 @@ public class TemplateController {
 		cc = ComponentFactory.getCreationAPI(props, true);
 		dc = DataFactory.getCreationAPI(props);
 		prov = ProvenanceFactory.getAPI(props);
-
-		this.wliburl = (String) props.get("domain.workflows.dir.url");
-		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";
-		this.dclibns = (String) props.get("lib.domain.data.url") + "#";
-		this.pcdomns = (String) props.get("ont.domain.component.ns");
-		this.wflowns = (String) props.get("ont.workflow.url") + "#";
-		
-		this.planScript = config.getUserDomainUrl() + "/plan";
-		this.runScript = config.getUserDomainUrl() + "/executions";
-		this.provScript = config.getCommunityPath() + "/provenance";
-		this.thisScript = config.getScriptPath();
 	}
 
-	public void show(PrintWriter out, HashMap<String, Boolean> options, String tid, boolean editor, boolean tellme) {
+	/*public void show(PrintWriter out, HashMap<String, Boolean> options, String tid, boolean editor, boolean tellme) {
 		try {
 			// Get Hierarchy
 			String tree = this.getTemplatesListJSON();
@@ -164,7 +134,7 @@ public class TemplateController {
 			tc.end();
 			prov.end();
 		}
-	}
+	}*/
 	
 	public String getViewerJSON(String tplid) {
 		Template tpl = null;
@@ -220,7 +190,7 @@ public class TemplateController {
 		}
 	}
 	
-	private String getBeamerParaphrasesJSON() {
+	public String getBeamerParaphrasesJSON() {
 	  try {
       String beamerDir = 
           config.getDomain().getDomainDirectory() + File.separator + "beamer";
@@ -232,7 +202,7 @@ public class TemplateController {
 	  return "{}";
 	}
 
-	private String getBeamerMappingsJSON() {
+	public String getBeamerMappingsJSON() {
 	  try {
 	    String beamerDir = 
 	        config.getDomain().getDomainDirectory() + File.separator + "beamer";
@@ -418,18 +388,11 @@ public class TemplateController {
 		return returnList;
 	}
 	
-	private ArrayList<Object> getConstraintProperties() {
+	public ArrayList<Object> getConstraintProperties() {
 		ArrayList<Object> allprops = new ArrayList<Object>();
 		allprops.addAll(dc.getAllMetadataProperties());
 		allprops.addAll(tc.getAllConstraintProperties());
 		return allprops;
 	}
 
-  public String getWliburl() {
-    return wliburl;
-  }
-
-  public void setWliburl(String wliburl) {
-    this.wliburl = wliburl;
-  }
 }

@@ -53,7 +53,7 @@ public class DataKB {
 	protected SparqlFactory sparqlFactory;
 	protected String tdbRepository;
 
-	public DataKB(Properties props, boolean create_writers) {
+	public DataKB(Properties props, boolean create_writers, boolean plainkb) {
 		this.dcurl = props.getProperty("ont.data.url");
 		this.onturl = props.getProperty("ont.domain.data.url");
 		this.liburl = props.getProperty("lib.domain.data.url");
@@ -74,12 +74,14 @@ public class DataKB {
 		}
 		KBUtils.createLocationMappings(props, this.ontologyFactory);
 		
-		this.initializeAPI(create_writers, false);
+		this.initializeAPI(create_writers, false, plainkb);
 	}
 	
-	protected void initializeAPI(boolean create_writers, boolean create_if_empty) {
+	protected void initializeAPI(boolean create_writers, boolean create_if_empty, 
+	    boolean plainkb) {
 		try {
-			this.kb = this.ontologyFactory.getKB(liburl, OntSpec.PELLET, create_if_empty);
+			this.kb = this.ontologyFactory.getKB(liburl, 
+			    plainkb ? OntSpec.PLAIN : OntSpec.PELLET, create_if_empty);
 			this.kb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, create_if_empty));
 			this.kb.importFrom(this.ontologyFactory.getKB(dcurl, OntSpec.PLAIN, create_if_empty, true));
 			if (create_writers) {

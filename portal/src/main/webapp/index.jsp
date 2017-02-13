@@ -27,12 +27,22 @@
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <title>Wings Portal</title>
 <%
-  Config configx = new Config(request);
-PrintWriter outx = new PrintWriter(out);
-JSLoader.loadConfigurationJS(outx, configx);
-JSLoader.loadLoginViewer(outx, configx.getContextRootPath());
-CSSLoader.loadLoginViewer(outx, configx.getContextRootPath());
-%><script>
+Config configx = new Config(request, null, null);
+%>
+
+<!-- Load Viewer Javascript -->
+<%=JSLoader.getLoginViewer(configx.getContextRootPath())%>
+
+<!-- Load Viewer Stylesheets -->
+<%=CSSLoader.getViewerStyles(configx.getContextRootPath())%>
+</head>
+
+<body>
+<script>
+// Global Configuration Variables
+<%=JSLoader.getConfigurationJS(configx)%>
+
+// Load home page
 var message="<%=request.getAttribute("message")%>";
 var nohome="<%=request.getAttribute("nohome")%>";
 Ext.onReady(function() {
@@ -50,7 +60,7 @@ Ext.onReady(function() {
 					'afterrender': function(comp) {
 						if(nohome == "null") {
 							Ext.Ajax.request({
-								url: CONTEXT_ROOT + "/jsp/home.jsp",
+								url: CONTEXT_ROOT + "/html/home.html",
 								success: function(response) {
 									comp.update(response.responseText);
 								}

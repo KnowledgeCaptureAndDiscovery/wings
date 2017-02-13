@@ -39,7 +39,6 @@ import edu.isi.wings.portal.classes.config.ServerDetails;
 
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
-import org.apache.commons.lang.ArrayUtils;
 
 import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
@@ -125,16 +124,18 @@ public class Config {
         this.userDomainUrl = userDomainUrl;
     }
 
-    public Config(HttpServletRequest request) {
-        // Initialize UserDatabase
-        this.initializeUserDatabase();
+    public Config() {}
+    
+    public Config(HttpServletRequest request, String userid, String domain) {
+      // Initialize UserDatabase
+      this.initializeUserDatabase();
 
-        // Initialize portal config
-        this.initializePortalConfig(request);
+      // Initialize portal config
+      this.initializePortalConfig(request);
 
-        // Initialize user config
-        this.initializeUserConfig(request);
-    }
+      // Initialize user config
+      this.initializeUserConfig(request, userid, domain);
+  }
 
     public void getPermissions() {
         // Check domain, user & viewerid
@@ -142,7 +143,7 @@ public class Config {
     }
 
     public boolean checkUser(HttpServletResponse response) {
-    /* Check that such a user exists */
+        /* Check that such a user exists */
         try {
             if (!this.userapi.hasUser(this.userId)) {
                 if (response != null) {
@@ -223,30 +224,17 @@ public class Config {
         return true;
     }
 
-    private void initializeUserConfig(HttpServletRequest request) {
-        // Set userid, domainid, viewerId
-        this.userId = request.getParameter("userid");
-        this.domainId = request.getParameter("domainid");
+    private void initializeUserConfig(HttpServletRequest request, String userid, String domainid) {
+        this.userId = userid;
+        this.domainId = domainid;
         this.viewerId = request.getRemoteUser();
 
         // Set default script values
-        this.scriptPath = this.contextRootPath + request.getServletPath();
-        this.scriptArguments = new String[]{};
+        this.scriptPath = request.getRequestURI();
 
-        String path = request.getPathInfo();
-        if (path == null) path = "/";
-        this.scriptArguments = path.split("/");
-        if (this.scriptArguments.length > 0)
-            this.scriptArguments = (String[]) ArrayUtils.remove(this.scriptArguments, 0);
-
-        if (this.domainId != null) {
-            this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
-                    + "/" + this.getUserId() + "/" + this.getDomainId();
-            this.scriptPath = this.userDomainUrl + request.getServletPath();
-        } else if (this.userId != null) {
-            this.scriptPath = this.contextRootPath + "/" + this.getUsersRelativeDir()
-                    + "/" + this.getUserId() + request.getServletPath();
-        }
+        if (this.domainId != null)
+          this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
+              + "/" + this.getUserId() + "/" + this.getDomainId();
 
         this.sessionId = request.getSession().getId();
 
@@ -260,10 +248,11 @@ public class Config {
         if (!this.checkUser(null))
             return;
 
-        this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
-                + "/" + userId;
-        this.userPath = contextRootPath + "/" + usersRelativeDir + "/" + userId;
+        this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir 
+            + "/" + userId;
         this.userDir = storageDirectory + File.separator + usersRelativeDir + File.separator + userId;
+
+        this.userPath = contextRootPath + "/" + usersRelativeDir + "/" + userId;
 
         // Create userDir (if it doesn't exist)
         File uf = new File(this.userDir);
@@ -271,7 +260,7 @@ public class Config {
             System.err.println("Cannot create user directory : " + uf.getAbsolutePath());
 
         // Get domain and user list
-        DomainController dc = new DomainController(1, this);
+        DomainController dc = new DomainController(this);
         this.domainsList = dc.getReadableDomainsList();
         this.usersList = this.userapi.getUsersList();
 
@@ -289,9 +278,9 @@ public class Config {
         }
 
         if (this.domain != null) {
-            this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
-                    + "/" + this.getUserId() + "/" + this.domain.getDomainName();
-            this.domainId = this.domain.getDomainName();
+          this.domainId = this.domain.getDomainName();
+          this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
+                + "/" + this.getUserId() + "/" + this.domain.getDomainName();
         }
     }
 
@@ -348,10 +337,11 @@ public class Config {
         
         if(serverConfig.containsKey("light-reasoner"))
           this.isLightReasoner = serverConfig.getBoolean("light-reasoner");
-
+        
         this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
-                + communityRelativeDir;
-        this.communityPath = contextRootPath + "/" + communityRelativeDir;
+            + communityRelativeDir;
+        this.communityPath = contextRootPath + "/" + usersRelativeDir + "/" + communityRelativeDir;
+        
         this.communityDir = storageDirectory + File.separator
                 + communityRelativeDir;
         // Create communityDir (if it doesn't exist)
@@ -451,7 +441,7 @@ public class Config {
         return engine;
     }
 
-    private PropertyListConfiguration getPortalConfiguration(HttpServletRequest request) {
+    public PropertyListConfiguration getPortalConfiguration(HttpServletRequest request) {
         ServletContext app = request.getSession().getServletContext();
         this.configFile = app.getInitParameter("config.file");
         if (this.configFile == null) {

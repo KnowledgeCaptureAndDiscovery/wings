@@ -47,7 +47,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
 
-public class ComponentReasoningKB extends ComponentCreationKB implements ComponentReasoningAPI {
+public class ComponentReasoningKB extends ComponentKB implements ComponentReasoningAPI {
 	private Logger logger = Logger.getLogger(this.getClass());
 
 	private HashMap<String, Component> ccache =
@@ -65,7 +65,7 @@ public class ComponentReasoningKB extends ComponentCreationKB implements Compone
 	private ArrayList<KBObject> metricProps;
 	
 	public ComponentReasoningKB(Properties props) {
-		super(props, true);
+		super(props, true, false, true, false);
 		this.initializeMetrics();
 	}
 	

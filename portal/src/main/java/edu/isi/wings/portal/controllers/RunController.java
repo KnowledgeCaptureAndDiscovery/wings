@@ -19,7 +19,6 @@ package edu.isi.wings.portal.controllers;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
@@ -63,9 +62,6 @@ import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.html.CSSLoader;
-import edu.isi.wings.portal.classes.html.HTMLLoader;
-import edu.isi.wings.portal.classes.html.JSLoader;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionCode;
@@ -80,54 +76,20 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 public class RunController {
-    private int guid;
-    private Config config;
-    private Gson json;
+    public Config config;
+    public Gson json;
 
-    Properties props;
-    String userdir;
-    String userConfigFile;
-    String dataUrl;
-    String templateUrl;
+    public String dataUrl;
+    public String templateUrl;
 
-    public RunController(int guid, Config config) {
-        this.guid = guid;
+    private Properties props;
+    
+    public RunController(Config config) {
         this.config = config;
         this.json = JsonHandler.createRunGson();
         this.props = config.getProperties();
         this.dataUrl = config.getUserDomainUrl() + "/data";
         this.templateUrl = config.getUserDomainUrl() + "/workflows";
-    }
-
-    public void show(PrintWriter out, String runid) {
-        // Get Hierarchy
-        try {
-            HTMLLoader.printHeader(out);
-            out.println("<head>");
-            out.println("<title>Access Run Results</title>");
-            JSLoader.loadConfigurationJS(out, config);
-            CSSLoader.loadRunViewer(out, config.getContextRootPath());
-            JSLoader.loadRunViewer(out, config.getContextRootPath());
-            out.println("</head>");
-
-            out.println("<script>");
-            out.println("var runViewer_" + guid + ";");
-            out.println("Ext.onReady(function() {"
-                    + "runViewer_" + guid + " = new RunBrowser("
-                    + "'" + guid + "', '"
-                    + runid + "', " + "'"
-                    + config.getScriptPath() + "', "
-                    + "'" + this.dataUrl + "', "
-                    + "'" + this.templateUrl + "', "
-                    + (this.config.getPublisher() != null)
-                    + ");\n"
-                    + "runViewer_" + guid + ".initialize();\n"
-                    + "});");
-            out.println("</script>");
-            HTMLLoader.printFooter(out);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public String getRunListJSON() {
