@@ -92,3 +92,41 @@ Reasoner.prototype.typeSubsumesType = function(type1, type2) {
 	return false;
 };
 
+/*
+ * Check if this port is compatible to be linked with another port
+ */
+Reasoner.prototype.portsCompatible = function(port1, port2) {
+	// Inputs can't connect to Inputs
+	// Outputs can't connect to Outputs
+	if(port1.isInput == port2.isInput) 
+		return false;
+	
+	// A Variable can't connect to another variable
+	if((port1.graphItem instanceof GraphVariable) && 
+			(port2.graphItem instanceof GraphVariable) )
+		return false;
+	
+	// Cannot connect to ourselves
+	if(port1.graphItem == port2.graphItem)
+		return false;
+
+	// Parameters can't be connected to Data
+	if(port1.role.type != port2.role.type)
+		return false;
+	
+	var port1 = port1.getComponentPort();
+	var port2 = port2.getComponentPort();
+	if(port1 == null || port2 == null)
+		return false;
+	
+	var comp1 = port1.graphItem;
+	var comp2 = port2.graphItem;
+
+	var type1 = this.getComponentRoleType(comp1.binding.id, port1.role.roleid);
+	var type2 = this.getComponentRoleType(comp2.binding.id, port2.role.roleid);
+	
+	if(port1.isInput)
+		return this.typeSubsumesType(type1, type2);
+	else
+		return this.typeSubsumesType(type2, type1);
+};

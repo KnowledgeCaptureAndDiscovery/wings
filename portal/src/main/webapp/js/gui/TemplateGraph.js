@@ -103,7 +103,7 @@ Ext.ux.TemplateGraphPanel = Ext
 							text : 'Layout',
 							iconCls : 'icon-wflow fa-small fa-blue',
 							handler : function() {
-								me.editor.layout();
+								me.editor.layout(true);
 							}
 						});
 						tbar.push({
@@ -144,8 +144,8 @@ Ext.ux.TemplateGraphPanel = Ext
 					},
 
 					reloadGraph : function(store) {
-						this.editor.initTemplate(this.template_id, store);
-						this.editor.redrawCanvas();
+						this.editor.template.setData(store);
+						this.editor.template.draw();
 					}
 				});
 
@@ -154,42 +154,24 @@ Ext.ux.TemplateGraphPanel = Ext
  */
 Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	tb : new Ext.Toolbar(),
-	template_layer : null,
-	canvas : null,
-	canvasDom : null,
 	graphPadding : 20,
 	template_id : null,
 	template : null,
 	editable : false,
+	autoresize : true,
 	border : false,
-	manualZoom : false,
-	manualMove : false,
 	gridSize : 10,
 	snapSize : 10,
-	snapToGrid : false,
 	showGrid : true,
+	scale : 1.0,
 	gridColor : "rgba(230,230,230,1)",
 	selBoxColor : "rgba(0,0,0,0.2)",
 	selBoxBorderColor : "rgba(0,0,0,0.2)",
 
 	initComponent : function(config) {
 		Ext.apply(this, config);
-		Ext.apply(this, {
-			xtype : "box"
-		});
-		this.on('resize', this.onResize, this);
 		this.addEvents('graphloaded');
 		Ext.ux.TemplateGraph.superclass.initComponent.apply(this, arguments);
-	},
-
-	onResize : function(w, h) {
-		this.panelWidth = w;
-		this.panelHeight = h;
-		if (!this.template_layer || !this.template_layer.selectedItems.length) {
-			var w = this.manualZoom ? null : this.panelWidth;
-			var h = this.manualZoom ? null : this.panelHeight;
-			this.redrawCanvas(w, h);
-		}
 	},
 
 	needsLayout : function() {
@@ -203,229 +185,42 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			return true;
 		return false;
 	},
-		 
-	onRender : function(ct, position) {
-		Ext.ux.TemplateGraph.superclass.onRender.call(this, ct, position);
-		this.initCanvas();
-		this.initTemplate(this.template_id, this.store);
-		this.initDropZone(this.canvasDom, this.guid + "_ComponentTree");
-		this.fireEvent('graphloaded');
-	},
-
-	initCanvas : function() {
-		this.canvasDom = document.createElement('canvas');
-		this.canvasDom.id = '__canvas_' + this.guid + '_' + getLocalName(this.template_id);
-		this.el.dom.appendChild(this.canvasDom);
-		this.canvas = new Canvas(this.canvasDom);
-	},
-
-	initTemplate : function(template_id, store) {
-		var MAX_LINKS = 500;
+	
+	onBoxReady: function(w, h) {
+		Ext.ux.TemplateGraph.superclass.onBoxReady.call(this, w, h);
 		
-		this.store = store;
-		this.template_id = template_id;
-
-        var numlinks = 0;
-        for(var i in this.store.Links)
-        	numlinks ++;
-        if (numlinks > MAX_LINKS) {
-            //this.clearCanvas();
-            alert("This graph is too big to display");
-            return;
-        }
-        
-		this.template = new Template(this.template_id, this.store, this);
-		this.template.markErrors();
-		this.canvas.template = this.template;
-        
-		this.initTemplateLayer();
-		this.initLayerItems();
-
-		this.template_layer.draw();
+        this.template = new Template(this.template_id, this.store, this);
+        this.template.setEditable(this.editable);
+        this.template.draw(this.el.dom);
+        this.graphLayout = new GraphLayout();
+		this.initDropZone(this.el.dom, this.guid + "_ComponentTree");
+		this.fireEvent('graphloaded');
+		this.setEventHandlers();
+	},
+	
+	setEventHandlers: function() {
+		var me = this;
+		this.template.events.dispatch
+		.on("select", function(items) {
+			me.autoresize = false;
+			if (Object.keys(items).length == 1) {
+				var item = items[Object.keys(items)[0]];
+				me.showSelectedItemInfo(item);
+			}
+			else {
+				me.hideSelectedItemInfo();
+			}
+		});
+	},
+	
+	onResize: function(w, h) {
+		if(this.autoresize)
+			this.template.resizePanel();
 	},
 
 	refreshConstraints : function() {
 		if (this.gridPanel && this.template.store.constraints)
 			this.gridPanel.getStore().loadData(cloneObj(this.template.store.constraints));
-	},
-
-	initTemplateLayer : function() {
-		var editor = this;
-		if (this.canvas && this.template_layer)
-			this.canvas.LayerManager.removeLayer(this.template_layer.getID());
-
-		this.template_layer = new Canvas.Layer({
-			id : "template_" + editor.template_id,
-			x : 0,
-			y : 0,
-			selectedItems : [],
-			oldx : -1,
-			oldy : -1,
-			on : {
-				"mousemove" : function(event, type, ctx, item) {
-					var mX = event.mouseX, mY = event.mouseY;
-					if (editor.snapToGrid) {
-						mX = Math.floor(mX / editor.snapSize) * editor.snapSize;
-						mY = Math.floor(mY / editor.snapSize) * editor.snapSize;
-					}
-					if (mX == this.oldx && mY == this.oldy)
-						return;
-					this.oldx = mX;
-					this.oldy = mY;
-
-					if (this.dragging) {
-						for ( var i = 0; i < this.selectedItems.length; i++) {
-							var item = this.selectedItems[i];
-							item.x = parseInt(mX - this.dragging[i].x);
-							item.y = parseInt(mY - this.dragging[i].y);
-							if (item.x < editor.graphPadding)
-								item.x = editor.graphPadding;
-							if (item.y < editor.graphPadding)
-								item.y = editor.graphPadding;
-						}
-						editor.canvasDom.style.cursor = 'move';
-						editor.redrawCanvas();
-						editor.manualMove = true;
-						/*Automatic scrolling on drag
-								var panel = editor.findParentByType(Ext.ux.TemplateGraphPanel);
-								if(panel && panel.view && panel.view.scroller) {
-									panel.view.scroller.scrollTo(editor.canvasDom.scrollHeight);
-								}*/
-					}
-					else if (this.newLinkFromPort && editor.editable) {
-						this.clear(ctx);
-						editor.drawGrid();
-						this.draw();
-
-						var port = this.newLinkFromPort;
-						var toport = this.newLinkToPort;
-						var fromdims = {
-							x : port.x,
-							y : port.y
-						};
-						var todims = {
-							x : mX,
-							y : mY
-						};
-
-						if (!port.isVariablePort && (!toport || !toport.isVariablePort)) {
-							var varid = editor.template.getFreeVariableId(port.name);
-							// if(port.partOfLink) varid =
-							// port.partOfLink.variable.id;
-							var varname = getLocalName(varid);
-							if (!this.newVariable) {
-								this.newVariable = new DraggerVariable(editor.template, varid, varname);
-							}
-							var dims = this.newVariable.getDimensions(ctx, varname);
-							var x = Math.round(mX - dims.width / 2.0);
-							var y = Math.round(mY);
-							if (port.isInput)
-								y -= dims.height;
-
-							if (toport) {
-								x = Math.round(port.x + (toport.x - port.x) / 2.0 - dims.width / 2.0);
-								y = Math.round(port.y + (toport.y - port.y) / 2.0 - dims.height / 2.0);
-								todims.x = Math.round(x + dims.width / 2.0);
-								todims.y = y + (port.isInput ? dims.height : 0);
-							}
-							Link.prototype.drawPartialLink(ctx, fromdims, todims, port.isInput);
-							this.newVariable.draw(ctx, varname, x, y, false);
-							if (toport) {
-								fromdims = todims;
-								fromdims.y += port.isInput ? -dims.height : dims.height;
-								todims = {
-									x : mX,
-									y : mY
-								};
-								Link.prototype.drawPartialLink(ctx, fromdims, todims, port.isInput);
-							}
-						}
-						else {
-							Link.prototype.drawPartialLink(ctx, fromdims, todims, port.isInput);
-						}
-						editor.template.markLinkAdditionSideEffects(this.newLinkFromPort, this.newLinkToPort,
-								this.newVariable);
-					}
-					else if (this.selBoxStart) {
-						this.selBoxEnd = {};
-						this.selBoxEnd.x = event.mouseX, this.selBoxEnd.y = event.mouseY;
-						this.selectedItems = [];
-						var x1 = this.selBoxStart.x, x2 = this.selBoxEnd.x;
-						var y1 = this.selBoxStart.y, y2 = this.selBoxEnd.y;
-						if (x1 > x2) {
-							var tmp = x1;
-							x1 = x2;
-							x2 = tmp;
-						}
-						if (y1 > y2) {
-							var tmp = y1;
-							y1 = y2;
-							y2 = tmp;
-						}
-						for ( var i = 0; i < this.items.length; i++) {
-							var item = this.items[i];
-							if (!item.shape)
-								continue;
-							if (item.x > x1 && item.x + item.width < x2 && item.y > y1 && item.y + item.height < y2) {
-								this.selectedItems.push(item.shape);
-							}
-						}
-						this.clear(ctx);
-						editor.drawGrid();
-						this.draw();
-						editor.drawSelectionBox();
-					}
-					else if (this.needRefresh && editor.editable) {
-						this.clear(ctx);
-						editor.drawGrid();
-						this.draw();
-					}
-				},
-				"mouseup" : function(event, type, ctx, item) {
-					editor.template.clearSideEffects();
-					editor.template.addLinkInCanvas(this.newLinkFromPort, this.newLinkToPort, this.newVariable);
-					editor.updateGridVariables();
-					editor.template.markErrors();
-					editor.template.forwardSweep();
-
-					if (!this.dragging && !this.selBoxEnd)
-						editor.deselectAllItems();
-					else {
-						editor.showSelectedItemInfo();
-					}
-
-					this.newLinkToPort = null;
-					this.newLinkFromPort = null;
-					this.newVariable = null;
-					this.selBoxStart = null;
-					this.selBoxEnd = null;
-					this.needRefresh = false;
-					this.dragging = null;
-
-					this.clear(ctx);
-					editor.drawGrid();
-					this.draw();
-
-					editor.canvasDom.style.cursor = 'default';
-					if (event.preventDefault)
-						event.preventDefault();
-					event.returnValue = false;
-				},
-				"mousedown" : function(event, type, ctx, item) {
-					this.selBoxStart = {};
-					this.selBoxStart.x = event.mouseX, this.selBoxStart.y = event.mouseY;
-
-					if (event.preventDefault)
-						event.preventDefault();
-					event.returnValue = false;
-				}
-			},
-			clear : function(ctx) {
-				ctx.clearRect(this.x, this.y, this.width, this.height);
-			}
-		}, this.canvas.LayerManager);
-
-		this.graphLayout = new Layout(this.template);
 	},
 
 	initDropZone : function(item, group, callback) {
@@ -451,12 +246,13 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 					var comp = data.records[0].data.component;
 					if(!comp)
 						return false;
-					var mouse = me.canvas.translateEventCoordsToCanvasCoords(e.getPageX(), e.getPageY());
+					var coords = me.template.transformEventCoordinates(e.getPageX(), e.getPageY());
 					var node = me.template.addNode(comp);
-					node.x = mouse.x;
-					node.y = mouse.y;
+					node.setCoords(coords);
+					node.draw();
+					me.template.drawLinks();
 					me.template.markErrors();
-					me.redrawCanvas();
+					me.template.resizeViewport();
 					return true;
 				}
 				return false;
@@ -464,19 +260,9 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		});
 	},
 
-	initLayerItems : function() {
-		if (this.template_layer.getCount() > 0)
-			this.template_layer.removeAllItems();
-		var items = this.template.getCanvasItems();
-		for ( var i = 0; i < items.length; i++) {
-			this.template_layer.addItem(items[i], false);
-		}
-	},
-
 	zoom : function(value) {
-		this.canvas.changeScale(value);
-		this.manualZoom = true;
-		this.redrawCanvas();
+		this.autoresize = false;
+		this.template.zoom(value, true);
 	},
 
 	findErrors : function(rec) {
@@ -488,94 +274,25 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		runTopAlgorithm(this.template, hpTree, hpDetail, msgTarget, this.redrawCanvas, this, this.url);
 	},
 
-	layout : function() {
+	layout : function(animate, domnode) {
 		var msgTarget = Ext.get(this.getId());
 		msgTarget.mask('Designing Layout...', 'x-mask-loading');
-		this.graphLayout.layoutDot(msgTarget, this, this.url);
+		//this.graphLayout.layoutVizDot(msgTarget, this.template, animate, domnode);
+		this.graphLayout.layoutDot(msgTarget, this.template, animate, domnode, this.url);
 	},
 
 	saveImage : function() {
 		// var scale = this.canvas.getScale();
 		var scale = 1;
-		var imgdata = this.getImageData(scale, true);
-		window.open(imgdata);
-	},
-
-	getImageData : function(scale, show_constraints) {
-		var MAX_SHOW_CONSTRAINTS_IN_GRAPH = 200;
-		var x = 20;
-		var y = this.template_layer.itemHeight + 10;
-		var ctx = this.canvas.getCtx();
-
-		var w = 12;
-		var h = w * 1.5;
-
-		var consHeight = this.gridPanel ? ((this.gridPanel.store.getCount() + 1) * h + 10) : 0;
-		if (!show_constraints)
-			consHeight = 0;
-
-		var canvasWidth = this.template_layer.itemWidth;
-		var constraints = [];
-		if (show_constraints && this.gridPanel && this.gridPanel.store.getCount()) {
-			var This = this;
-			if(this.gridPanel.store.getCount() > MAX_SHOW_CONSTRAINTS_IN_GRAPH) {
-				var cons = "Too many constraints to show in image";
-				constraints.push(cons);
-				var width = (cons.length * w * 0.75) + x + 20;
-				if (width > canvasWidth)
-					canvasWidth = width;
-				consHeight = h*2 + 10;
-			}
-			else {
-				this.gridPanel.store.data.each(function() {
-					var cons = getPrefixedUrl(this.data.subject, This.browser.nsmap) + '  '
-							+ getPrefixedUrl(this.data.predicate, This.browser.nsmap) + '  '
-							+ getPrefixedUrl(this.data.object, This.browser.nsmap);
-					constraints.push(cons);
-					var width = (cons.length * w * 0.75) + x + 20;
-					if (width > canvasWidth)
-						canvasWidth = width;
-				});
-			}
-		}
-
-		this.canvasDom.height = (this.template_layer.itemHeight + consHeight) * scale;
-		this.canvasDom.width = canvasWidth * scale;
-
-		this.updateCanvasForRetina();
-		
-		ctx.scale(scale, scale);
-		this.template_layer.clear(ctx);
-		this.template_layer.draw();
-
-		if (show_constraints && this.gridPanel && this.gridPanel.store.getCount()) {
-			ctx.save();
-			ctx.fillStyle = "rgba(40,40,40,1)";
-			ctx.textAlign = "left";
-			ctx.textBaseline = "middle";
-			ctx.font = "bold 14px courier";
-			var selitem = this.template_layer.selectedItems.length == 1 ? this.template_layer.selectedItems[0] : null;
-			if (selitem && !selitem.getInputLinks)
-				ctx.fillText("Constraints for " + selitem.text + ":", x, y);
-			else
-				ctx.fillText("All Constraints:", x, y);
-
-			ctx.font = w + "px courier";
-			for ( var i = 0; i < constraints.length; i++) {
-				y += h;
-				ctx.fillText(constraints[i], x + 10, y);
-			}
-			ctx.restore();
-		}
-		var imgdata = this.canvasDom.toDataURL();
-		this.redrawCanvas();
-		return imgdata;
+		var img = this.template.getImage();
+		var win = window.open();
+		win.document.body.appendChild(img);
 	},
 
 	getSelectedVariable : function() {
-		var items = this.template_layer.selectedItems;
-		for ( var i = 0; i < items.length; i++) {
-			var item = this.template.variables[items[i].id];
+		var items = this.template.events.selectedItems;
+		for ( var id in items) {
+			var item = this.template.variables[id];
 			if (item)
 				return item;
 		}
@@ -583,9 +300,9 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	getSelectedNode : function() {
-		var items = this.template_layer.selectedItems;
-		for ( var i = 0; i < items.length; i++) {
-			var item = this.template.nodes[items[i].id];
+		var items = this.template.events.selectedItems;
+		for ( var id in items) {
+			var item = this.template.nodes[id];
 			if (item)
 				return item;
 		}
@@ -600,21 +317,15 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 				item = this.template.nodes[itemid];
 		}
 		if (item) {
-			this.template_layer.selectedItems = [
-				item
-			];
+			this.template.events.selectItem(item);
 			if (scrollTo) {
-				this.scrollTo(item.x - 
-						(this.panelWidth/2 - item.width)/this.canvas.scale, 
-						item.y - 20 );
+				this.scrollTo(item.getX(), item.getY());
 			}
-			this.redrawCanvas();
-			this.showSelectedItemInfo();
+			this.showSelectedItemInfo(item);
 		}
 	},
 
-	deselectAllItems : function() {
-		this.template_layer.selectedItems = [];
+	hideSelectedItemInfo : function() {
 		this.clearVariableConstraintFilter();
 		this.hideInfoPanel();
 	},
@@ -644,24 +355,28 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	deleteSelected : function() {
-		var items = this.template_layer.selectedItems;
-		if (!items.length) {
-			showError('Select an Item to Delete first !');
-			return;
-		}
-		for ( var i = 0; i < items.length; i++) {
-			var item = items[i];
-			var isVariable = true;
+		var items = this.template.events.selections;
+		var numselections = 0;
+		for ( var id in items) {
+			var item = items[id];
 			if (item.getInputLinks) {
 				this.template.removeNode(item);
 			}
 			else {
 				this.template.removeVariable(item);
 			}
+			numselections++;
 		}
+		if (!numselections) {
+			showError('Select an Item to Delete first !');
+			return;
+		}
+
+		this.refreshConstraints();
 		this.updateGridVariables();
+		this.clearVariableConstraintFilter();
+		this.template.drawLinks();
 		this.template.markErrors();
-		this.redrawCanvas();
 	},
 
 	updateGridVariables : function() {
@@ -670,7 +385,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			var dataVars = [];
 			for ( var id in this.template.variables) {
 				vars.push(id);
-				if (this.template.variables[id].type == "DATA")
+				if (!this.template.variables[id].isParam)
 					dataVars.push(id);
 			}
 			vars.sort();
@@ -687,88 +402,77 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 					text : getPrefixedUrl(varid, This.browser.nsmap)
 				};
 			});
-			// window.console.log(vars);
 			this.gridPanel.variableStore.loadData(values);
 			this.gridPanel.dataVariableStore.loadData(dValues);
 		}
 	},
+ 
+	showSelectedItemInfo : function(item) { 
+		// if(window.console) window.console.log(item.id);
+		var html = "";
+		var isVariable = (item instanceof GraphVariable);
 
-	showSelectedItemInfo : function() {
-		var items = this.template_layer.selectedItems;
-		if (items.length == 1) {
-			// if(window.console) window.console.log(item.id);
-			var html = "";
-			var isVariable = true;
-			var item = items[0];
-			if (item.getInputLinks)
-				isVariable = false;
-
-			if (this.infoPanel) {
-				// Make the information panel
-				if (this.editable) {
-					// For Template Editor, this will be a Property Grid
-					this.infoPanel.hide();
-					this.infoPanel.removeAll();
-					var dataGrid = this.getInfoPanelEditor(item, isVariable);
-					this.infoPanel.dataGrid = dataGrid;
-					this.infoPanel.add(dataGrid);
-				}
-				else {
-					this.infoPanel.hide();
-					this.infoPanel.removeAll();
-					var html = this.getInfoPanelViewerHtml(item, isVariable);
-					this.infoPanel.add(new Ext.Component({
-						html : html
-					}));
-				}
-				var error = this.template.errors[item.id];
-				if (error != null) {
-					this.infoPanel.add({
-						border : false,
-						padding : 5,
-						html : "<div style='color:red;font-size:10px;font-style:italic'>" + error.msg + "</div>"
-					});
-				}
-				this.infoPanel.show();
-				this.infoPanel.doLayout();
+		if (this.infoPanel) {
+			// Make the information panel
+			if (this.editable) {
+				// For Template Editor, this will be a Property Grid
+				this.infoPanel.hide();
+				this.infoPanel.removeAll();
+				var dataGrid = this.getInfoPanelEditor(item, isVariable);
+				this.infoPanel.dataGrid = dataGrid;
+				this.infoPanel.add(dataGrid);
 			}
-
-			if (this.gridPanel) {
-				this.clearVariableConstraintFilter();
-				if (isVariable) {
-					this.setVariableConstraintFilter(item.id);
-				}
-				else {
-					this.clearVariableConstraintFilter();
-				}
+			else {
+				this.infoPanel.hide();
+				this.infoPanel.removeAll();
+				var html = this.getInfoPanelViewerHtml(item, isVariable);
+				this.infoPanel.add(new Ext.Component({
+					html : html
+				}));
 			}
+			var errors = item.errors;
+			if (errors && errors.length) {
+				this.infoPanel.add({
+					border : false,
+					padding : 5,
+					html : "<div style='color:red;font-size:10px;font-style:italic'>" + errors + "</div>"
+				});
+			}
+			this.infoPanel.show();
+			this.infoPanel.doLayout();
+			//this.infoPanel.alignTo(this, 'b-b?');			
 		}
-		else {
-			this.hideInfoPanel();
+
+		if (this.gridPanel) {
 			this.clearVariableConstraintFilter();
+			if (isVariable) {
+				this.setVariableConstraintFilter(item.id);
+			}
+			else {
+				this.clearVariableConstraintFilter();
+			}
 		}
 	},
 
 	getInfoPanelViewerHtml : function(item, isVariable) {
 		var html = "";
 		if (isVariable) {
-			html += "<b>Variable: " + getLocalName(item.id) + "</b>";
+			html += "<b>Variable: " + item.getName() + "</b>";
 			html += "<div><b>" + (item.isInput ? "Input " : (item.isOutput ? "Output " : "Intermediate "));
-			html += (item.type == "PARAM" ? "Parameter" : "Data") + "</b></div>";
+			html += (item.isParam ? "Parameter" : "Data") + "</b></div>";
 			if (item.dim)
-				html += "<div><b>Dimensionality:</b> " + item.dim + "-D Collection</div>";
+				html += "<div><b>Dimensionality:</b> " + item.dimesionality + "-D Collection</div>";
 			if (item.autofill)
 				html += "<div><b>Autofill</b> values, don't ask user</div>";
 		}
 		else {
-			var items = this.cmap ? this.cmap[item.component.binding.id] : null;
+			var items = this.cmap ? this.cmap[item.binding.id] : null;
 			if (items && items.length && (!item.isConcrete || item.binding.id)) {
 				var me = this;
-				var copts = {
-					fieldLabel : getLocalName(item.component.binding.id) + ' Binding',
-					labelWidth : '50%'
-				};
-				copts = setURLComboListOptions(copts, items, item.binding.id, 'Select Component ..', false, false);
+				var copts = {};
+				copts = setURLComboListOptions(copts, items, item.binding.id, 
+						'Select ' + getLocalName(item.binding.id) + ' Binding ..', 
+						false, false);
 				var formitem = new Ext.form.field.ComboBox(copts);
 				this.infoPanel.add(formitem);
 				formitem.on('select', function() {
@@ -778,34 +482,25 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 							id : val,
 							type : 'uri'
 						});
-						item.setConcrete(true);
-						me.template.forwardSweep();
-						me.redrawCanvas();
+						item.isConcrete = true;
+						item.draw();
+						console.log(item);
 					}
 				});
 			}
 			else {
-				html += "<b>Node: " + getLocalName(item.id) + "</b>";
+				html += "<b>Node: " + item.getName() + "</b>";
 			}
 			
 			var port_role_map = {};
-			//html += "<div><b>Inputs: </b>";
-			for ( var i = 0; i < item.inputPorts.length; i++) {
-				var port = item.inputPorts[i];
-				//html += (i ? ", " : "") + port.name;
-				port_role_map[port.id] = port.name;
+			for ( var pid in item.inputPorts) {
+				var port = item.inputPorts[pid];
+				port_role_map[port.id] = port.role.roleid;
 			}
-			//html += "</div>";
-			/*(html += "<div><b>Outputs: </b>";
-			for ( var i = 0; i < item.outputPorts.length; i++) {
-				html += (i ? ", " : "") + item.outputPorts[i].name;
-			}
-			html += "</div>";*/
 			
 			if (item.prule.type == 'WTYPE')
 				html += "<div><b>Creating multiple workflows</b> for input data collection</div>";
-			/*else
-				html += "<div><b>Using all input data</b> in the same workflow</div>";*/
+
 			if (item.prule.expr.args.length) {
 				html += "<div><b>Input Data Combination: </b></div>";
 				html += "<i>"+this.getExpressionText(item.prule.expr, port_role_map)+"</i>";
@@ -844,12 +539,12 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		var showPrule = false, showCrule = false;
 		if (isVariable) {
 			title = (item.isInput ? 'Input ' : (item.isOutput ? 'Output ' : 'Intermediate '))
-					+ (item.type == "DATA" ? 'Data' : 'Parameter') + ' Variable: ' + item.text;
-			source['a_varName'] = item.text;
-			if (item.isInput && item.type == "DATA") {
-				source['b_varColl'] = (item.dim != 0);
+					+ (item.isParam ? 'Parameter' : 'Data') + ' Variable: ' + item.text;
+			source['a_varName'] = item.getName();
+			if (item.isInput && !item.isParam) {
+				source['b_varColl'] = (item.dimensionality != 0);
 			}
-			if (!item.isInput && item.type == "DATA") {
+			if (!item.isInput && !item.isParam) {
 				source['b_breakpoint'] = (item.breakpoint ? true : false);
 			}
 			if (item.isInput)
@@ -858,7 +553,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 		else {
 			var links = this.template.getLinksToNode(item);
 			for(var i=0; i<links.length; i++) {
-				if(links[i].variable.dim > 0) {
+				if(links[i].variable.dimensionality > 0) {
 					showPrule = true;
 					break;
 				}
@@ -898,12 +593,16 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			else
 				return true;
 		});
-		myStore.on('update', function() {
-			var mySource = dataGrid.getSource();
+		
+		myStore.on('update', function(st, rec, op, fields) {
+			if(fields == null)
+				return;
+			var data = rec.getData();
+			var needsSweep = false;
 			if (isVariable) {
-				var name = mySource['a_varName'];
-				var id = getNamespace(mySource['id']) + getRDFID(name);
-				if (id && id != item.id) {
+				if(data.name == "a_varName") {
+					var name = data.value;
+					var id = getNamespace(item.id) + getRDFID(name);
 					if (me.template.variables[id]) {
 						Ext.MessageBox.show({
 							msg : 'Another variable with name ' + name + ' already exists',
@@ -911,29 +610,46 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 						});
 					}
 					else {
-						delete me.template.variables[item.id];
-						item.id = id;
-						item.text = name;
-						me.template.variables[item.id] = item;
-						mySource['id'] = id;
+						me.template.renameVariable(item, id);
+						me.refreshConstraints();
+						me.updateGridVariables();
+						me.clearVariableConstraintFilter();
+						me.setVariableConstraintFilter(id);
 					}
 				}
-				item.setDimensionality(mySource['b_varColl'] ? 1 : 0);
-				item.setBreakPoint(mySource['b_breakpoint'] ? true : false);
-				item.setAutoFill(mySource['c_varAutoFill'] ? true : false);
+				else if(data.name == "b_varColl") {
+					var dim = data.value ? 1 : 0;
+					if(item.dimensionality != dim) {
+						item.setDimensionality(dim);
+						me.template.forwardSweep();
+					}
+				}
+				else if(data.name == "b_breakpoint") {
+					item.setBreakpoint(data.value);
+				}
+				else if(data.name == "c_varAutoFill") {
+					item.setAutofill(data.value);
+				}
 			}
 			else {
-				item.setPortRule({
-					type : (mySource['a_pruleS']==false) ? 'WTYPE' : 'STYPE',
-					expr : item.prule.expr
-				});
-				item.setComponentRule({
-					type : (mySource['c_cruleS']==true) ? 'STYPE' : 'WTYPE'
-				});
+				if(data.name == "a_pruleS") {
+					item.setPortRule({
+						type : (data.value==false) ? 'WTYPE' : 'STYPE',
+						expr : item.prule.expr
+					});
+					me.template.forwardSweep();
+				}
+				else if(data.name == "c_cruleS") {
+					item.setComponentRule({
+						type : (data.value==true) ? 'STYPE' : 'WTYPE',
+						expr : item.prule.expr
+					});
+					item.draw();
+					me.template.forwardSweep();
+				}
 			}
-			me.template.forwardSweep();
-			me.redrawCanvas();
 		});
+		
 		var items = [
 			dataGrid
 		];
@@ -1020,108 +736,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	clearCanvas : function() {
-		this.template_layer.clear(this.canvas.getCtx());
-	},
-
-	updateCanvasForRetina : function() {
-		if(window.devicePixelRatio == 2) {
-			var ow = this.canvasDom.width;
-			var oh = this.canvasDom.height;
-			this.canvasDom.width = ow*2;
-			this.canvasDom.height = oh*2;
-			this.canvasDom.style.width = ow + 'px';
-			this.canvasDom.style.height = oh + 'px';
-			this.canvas.getCtx().scale(2, 2);
-		}
-	},
-	
-	redrawCanvas : function(preferredWidth, preferredHeight) {
-		var minX = 9999999;
-		var minY = 9999999;
-		var maxX = this.graphPadding;
-		var maxY = this.graphPadding;
-
-		if(!this.template_layer)
-			return;
-		
-		if (preferredWidth || preferredHeight)
-			this.template_layer.draw();
-
-		// Get required canvas dimensions
-		for ( var i = 0; i < this.template_layer.items.length; i++) {
-			var item = this.template_layer.items[i];
-			var x = Math.round(item.x + item.width) - 0.5;
-			var y = Math.round(item.y + item.height) - 0.5;
-			if (x > maxX)
-				maxX = x;
-			if (y > maxY)
-				maxY = y;
-			if (item.link)
-				continue;
-			if (item.x < minX)
-				minX = parseInt(item.x);
-			if (item.y < minY)
-				minY = parseInt(item.y);
-		}
-		if (minX == 9999999 || !preferredWidth)
-			minX = this.graphPadding;
-		if (minY == 9999999 || !preferredHeight)
-			minY = this.graphPadding;
-		for ( var i = 0; i < this.template_layer.items.length; i++) {
-			var item = this.template_layer.items[i];
-			if (item.link || this.manualMove)
-				continue;
-			var xitem;
-			if (item.port)
-				xitem = item.port;
-			else if (item.shape)
-				xitem = item.shape;
-			xitem.x -= minX - this.graphPadding;
-			xitem.y -= minY - this.graphPadding;
-		}
-
-		var w = (maxX + this.graphPadding) - (minX - this.graphPadding);
-		var h = (maxY + this.graphPadding) - (minY - this.graphPadding);
-
-		var scale = this.canvas.getScale();
-		if (preferredWidth) {
-			scale = preferredWidth / w;
-			if (scale > 1)
-				scale = 1;
-		}
-		if (preferredHeight) {
-			var hscale = preferredHeight / h;
-			if (hscale < scale)
-				scale = hscale;
-		}
-
-		if (Ext.isIE)
-			this.canvas.getCtx().scale(1 / this.canvas.scale, 1 / this.canvas.scale);
-
-		// The following resets the Canvas (setting canvas width, and
-		// height)
-		this.canvasDom.width = this.panelWidth > scale * w ? this.panelWidth : scale * w;
-		this.canvasDom.height = this.panelHeight > scale * h ? this.panelHeight : scale * h;
-		// console.log(scale+","+w+","+this.canvasDom.width);
-		// Setting some template layer variables
-		this.template_layer.width = this.canvasDom.width / scale;
-		this.template_layer.height = this.canvasDom.height / scale;
-
-		// The following are used in the TemplateGraph Class only
-		this.template_layer.itemWidth = w;
-		this.template_layer.itemHeight = h;
-		
-		this.updateCanvasForRetina();
-		
-		// if(window.console) window.console.log(scale);
-		// Resetting the scale to previous value
-		this.canvas.scale = 1.0;
-		this.canvas.changeScale(scale);
-
-		// Redrawing the canvas
-		this.template_layer.clear(this.canvas.getCtx());
-		this.drawGrid();
-		this.template_layer.draw();
+		//FIXME: this.template.clear();
 	}
 });
 
@@ -1146,9 +761,9 @@ Ext.define('Test.view.PortRuleEditor', {
 
 		for ( var i = 0; i < this.inputs.length; i++) {
 			var port = this.inputs[i];
-			this.port_role_map[port.id] = port.name;
-			this.role_port_map[port.name] = port.id;
-			this.args.push(port.name);
+			this.port_role_map[port.id] = port.role.roleid;
+			this.role_port_map[port.role.roleid] = port.id;
+			this.args.push(port.role.roleid);
 		}
 		var This = this;
 		var opmenus = [];

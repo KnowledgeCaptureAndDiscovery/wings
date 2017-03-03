@@ -21,8 +21,8 @@ import edu.isi.wings.common.URIEntity;
 
 public class Role extends URIEntity {
 	private static final long serialVersionUID = 1L;
-	public static int PARAMETER = 1;
-	public static int DATA = 2;
+	public static int DATA = 1;
+	public static int PARAMETER = 2;
 
 	int type;
 	private String roleid;

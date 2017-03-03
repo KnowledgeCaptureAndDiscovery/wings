@@ -47,8 +47,8 @@ public class Login extends HttpServlet {
 			throws ServletException, IOException {
 		Config config = new Config(request, null, null);
 		
-		// Forward to the workflows servlet
-		response.sendRedirect(config.getUserDomainUrl() + "/workflows");
+		// Forward to the domains servlet
+		response.sendRedirect(config.getUserPath() + "/domains");
 	}
 
 	/**

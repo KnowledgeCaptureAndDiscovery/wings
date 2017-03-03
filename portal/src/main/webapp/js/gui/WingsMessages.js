@@ -127,10 +127,10 @@ function showWingsError(msg, title, result) {
 
 function formatDataBindings(value) {
 	var s = "";
-    if (value.type == "uri") {
+    if (value && value.type == "uri") {
     	s = "<div>" + getLocalName(value.id) + "</div>";
     }
-    else if(value.length) {
+    else if(value && value.length) {
         for (var i = 0; i < value.length; i++)
             s += formatDataBindings(value[i]);
     }
@@ -557,20 +557,19 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
             return;
         }
 
-        if (!tstore.tpl)
-            tstore.tpl = new Template(storetid, tstore.template, ed);
-
         var ed = graph.editor;
+        if (!tstore.tpl) 
+            tstore.tpl = new Template(tstore.template.id, tstore.template);
+
         ed.template = tstore.tpl;
-        ed.initLayerItems();
-        ed.deselectAllItems();
         ed.refreshConstraints();
         ed.template.markErrors();
-        ed.redrawCanvas(ed.panelWidth, ed.panelHeight);
         if (!tstore.tpl.layouted) {
-            ed.clearCanvas();
-            ed.layout();
+            ed.layout(false, ed.el.dom);
             tstore.tpl.layouted = true;
+        }
+        else {
+        	tstore.tpl.draw(ed.el.dom);
         }
     });
 

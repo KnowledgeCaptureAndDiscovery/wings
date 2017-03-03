@@ -56,21 +56,10 @@ Ext.onReady(function() {
 				bodyPadding: 10,
 				border: false,
 				autoScroll: true,
-				listeners: {
-					'afterrender': function(comp) {
-						if(nohome == "null") {
-							Ext.Ajax.request({
-								url: CONTEXT_ROOT + "/html/home.html",
-								success: function(response) {
-									comp.update(response.responseText);
-								}
-							});
-						}
-						else if (message != "null") {
-							comp.update(message);
-						}
-					}
-				}
+	            loader: {
+	            	url: CONTEXT_ROOT + "/html/home.html", 
+	                autoLoad: true
+	            }
 			}
 		]
 	});

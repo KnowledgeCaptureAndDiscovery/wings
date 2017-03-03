@@ -66,6 +66,7 @@ TemplateBrowser.prototype.getTemplateGraph = function(template_id, tstore,
 		bodyCls : 'transparent-panel',
 		preventHeader : true,
 		animCollapse : false,
+		//floating: true,
 		bodyPadding : editable ? 0 : 5,
 		hidden : true
 	});
@@ -637,8 +638,8 @@ TemplateBrowser.prototype.getConstraintsTableViewer = function(tid, tstore) {
 		collapseMode : 'mini',
 		// autoHeight : true,
 		// title : 'Constraints: All',
-		height : This.opts.hide_graph ? '100%' : '30%',
-		maxHeight: 150
+		height : This.opts.hide_graph ? '100%' : 120
+		//maxHeight: 150
 	});
 	return gridPanel;
 };
@@ -780,8 +781,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 					var ed = tpanel.mainTab.graphPanel.editor;
 					var v = ed.template.variables[vid];
 					if(v) {
-						v.setBinding(null);
-						ed.redrawCanvas();
+						v.setBinding(null, true);
 					}
 				}
 			} 
@@ -885,7 +885,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 				var roleid = link.toPort ? link.toPort.name
 						: link.fromPort.name;
 				var node = link.toNode ? link.toNode : link.fromNode;
-				var cbindingstr = node.getBindingId(node.binding);
+				var cbindingstr = node.binding.id;
 				var cbindings = cbindingstr.split(',');
 				for ( var j = 0; j < cbindings.length; j++) {
 					var cid = cbindings[j];
@@ -980,7 +980,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 				var roleid = link.toPort ? link.toPort.name
 						: link.fromPort.name;
 				var node = link.toNode ? link.toNode : link.fromNode;
-				var cbindingstr = node.getBindingId(node.binding);
+				var cbindingstr = node.binding.id;
 				var cbindings = cbindingstr.split(',');
 				for ( var j = 0; j < cbindings.length; j++) {
 					var cid = cbindings[j];
@@ -999,7 +999,7 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 				}
 			}
 			var wflow = This.nsmap['wflow'];
-			if (v.type == "PARAM")
+			if (v.isParam)
 				allprops = allprops.concat(typeProps[wflow
 						+ 'ParameterVariable']);
 			else
@@ -1035,10 +1035,9 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 						if(v) {
 							var val = e.record.get('object');
 							if(prop == wns+"hasDataBinding")
-								v.setBinding({id:val, type:'uri'});
+								v.setBinding({id:val, type:'uri'}, true);
 							else
-								v.setBinding({value:val, type:'literal'});
-							ed.redrawCanvas();							
+								v.setBinding({value:val, type:'literal'}, true);							
 						}
 					}	
 				}
@@ -1094,8 +1093,8 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 		collapsible : true,
 		collapseMode : 'mini',
 		// title : 'Constraints: All',
-		height : This.opts.hide_graph ? '100%' : '30%',
-		maxHeight: 150,
+		height : This.opts.hide_graph ? '100%' : 150, //'30%',
+		//maxHeight: 150,
 		propmap : propmap,
 		plugins : [ editorPlugin ],
 		tbar : [ {
@@ -1250,44 +1249,51 @@ TemplateBrowser.prototype.saveActiveTemplateAs = function() {
 	}, window, false);
 };
 
-TemplateBrowser.prototype.saveTemplateStore = function(template, consTable) {
-	template.saveToStore();
+TemplateBrowser.prototype.getTemplateStore = function(template, consTable) {
+	var store = template.getData();
+	
 	var constraints = [];
-	consTable.store.clearFilter();
-	var This = this;
-	consTable.store.data.each(function() {
-		if (this.data.object != undefined && this.data.subject
-				&& this.data.predicate) {
-			var prop = consTable.propmap[this.data.predicate];
-			var object = {
-				id : this.data.object
-			};
-			// Replace the temporary "?" prefix on non-variable constraint
-			// objects. The prefix is just cosmetic to differentiate
-			// variables from non-variables in the template namespace
-			if ((typeof object.id == "string") && object.id.match(/^\?/))
-				object.id = template.ns + object.id.replace(/^\?/, '');
-			else if (prop.type == 1)
-				object = {
-					isLiteral : true,
-					value : this.data.object,
-					type : prop.range
-				// ? prop.range : This.nsmap['xsd'] + 'string'
+	if(consTable) {
+		consTable.store.clearFilter();
+		var This = this;
+		var tns = getNamespace(template.id);
+		consTable.store.data.each(function() {
+			if (this.data.object != undefined && this.data.subject
+					&& this.data.predicate) {
+				var prop = consTable.propmap[this.data.predicate];
+				var object = {
+					id : this.data.object
 				};
-
-			var triple = {
-				subject : {
-					id : this.data.subject
-				},
-				predicate : {
-					id : this.data.predicate
-				},
-				object : object
-			};
-			constraints.push(triple);
-		}
-	});
-	template.store.constraints = constraints;
+				// Replace the temporary "?" prefix on non-variable constraint
+				// objects. The prefix is just cosmetic to differentiate
+				// variables from non-variables in the template namespace
+				if ((typeof object.id == "string") && object.id.match(/^\?/))
+					object.id = tns + object.id.replace(/^\?/, '');
+				else if (prop.type == 1)
+					object = {
+						isLiteral : true,
+						value : this.data.object,
+						type : prop.range
+					};
+	
+				var triple = {
+					subject : {
+						id : this.data.subject
+					},
+					predicate : {
+						id : this.data.predicate
+					},
+					object : object
+				};
+				constraints.push(triple);
+			}
+		});
+	}
+	else {
+		constraints = template.store.constraints;
+	}
+	store.constraints = constraints;
+	return store;
 };
 
 TemplateBrowser.prototype.getTemplateStoreForTab = function(tab) {
@@ -1295,7 +1301,7 @@ TemplateBrowser.prototype.getTemplateStoreForTab = function(tab) {
 	if (!template)
 		return null;
 
-	template = template.createCopy();
+	//template = template.createCopy();
 	var consTable = tab.constraintsTable;
 	var numErrors = 0;
 	for (err in template.errors)
@@ -1305,14 +1311,14 @@ TemplateBrowser.prototype.getTemplateStoreForTab = function(tab) {
 		_console(template.errors);
 		return null;
 	}
-	this.saveTemplateStore(template, consTable);
-	if (!template.store.metadata)
-		template.store.metadata = {};
+	var store = this.getTemplateStore(template, consTable);
+	if (!store.metadata)
+		store.metadata = {};
 	if (tab.doc) {
-		template.store.metadata.documentation = tab.doc.getValue();
+		store.metadata.documentation = tab.doc.getValue();
 	}
-	template.store.metadata.lastUpdateTime = new Date();
-	return template.store;
+	store.metadata.lastUpdateTime = new Date();
+	return store;
 };
 
 TemplateBrowser.prototype.getTemplateID = function(tname) {
@@ -1350,7 +1356,7 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 	var constraints = store.constraints;
 	store.constraints = null;
 
-	var imagedata = tab.graphPanel.editor.getImageData(1, false);
+	//var imagedata = tab.graphPanel.editor.getImageData(1, false);
 
 	var url = This.op_url + '/saveTemplateJSON';
 	var msgTarget = Ext.get(tab.getId());
@@ -1368,7 +1374,7 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 			if (response.responseText != "OK") {
 				showError(response.responseText);
 			} else {
-				if (tname == tab.title) {
+				if (tname == tab.title && tab.constraintsTable) {
 					tab.constraintsTable.getStore().commitChanges();
 				}
 				var node = This.treePanel.getStore().getNodeById(tid);

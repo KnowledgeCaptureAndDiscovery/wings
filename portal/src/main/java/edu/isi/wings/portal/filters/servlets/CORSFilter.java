@@ -31,10 +31,10 @@ public class CORSFilter implements Filter{
     HttpServletResponse res = (HttpServletResponse) response;
     String clients = plist.getString("clients");
     if(clients != null) {
-      res.addHeader("Access-Control-Allow-Origin", clients);
-      res.addHeader("Access-Control-Allow-Credentials", "true");
-      res.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
-      res.addHeader("Access-Control-Allow-Headers",
+      res.setHeader("Access-Control-Allow-Origin", clients);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
+      res.setHeader("Access-Control-Allow-Headers",
           "X-Requested-With, Content-Type, X-HTTP-Method-Override");
     }    
     chain.doFilter(request, response);

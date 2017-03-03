@@ -29,18 +29,20 @@ public class JSLoader {
 	static String[] common_scripts = { "lib/extjs/ext-all.js", "js/util/common.js", 
 	  "js/util/PagingMemoryProxy.js", "js/gui/WingsMessages.js", 
 	  "js/util/TreeMod.js", "js/gui/ProvenanceViewer.js",
-    "js/util/jsonc.min.js", "js/util/AjaxGzip.js", "js/util/encoder.js" };
+    "js/util/AjaxGzip.js", "js/util/encoder.js" };
 	static String[] component_scripts = { "js/gui/ComponentViewer.js" };
 	static String[] domain_scripts = { "js/gui/DomainViewer.js" };
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };
 	static String[] data_scripts = { "js/gui/DataViewer.js" };
 	static String[] user_scripts = { "js/gui/UserViewer.js" };
 	static String[] resource_scripts = { "js/gui/ResourceViewer.js" };
-	static String[] template_scripts = { "js/gui/SeedForm.js", "js/gui/template/Canvas.js",
-			"js/gui/template/port.js", "js/gui/template/shape.js", "js/gui/template/link.js",
-			"js/gui/template/node.js", "js/gui/template/variable.js", "js/gui/template/template.js",
-			"js/gui/template/layout.js", "js/gui/template/reasoner.js",
-			"js/gui/TemplateBrowser.js", "js/gui/TemplateGraph.js" };
+	static String[] template_scripts = { "js/gui/SeedForm.js", "js/gui/template/GraphItem.js",
+    "js/gui/template/config/GraphItemConfig.js", "js/gui/template/GraphLink.js", 
+    "js/gui/template/GraphNode.js", "js/gui/template/GraphPort.js", 
+    "js/gui/template/GraphVariable.js", "js/gui/template/TemplateGraph.js",
+    "js/gui/template/GraphLayout.js", "js/gui/template/TemplateEvents.js",
+    "js/gui/template/Reasoner.js",
+    "js/gui/TemplateBrowser.js", "js/gui/TemplateGraph.js", "js/util/d3.v4.min.js" };	
 	static String[] rule_scripts = { "js/gui/jenarules/RulesParser.js",
 			"js/gui/jenarules/RuleFunctionType.js", "js/gui/jenarules/RuleFunction.js",
 			"js/gui/jenarules/Rule.js", "js/gui/jenarules/Constants.js", 

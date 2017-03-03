@@ -510,8 +510,7 @@ RunBrowser.prototype.setGraphRuntimeInfo = function(graph, data) {
 		if(node != null) {
 			node.setRuntimeInfo(step.runtimeInfo);
 		}
-	}
-	graph.editor.redrawCanvas();	
+	}	
 };
 
 RunBrowser.prototype.getTemplatePanel = function(xtid, name) {

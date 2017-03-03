@@ -546,6 +546,12 @@ public class TemplateKB extends URIEntity implements Template {
           var.setComment(comment);
         t.addVariable(var);
         
+        // Set Role type from variable type
+        if(fromPort != null)
+          fromPort.getRole().setType(var.getVariableType());
+        if(toPort != null)
+          toPort.getRole().setType(var.getVariableType());
+        
 	      String lid = linkObj.getID();
 	      if(lid == null) 
 	          lid = this.createLinkId(fromPort, toPort, var);
@@ -584,6 +590,14 @@ public class TemplateKB extends URIEntity implements Template {
 				System.err.println("Warning: Role " + iroleObj + " not mapped to any variable");
 				continue;
 			}
+      // Set Role type from variable type
+      Variable var = t.getVariable(varObj.getID());
+      if(var == null) {
+        System.err.println("Warning: Role " + r + " mapped to non existent variable " + varObj);
+        continue;
+      }
+      r.setType(var.getVariableType());
+      
 			if (dimObj != null && dimObj.getValue() != null) {
 				r.setDimensionality((Integer) dimObj.getValue());
 			}
@@ -604,6 +618,14 @@ public class TemplateKB extends URIEntity implements Template {
 				System.err.println("Warning: Role " + oroleObj + " not mapped to any variable");
 				continue;
 			}
+      // Set Role type from variable type
+      Variable var = t.getVariable(varObj.getID());
+      if(var == null) {
+        System.err.println("Warning: Role " + r + " mapped to non existent variable " + varObj);
+        continue;
+      }
+      r.setType(var.getVariableType());
+      
 			if (dimObj != null && dimObj.getValue() != null) {
 				r.setDimensionality((Integer) dimObj.getValue());
 			}
@@ -693,8 +715,10 @@ public class TemplateKB extends URIEntity implements Template {
 		if (prule == null) {
 			// Default SType for data sets
 			SetExpression expr = new SetExpression(SetOperator.XPRODUCT);
-			prule = new PortSetCreationRule(SetType.WTYPE, expr);
+			prule = new PortSetCreationRule(SetType.STYPE, expr);
 		}
+		if(prule.getSetExpression() == null)
+		  prule = new PortSetCreationRule(prule.getType(), new SetExpression(SetOperator.XPRODUCT));
 
 		HashSet<Port> ruleports = new HashSet<Port>();
 		ArrayList<SetExpression> exprs = new ArrayList<SetExpression>();

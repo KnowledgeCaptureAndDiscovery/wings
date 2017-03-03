@@ -1321,7 +1321,7 @@ public class WorkflowGenerationKB implements WorkflowGenerationAPI {
           Role dr = inputLink.getDestinationPort().getRole();
           Role r = new Role(dr.getID());
           r.setRoleId(dr.getRoleId());
-					roleMap.put(dr, inputLink.getVariable());
+					roleMap.put(r, inputLink.getVariable());
 				}
 
 				ComponentPacket mapsComponentDetails = new ComponentPacket(c, roleMap, new ArrayList<KBTriple>());

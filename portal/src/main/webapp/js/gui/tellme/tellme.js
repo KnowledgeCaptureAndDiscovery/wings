@@ -76,7 +76,7 @@ TellMe.prototype.initialize = function() {
 			},
 			change: function(cb, newval, oldval) {
 				if(!This.beamer) return;
-				if(!oldval || newval[newval.length-1] == ' ') {
+				if(!oldval || (newval && newval[newval.length-1] == ' ')) {
 					This.loadBeamerPossibleSentences(newval, this.store);
 				}
 			}
@@ -558,7 +558,7 @@ TellMe.prototype.searchForMatchingInputVariables = function(n, opvars, ipvars, t
 	var tvars = template.variables;
 	for (var vid in tvars) {
 		var v = tvars[vid];
-		if(v.type != "DATA") continue;
+		if(v.isParam) continue;
 		var vtype = template.getVariableType(v);
 		if(!vs[v.id] && (!dtype || this.typeSubsumesType(dtype, vtype))) {
 			vs[v.id] = true;
@@ -625,9 +625,9 @@ TellMe.prototype.addNodeIOToTemplate = function(n, data, isInput, template, cbyi
 
 	if(!v && data.name) {
 		var vname = data.name.replace(/\s+/g,'_');
-		v = template.addVariable(data.role=='Plain' ? vname : port.name);
+		v = template.addVariable(data.role=='Plain' ? vname : port.role.roleid);
 
-		if(data.role=='Plain') v.setIsUnknown(true);
+		if(data.role=='Plain') v.unknown = true;
 
 		template.editorActions.push("Creating new variable "+getLocalName(v.id));
 		if(data.type.match(/Collection/)) {
@@ -650,10 +650,10 @@ TellMe.prototype.addNodeIOToTemplate = function(n, data, isInput, template, cbyi
 		if(data.role == 'Datatype') 
 			template.setVariableType(v, datalist[data.name].name);
 		else 
-			template.setVariableType(v, this.getPortDatatype(port.name, roles));
+			template.setVariableType(v, this.getPortDatatype(port.role.roleid, roles));
 	} else {
 		var vtype = template.getVariableType(v);
-		var ptype = this.getPortDatatype(port.name, roles);
+		var ptype = this.getPortDatatype(port.role.roleid, roles);
 		if(ptype && isInput && !this.typeSubsumesType(ptype, vtype))
 			return null;
 		if(ptype && !isInput && !this.typeSubsumesType(vtype, ptype))
@@ -709,8 +709,8 @@ TellMe.prototype.mergeVariablesInTemplate = function(xv1, xv2, template, cbyid, 
 	if(v1.unknown) {
 		var tmp = v1; v1 = v2; v2 = tmp;
 	}
-	if(v1.type != v2.type) return null;
-	if(v1.type == "DATA") {
+	if(v1.isParam != v2.isParam) return null;
+	if(!v1.isParam) {
 		var v1type = template.getVariableType(v1);
 		var v2type = template.getVariableType(v2);
 		if(!this.typeSubsumesType(v1type,v2type) && 
@@ -743,8 +743,8 @@ TellMe.prototype.mergeVariablesInTemplate = function(xv1, xv2, template, cbyid, 
 }
 
 TellMe.prototype.applyBeamerActionsToTemplate = function(template, tasks, cbyid, datalist, seln, selv, index, ipvars, opvars) {
-	var opvars = ipvars ? ipvars : [];
-	var ipvars = opvars ? opvars : [];
+	var opvars = opvars ? opvars : [];
+	var ipvars = ipvars ? ipvars : [];
 	if(!index) index=0;
 	var templateQ = [template];
 	for(var i=index; i<tasks.length; i++) {
@@ -859,7 +859,7 @@ TellMe.prototype.findMatchingVariablesInTemplateForType = function(t, type, nid,
 	for(var lid in t.links) {
 		var l = t.links[lid];
 		var vt = l.variable;
-		if(!vt || vt.id==vid || vdone[vt.id] || vt.type=="PARAM") continue;
+		if(!vt || vt.id==vid || vdone[vt.id] || vt.isParam) continue;
 		vdone[vt.id] = 1;
 
 		var vtype = t.getVariableType(vt);
@@ -899,7 +899,7 @@ TellMe.prototype.getTightenedTemplates = function(template, node, cbyid, datalis
 	for(var i=0; i<ilinks.length; i++) {
 		var l = ilinks[i];
 		var v = l.variable;
-		if(!v || vms[v.id] || v.type=="PARAM") continue;
+		if(!v || vms[v.id] || v.isParam) continue;
 		vms[v.id] = [];
 		cvms[v.id] = [];
 		if(!l.fromPort) {
@@ -955,7 +955,7 @@ TellMe.prototype.getTightenedTemplates = function(template, node, cbyid, datalis
 	for(var i=0; i<olinks.length; i++) {
 		var l = olinks[i];
 		var v = l.variable;
-		if(!v || vms[v.id] || v.type=="PARAM") continue;
+		if(!v || vms[v.id] || v.isParam) continue;
 		vms[v.id] = [];
 		if(!l.toPort) {
 			var tmp = this.findMatchingVariablesInTemplate(template, node, v, false, datalist);
@@ -1017,7 +1017,7 @@ TellMe.prototype.getTightenedTemplates = function(template, node, cbyid, datalis
 				var mv = null;
 				var ilinks = tmpn.getInputLinks();
 				for(var j=0; j<ilinks.length; j++) {
-					if(ilinks[j].toPort.name == xc.crole) 
+					if(ilinks[j].toPort.role.roleid == xc.crole) 
 						mv = ilinks[j].variable;
 				}
 				if(!mv) continue;
@@ -1028,7 +1028,7 @@ TellMe.prototype.getTightenedTemplates = function(template, node, cbyid, datalis
 				var mv = null;
 				var olinks = tmpn.getOutputLinks();
 				for(var j=0; j<olinks.length; j++) {
-					if(olinks[j].fromPort.name == xc.coutrole) 
+					if(olinks[j].fromPort.role.roleid == xc.coutrole) 
 						mv = olinks[j].variable;
 				}
 				if(!mv) continue;
@@ -1160,17 +1160,16 @@ TellMe.prototype.applyBeamerMatches = function(text, matches,
 
 TellMe.prototype.showTemplate = function(t, runTOP) {
 	var ed = t.editor;
-	ed.template = t;
-  	ed.initLayerItems();
-	ed.refreshConstraints();
-	ed.template.markErrors();
-	ed.redrawCanvas(ed.panelWidth, ed.panelHeight);
-	if(runTOP && !t.layouted) {
-		ed.clearCanvas();
-		ed.layout();
-		t.layouted = true;
-		//ed.findErrors(null);
-	}
+    ed.template = t;
+    ed.refreshConstraints();
+    //ed.template.markErrors();
+    if(runTOP && !t.layouted) {
+        ed.layout(false, ed.el.dom);
+        t.layouted = true;
+    }
+    else {
+    	ed.template.draw(ed.el.dom);
+    }
 }
 
 TellMe.prototype.runTopAlgorithm = function(template, hpTree, hpDetail, msgTarget, callbackfn, ed, op_url) {

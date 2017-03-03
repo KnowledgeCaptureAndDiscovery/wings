@@ -99,7 +99,7 @@ public class RunResource extends WingsResource {
   public String publishRun(
       @FormParam("run_id") String run_id) {
     if(this.rc != null)
-      return this.rc.deleteRun(run_id, context);
+      return this.rc.publishRun(run_id);
     return null;
   }
 

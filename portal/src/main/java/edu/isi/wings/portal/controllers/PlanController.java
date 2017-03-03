@@ -432,13 +432,13 @@ public class PlanController {
     }
     
     // Set component bindings
-    /*for(String key : tb.getComponentBindings().keySet()) {
+    for(String key : tb.getComponentBindings().keySet()) {
       String cid = tb.getComponentBindings().get(key);
       Binding b = new Binding(cid);
       ComponentVariable cv = tpl.getComponentVariable(key);
       if(cv != null) 
         cv.setBinding(b);
-    }*/
+    }
 	}
 	
 	private Template createTemporaryTemplate(Template tpl) {

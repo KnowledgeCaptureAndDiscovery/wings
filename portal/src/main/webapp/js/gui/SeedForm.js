@@ -86,7 +86,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 // Allow shift selection etc
                 formitem.getPicker().getSelectionModel().setSelectionMode('MULTI');
             } else if (item.type == "param") {
-                this.parameterTypes[item.name] = item.dtype;
+                this.parameterTypes[item.id] = item.dtype;
                 // Store datatype for this param to be sent to server
                 var dtype = getLocalName(item.dtype);
                 copts.emptyText = 'Enter a ' + dtype + ' value...';
@@ -322,11 +322,9 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
             return compbindings;
 
         var template = this.graph.editor.template;
-        template.saveToStore();
-        for (var i in template.store.Nodes) {
-            var n = template.store.Nodes[i];
-            if (n.componentVariable && n.componentVariable.binding)
-                compbindings[n.componentVariable.id] = n.componentVariable.binding.id;
+        for(var nid in template.nodes) {
+        	var n = template.nodes[nid];
+        	compbindings[n.componentid] = n.binding.id;
         }
         return compbindings;
     },

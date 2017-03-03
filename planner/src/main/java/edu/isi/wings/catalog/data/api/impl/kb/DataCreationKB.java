@@ -42,7 +42,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	DataCreationAPI externalCatalog;
 
 	public DataCreationKB(Properties props) {
-		super(props, true, true);
+		super(props, true, false);
 		this.topclass = this.dcns + "DataObject";
 		this.topmetric = this.dcns + "Metrics";
 

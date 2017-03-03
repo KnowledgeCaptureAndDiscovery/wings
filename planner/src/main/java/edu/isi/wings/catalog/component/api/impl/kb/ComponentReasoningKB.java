@@ -610,6 +610,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// Extract info from details object
 		ComponentVariable c = details.getComponent();
 		HashMap<String, Variable> sRoleMap = details.getStringRoleMaps();
+		HashMap<String, Boolean> noParamBindings = new HashMap<String, Boolean>();
 
 		ArrayList<KBTriple> redbox = details.getRequirements();
 
@@ -633,10 +634,14 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
       inputRoles.add(role.getRoleName());
       Variable v = sRoleMap.get(role.getRoleName());
       if(role.isParam()) {
-        if(v.getBinding() == null)
-          v.setBinding(new ValueBinding(role.getParamDefaultalue()));         
-        else if(v.getBinding().getValue() == null)
+        if(v.getBinding() == null) {
+          v.setBinding(new ValueBinding(role.getParamDefaultalue()));
+          noParamBindings.put(v.getID(), true);
+        }
+        else if(v.getBinding().getValue() == null) {
           v.getBinding().setValue(role.getParamDefaultalue());
+          noParamBindings.put(v.getID(), true);
+        }
       }
       else {
         ArrayList<String> varclassids = new ArrayList<String>();     
@@ -934,7 +939,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// - Only set if there isn't already a binding value for the variable
 		for (Variable var : sRoleMap.values()) {
 			if (var.isParameterVariable()
-					&& (var.getBinding() == null || var.getBinding().getValue() == null)) {
+					&& (noParamBindings.containsKey(var.getID()) || 
+					    var.getBinding() == null || 
+					    var.getBinding().getValue() == null)) {
 				KBObject varobj = tkb.getResource(variableNameMap.get(var));
 				KBObject origvarobj = tkb.getResource(var.getID());
 				KBObject val = tkb.getPropertyValue(varobj, dmap.get("hasValue"));

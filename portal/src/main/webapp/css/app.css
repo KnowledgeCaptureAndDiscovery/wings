@@ -141,13 +141,31 @@ tr.myDomainCls td {
 }
 
 div.editableCanvas {
-	background-color : white;
+	background: url(../images/grid.png);
+	/*background-color : white;*/
 }
 
 div.disabledCanvas {
 	/*background-color : rgba(40,40,40,0.1) !important;*/
 	background: url(../images/square.gif)
 	/*background-color : rgba(255, 255, 255, 1);*/
+}
+
+div.tooltip {	
+    position: absolute;			
+    text-align: middle;			
+    max-width: 250px;				
+    min-height: 20px;				
+    padding: 2px;				
+    font-size: 12px;
+    font-family: Calibri, Sans;	
+    background: #FEA; /*lightsteelblue;*/
+    color: #333;
+    z-index: 10;
+    /*border: 0px;*/
+    border: 1px solid #666;
+    border-radius: 4px;			
+    pointer-events: none;			
 }
 
 li.active a {

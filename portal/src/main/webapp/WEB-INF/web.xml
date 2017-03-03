@@ -60,6 +60,7 @@
     <filter-name>CORSFilter</filter-name>
     <url-pattern>/login/*</url-pattern>
     <url-pattern>/jsp/*</url-pattern>
+    <url-pattern>/sparql/*</url-pattern>
     <dispatcher>REQUEST</dispatcher>
     <dispatcher>FORWARD</dispatcher>
   </filter-mapping>

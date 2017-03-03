@@ -75,11 +75,13 @@ public class SparqlEndpoint extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		this.out = response.getOutputStream();
+		Config config = new Config(request, null, null);
 		String queryString = request.getParameter("query");
 		String updateString = request.getParameter("update");
 		if (queryString == null && updateString == null) {
 			response.setContentType("text/html");
-			out.print("<form>"
+			out.println("<script>USER_ID=\"" + config.getViewerId() + "\";</script>");
+			out.println("<form>"
 					+ "<h1>Wings Portal Sparql endpoint</h1>"
 					+ "<h4>Enter select query below</h4>"
 					+ "<textarea name='query' rows='20' cols='100'></textarea>"
