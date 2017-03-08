@@ -58,8 +58,15 @@ Ext.onReady(function() {
 				autoScroll: true,
 	            loader: {
 	            	url: CONTEXT_ROOT + "/html/home.html", 
-	                autoLoad: true
-	            }
+	                autoLoad: (nohome == "null") ? true : null
+	            },
+				listeners: {
+					'afterrender': function(comp) {
+						if(nohome != "null" && message != "null") {
+							comp.update(message);
+						}
+					}
+				}	            
 			}
 		]
 	});
