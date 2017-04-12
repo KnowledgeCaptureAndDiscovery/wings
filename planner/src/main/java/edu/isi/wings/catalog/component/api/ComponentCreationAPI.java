@@ -27,6 +27,8 @@ public interface ComponentCreationAPI {
 	Component getComponent(String cid, boolean details);
 
 	String getComponentLocation(String cid);
+	
+	String getDefaultComponentLocation(String cid);
 
 	String getComponentHolderId(String cid);
 	

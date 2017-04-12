@@ -110,7 +110,7 @@ TemplateEvents.prototype.enableEventsForItem = function(gitem) {
 
 TemplateEvents.prototype.enableSelectEventForItem = function(gitem) {
 	var me = this;
-	gitem.getItem().style("cursor", "pointer");
+	gitem.getItem().style("cursor", "default");
 	gitem.getItem().on("mousedown", function() {
 		if(!me.selections[gitem.id]) {
 			me.deselectAllItems();
@@ -205,7 +205,7 @@ TemplateEvents.prototype.enableMoveEventForItem = function(gitem) {
 		
 	}).on("end", function() {
 		// Redraw all links after dragging ended
-		gitem.getItem().style("cursor", "pointer");
+		gitem.getItem().style("cursor", "default");
 		me.template.drawLinks();
 		for(var id in me.selections) {
 			var selitem = me.selections[id];
@@ -247,7 +247,7 @@ TemplateEvents.prototype.enableEventsForPort = function(port) {
 		}
 		else if(!me.fromport) {
 			// No dragging - normal behaviour
-			port.item.attr("r", port.config.getPortsize()*3/4);
+			port.item.attr("r", port.config.getPortsize());
 		}
 		me.showTooltip(port);
 	});
@@ -518,7 +518,7 @@ TemplateEvents.prototype.highlightCompatiblePorts = function() {
 			if(reasoner.portsCompatible(this.fromport, oport)) {
 				this.validports[pid] = oport;
 				oport.item
-					.attr("r", oport.config.getPortsize()*3/4)
+					.attr("r", oport.config.getPortsize())
 					.attr("fill", "red");
 			}
 		}

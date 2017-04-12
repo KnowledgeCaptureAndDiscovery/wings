@@ -36,4 +36,6 @@ public interface KBRule {
 	Object getInternalRuleObject();
 	
 	void resetInternalRuleObject();
+	
+	String toShortString();
 }

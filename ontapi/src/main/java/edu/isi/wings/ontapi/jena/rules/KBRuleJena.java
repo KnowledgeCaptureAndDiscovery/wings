@@ -88,6 +88,24 @@ public class KBRuleJena implements KBRule {
 	}
 	
 	@Override
+	public String toString() {
+	  if(this.rule != null)
+	    return this.rule.toString();
+	  return null;
+	}
+	 
+	@Override
+	public String toShortString() {
+	  if(this.rule != null) {
+	    String str = this.rule.toString();
+	    str = str.replaceAll("http://www.w3.org/2001/XMLSchema#", "xsd:");
+	    str = str.replaceAll("'(\\S+?)'\\^\\^xsd:(float|double|integer|int)", "$1");
+	    return str;
+	  }
+	  return null;
+	}
+	
+	@Override
 	public void resetInternalRuleObject() {
 		ArrayList<ClauseEntry> head = new ArrayList<ClauseEntry>();
 		ArrayList<ClauseEntry> body = new ArrayList<ClauseEntry>();

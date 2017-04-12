@@ -171,7 +171,6 @@ public class Config {
             response.setContentType("text/html");
             request.setAttribute("message", message);
             request.setAttribute("nohome", true);
-            //response.sendRedirect(request.getContextPath());
             request.getRequestDispatcher("/").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();

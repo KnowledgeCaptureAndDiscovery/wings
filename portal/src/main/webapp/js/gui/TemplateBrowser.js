@@ -151,7 +151,7 @@ TemplateBrowser.prototype.createNewTemplate = function() {
                 return;
             }
 			var url = This.op_url + '/newTemplate';
-			var msgTarget = Ext.get(This.treePanel.getId());
+			var msgTarget = This.treePanel.getEl();
 			msgTarget.mask('Creating...', 'x-mask-loading');
 			Ext.Ajax.request({
 				url : url,
@@ -186,7 +186,7 @@ TemplateBrowser.prototype.createNewTemplate = function() {
 TemplateBrowser.prototype.deleteTemplate = function(tid, tname) {
 	var This = this;
 	var url = This.op_url + '/deleteTemplate';
-	var msgTarget = Ext.get(This.treePanel.getId());
+	var msgTarget = This.treePanel.getEl();
 	msgTarget.mask('Deleting...', 'x-mask-loading');
 	Ext.Ajax.request({
 		url : url,
@@ -1359,7 +1359,7 @@ TemplateBrowser.prototype.saveActiveTemplate = function(tname) {
 	//var imagedata = tab.graphPanel.editor.getImageData(1, false);
 
 	var url = This.op_url + '/saveTemplateJSON';
-	var msgTarget = Ext.get(tab.getId());
+	var msgTarget = tab.getEl();
 	msgTarget.mask('Saving...', 'x-mask-loading');
 	Ext.Ajax.requestGZ({
 		url : url,
@@ -1415,7 +1415,7 @@ TemplateBrowser.prototype.inferElaboratedTemplate = function(store) {
 	store.constraints = null;
 
 	var url = This.plan_url + '/elaborateTemplateJSON';
-	var msgTarget = Ext.get(tab.getId());
+	var msgTarget = tab.getEl();
 	msgTarget.mask('Elaborating...', 'x-mask-loading');
 	Ext.Ajax
 			.requestGZ({

@@ -266,7 +266,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	findErrors : function(rec) {
-		var msgTarget = Ext.get(this.getId());
+		var msgTarget = this.getEl();
 		msgTarget.mask('Connecting to TOP to find issues...', 'x-mask-loading');
 		saveTemplateStore(this.template, this.gridPanel);
 		var hpTree = this.tellMePanel.history.getComponent('tellmeHistoryTreePanel');
@@ -275,7 +275,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 	},
 
 	layout : function(animate, domnode) {
-		var msgTarget = Ext.get(this.getId());
+		var msgTarget = this.getEl();
 		msgTarget.mask('Designing Layout...', 'x-mask-loading');
 		//this.graphLayout.layoutVizDot(msgTarget, this.template, animate, domnode);
 		this.graphLayout.layoutDot(msgTarget, this.template, animate, domnode, this.url);

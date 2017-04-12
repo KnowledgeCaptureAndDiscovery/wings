@@ -54,9 +54,9 @@ public class StorageHandler {
       public void write(OutputStream os) throws IOException {
         try {
           if(f.isDirectory())
-            streamDirectory(f, os);
+            StorageHandler.streamDirectory(f, os);
           else
-            streamFile(f, os);
+            StorageHandler.streamFile(f, os);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -187,7 +187,7 @@ public class StorageHandler {
 	    // Start Zipping folder and piping to the ZipStream reader
 	    PipedOutputStream pos = new PipedOutputStream(pis);
 	    ZipOutputStream zos = new ZipOutputStream(pos);
-	    zipAndStream(directory, zos, directory.getName() + "/");
+	    StorageHandler.zipAndStream(directory, zos, directory.getName() + "/");
 	    zos.flush();
 	    zos.close();
 	  } catch (Exception e) {
@@ -200,7 +200,7 @@ public class StorageHandler {
 	  byte bytes[] = new byte[2048];
 	  for (File file : dir.listFiles()) {
 	    if(file.isDirectory())
-	      zipAndStream(file, zos, prefix + file.getName() + "/" );
+	      StorageHandler.zipAndStream(file, zos, prefix + file.getName() + "/" );
 	    else {
 	      FileInputStream fis = new FileInputStream(file.getAbsolutePath());
 	      BufferedInputStream bis = new BufferedInputStream(fis);

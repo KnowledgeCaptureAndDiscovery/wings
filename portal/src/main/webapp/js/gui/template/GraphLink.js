@@ -49,6 +49,7 @@ GraphLink.prototype.create = function() {
 		.attr("fill", "none")
 		.attr("stroke-width", this.config.strokewidth)
 		.attr("pointer-events", "none")
+		.attr("opacity", this.config.strokeopacity)
 		.attr("marker-end","url(#arrow)");
 	
 	this.pathFromVariable = this.item.append("path")
@@ -56,6 +57,7 @@ GraphLink.prototype.create = function() {
 		.attr("fill", "none")
 		.attr("stroke-width", this.config.strokewidth)
 		.attr("pointer-events", "none")
+		.attr("opacity", this.config.strokeopacity)
 		.attr("marker-end","url(#arrow)");
 	
 	this.interpolation = d3.line()

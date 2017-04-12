@@ -32,11 +32,7 @@ public class Component extends URIEntity {
 
   private String rulesText; // Not used directly, just for transferring info
                             // from Client
-
-  public String getRulesText() {
-    return rulesText;
-  }
-
+  
   int type;
   ArrayList<ComponentRole> inputs;
   ArrayList<ComponentRole> outputs;
@@ -63,6 +59,10 @@ public class Component extends URIEntity {
   public void setType(int type) {
     this.type = type;
   }
+  
+  public String getRulesText() {
+    return rulesText;
+  }
 
   public ArrayList<ComponentRole> getInputs() {
     return inputs;
@@ -86,7 +86,7 @@ public class Component extends URIEntity {
 
   public void setRules(KBRuleList rules) {
     for (KBRule rule : rules.getRules()) {
-      this.rules.add(rule.getInternalRuleObject().toString());
+      this.rules.add(rule.toShortString());
     }
   }
 
@@ -96,7 +96,7 @@ public class Component extends URIEntity {
   
   public void setInheritedRules(KBRuleList rules) {
     for (KBRule rule : rules.getRules()) {
-      this.inheritedRules.add(rule.getInternalRuleObject().toString());
+      this.inheritedRules.add(rule.toShortString());
     }
   }
   

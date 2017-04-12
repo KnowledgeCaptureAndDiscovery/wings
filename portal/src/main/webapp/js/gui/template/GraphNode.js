@@ -36,7 +36,7 @@ GraphNode.prototype.createBackgroundItem = function(parent) {
 	return parent.insert('polygon');
 };
 
-GraphNode.prototype.drawBackgroundItem = function(bgitem, coords, bounds) {
+GraphNode.prototype.drawBackgroundItem = function(bgitem, bounds) {
 	// Parallelogram
 	var xshift = this.config.xshift;
 	return bgitem

@@ -307,3 +307,15 @@ pre.tellmelog {
 .profile_detail {
 	line-height: 1.5em;
 }
+
+.x-codemirror.x-form-invalid-field {
+    border-color: #cc3300;
+}
+
+.x-codemirror + .x-mask {
+	opacity: 0.3;
+}
+
+.CodeMirror-line {
+	width: calc(100% + 64px);
+}

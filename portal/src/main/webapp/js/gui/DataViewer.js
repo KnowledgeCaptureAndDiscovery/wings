@@ -188,7 +188,7 @@ DataViewer.prototype.importFromExternalCatalog = function(win, dtypeid, xdataid,
 		propvals[mpropid] = metadata[pid];
 	}
 
-    Ext.get(win.getId()).mask("Importing..");
+    win.getEl().mask("Importing..");
     var url = this.op_url + "/importFromExternalCatalog";
     Ext.Ajax.request({
         url: url,
@@ -199,7 +199,7 @@ DataViewer.prototype.importFromExternalCatalog = function(win, dtypeid, xdataid,
         	propvals_json: Ext.encode(propvals)
         },
         success: function(response) {
-            Ext.get(win.getId()).unmask();
+            win.getEl().unmask();
             if (response.responseText == "OK") {
                 var tmp = This.getTree({
                     item: {
@@ -223,7 +223,7 @@ DataViewer.prototype.importFromExternalCatalog = function(win, dtypeid, xdataid,
             	_console(response.responseText);
         },
         failure: function(response) {
-        	Ext.get(win.getId()).unmask();
+        	win.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -417,11 +417,11 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 	                win.show();
 	                
 		            var url = This.op_url + '/external/getDataHierarchyJSON';
-		            Ext.get(win.getId()).mask("Loading..");
+		            win.getEl().mask("Loading..");
 		            Ext.Ajax.request({
 		                url: url,
 		                success: function(response) {
-		                    Ext.get(win.getId()).unmask();
+		                    win.getEl().unmask();
 		                    var tree = Ext.decode(response.responseText);
 		                    var store = {tree: tree, metrics: null};
 		                    var extdv = new DataViewer(
@@ -434,7 +434,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 		                    extdv.initialize();
 		                },
 		                failure: function(response) {
-		                	Ext.get(win.getId()).unmask();
+		                	win.getEl().unmask();
 		                    _console(response.responseText);
 		                }
 		            });
@@ -630,8 +630,8 @@ DataViewer.prototype.confirmAndRenameData = function(node) {
                 return;
             }
             var url = This.op_url + '/renameData';
-            Ext.get(This.tabPanel.getId()).mask("Renaming..");
-            Ext.get(This.dataTreePanel.getId()).mask("Renaming..");
+            This.tabPanel.getEl().mask("Renaming..");
+            This.dataTreePanel.getEl().mask("Renaming..");
             Ext.Ajax.request({
                 url: url,
                 params: {
@@ -639,8 +639,8 @@ DataViewer.prototype.confirmAndRenameData = function(node) {
                     newid: newid
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.dataTreePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                     	node.set('text', newName);
                     	node.set('id', newid);
@@ -650,8 +650,8 @@ DataViewer.prototype.confirmAndRenameData = function(node) {
                     	_console(response.responseText);
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.dataTreePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -678,8 +678,8 @@ DataViewer.prototype.confirmAndRenameDatatype = function(node) {
                 return;
             }
             var url = This.op_url + '/renameDataType';
-            Ext.get(This.tabPanel.getId()).mask("Renaming..");
-            Ext.get(This.dataTreePanel.getId()).mask("Renaming..");
+            This.tabPanel.getEl().mask("Renaming..");
+            This.dataTreePanel.getEl().mask("Renaming..");
             Ext.Ajax.request({
                 url: url,
                 params: {
@@ -687,8 +687,8 @@ DataViewer.prototype.confirmAndRenameDatatype = function(node) {
                     newid: newid
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.dataTreePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                     	node.set('text', newName);
                     	node.set('id', newid);
@@ -698,8 +698,8 @@ DataViewer.prototype.confirmAndRenameDatatype = function(node) {
                     	_console(response.responseText);
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.dataTreePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -715,16 +715,16 @@ DataViewer.prototype.confirmAndDeleteData = function(node) {
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + dataName, function(b) {
         if (b == "yes") {
             var url = This.op_url + '/delData';
-            Ext.get(This.tabPanel.getId()).mask("Deleting..");
-            Ext.get(This.dataTreePanel.getId()).mask("Deleting..");
+            This.tabPanel.getEl().mask("Deleting..");
+            This.dataTreePanel.getEl().mask("Deleting..");
             Ext.Ajax.request({
                 url: url,
                 params: {
                     data_id: id
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.dataTreePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         var node = This.dataTreePanel.getStore().getNodeById(id);
                         node.parentNode.removeChild(node);
@@ -734,8 +734,8 @@ DataViewer.prototype.confirmAndDeleteData = function(node) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.dataTreePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -825,7 +825,7 @@ DataViewer.prototype.openDataEditor = function(args) {
                 // data.push(rec.data);
                 var name = rec.data.name;
                 var val = rec.data.value;
-                if (val == undefined)
+                if (!val)
                     return true;
                 if (val instanceof Date) {
                 	val.setHours(1, 0, 0, 0);
@@ -1349,7 +1349,7 @@ DataViewer.prototype.addData = function(data_name, dtypeid, parentNode) {
         return;
     }
     var url = This.op_url + '/addDataForType';
-    Ext.get(This.tabPanel.getId()).mask("Adding Data..");
+    This.tabPanel.getEl().mask("Adding Data..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -1357,7 +1357,7 @@ DataViewer.prototype.addData = function(data_name, dtypeid, parentNode) {
             data_type: dtypeid
         },
         success: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
                 var tmp = This.getTree({
                     item: {
@@ -1374,7 +1374,7 @@ DataViewer.prototype.addData = function(data_name, dtypeid, parentNode) {
             	_console(response.responseText);
         },
         failure: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	This.tabPanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1383,7 +1383,7 @@ DataViewer.prototype.addData = function(data_name, dtypeid, parentNode) {
 DataViewer.prototype.saveData = function(dataid, propvals, savebtn, tab) {
 	var This = this;
     var url = This.op_url + '/saveDataJSON';
-    Ext.get(This.tabPanel.getId()).mask("Saving..");
+    This.tabPanel.getEl().mask("Saving..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -1391,7 +1391,7 @@ DataViewer.prototype.saveData = function(dataid, propvals, savebtn, tab) {
             data_id: dataid
         },
         success: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
                 savebtn.setDisabled(true);
                 tab.setTitle(tab.title.replace(/^\*/, ''));
@@ -1401,7 +1401,7 @@ DataViewer.prototype.saveData = function(dataid, propvals, savebtn, tab) {
             }
         },
         failure: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1428,7 +1428,7 @@ DataViewer.prototype.addBatchData = function(files, dtypeid) {
 		showError(errors);
 	
     var url = This.op_url + '/addBatchData';
-    Ext.get(This.tabPanel.getId()).mask("Adding Data..");
+    This.tabPanel.getEl().mask("Adding Data..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -1437,7 +1437,7 @@ DataViewer.prototype.addBatchData = function(files, dtypeid) {
             data_locations: Ext.encode(datalocs)
         },
         success: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
             	for(var i=0; i<dataids.length; i++) {
 	                var tmp = This.getTree({
@@ -1456,7 +1456,7 @@ DataViewer.prototype.addBatchData = function(files, dtypeid) {
             	_console(response.responseText);
         },
         failure: function(response) {
-        	Ext.get(This.tabPanel.getId()).unmask();
+        	This.tabPanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1465,7 +1465,7 @@ DataViewer.prototype.addBatchData = function(files, dtypeid) {
 DataViewer.prototype.setDataLocation = function(dataid, datalocation, viewbtn, store, win) {
 	var This = this;
     var url = This.op_url + '/setDataLocation';
-    Ext.get(This.tabPanel.getId()).mask("Saving Location..");
+    This.tabPanel.getEl().mask("Saving Location..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -1473,7 +1473,7 @@ DataViewer.prototype.setDataLocation = function(dataid, datalocation, viewbtn, s
             data_id: dataid
         },
         success: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
                 store.location = datalocation;
                 viewbtn.setDisabled(false);
@@ -1483,7 +1483,7 @@ DataViewer.prototype.setDataLocation = function(dataid, datalocation, viewbtn, s
             }
         },
         failure: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1509,7 +1509,7 @@ DataViewer.prototype.addDatatype = function(parentNode) {
                 return;
             }
             var url = This.op_url + '/newDataType';
-            Ext.get(This.dataTreePanel.getId()).mask('Adding..');
+            This.dataTreePanel.getEl().mask('Adding..');
             Ext.Ajax.request({
                 url: url,
                 params: {
@@ -1517,7 +1517,7 @@ DataViewer.prototype.addDatatype = function(parentNode) {
                     data_type: newid
                 },
                 success: function(response) {
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.dataTreePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         var tmp = This.getTree({
                             item: {
@@ -1535,7 +1535,7 @@ DataViewer.prototype.addDatatype = function(parentNode) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.dataTreePanel.getId()).unmask();
+                    This.dataTreePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -1548,7 +1548,7 @@ DataViewer.prototype.saveDatatype = function(
 		gridPanel, savebtn, tab) {
 	var This = this;
     var url = This.op_url + '/saveDataTypeJSON';
-    Ext.get(This.tabPanel.getId()).mask("Saving..");
+    This.tabPanel.getEl().mask("Saving..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -1561,7 +1561,7 @@ DataViewer.prototype.saveDatatype = function(
             data_type: dtypeid
         },
         success: function(resp) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
 
             var data = Ext.decode(resp.responseText);
             if (data.errors.length) {
@@ -1591,7 +1591,7 @@ DataViewer.prototype.saveDatatype = function(
             // _console(resp.responseText);
             },
         failure: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1621,14 +1621,14 @@ DataViewer.prototype.deleteDatatype = function(treeNode, delChildren) {
     }
 
     var This = this;
-    Ext.get(this.dataTreePanel.getId()).mask('Deleting..');
+    this.dataTreePanel.getEl().mask('Deleting..');
     Ext.Ajax.request({
         url: url,
         params: {
             data_type: Ext.encode(types)
             },
         success: function(response) {
-            Ext.get(This.dataTreePanel.getId()).unmask();
+            This.dataTreePanel.getEl().unmask();
             if (response.responseText == "OK") {
                 node.parentNode.removeChild(node);
                 var tabitems = This.tabPanel.items.items;
@@ -1642,7 +1642,7 @@ DataViewer.prototype.deleteDatatype = function(treeNode, delChildren) {
             }
         },
         failure: function(response) {
-            Ext.get(This.dataTreePanel.getId()).unmask();
+            This.dataTreePanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1660,15 +1660,15 @@ DataViewer.prototype.moveDataitemTo = function(ditem, isClass, fromtype, totype)
     else
     	params.data_id = ditem;
 
-    Ext.get(this.dataTreePanel.getId()).mask('Moving..');
+    this.dataTreePanel.getEl().mask('Moving..');
     Ext.Ajax.request({
         url: url,
         params: params,
         success: function(response) {
-            Ext.get(This.dataTreePanel.getId()).unmask();
+            This.dataTreePanel.getEl().unmask();
         },
         failure: function(response) {
-            Ext.get(This.dataTreePanel.getId()).unmask();
+            This.dataTreePanel.getEl().unmask();
         }
     });
 };

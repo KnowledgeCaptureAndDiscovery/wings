@@ -663,7 +663,7 @@ RunBrowser.prototype.openRunDetails = function(runid, status) {
 					}
 				}
 				else {
-					Ext.get(tab.getId()).update('No Run Details', false);
+					tab.getEl().update('No Run Details', false);
 				}
 			}
 		}

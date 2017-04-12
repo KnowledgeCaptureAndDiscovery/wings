@@ -360,15 +360,15 @@ Template.prototype.initDrawingSurface = function() {
 	this.svg.append("svg:defs")
 		.append("svg:marker")
 		.attr("id", "arrow")
-		.attr("viewBox", "0 0 10 10")
+		.attr("viewBox", "0 0 10 8")
 		.attr("refX", 10)
-		.attr("refY", 5)
+		.attr("refY", 4)
 		.attr("markerUnits", "strokeWidth")
 		.attr("markerWidth", 10)
-		.attr("markerHeight", 10)
+		.attr("markerHeight", 8)
 		.attr("orient", "auto")
 		.append("svg:path")
-		.attr("d", "M 0 0 L 10 5 L 0 10 z"); 
+		.attr("d", "M 0 0 L 10 4 L 0 8 z"); 
 	
 	// Graph group
 	this.graph = this.svg.append("g");

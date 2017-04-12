@@ -27,7 +27,7 @@ GraphVariable.prototype.createBackgroundItem = function(parent) {
 	return parent.insert('rect');
 };
 
-GraphVariable.prototype.drawBackgroundItem = function(bgitem, coords, bounds) {
+GraphVariable.prototype.drawBackgroundItem = function(bgitem, bounds) {
 	// Rounded rectangle
 	bgitem
 		.attr("x", bounds.x)

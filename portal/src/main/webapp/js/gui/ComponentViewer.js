@@ -646,7 +646,7 @@ ComponentViewer.prototype.addComponent = function(parentNode) {
                 return;
             }
             var url = This.op_url + '/addComponent';
-            Ext.get(cTree.getId()).mask("Creating..");
+            cTree.getEl().mask("Creating..");
             Ext.Ajax.request({
                 url: url,
                 params: {
@@ -656,7 +656,7 @@ ComponentViewer.prototype.addComponent = function(parentNode) {
                     load_concrete: This.load_concrete
                 },
                 success: function(response) {
-                    Ext.get(cTree.getId()).unmask();
+                    cTree.getEl().unmask();
                     if (response.responseText == "OK") {
                         var clsid = cid + 'Class';
                         // FIXME: Should get the cls from server
@@ -668,7 +668,7 @@ ComponentViewer.prototype.addComponent = function(parentNode) {
                                     text: text,
                                     cls: clsid,
                                     type: (This.load_concrete ? 2: 1)
-                                    }
+                                }
                             }
                         });
                         if (tmp) {
@@ -683,7 +683,7 @@ ComponentViewer.prototype.addComponent = function(parentNode) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(cTree.getId()).unmask();
+                    cTree.getEl().unmask();
                     if (window.console)
                         window.console.log(response.responseText);
                 }
@@ -709,7 +709,7 @@ ComponentViewer.prototype.addCategory = function(parentNode) {
                 return;
             }
             var url = This.op_url + '/addCategory';
-            Ext.get(cTree.getId()).mask("Creating..");
+            cTree.getEl().mask("Creating..");
             Ext.Ajax.request({
                 url: url,
                 params: {
@@ -718,7 +718,7 @@ ComponentViewer.prototype.addCategory = function(parentNode) {
                     load_concrete: This.load_concrete
                 },
                 success: function(response) {
-                    Ext.get(cTree.getId()).unmask();
+                    cTree.getEl().unmask();
                     if (response.responseText == "OK") {
                         var tmp = This.getComponentTree({
                             cls: {
@@ -737,7 +737,7 @@ ComponentViewer.prototype.addCategory = function(parentNode) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(cTree.getId()).unmask();
+                    cTree.getEl().unmask();
                     if (window.console)
                         window.console.log(response.responseText);
                 }
@@ -762,14 +762,14 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls), function(yesno) {
         if (yesno == "yes") {
             var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');
-            Ext.get(This.treePanel.getId()).mask("Deleting..");
+            This.treePanel.getEl().mask("Deleting..");
             Ext.Ajax.request({
                 url: url,
                 params: {
                     cid: c.id ? c.id: cls
                 },
                 success: function(response) {
-                    Ext.get(This.treePanel.getId()).unmask();
+                    This.treePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         node.parentNode.removeChild(node);
                         if (c.id)
@@ -779,7 +779,7 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.treePanel.getId()).unmask();
+                    This.treePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -914,7 +914,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                 return;
             }
             var url = This.op_url + '/saveComponentJSON';
-            Ext.get(This.treePanel.getId()).mask("Saving..");
+            This.treePanel.getEl().mask("Saving..");
             Ext.Ajax.request({
                 url: url,
                 params: {
@@ -922,13 +922,14 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                     load_concrete: This.load_concrete
                 },
                 success: function(response) {
-                    Ext.get(This.treePanel.getId()).unmask();
+                    This.treePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         mainPanel.iDataGrid.getStore().commitChanges();
                         mainPanel.iParamGrid.getStore().commitChanges();
                         mainPanel.oDataGrid.getStore().commitChanges();
                         savebtn.setDisabled(true);
                         tab.setTitle(tab.title.replace(/^\*/, ''));
+                        tab.rulestr = comp.rulesText;
                         This.refreshInactiveTabs(This.tabPanel);
                     } else {
                         Ext.MessageBox.show({
@@ -939,7 +940,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.treePanel.getId()).unmask();
+                    This.treePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -1050,24 +1051,30 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 
 
     var mainPanelItems = [ tab.ioEditor ];
+
     var rulesPanel = This.getRulesTab('Component Rules', 'rules', compStore.rules, 
     		editable, tab, savebtn);
     var inhRulesPanel = This.getRulesTab('Inherited Rules', 'inhrules', 
     		compStore.inheritedRules, false, tab, savebtn);
+    
     mainPanelItems.push({
     	xtype: 'tabpanel',
     	title: 'Rules',
     	border: true,
     	plain: true,
-    	margin: 5,
+    	padding: 5,
+    	//padding: "5 0 0 0",
         iconCls: 'icon-runAlt fa-title fa-blue',
     	items: [rulesPanel, inhRulesPanel]
     });
     mainPanelItems.push(This.getDocumentationTab('doc', compStore.documentation,
      		editable, tab, savebtn));
-    if(c.concrete)
+    if(c.concrete) {
     	mainPanelItems.push(This.getDependenciesTab('Dependencies', 
     		compStore.requirement, editable, tab, savebtn));
+        
+        mainPanelItems.push(This.getCodeTab(c.id, 'code', editable, tab, savebtn));
+    }    	
     
     mainPanelItems.push(This.provenanceViewer.createItemProvenanceGrid(c.id));
     
@@ -1092,7 +1099,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, store, win) {
 	var This = this;
     var url = This.op_url + '/setComponentLocation';
-    Ext.get(This.tabPanel.getId()).mask("Saving Location..");
+    This.tabPanel.getEl().mask("Saving Location..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -1100,7 +1107,7 @@ ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, s
             cid: cid
         },
         success: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
                 store.location = clocation;
                 var node = This.treePanel.getStore().getNodeById(cid);
@@ -1113,7 +1120,7 @@ ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, s
             }
         },
         failure: function(response) {
-            Ext.get(This.tabPanel.getId()).unmask();
+            This.tabPanel.getEl().unmask();
             _console(response.responseText);
         }
     });
@@ -1199,49 +1206,63 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
     return This.treePanel;
 };
 
+ComponentViewer.prototype.getCodeTab = function(cid, textareaid, editable, tab, savebtn) {
+    var This = this;
+    var serverAddress = this.op_url;
+    return new Wings.fb.FileBrowser({    	
+    	iconCls: 'icon-runAlt fa-title fa-blue',
+    	cid: cid,
+    	title: 'Code',
+        address: {
+            urlGet: serverAddress+'/fb/list',
+            urlInitialize: serverAddress+'/fb/initialize',
+            urlNewFile: serverAddress+'/fb/addFile',
+            urlNewDirectory: serverAddress+'/fb/addDirectory',
+            urlRename: serverAddress+'/fb/rename',
+            urlDelete: serverAddress+'/fb/delete',
+            urlViewFile: serverAddress+'/fb/get',
+            urlSave: serverAddress+'/fb/save'
+        }    	
+    });
+};
+
 ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, editable, tab, savebtn) {
     var This = this;
 
     var rulestr = rules && rules.length ? rules.join("\n\n") : "";
     rulestr = rulestr.replace(/\)\s+/g,")\n");
     rulestr = rulestr.replace(/(\[.+?:)\s+/g,"$1\n");
-    //rulestr = rulestr.replace(/\\s+\\]/g,"]");
-    var rulesArea = new Ext.form.TextArea({
-        itemId: textareaid,
-        enableKeyEvents: editable,
+    rulestr = rulestr.replace(/^([^\[\]])/mg,"  $1");    		
+    var rulesArea = new Ext.ux.form.field.CodeMirror({
         disabled: !editable,
+        itemId: textareaid,
         value: rulestr,
+        showToolbar: false,
+        mode: 'application/x-jena',
+        pathModes: CONTEXT_ROOT + "/lib/codemirror/mode",
         border: false
     });
-    
     //console.log(new RulesParser(rulestr));
     
-    var keyfn = function(obj, e) {
-       var key = e.getKey();
-       if (key >= 33 && key <= 40)
-           return;
-       if (key >= 16 && key <= 18)
-           return;
-       if (key >= 112 && key <= 123)
-           return;
-       if (key >= 90 && key <= 91)
-           return;
-       if (key == 27)
-           return;
-       tab.setTitle("*" + tab.title.replace(/^\*/, ''));
-       savebtn.setDisabled(false);
-       //item.un('keyup', keyfn);
-   };
-   if(editable)
-   	rulesArea.on('keyup', keyfn);
-    
-   return new Ext.Panel({
-        title: 'Rules',
-        layout: 'fit',
-        border: false,
-        items: rulesArea,
-        title: title,
-   });
+    tab.rulestr = rulestr;
+    rulesArea.on("change", function(item, val) {
+    	if(val != tab.rulestr) {
+    		tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+    		savebtn.setDisabled(false);
+    	}
+    	else {
+    		tab.setTitle(tab.title.replace(/^\*/, ''));
+    		savebtn.setDisabled(true);
+    	}
+    });
+
+    return new Ext.Panel({
+    	title: 'Rules',
+    	layout: 'fit',
+    	//border: false,
+    	items: rulesArea,
+    	title: title,
+    });
 };
 
 ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab, savebtn) {
@@ -1459,8 +1480,13 @@ ComponentViewer.prototype.initialize = function() {
         region: 'west',
         width: 250,
         split: true,
+		animCollapse : false,
+		preventHeader : true,
+		collapsible : true,
+		collapseMode : 'mini',
         plain: true,
         margins: '5 0 5 5',
+		cmargins : '5 0 5 0',        
         activeTab: 0
     });
     var libname = (this.libname == "library" ? "Default": this.libname);

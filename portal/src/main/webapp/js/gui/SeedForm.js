@@ -159,7 +159,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     if (!me.checkValidity(op))
                         return false;
                     
-                	var msgTarget = Ext.get(me.getId());
+                	var msgTarget = me.getEl();
                 	msgTarget.mask('Preparing Workflow Execution...', 'x-mask-loading');           	
                     Ext.Ajax.requestGZ({
                         url: me.plan_url + "/" + op,
@@ -222,7 +222,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
         var tname = getLocalName(me.template_id);
         var title = 'Suggested ' + type + ' for ' + tname;
         
-    	var msgTarget = Ext.get(me.getId());
+    	var msgTarget = me.getEl();
     	msgTarget.mask('Suggesting ' + type + ' ...', 'x-mask-loading');           	
         Ext.Ajax.requestGZ({
             url: me.plan_url + "/" + op,

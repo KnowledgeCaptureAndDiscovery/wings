@@ -30,8 +30,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
@@ -2018,7 +2016,7 @@ public class TemplateKB extends URIEntity implements Template {
   }
   
   public void autoLayout() {
-    int MAX_LINKS = 500;
+    int MAX_LINKS = 5000;
     
     if(this.getLinks().length > MAX_LINKS)
       return;
@@ -2067,7 +2065,7 @@ public class TemplateKB extends URIEntity implements Template {
       dotstr += "|}|{" + ntext + "}|{";
       for ( int i = 0; i < ops.size(); i++)
         dotstr += "|<" + ops.get(i) + ">";
-      dotstr += "|}}\", fontname=\"bold\" fontsize=\"" + fsize + "\"];";
+      dotstr += "|}}\", fontname=\"Tahoma bold\" fontsize=\"" + fsize + "\"];";
       nodeidmap.put(nid, n);
     }
 
@@ -2078,7 +2076,8 @@ public class TemplateKB extends URIEntity implements Template {
         vtext += " =\\n" + v.getBinding().toString().replaceAll("\\s", "\\\\n");
       }
       int fsize = 13;       
-      dotstr += nl + tab + vid + "[label=\"{{|<ip>|}|{" + vtext + "}|{|<op>|}}\", fontsize=\"" + fsize + "\"];";
+      dotstr += nl + tab + vid + "[label=\"{{|<ip>|}|{" + vtext + "}|{|<op>|}}\", "
+          + "fontname=\"Tahoma normal\" fontsize=\"" + fsize + "\"];";
 
       varidmap.put(vid, v);
     }
@@ -2107,17 +2106,10 @@ public class TemplateKB extends URIEntity implements Template {
     dotstr += nl + "}";
     
     try {
-      String layout = getDotLayout(dotstr, dotexe);
-      String[] lines = layout.split("\\n");
-      for ( int i = 0; i < lines.length; i++) {
-        String[] tmp = lines[i].split(":");
-        if (tmp.length != 2)
-          continue;
-        String id = tmp[0];
-        String[] pos = tmp[1].split(",");
-        double x = 20 + Float.parseFloat(pos[0]) * 1.1;
-        double y = 20 + Float.parseFloat(pos[1]) / 1.5;
-        String comment = "center:x="+x+",y="+y;
+      HashMap<String, Double[]> layout = getDotLayout(dotstr, dotexe);
+      for(String id : layout.keySet()) {
+        Double[] pos = layout.get(id);
+        String comment = "center:x="+pos[0]+",y="+pos[1];
         if(nodeidmap.containsKey(id)) {
           nodeidmap.get(id).setComment(comment);
         }
@@ -2131,11 +2123,11 @@ public class TemplateKB extends URIEntity implements Template {
     }
   }
   
-  private String getDotLayout(String dotstr, String dotexe) throws IOException {
-    HashMap<String, Float[]> idpositions = new HashMap<String, Float[]>();
+  private HashMap<String, Double[]> getDotLayout(String dotstr, String dotexe) throws IOException {
+    HashMap<String, Double[]> idpositions = new HashMap<String, Double[]>();
 
     // Run the dot executable
-    Process dot = Runtime.getRuntime().exec(dotexe);
+    Process dot = Runtime.getRuntime().exec(new String[]{dotexe, "-Tplain"});
     
     // Write dot-format graph to dot
     PrintWriter bout = new PrintWriter(dot.getOutputStream());
@@ -2144,47 +2136,44 @@ public class TemplateKB extends URIEntity implements Template {
     
     // Read position annotated graph from dot
     BufferedReader bin = new BufferedReader(new InputStreamReader(dot.getInputStream()));
-    Pattern pospattern = Pattern.compile("^\\s*(.+?)\\s.+pos=\"([\\d\\.]+),([\\d\\.]+)\"");
     
-    String curline = "", line;
+    String line = bin.readLine();
+    String[] graph = line.split("\\s+");
+    //double gw = Float.parseFloat(graph[2]);
+    double gh = Float.parseFloat(graph[3]);
+    
+    int DPI = 72;
+    
+    String curline = null;
     while((line = bin.readLine()) != null) {
-      line = line.trim();
-      if(line.equals("}"))
-        break;      
-      if(line.endsWith("\\")) 
-        line = line.substring(0, line.length()-1);
-      
-      if(!line.endsWith(";")) {
-        curline += " " + line;
+      if(line.matches("\\$/")) {
+        curline += line.substring(0, line.length()-1);
         continue;
       }
-      curline += line;
-      curline = curline.trim();
-      Matcher m = pospattern.matcher(curline);
-      if(m.find()) {
-        idpositions.put(
-            m.group(1), 
-            new Float[]{ Float.parseFloat(m.group(2)), Float.parseFloat(m.group(3)) }
-        );
-      }
-      curline = "";
+      if(curline != null) {
+        line = curline + line;
+        curline = null;
+      }      
+      String[] tmp = line.split("\\s+");
+      if(tmp[0].equals("stop"))
+        break;        
+      if (tmp.length < 4)
+        continue;
+      if(!tmp[0].equals("node"))
+        continue;
+      String id = tmp[1];
+      //double w = Float.parseFloat(tmp[4]);
+      double h = Float.parseFloat(tmp[5]);
+      double x = Float.parseFloat(tmp[2])*1.1;
+      double y = (gh - h/2 - Float.parseFloat(tmp[3]))/1.5;
+      idpositions.put(
+          id, 
+          new Double[]{ 10 + DPI*x, 30 + DPI*y }
+      );     
     }
     bin.close();
     bout.close();
-    
-    float maxY = 0;
-    for(String id : idpositions.keySet()) {
-      Float[] pos = idpositions.get(id);
-      if(maxY < pos[1])
-        maxY = pos[1];
-    }
-    
-    String retval = "";
-    for(String id : idpositions.keySet()) {
-      Float[] pos = idpositions.get(id);
-      retval += id+":"+pos[0]+","+(40+maxY-pos[1])+"\n";
-    }
-    return retval;
+    return idpositions;
   }
 
 	public void addInputRole(String vid, Role r) {

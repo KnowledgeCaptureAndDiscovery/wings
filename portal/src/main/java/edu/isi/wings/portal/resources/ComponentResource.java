@@ -63,7 +63,7 @@ public class ComponentResource extends WingsResource {
   @GET
   @Path("fetch")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response fetchData(
+  public Response fetchComponent(
       @QueryParam("cid") String cid) {
     if(this.cc != null)
       return this.cc.streamComponent(cid, context);
@@ -140,5 +140,105 @@ public class ComponentResource extends WingsResource {
       return "OK";
     return null;
   }
+  
+  /*
+   * Component directory filebrowser functions
+   */
+  @GET
+  @Path("fb/list")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String listComponentDirectory(
+      @QueryParam("cid") String cid,
+      @QueryParam("path") String path) {
+    if(this.cc != null) {
+      return this.cc.listComponentDirectory(cid, path);
+    }
+    return null;
+  }
+  
+  @GET
+  @Path("fb/get")
+  @Produces(MediaType.APPLICATION_OCTET_STREAM)
+  public Response fetchComponentFile(
+      @QueryParam("cid") String cid,
+      @QueryParam("path") String path) {
+    if(this.cc != null)
+      return this.cc.streamComponentFile(cid, path, context);
+    return Response.status(Status.FORBIDDEN).build(); 
+  }
+  
+  @POST
+  @Path("fb/addDirectory")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String addComponentDirectory(
+      @FormParam("cid") String cid,
+      @FormParam("path") String path) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.addComponentDirectory(cid, path))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("fb/addFile")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String addComponentFile(
+      @FormParam("cid") String cid,
+      @FormParam("path") String path) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.addComponentFile(cid, path))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("fb/save")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String saveComponentFile(
+      @FormParam("cid") String cid,
+      @FormParam("path") String path,
+      @FormParam("filedata") String data) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.saveComponentFile(cid, path, data))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("fb/delete")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String deleteComponentItem(
+      @FormParam("cid") String cid,
+      @FormParam("path") String path) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.deleteComponentItem(cid, path))
+      return "OK";
+    return null;
+  }
+  
+  @POST
+  @Path("fb/rename")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String renameComponentItem(
+      @FormParam("cid") String cid,
+      @FormParam("path") String path,
+      @FormParam("newname") String newname) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.renameComponentItem(cid, path, newname))
+      return "OK";
+    return null;
+  }  
+  
+  @POST
+  @Path("fb/initialize")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String initializeComponentFiles(
+      @FormParam("cid") String cid,
+      @FormParam("language") String lang) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.initializeComponentFiles(cid, lang))
+      return "OK";
+    return null;
+  }   
 
 }

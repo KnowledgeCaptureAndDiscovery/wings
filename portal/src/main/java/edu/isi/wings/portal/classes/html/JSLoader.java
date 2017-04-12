@@ -30,7 +30,10 @@ public class JSLoader {
 	  "js/util/PagingMemoryProxy.js", "js/gui/WingsMessages.js", 
 	  "js/util/TreeMod.js", "js/gui/ProvenanceViewer.js",
     "js/util/AjaxGzip.js", "js/util/encoder.js" };
-	static String[] component_scripts = { "js/gui/ComponentViewer.js" };
+	static String[] component_scripts = { "js/gui/ComponentViewer.js", 
+	  "lib/codemirror/codemirror-compressed.js",
+	  "js/gui/filebrowser/TreePanel.js", "js/gui/filebrowser/FileBrowser.js", 
+	  "js/util/CodeMirror.js"};
 	static String[] domain_scripts = { "js/gui/DomainViewer.js" };
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };
 	static String[] data_scripts = { "js/gui/DataViewer.js" };

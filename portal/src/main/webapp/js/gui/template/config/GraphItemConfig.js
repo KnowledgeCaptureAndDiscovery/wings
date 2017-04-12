@@ -2,7 +2,7 @@ function GraphItemConfig() {
 	// Configuration
 	// TODO: Get from config file
 	this.xpad = 4;
-	this.ypad = 2.5;
+	this.ypad = 3;
 	this.portsize = 10;
 	this.portpad = 10;
 	this.stackspacing = 3;
@@ -20,11 +20,11 @@ function GraphItemConfig() {
 
 function GraphNodeConfig() {
 	GraphItemConfig.call(this);
-	this.xpad = 6;
+	this.xpad = 8;
 	this.bgcolor = "rgba(255,204,153,1)";
 	this.stackcolor = this.bgcolor;
 	this.strokewidth = 0.7;
-	this.xshift = 5;
+	this.xshift = 8;
 };
 GraphNodeConfig.prototype = Object.create(GraphItemConfig.prototype);
 GraphNodeConfig.prototype.constructor = GraphNodeConfig;
@@ -42,9 +42,10 @@ GraphVariableConfig.prototype.constructor = GraphVariableConfig;
 
 function GraphLinkConfig() {
 	GraphItemConfig.call(this);
-	this.strokecolor = "rgba(0,0,0,0.9)";
-	this.strokewidth = 0.5;
-	this.intersectionpad = 10;
+	this.strokecolor = "rgba(0,0,0,1)";
+	this.strokewidth = 0.9
+	this.strokeopacity = 0.6;
+	this.intersectionpad = 15;
 	this.linkstartpad = 15;
 	this.interpolation = d3.curveBundle.beta(1);
 };

@@ -211,11 +211,16 @@ public class ComponentKB {
 		return null;
 	}
 	
+	public String getDefaultComponentLocation(String cid) {
+	  KBObject cobj = this.kb.getIndividual(cid);
+	  return this.codedir + File.separator + cobj.getName();
+	}
+	
 	protected void setComponentRules(String cid, String text) {
 		KBObject compobj = this.writerkb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		for(KBRule rule : ontologyFactory.parseRules(text).getRules()) {
-			KBObject ruleobj = writerkb.createLiteral(rule.getInternalRuleObject().toString());
+			KBObject ruleobj = writerkb.createLiteral(rule.toString());
 			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
 		}
 	}
@@ -232,7 +237,12 @@ public class ComponentKB {
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		for(KBObject ruleobj : this.kb.getPropertyValues(compobj, ruleProp))
 			rulestr += ruleobj.getValueAsString();
-		return ontologyFactory.parseRules(rulestr);
+		try {
+		  return ontologyFactory.parseRules(rulestr);
+		}
+		catch (Exception e) {
+		  return ontologyFactory.createEmptyRuleList();
+		}
 	}
 	
 	protected KBRuleList getInheritedComponentRules(String cid) {
@@ -246,7 +256,12 @@ public class ComponentKB {
 						rulestr += ruleobj.getValueAsString();
 			}
 		}
-		return ontologyFactory.parseRules(rulestr);
+    try {
+      return ontologyFactory.parseRules(rulestr);
+    }
+    catch (Exception e) {
+      return ontologyFactory.createEmptyRuleList();
+    }
 	}
 	
 	 
@@ -346,7 +361,7 @@ public class ComponentKB {
 				for (KBRule rule : rulelist.getRules()) {
 					boolean found = false;
 					KBObject ruleobj = 
-							ontologyFactory.getDataObject(rule.getInternalRuleObject().toString());
+							ontologyFactory.getDataObject(rule.toString());
 					
 					for (KBRuleClause clause : rule.getRuleBody()) {
 						if (clause.isTriple()) {
@@ -496,9 +511,8 @@ public class ComponentKB {
     int ctype = isConcrete ? Component.CONCRETE : Component.ABSTRACT;
 
     Component comp = new Component(compobj.getID(), ctype);
-    if (isConcrete) {
+    if (isConcrete)
       comp.setLocation(this.getComponentLocation(cid));
-    }
 
     if (details) {
       comp.setDocumentation(this.getComponentDocumentation(compobj));

@@ -42,7 +42,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	DataCreationAPI externalCatalog;
 
 	public DataCreationKB(Properties props) {
-		super(props, true, false);
+		super(props, true, true);
 		this.topclass = this.dcns + "DataObject";
 		this.topmetric = this.dcns + "Metrics";
 
@@ -180,7 +180,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 			list.add(new DataItem(data.getID(), DataItem.DATA));
 		}
 		if(!direct && datatype != null) {
-		  for(KBObject cls : this.kb.getSubClasses(datatype, direct))
+		  for(KBObject cls : this.getSubClasses(datatype))
 		    list.addAll(this.getDataForDatatype(cls.getID(), direct));
 		}
 		return list;
@@ -252,7 +252,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 			}
 		}
 		// Remove all subclasses (recursive call)
-		ArrayList<KBObject> subclses = this.kb.getSubClasses(cls, true);
+		ArrayList<KBObject> subclses = this.getSubClasses(cls);
 		for (KBObject subcls : subclses) {
 			if (!subcls.isNothing())
 				this.removeDatatype(subcls.getID());
@@ -448,7 +448,10 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 			this.ontkb.createDatatypeProperty(propid, this.dcns + "hasDataMetrics");
 		} else {
 			this.ontkb.createObjectProperty(propid, this.dcns + "hasMetrics");
-		}
+		}		
+		if(this.ontkb.getConcept(domain) == null)
+      this.ontkb.createClass(domain);
+		
 		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
 		this.ontkb.setPropertyRange(propid, range);
 		if(this.externalCatalog != null)
@@ -458,6 +461,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 
 	@Override
 	public boolean addMetadataPropertyDomain(String propid, String domain) {
+	  if(this.ontkb.getConcept(domain) == null)
+	    this.ontkb.createClass(domain);
 		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
 		if(this.externalCatalog != null)
 			this.externalCatalog.addMetadataPropertyDomain(propid, domain);
@@ -563,6 +568,19 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	/*
 	 * Private Helper functions below
 	 */
+	
+	private ArrayList<KBObject> getSubClasses(KBObject cls) {
+	  ArrayList<KBObject> subclses = new ArrayList<KBObject>();
+	  for(KBTriple t : 
+	      this.kb.genericTripleQuery(null, this.kb.getProperty(KBUtils.RDFS+"subClassOf"), cls)) {
+	    KBObject subcls = this.kb.getConcept(t.getSubject().getID());
+	    if(subcls == null) {
+	      subcls = this.kb.createClass(t.getSubject().getID());
+	    }
+	    subclses.add(subcls);
+	  }
+	  return subclses;
+	}
 
 	private DataTree createHierarchy(String classid, boolean types_only) {
 		DataItem rootitem = new DataItem(classid, DataItem.DATATYPE);
@@ -584,7 +602,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 						node.addChild(childnode);
 					}
 				}
-				ArrayList<KBObject> subclasses = this.kb.getSubClasses(cls, true);
+				ArrayList<KBObject> subclasses = this.getSubClasses(cls);
 				for (KBObject subcls : subclasses) {
 					if (!subcls.getNamespace().equals(this.dcdomns)
 							&& !subcls.getNamespace().equals(this.dcdomns))

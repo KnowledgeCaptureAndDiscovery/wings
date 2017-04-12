@@ -35,6 +35,7 @@ GraphItem.prototype.create = function() {
 GraphItem.prototype.configure = function() {
 	this.textitem
 		.attr("pointer-events", "none").style("text-anchor", "middle")
+		.attr("dy", 0)
 		.style("font-size", this.config.getFontsize() + "px")
 		.style("font-family", this.config.getFont())
 		.style("font-weight",this.config.getFontweight())
@@ -65,8 +66,8 @@ GraphItem.prototype.createBackgroundItem = function(parent) {
 	//return parent.append('circle');
 };
 // ** OVERRIDE in Subclases **
-GraphItem.prototype.drawBackgroundItem = function(bgitem, coords, bounds) {
-	//this.bgitem.x(coords.x).y(coords.y).rx(bounds.width/2).ry(bounds.width/2);
+GraphItem.prototype.drawBackgroundItem = function(bgitem, bounds) {
+	//this.bgitem.x(bounds.x).y(bounds.y).rx(bounds.width/2).ry(bounds.width/2);
 };
 //** OVERRIDE in Subclases **
 GraphItem.prototype.setDefaultColors = function() {
@@ -129,7 +130,6 @@ GraphItem.prototype.drawPorts = function() {
 GraphItem.prototype.calculateBoundingBox = function() {
 	// Get text bounding box
 	var bbox = this.textitem.node().getBBox();
-
 	// Calculate item's top-left corner from text size (to pass to
 	// drawBackground)
 	this.textbounds.x = bbox.x - this.config.getXpad();
@@ -140,8 +140,8 @@ GraphItem.prototype.calculateBoundingBox = function() {
 	this.textbounds.height = bbox.height + this.config.getYpad() * 2;
 	
 	this.bounds = {
-		x: this.textbounds.x, 
-		y: this.textbounds.y, 
+		x: this.textbounds.x,
+		y: this.textbounds.y,
 		width: this.textbounds.width,
 		height: this.textbounds.height
 	}
@@ -159,7 +159,7 @@ GraphItem.prototype.draw = function(redraw) {
 	this.drawText();
 	this.calculateBoundingBox();
 	this.drawPorts();
-	this.drawBackgroundItem(this.bgitem, this.coords, this.bounds);
+	this.drawBackgroundItem(this.bgitem, this.bounds);
 	this.drawStack();
 	if(redraw) {
 		// Draw links again if redrawing
@@ -226,8 +226,11 @@ GraphItem.prototype.drawText = function() {
 	for(var i=0; i<lines.length; i++) {
 		if(!lines[i])
 			continue;
+		var fontsize = this.config.getFontsize()*(i > 0 ? 0.65 : 1); 
+		var dysize = i == 1 ? fontsize*1.5 : fontsize;
 		this.textitem.append('tspan').text(lines[i])
-			.attr("x", 0).attr("y", i*(this.config.getFontsize()));
+			.style("font-size", fontsize+"px")
+			.attr("x", 0).attr("dy", dysize);
 	}
 }
 
@@ -268,10 +271,14 @@ GraphItem.prototype.getCoords = function() {
 }
 
 GraphItem.prototype.setCoords = function(coords, animate) {
-	if (coords.x < this.bounds.width / 2)
-		coords.x = this.bounds.width / 2;
-	if (coords.y < (this.bounds.height / 2 + this.config.portsize * 2))
-		coords.y = this.bounds.height / 2 + this.config.portsize * 2;
+	if(coords.legacy)
+		return this.setLegacyCoords(coords);
+	
+	if (coords.x < this.bounds.width/2 + 1)
+		coords.x = this.bounds.width/2 + 1;
+	if (coords.y < 11 + this.config.portsize/4) {
+		coords.y = 11 + this.config.portsize/4;
+	}
 	if(animate)
 		this.item.transition().attr("transform", "translate(" + coords.x + "," + coords.y + ")");
 	else

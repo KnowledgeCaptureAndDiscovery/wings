@@ -432,7 +432,7 @@ function createEmptyTemplatePanel(tid, browser) {
 }
 
 function showWingsAlternatives(tid, data, run_url, results_url, browser) {
-    var MAX_LINKS = 500;
+    var MAX_LINKS = 5000;
 
     var alternatives = data.templates;
     // if(window.console) window.console.log(alternatives);
@@ -503,7 +503,7 @@ function showWingsAlternatives(tid, data, run_url, results_url, browser) {
                 var myRec = recs[0];
                 var tstore = myRec.raw[0];
                 var url = run_url + '/runWorkflow';
-                var msgTarget = Ext.get(win.getId());
+                var msgTarget = win.getEl();
                 
                 msgTarget.mask('Running...', 'x-mask-loading');
                 Ext.Ajax.requestGZ({

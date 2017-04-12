@@ -155,7 +155,7 @@ GraphLayout.prototype.layoutVizDot = function(msgTarget, graph, animate, domnode
     	}
     }
     dotstr += nl + "}";
-    // console.log(dotstr);
+    //console.log(dotstr);
     
     if(layoutWorker == undefined) {
     	layoutWorker = new Worker(CONTEXT_ROOT + "/js/workers/layout.js");
@@ -167,13 +167,24 @@ GraphLayout.prototype.layoutVizDot = function(msgTarget, graph, animate, domnode
     layoutWorker.onmessage = function(e) {
     	msgTarget.unmask();
     	var layout = e.data;
+    	//console.log(layout);
     	var lines = layout.split(/\n/);
     	
     	var graph = lines[0].split(/\s+/);
     	var gw = parseFloat(graph[2]);
     	var gh = parseFloat(graph[3]);
+    	var curline = "";
     	for ( var i = 1; i < lines.length; i++) {
-    		var tmp = lines[i].split(/\s+/);
+    		var line = lines[i];
+    		if(line.match(/\\$/)) {
+    			curline += line.substring(0, line.length-1);
+    			continue;
+    		}
+    		if(curline) {
+    			line = curline + line;
+    			curline = "";
+    		}
+    		var tmp = line.split(/\s+/);
     		if (tmp.length < 4)
     			continue;
     		if(tmp[0] != "node")
@@ -184,10 +195,12 @@ GraphLayout.prototype.layoutVizDot = function(msgTarget, graph, animate, domnode
     			var w = parseFloat(tmp[4]);
     			var h = parseFloat(tmp[5]);
         		var x = parseFloat(tmp[2])*1.1;
-        		var y = (gh - parseFloat(tmp[3]))/1.5;
+        		var y = (gh - h/2 - parseFloat(tmp[3]))/1.5;
     			//console.log("x="+x+", y="+y+", w="+w+", h="+h);
-    			var itemx = 20 + DPI*x; // - (item.bounds.width - item.textbounds.width)/2;
-    			var itemy = 20 + DPI*y;
+    			var itemx = 10 + DPI*x; // - (item.bounds.width - item.textbounds.width)/2;
+    			var itemy = 30 + DPI*y;
+        		//console.log(line);
+        		//console.log(itemx + "," + itemy);
     			item.setCoords({x: itemx, y: itemy}, animate);
     		}
     	}    	

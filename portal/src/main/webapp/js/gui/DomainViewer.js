@@ -251,14 +251,14 @@ DomainViewer.prototype.createDomain = function(domname) {
         return;
     }
     var url = This.op_url + '/createDomain';
-    Ext.get(This.domainsGrid.getId()).mask("Creating Domain..");
+    This.domainsGrid.getEl().mask("Creating Domain..");
     Ext.Ajax.request({
         url: url,
         params: {
         	domain: domname
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 This.domainsGrid.getEl().unmask();
         	 try {
         		 var ret = Ext.decode(response.responseText);
         		 if(!ret.error && ret.name) {
@@ -274,7 +274,7 @@ DomainViewer.prototype.createDomain = function(domname) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         
@@ -290,7 +290,7 @@ DomainViewer.prototype.importDomain = function(domname, loc) {
         return;
     }
     var url = This.op_url + '/importDomain';
-    Ext.get(This.domainsGrid.getId()).mask("Importing Domain..");
+    This.domainsGrid.getEl().mask("Importing Domain..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -298,7 +298,7 @@ DomainViewer.prototype.importDomain = function(domname, loc) {
             location: loc,
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 This.domainsGrid.getEl().unmask();
         	 try {
         		 var ret = Ext.decode(response.responseText);
         		 if(!ret.error && ret.name) {
@@ -314,7 +314,7 @@ DomainViewer.prototype.importDomain = function(domname, loc) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         
@@ -324,14 +324,14 @@ DomainViewer.prototype.importDomain = function(domname, loc) {
 DomainViewer.prototype.selectDomain = function(domname) {
 	var This = this;
     var url = This.op_url + '/selectDomain';
-    Ext.get(This.domainsGrid.getId()).mask("Selecting Domain..");
+    This.domainsGrid.getEl().mask("Selecting Domain..");
     Ext.Ajax.request({
         url: url,
         params: {
         	domain: domname
         },
         success: function(response) {
-        	 //Ext.get(This.domainsGrid.getId()).unmask();
+        	 //This.domainsGrid.getEl().unmask();
         	 try {
         		 if(response.responseText == "OK") {
         			 window.location.reload();
@@ -347,7 +347,7 @@ DomainViewer.prototype.selectDomain = function(domname) {
         	 }
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         
@@ -357,14 +357,14 @@ DomainViewer.prototype.selectDomain = function(domname) {
 DomainViewer.prototype.deleteDomain = function(domname) {
 	var This = this;
     var url = This.op_url + '/deleteDomain';
-    Ext.get(This.domainsGrid.getId()).mask("Deleting Domain..");
+    This.domainsGrid.getEl().mask("Deleting Domain..");
     Ext.Ajax.request({
         url: url,
         params: {
         	domain: domname
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 This.domainsGrid.getEl().unmask();
 			 if (response.responseText == "OK") {
 				var rec = This.domainsGrid.getStore().findExact('name', domname);
 				This.domainsGrid.getStore().removeAt(rec);
@@ -373,7 +373,7 @@ DomainViewer.prototype.deleteDomain = function(domname) {
 			 }
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         
@@ -389,7 +389,7 @@ DomainViewer.prototype.renameDomain = function(domname, newname) {
         return;
     }
     var url = This.op_url + '/renameDomain';
-    Ext.get(This.domainsGrid.getId()).mask("Renaming Domain..");
+    This.domainsGrid.getEl().mask("Renaming Domain..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -397,7 +397,7 @@ DomainViewer.prototype.renameDomain = function(domname, newname) {
         	newname: newname
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 This.domainsGrid.getEl().unmask();
 			 if (response.responseText == "OK") {
 				var rec = This.domainsGrid.getStore().findRecord('name', domname);
 				rec.set("name", newname);
@@ -411,7 +411,7 @@ DomainViewer.prototype.renameDomain = function(domname, newname) {
 			}
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         
@@ -428,7 +428,7 @@ DomainViewer.prototype.setDomainExecutionEngine = function(domrec, engine) {
 	var domname = domrec.get('name');
 	
     var url = This.op_url + '/setDomainExecutionEngine';
-    Ext.get(This.domainsGrid.getId()).mask("Setting Execution Engine..");
+    This.domainsGrid.getEl().mask("Setting Execution Engine..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -436,7 +436,7 @@ DomainViewer.prototype.setDomainExecutionEngine = function(domrec, engine) {
         	engine: engine
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 This.domainsGrid.getEl().unmask();
 			 if (response.responseText == "OK") {
 				domrec.set("engine", engine);
 				This.domainsGrid.reconfigure();
@@ -445,7 +445,7 @@ DomainViewer.prototype.setDomainExecutionEngine = function(domrec, engine) {
 			}
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         
@@ -596,7 +596,7 @@ DomainViewer.prototype.setDomainPermissions = function(domname, permissions) {
 	var This = this;
 	
     var url = This.op_url + '/setDomainPermissions';
-    Ext.get(This.domainsGrid.getId()).mask("Setting Domain Permissions..");
+    This.domainsGrid.getEl().mask("Setting Domain Permissions..");
     Ext.Ajax.request({
         url: url,
         params: {
@@ -604,7 +604,7 @@ DomainViewer.prototype.setDomainPermissions = function(domname, permissions) {
         	permissions_json: Ext.encode(permissions)
         },
         success: function(response) {
-        	 Ext.get(This.domainsGrid.getId()).unmask();
+        	 This.domainsGrid.getEl().unmask();
 			 if (response.responseText == "OK") {
 				var rec = This.domainsGrid.getStore().findRecord('name', domname);
 				rec.set("permissions", permissions);
@@ -614,7 +614,7 @@ DomainViewer.prototype.setDomainPermissions = function(domname, permissions) {
 			}
         },
         failure: function(response) {
-        	Ext.get(This.domainsGrid.getId()).unmask();
+        	This.domainsGrid.getEl().unmask();
         	_console(response.responseText);
         }
         

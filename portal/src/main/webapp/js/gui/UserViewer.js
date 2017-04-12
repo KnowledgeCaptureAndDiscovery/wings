@@ -94,7 +94,7 @@ UserViewer.prototype.openUserEditor = function(args) {
         	fields.each(function(field) {
         		user[field.getName()] = field.getValue();
         	});
-        	Ext.get(This.tabPanel.getId()).mask("Saving..");
+        	This.tabPanel.getEl().mask("Saving..");
         	Ext.Ajax.request({
                 url: This.op_url + '/saveUserJSON',
                 params: {
@@ -102,7 +102,7 @@ UserViewer.prototype.openUserEditor = function(args) {
                     json: Ext.encode(user)
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     if (response.responseText == "OK") {
 						// Reset dirty bit
 						form.getForm().getFields().each(function(field) {
@@ -123,7 +123,7 @@ UserViewer.prototype.openUserEditor = function(args) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -201,14 +201,14 @@ UserViewer.prototype.confirmAndDeleteUser = function(node) {
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + userid, function(b) {
         if (b == "yes") {
             var url = This.op_url + '/removeUser';
-            Ext.get(This.tabPanel.getId()).mask("Deleting..");
+            This.tabPanel.getEl().mask("Deleting..");
             Ext.Ajax.request({
                 url: url,
                 params: {
                     userid: userid
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         node.parentNode.removeChild(node);
                         if(This.tabPanel.getActiveTab().title == userid)
@@ -218,7 +218,7 @@ UserViewer.prototype.confirmAndDeleteUser = function(node) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -238,14 +238,14 @@ UserViewer.prototype.addUser = function() {
                 return;
             }
             var url = This.op_url + '/addUser';
-            Ext.get(This.tabPanel.getId()).mask("Adding User..");
+            This.tabPanel.getEl().mask("Adding User..");
             Ext.Ajax.request({
                 url: url,
                 params: {
                     userid: userid
                 },
                 success: function(response) {
-                	Ext.get(This.tabPanel.getId()).unmask();
+                	This.tabPanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         var tmp = This.leftPanel.getRootNode().appendChild({
                 	            text: userid,
@@ -258,7 +258,7 @@ UserViewer.prototype.addUser = function() {
                     	_console(response.responseText);
                 },
                 failure: function(response) {
-                	Ext.get(This.tabPanel.getId()).unmask();
+                	This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });

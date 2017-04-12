@@ -87,7 +87,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
         	var swpanel = form.down('panel[type=machineSoftware]');
         	machine = This.getMachineSoftware(swpanel, machine);
         	
-        	Ext.get(This.tabPanel.getId()).mask("Saving..");
+        	This.tabPanel.getEl().mask("Saving..");
         	Ext.Ajax.request({
                 url: This.op_url + '/saveMachineJSON',
                 params: {
@@ -95,7 +95,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
                     json: Ext.encode(machine)
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     if (response.responseText == "OK") {
 						// Reset dirty bit
 						form.getForm().getFields().each(function(field) {
@@ -112,7 +112,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -124,7 +124,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
         text: 'Get Machine Details',
         iconCls: 'icon-run fa fa-brown',
         handler: function(btn) {
-        	Ext.get(This.tabPanel.getId()).mask("Connecting and checking..<br/>"+
+        	This.tabPanel.getEl().mask("Connecting and checking..<br/>"+
         			"This may take some time for first-time connections");
         	Ext.Ajax.request({
                 url: This.op_url + '/checkMachine',
@@ -133,7 +133,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
                 },
                 timeout: 300000,
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     try {
                     	var store = Ext.decode(response.responseText);
 						var win = new Ext.Window({
@@ -194,7 +194,7 @@ ResourceViewer.prototype.openMachineEditor = function(args) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -452,7 +452,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
 	        		software.versions.push(This.prepareRoleRecord(field.data));
 	        	});
         	}
-        	Ext.get(This.tabPanel.getId()).mask("Saving..");
+        	This.tabPanel.getEl().mask("Saving..");
         	Ext.Ajax.request({
                 url: This.op_url + '/saveSoftwareJSON',
                 params: {
@@ -460,7 +460,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
                     json: Ext.encode(software)
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     if (response.responseText == "OK") {
 			            grid.getStore().commitChanges();
                         savebtn.setDisabled(true);
@@ -478,7 +478,7 @@ ResourceViewer.prototype.openSoftwareEditor = function(args) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -702,7 +702,7 @@ ResourceViewer.prototype.addResource = function(type, parentNode) {
                 return;
             }
             var url = This.op_url + '/add'+type;
-            Ext.get(This.tabPanel.getId()).mask("Adding "+type+"..");
+            This.tabPanel.getEl().mask("Adding "+type+"..");
             var params = {resid: newid};
 	        var iconCls = (type == 'Machine' ? 'icon-machine fa fa-blue' :
         		'icon-dropbox fa fa-blue');
@@ -710,7 +710,7 @@ ResourceViewer.prototype.addResource = function(type, parentNode) {
                 url: url,
                 params: params,
                 success: function(response) {
-                	Ext.get(This.tabPanel.getId()).unmask();
+                	This.tabPanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         var tmp = {
                             id: newid,
@@ -727,7 +727,7 @@ ResourceViewer.prototype.addResource = function(type, parentNode) {
                     	_console(response.responseText);
                 },
                 failure: function(response) {
-                	Ext.get(This.tabPanel.getId()).unmask();
+                	This.tabPanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
@@ -743,16 +743,16 @@ ResourceViewer.prototype.confirmAndDelete = function(node) {
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + name, function(b) {
         if (b == "yes") {
             var url = This.op_url + '/remove' + node.raw.type;
-            Ext.get(This.tabPanel.getId()).mask("Deleting..");
-            Ext.get(This.treePanel.getId()).mask("Deleting..");
+            This.tabPanel.getEl().mask("Deleting..");
+            This.treePanel.getEl().mask("Deleting..");
             Ext.Ajax.request({
                 url: url,
                 params: {
                     resid: id
                 },
                 success: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.treePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.treePanel.getEl().unmask();
                     if (response.responseText == "OK") {
                         var node = This.treePanel.getStore().getNodeById(id);
                         node.parentNode.removeChild(node);
@@ -762,8 +762,8 @@ ResourceViewer.prototype.confirmAndDelete = function(node) {
                     }
                 },
                 failure: function(response) {
-                    Ext.get(This.tabPanel.getId()).unmask();
-                    Ext.get(This.treePanel.getId()).unmask();
+                    This.tabPanel.getEl().unmask();
+                    This.treePanel.getEl().unmask();
                     _console(response.responseText);
                 }
             });
