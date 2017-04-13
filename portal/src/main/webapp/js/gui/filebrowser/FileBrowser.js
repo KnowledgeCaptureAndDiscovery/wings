@@ -179,6 +179,10 @@ Ext.define('Wings.fb.FileBrowser',{
         		items: codearea
         	});
         	
+			tab = tabs.add(ntab);
+			tabs.setActiveTab(tab);
+			tab.getEl().mask("Loading..");
+			
         	Ext.Ajax.request({
         		url: urlViewFile,
         		params: {
@@ -187,20 +191,19 @@ Ext.define('Wings.fb.FileBrowser',{
         		},
         		method: 'GET',
         		success: function (response, options) {
+        			tab.getEl().unmask();
         			codearea.initialize=false;
-        			codearea.setValue(response.responseText);
-        			tab = tabs.add(ntab);
         			tab.origValue = response.responseText;
-        			tabs.setActiveTab(tab);
+        			codearea.setValue(response.responseText);
         			if(language != null){
         				codearea.setMode(language);
         			}
         		},
         		failure: function (response, options) {
+        			tab.getEl().unmask();
+        			alert('fail');
         		}
         	});
-        }
-            
-        tabs.setActiveTab(tab);
+        }            
     }
 });
