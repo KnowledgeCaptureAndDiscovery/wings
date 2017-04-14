@@ -204,6 +204,8 @@ Ext.define('Wings.fb.FileBrowser',{
         			alert('fail');
         		}
         	});
-        }            
+        }
+            
+        tabs.setActiveTab(tab);
     }
 });
