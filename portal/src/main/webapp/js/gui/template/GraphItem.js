@@ -41,10 +41,12 @@ GraphItem.prototype.configure = function() {
 		.style("font-weight",this.config.getFontweight())
 		.style("fill", this.config.getTextcolor());
 	
-	this.bgitem.attr("stroke", this.config.getStrokecolor())
-		.attr("stroke-width", this.config.getStrokewidth())
-		.attr("fill", this.config.getBgcolor());
-	this.bgitem.attr("pointer-events", this.config.placeholder ? "none" : null);
+	if(this.bgitem) {
+		this.bgitem.attr("stroke", this.config.getStrokecolor())
+			.attr("stroke-width", this.config.getStrokewidth())
+			.attr("fill", this.config.getBgcolor());
+		this.bgitem.attr("pointer-events", this.config.placeholder ? "none" : null);
+	}
 	
 	for(var portid in this.inputPorts) {
 		this.inputPorts[portid].config = this.config;

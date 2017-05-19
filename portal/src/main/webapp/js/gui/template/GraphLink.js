@@ -44,13 +44,14 @@ var GraphLink = function(parent, id,
 GraphLink.prototype.create = function() {
 	this.item = this.parent.insert("g", "g").attr("id", this.id);
 	
+	var arrowid = "url(#arrow_" + getLocalName(this.parent.id)+")";
 	this.pathToVariable = this.item.append("path")
 		.attr("stroke", this.config.strokecolor)
 		.attr("fill", "none")
 		.attr("stroke-width", this.config.strokewidth)
 		.attr("pointer-events", "none")
 		.attr("opacity", this.config.strokeopacity)
-		.attr("marker-end","url(#arrow)");
+		.attr("marker-end", arrowid);
 	
 	this.pathFromVariable = this.item.append("path")
 		.attr("stroke", this.config.strokecolor)
@@ -58,7 +59,7 @@ GraphLink.prototype.create = function() {
 		.attr("stroke-width", this.config.strokewidth)
 		.attr("pointer-events", "none")
 		.attr("opacity", this.config.strokeopacity)
-		.attr("marker-end","url(#arrow)");
+		.attr("marker-end", arrowid);
 	
 	this.interpolation = d3.line()
 		.x(function(d) {return d.x;})

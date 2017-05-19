@@ -320,6 +320,8 @@ TemplateEvents.prototype.initializeDraggerItems = function() {
 		this.tmpvariable.config = new GraphPreviewVariableConfig();
 		this.tmpvariable.configure();
 	}
+	else
+		this.tmpvariable.item.style("display", "");
 	
 	if(!this.tmpport) {
 		// Create a dummy port

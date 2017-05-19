@@ -79,6 +79,7 @@ Template.prototype.resizeSVG = function(animate) {
 
 Template.prototype.setData = function(store) {
 	this.store = store;
+	this.graph.id = getLocalName(store.id);
 	this.graph.node().innerHTML = "";
 	
 	this.nodes = {};
@@ -222,6 +223,10 @@ Template.prototype.calculateGraphSize = function() {
 		if(maxy < itemy)
 			maxy = itemy;
 	}
+	if(!maxx && !maxy) {
+		maxx = this.panelsize.width;
+		maxy = this.panelsize.height;
+	}
 	this.setGraphSize(maxx, maxy);
 };
 
@@ -356,10 +361,12 @@ Template.prototype.initDrawingSurface = function() {
 	this.svg = d3.select(document.createElementNS(d3.namespaces.svg, "svg"))
 		.attr("preserveAspectRatio", "xMinYMin");
 
+	var tname = getLocalName(this.id);
+	
 	// arrow template
 	this.svg.append("svg:defs")
 		.append("svg:marker")
-		.attr("id", "arrow")
+		.attr("id", "arrow_"+tname)
 		.attr("viewBox", "0 0 10 8")
 		.attr("refX", 10)
 		.attr("refY", 4)
