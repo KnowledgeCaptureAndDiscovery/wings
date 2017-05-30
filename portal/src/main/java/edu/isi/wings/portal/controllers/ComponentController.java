@@ -475,7 +475,9 @@ public class ComponentController {
         }
         runscript += line + "\n";
       }
-      FileUtils.writeStringToFile(new File(loc+"/run"), runscript);
+      File runFile = new File(loc+"/run");
+      FileUtils.writeStringToFile(runFile, runscript);
+      runFile.setExecutable(true);
       
       if(filename != null)
         new File(loc+"/"+filename).createNewFile();
