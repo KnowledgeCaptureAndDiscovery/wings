@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 
 import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
@@ -2073,7 +2074,9 @@ public class TemplateKB extends URIEntity implements Template {
       String vid = cleanID(v.getName());
       String vtext = v.getName();
       if(v.getBinding() != null) {
-        vtext += " =\\n" + v.getBinding().toString().replaceAll("\\s", "\\\\n");
+        vtext += " =\\n" + v.getBinding().toString()
+            .replaceAll("\"", Matcher.quoteReplacement("\\\""))
+            .replaceAll("\\s", "\\\\n");
       }
       int fsize = 13;       
       dotstr += nl + tab + vid + "[label=\"{{|<ip>|}|{" + vtext + "}|{|<op>|}}\", "
