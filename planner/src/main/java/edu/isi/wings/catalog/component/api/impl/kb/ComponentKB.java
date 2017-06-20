@@ -202,7 +202,7 @@ public class ComponentKB {
 		KBObject locobj = this.kb.getPropertyValue(cobj, locprop);
 		if (locobj != null && locobj.getValue() != null)
 			return locobj.getValueAsString();
-		else {
+		else if (cobj != null) {
 			String location = this.codedir + File.separator + cobj.getName();
 			File f = new File(location);
 			if(f.exists())
