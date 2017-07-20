@@ -123,7 +123,7 @@ public class DomainResource extends WingsResource {
       @FormParam("domain") String domain,
       @FormParam("permissions_json") String json) {
     if(this.dc != null && this.isOwner() &&
-        this.dc.setDomainExecutionEngine(domain, json))
+        this.dc.setDomainPermissions(domain, json))
       return "OK";
     return null;
   }
