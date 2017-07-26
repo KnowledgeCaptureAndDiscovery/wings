@@ -2010,6 +2010,8 @@ public class TemplateKB extends URIEntity implements Template {
 	
   private String cleanID(String id) {
     id = id.replaceAll("^.*#", "");
+    id = id.replaceAll("\\.", "_");
+    id = id.replaceAll("graph", "__graph");
     id = id.replaceAll("[^a-zA-Z0-9_]", "_");
     if (id.matches("^([0-9]|\\.|\\-)"))
       id = '_' + id;
