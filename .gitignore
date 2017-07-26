@@ -1,6 +1,7 @@
 .*
 target
 !/.gitignore
-portal/src/main/webapp/lib/*
+portal/src/main/webapp/lib/plupload
+portal/src/main/webapp/lib/extjs
 bin
 *.iml
