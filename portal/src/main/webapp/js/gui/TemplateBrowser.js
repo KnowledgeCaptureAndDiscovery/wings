@@ -882,8 +882,8 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 			var links = tpl.getLinksWithVariable(v);
 			for ( var i = 0; i < links.length; i++) {
 				var link = links[i];
-				var roleid = link.toPort ? link.toPort.name
-						: link.fromPort.name;
+				var roleid = link.toPort ? link.toPort.role.roleid
+						: link.fromPort.role.roleid;
 				var node = link.toNode ? link.toNode : link.fromNode;
 				var cbindingstr = node.binding.id;
 				var cbindings = cbindingstr.split(',');
@@ -977,8 +977,8 @@ TemplateBrowser.prototype.getConstraintsTable = function(tid, tstore, tpanel) {
 			var links = tpl.getLinksWithVariable(v);
 			for ( var i = 0; i < links.length; i++) {
 				var link = links[i];
-				var roleid = link.toPort ? link.toPort.name
-						: link.fromPort.name;
+				var roleid = link.toPort ? link.toPort.role.roleid
+						: link.fromPort.role.roleid;
 				var node = link.toNode ? link.toNode : link.fromNode;
 				var cbindingstr = node.binding.id;
 				var cbindings = cbindingstr.split(',');
