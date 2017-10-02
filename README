@@ -12,6 +12,12 @@ Requirements
 
 Installation
 -------------
+Alternative A) Use our Docker image:
+
+```docker pull kcapd/wings-base```
+Or build it with additional software using our proposed Docker files. See https://github.com/KnowledgeCaptureAndDiscovery/wings-docker for additional instructions.
+
+Alternative B) Follow the steps below to install WINGS locally:
 1. Get war file. Choose from one of the options below:
 	a) If installing from source. Download source from https://github.com/IKCAP/wings
 	   - mvn install (Do this if you are installing from source and don't already have a war file)
