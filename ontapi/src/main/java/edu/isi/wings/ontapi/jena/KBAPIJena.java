@@ -2021,4 +2021,16 @@ public class KBAPIJena implements KBAPI {
     }
     return true;
   }
+  
+  public static void shutdown() {
+    writeLock.lock();
+    try {     
+      if (tdbstore != null) {
+        TDB.sync(tdbstore);
+      }
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }  
 }

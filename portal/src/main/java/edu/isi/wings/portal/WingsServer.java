@@ -6,6 +6,7 @@ import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.portal.filters.resources.CORSResponseFilter;
 import edu.isi.wings.portal.filters.resources.GZIPReaderInterceptor;
 import edu.isi.wings.portal.filters.resources.GZIPWriterInterceptor;
@@ -48,6 +49,8 @@ class WingsServer extends ResourceConfig {
   @PreDestroy
   public void onDestroy() {
     // Cleanup tasks
+    System.out.println("Wings server going down");
+    OntFactory.shutdown();
   }
 
 }

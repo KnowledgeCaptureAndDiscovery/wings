@@ -178,4 +178,8 @@ public class OntFactory {
 		}
 		return null;
 	}
+	
+	public static void shutdown() {
+	  KBAPIJena.shutdown();
+	}
 }
