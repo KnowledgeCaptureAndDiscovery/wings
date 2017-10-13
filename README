@@ -19,7 +19,7 @@ Or build it with additional software using our proposed Docker files. See https:
 Alternative B) Follow the steps below to install WINGS locally:
 1. Get war file. Choose from one of the options below:
 	a) If installing from source. Download source from https://github.com/IKCAP/wings
-	   - mvn install (Do this if you are installing from source and don't already have a war file)
+	   - mvn install (Do this if you are installing from source and don't already have a war file). If you find any encoding issues, try `export MAVEN_OPTS= -Dfile.encoding=UTF-8` before the mvn command
 	   - This will create a wings-portal-<version>.war file in portal/target
 	b) Or, Download from http://www.wings-workflows.org/download-wings-portal
 
