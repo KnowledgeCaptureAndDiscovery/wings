@@ -107,6 +107,7 @@ public class ResourceKB implements ResourceAPI {
       m = new Machine(this.localhost);
       m.setHealthy(true);
       m.setHostName("Localhost");
+      m.setHostIP("127.0.0.1");
       if(this.addMachine(this.localhost) && this.saveMachine(m))
         this.save();
     }
@@ -441,12 +442,10 @@ public class ResourceKB implements ResourceAPI {
     this.removeMachine(machine.getID());
     this.addMachine(machine.getID());
     
-    if(!machine.getID().equals(this.localhost)) {
-      this.libkb.setPropertyValue(mobj, pmap.get("hasHostName"), 
-          this.libkb.createLiteral(machine.getHostName()));
-      this.libkb.setPropertyValue(mobj, pmap.get("hasHostIP"), 
-          this.libkb.createLiteral(machine.getHostIP()));
-    }
+    this.libkb.setPropertyValue(mobj, pmap.get("hasHostName"), 
+        this.libkb.createLiteral(machine.getHostName()));
+    this.libkb.setPropertyValue(mobj, pmap.get("hasHostIP"), 
+        this.libkb.createLiteral(machine.getHostIP()));
     this.libkb.setPropertyValue(mobj, pmap.get("hasUserID"), 
         this.libkb.createLiteral(machine.getUserId()));
     this.libkb.setPropertyValue(mobj, pmap.get("hasUserKey"), 
