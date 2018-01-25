@@ -410,7 +410,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
             Iterator<java.io.File> it = FileUtils.iterateFiles(new java.io.File(submitDir), new String[]{"sub"}, false);
 
-            log.debug("Iterating over " + submitDir + " to get all .sib files");
+            log.debug("Iterating over " + submitDir + " to get all .sub files");
 
             while (it.hasNext()) {
                 final String sub = FilenameUtils.removeExtension(it.next().getName());
