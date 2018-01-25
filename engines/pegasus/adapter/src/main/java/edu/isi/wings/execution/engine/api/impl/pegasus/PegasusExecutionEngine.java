@@ -408,7 +408,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             RuntimeStep step = null;
             ExecutionQueue queue = plan.getQueue();
 
-            Iterator<java.io.File> it = FileUtils.iterateFiles(new java.io.File(submitDir), new String[]{"sub"}, false);
+            Iterator<java.io.File> it = FileUtils.iterateFiles(new java.io.File(submitDir), new String[]{"sub"}, true);
 
             log.debug("Iterating over " + submitDir + " to get all .sub files");
 
