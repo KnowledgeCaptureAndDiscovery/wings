@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.*;
 
 public class PegasusWorkflowAdapter {
@@ -84,7 +85,7 @@ public class PegasusWorkflowAdapter {
         // Add jobs to the workflow
         for (RuntimeStep step : plan.getQueue().getAllSteps()) {
             // Invoking Pegasus with --input-dir, so we don't need to create a Replica Catalog
-            //registerWithReplicaCatalog(step);
+            registerWithReplicaCatalog(step);
 
             // Register Wings components and there dependent files.
             registerWithTransformationCatalog(step);
@@ -108,7 +109,6 @@ public class PegasusWorkflowAdapter {
                     "--dax", baseDir + plan.getName() + ".dax",
                     "--dir", baseDir,
                     "--relative-submit-dir", "submit",
-                    "--input-dir", dataDir,
                     "--output-dir", dataDir,
                     "--sites", site,
                     "--verbose",
@@ -183,6 +183,34 @@ public class PegasusWorkflowAdapter {
             }
             log.debug("Component ID: " + n.getCls().getComponent().getID());
             this.req.put(n.getCls().getComponent().getID(), n.getCls().getComponent().getComponentRequirement());
+        }
+    }
+
+    /**
+     * Wings jobs can depend on multiple input files.
+     * The method identifies files and registers them with replica catalog
+     *
+     * @param rStep Step whose input files are being registered.
+     * @throws Exception
+     */
+    private void registerWithReplicaCatalog(RuntimeStep rStep) throws Exception {
+        ExecutionStep eStep = rStep.getStep();
+
+        for (ExecutionFile input : eStep.getInputFiles()) {
+            String lfn = input.getBinding();
+            Path pfn = Paths.get(input.getLocation());
+
+            if (inputs.contains(lfn)) {
+                continue;
+            }
+
+            log.debug("Replica: " + lfn + " " + pfn.normalize().toUri() + "site=local");
+
+            File f = new File(lfn);
+            f.addPhysicalFile(pfn.normalize().toUri().toString(), "local");
+            adag.addFile(f);
+
+            inputs.add(lfn);
         }
     }
 
