@@ -114,8 +114,10 @@ public class PegasusWorkflowAdapter {
                     "--verbose",
                     "--force",
                     "--submit").redirectErrorStream(true).start();
-            process.waitFor();
+
             writeOutStd(process, plan);
+
+            process.waitFor();
 
             if (process.exitValue() == 0) {
                 return adag;
