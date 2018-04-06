@@ -40,21 +40,26 @@ Alternative B) Follow the steps below to install WINGS locally:
 <Resource name="UserDatabase" ...  readonly="false"/>
 
 
-5. Start tomcat
+5. Add the following to the <Context> section
+
+<ResourceLink name="users" global="UserDatabase" />
+
+
+6. Start tomcat
 	- $ /path/to/tomcat/bin/startup.sh
 
-5. Login to the server from http://<your-server-name>:8080/wings-portal/login
+7. Login to the server from http://<your-server-name>:8080/wings-portal/login
 	- Note: 8080 is the default Tomcat port, but this can be changed in server.xml
 
-6. After first Login, go to $HOME/.wings directory and open portal.properties
+8. After first Login, go to $HOME/.wings directory and open portal.properties
 	- Change /path/to/dot (graphviz) if it is set incorrectly
 	- Check that the server name is set correctly
 	- (Optional) Change any other settings if needed
 
-7. Manage users at http://<your-server-name>:8080/wings-portal/users/common/list
+9. Manage users at http://<your-server-name>:8080/wings-portal/users/common/list
 	- From this UI, you can add or remove more users.
 
-8. To see a list of domains to download, please go to the "Manage Domains" interface
+10. To see a list of domains to download, please go to the "Manage Domains" interface
 	- To Import a domain: From the "Manage Domains" interface, do the following:
 		- Add -> Import Domain
 		- Enter Domain Location: the url (or path) to the domain zip file

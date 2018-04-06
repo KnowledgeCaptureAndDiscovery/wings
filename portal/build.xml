@@ -42,6 +42,7 @@
 	<target name="download" depends="download_extjs, download_plupload"/>
 
 	<target name="clean">
-		<delete dir="${jslib.dir}"/>
+		<delete dir="${jslib.dir}/extjs"/>
+		<delete dir="${jslib.dir}/plupload"/>
 	</target>
 </project>
