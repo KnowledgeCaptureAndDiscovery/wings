@@ -433,18 +433,18 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				
 				// Set variable parameter binding (default if none set)
 				if(var.isParameterVariable()) {
-	        KBObject arg_value = null;
-	        ValueBinding parambinding = (ValueBinding) var.getBinding();
-	        if (parambinding != null && parambinding.getValue() != null) {
-	          arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
-	              parambinding.getDatatype());
-	        }
-	        else if(arg.getParamDefaultalue() != null) {
-	          arg_value = tkb.createLiteral(arg.getParamDefaultalue());
-	        }
-	        if (arg_value != null) {
-	          tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
-	        }				  
+			        KBObject arg_value = null;
+			        ValueBinding parambinding = (ValueBinding) var.getBinding();
+			        if (parambinding != null && parambinding.getValue() != null) {
+			          arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
+			              parambinding.getDatatype());
+			        }
+			        else if(arg.getParamDefaultalue() != null) {
+			          arg_value = tkb.createLiteral(arg.getParamDefaultalue());
+			        }
+			        if (arg_value != null) {
+			          tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
+			        }				  
 				}
 
 				// assign this variable as an input or output to the component

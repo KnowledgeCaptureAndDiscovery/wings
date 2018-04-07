@@ -157,7 +157,7 @@ public class TemplateReasoningKB implements ComponentReasoningAPI {
 		HashMap<String, String> rvars = new HashMap<String, String>();
 		for (String varid : tRoles.keySet()) {
 			Role r = tRoles.get(varid);
-			rvars.put(r.getID(), tRoles.get(r).getID());
+			rvars.put(r.getID(), tRoles.get(r.getRoleId()).getID());
 		}
 
 		// Transfer constraints to the sub-template
@@ -205,7 +205,7 @@ public class TemplateReasoningKB implements ComponentReasoningAPI {
 				varMaps.put(vv.getID(), v.getID());
 				// The receiving template should know if this role was input or
 				// output
-				if (ct.getInputRoles().containsKey(r))
+				if (ct.getInputRoles().containsKey(r.getRoleId()))
 					inputRoles.add(r.getRoleId());
 				rMap.put(r, v);
 			}
