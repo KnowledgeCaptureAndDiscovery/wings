@@ -61,6 +61,15 @@ public class ComponentResource extends WingsResource {
   }
   
   @GET
+  @Path("getComponentHierarchyJSON")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getComponentHierarchyJSON() {
+    if(this.cc != null)
+      return cc.json.toJson(cc.cc.getComponentHierarchy(false).getRoot());
+    return null;
+  }
+  
+  @GET
   @Path("fetch")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response fetchComponent(
