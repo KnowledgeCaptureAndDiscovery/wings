@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.io.FileUtils;
 
@@ -456,9 +456,8 @@ public class Domain {
 					config.getString("components.abstract.map"));
 
 			String concreteLibraryName = config.getString("components.concrete");
-			@SuppressWarnings("unchecked")
-			List<SubnodeConfiguration> clibs = config.configurationsAt("components.libraries.library");
-			for (SubnodeConfiguration clib : clibs) {
+			List<HierarchicalConfiguration> clibs = config.configurationsAt("components.libraries.library");
+			for (HierarchicalConfiguration clib : clibs) {
 				String url = clib.getString("url");
 				String map = clib.getString("map");
 				String name = clib.getString("name");
@@ -469,16 +468,15 @@ public class Domain {
 					this.concreteComponentLibrary = concreteLib;
 			}
 			
-			@SuppressWarnings("unchecked")
-			List<SubnodeConfiguration> perms = config.configurationsAt("permissions.permission");
-      for (SubnodeConfiguration perm : perms) {
-        String userid = perm.getString("userid");
-        boolean canRead = perm.getBoolean("canRead", false);
-        boolean canWrite = perm.getBoolean("canWrite", false);
-        boolean canExecute = perm.getBoolean("canExecute", false);
-        Permission permission = new Permission(userid, canRead, canWrite, canExecute);
-        this.permissions.add(permission);
-      }
+			List<HierarchicalConfiguration> perms = config.configurationsAt("permissions.permission");
+	      for (HierarchicalConfiguration perm : perms) {
+	        String userid = perm.getString("userid");
+	        boolean canRead = perm.getBoolean("canRead", false);
+	        boolean canWrite = perm.getBoolean("canWrite", false);
+	        boolean canExecute = perm.getBoolean("canExecute", false);
+	        Permission permission = new Permission(userid, canRead, canWrite, canExecute);
+	        this.permissions.add(permission);
+	      }
 		} catch (ConfigurationException e) {
 			e.printStackTrace();
 		}

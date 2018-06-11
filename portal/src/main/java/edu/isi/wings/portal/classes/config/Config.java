@@ -37,7 +37,7 @@ import edu.isi.wings.portal.classes.config.ExeEngine;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 
-import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 
 import edu.isi.wings.execution.engine.ExecutionFactory;
@@ -351,9 +351,8 @@ public class Config {
 
         // Load engine configurations
         this.engines = new HashMap<String, ExeEngine>();
-        @SuppressWarnings("unchecked")
-        List<SubnodeConfiguration> enginenodes = serverConfig.configurationsAt("execution.engine");
-        for (SubnodeConfiguration enode : enginenodes) {
+        List<HierarchicalConfiguration> enginenodes = serverConfig.configurationsAt("execution.engine");
+        for (HierarchicalConfiguration enode : enginenodes) {
             ExeEngine engine = this.getExeEngine(enode);
             this.engines.put(engine.getName(), engine);
         }
@@ -428,7 +427,7 @@ public class Config {
     }
 
     @SuppressWarnings("rawtypes")
-    private ExeEngine getExeEngine(SubnodeConfiguration node) {
+    private ExeEngine getExeEngine(HierarchicalConfiguration node) {
         String name = node.getString("name");
         String impl = node.getString("implementation");
         ExeEngine.Type type = ExeEngine.Type.valueOf(node.getString("type"));

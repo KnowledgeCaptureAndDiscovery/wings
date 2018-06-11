@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 import org.apache.commons.io.FileUtils;
 
@@ -333,13 +333,12 @@ public class DomainController {
 	 * Private functions
 	 */
 	
-	@SuppressWarnings("unchecked")
 	private void initializeDomainList(String domname) {
 		PropertyListConfiguration config = this.getUserConfiguration();
-		List<SubnodeConfiguration> domnodes = config.configurationsAt("user.domains.domain");
+		List<HierarchicalConfiguration> domnodes = config.configurationsAt("user.domains.domain");
 		if(domname == null)
 		  domname= config.getString("user.domain");
-		for (SubnodeConfiguration domnode : domnodes) {
+		for (HierarchicalConfiguration domnode : domnodes) {
 			String domurl = domnode.getString("url");
 			Boolean isLegacy = domnode.getBoolean("legacy", false);
 			String dname = domnode.getString("name");
