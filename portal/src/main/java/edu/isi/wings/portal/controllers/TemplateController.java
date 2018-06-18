@@ -217,15 +217,15 @@ public class TemplateController {
 	public synchronized String saveTemplateJSON(String tplid, String templatejson, String consjson) {
 		Template tpl = null;
 		try {
-      String provlog = "Updating template";
-      Provenance p = new Provenance(tplid);
-      p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
-      
+			String provlog = "Updating template";
+			Provenance p = new Provenance(tplid);
+			p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+
 			tpl = JsonHandler.getTemplateFromJSON(this.json, templatejson, consjson);
-			
+
 			if(!tpl.getMetadata().getContributors().contains(this.config.getUserId()))
 				tpl.getMetadata().addContributor(this.config.getUserId());
-			
+
 			if(tpl != null) {
 				boolean ok = false;
 				if(tplid.equals(tpl.getID()))
