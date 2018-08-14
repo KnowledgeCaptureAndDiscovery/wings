@@ -21,9 +21,9 @@ import edu.isi.wings.ontapi.rules.KBRuleClause;
 import edu.isi.wings.ontapi.rules.KBRuleFunctor;
 import edu.isi.wings.ontapi.rules.KBRuleTriple;
 
-import com.hp.hpl.jena.reasoner.TriplePattern;
-import com.hp.hpl.jena.reasoner.rulesys.ClauseEntry;
-import com.hp.hpl.jena.reasoner.rulesys.Functor;
+import org.apache.jena.reasoner.TriplePattern;
+import org.apache.jena.reasoner.rulesys.ClauseEntry;
+import org.apache.jena.reasoner.rulesys.Functor;
 
 public class KBRuleClauseJena implements KBRuleClause {
 	transient ClauseEntry ce;

@@ -17,29 +17,30 @@
 
 package edu.isi.wings.ontapi.jena;
 
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.ontology.*;
-import com.hp.hpl.jena.query.*;
-import com.hp.hpl.jena.rdf.model.*;
-//import com.hp.hpl.jena.reasoner.Derivation;
-import com.hp.hpl.jena.reasoner.Reasoner;
-import com.hp.hpl.jena.reasoner.rulesys.GenericRuleReasoner;
-import com.hp.hpl.jena.reasoner.rulesys.Rule;
-import com.hp.hpl.jena.shared.WrappedIOException;
-import com.hp.hpl.jena.tdb.TDB;
-import com.hp.hpl.jena.tdb.TDBFactory;
-import com.hp.hpl.jena.util.FileManager;
-import com.hp.hpl.jena.util.LocationMapper;
-import com.hp.hpl.jena.util.PrintUtil;
-import com.hp.hpl.jena.vocabulary.RDFS;
+import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.ontology.*;
+import org.apache.jena.query.*;
+import org.apache.jena.rdf.model.*;
+//import org.apache.jena.reasoner.Derivation;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
+import org.apache.jena.reasoner.rulesys.Rule;
+import org.apache.jena.shared.WrappedIOException;
+import org.apache.jena.tdb.TDB;
+import org.apache.jena.tdb.TDBFactory;
+import org.apache.jena.util.FileManager;
+import org.apache.jena.util.LocationMapper;
+import org.apache.jena.util.PrintUtil;
+import org.apache.jena.vocabulary.RDFS;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import edu.isi.wings.ontapi.*;
 import edu.isi.wings.ontapi.rules.KBRule;
 import edu.isi.wings.ontapi.rules.KBRuleList;
-import org.mindswap.pellet.jena.PelletReasonerFactory;
+//import org.mindswap.pellet.jena.PelletReasonerFactory;
+import openllet.jena.PelletReasonerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;

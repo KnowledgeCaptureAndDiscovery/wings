@@ -26,13 +26,13 @@ import edu.isi.wings.ontapi.rules.KBRuleFunctor;
 import edu.isi.wings.ontapi.rules.KBRuleObject;
 import edu.isi.wings.ontapi.rules.KBRuleTriple;
 
-import com.hp.hpl.jena.datatypes.RDFDatatype;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.reasoner.TriplePattern;
-import com.hp.hpl.jena.reasoner.rulesys.ClauseEntry;
-import com.hp.hpl.jena.reasoner.rulesys.Functor;
-import com.hp.hpl.jena.reasoner.rulesys.Rule;
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.reasoner.TriplePattern;
+import org.apache.jena.reasoner.rulesys.ClauseEntry;
+import org.apache.jena.reasoner.rulesys.Functor;
+import org.apache.jena.reasoner.rulesys.Rule;
 
 public class KBRuleJena implements KBRule {
 	transient Rule rule;
@@ -121,9 +121,11 @@ public class KBRuleJena implements KBRule {
 	private ClauseEntry getClause(KBRuleClause kbclause) {
 		if(kbclause.isFunctor()) {
 			KBRuleFunctor kbf = kbclause.getFunctor();
-			ArrayList<Node> args = new ArrayList<Node>();
+			Node[] args = new Node[kbf.getArguments().size()];
+			int i=0;
 			for(KBRuleObject kbarg : kbf.getArguments()) {
-				args.add(this.getKBNode(kbarg));
+				args[i] = this.getKBNode(kbarg);
+				i++;
 			}
 			return new Functor(kbf.getName(), args);
 		}

@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import edu.isi.wings.ontapi.rules.KBRule;
 import edu.isi.wings.ontapi.rules.KBRuleList;
 
-import com.hp.hpl.jena.reasoner.rulesys.Rule;
+import org.apache.jena.reasoner.rulesys.Rule;
 
 public class KBRuleListJena implements KBRuleList {
 	ArrayList<KBRule> rules;

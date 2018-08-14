@@ -21,9 +21,9 @@
  *****************************************************************/
 package edu.isi.wings.ontapi.jena.extrules.math;
 
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.reasoner.rulesys.builtins.BaseBuiltin;
-import com.hp.hpl.jena.graph.*;
+import org.apache.jena.reasoner.rulesys.*;
+import org.apache.jena.reasoner.rulesys.builtins.BaseBuiltin;
+import org.apache.jena.graph.*;
 
 /**
  * Bind the third arg to the value of first arg to the power of the second arg.

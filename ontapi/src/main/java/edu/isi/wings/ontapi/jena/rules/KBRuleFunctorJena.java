@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import edu.isi.wings.ontapi.rules.KBRuleFunctor;
 import edu.isi.wings.ontapi.rules.KBRuleObject;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.reasoner.rulesys.Functor;
+import org.apache.jena.graph.Node;
+import org.apache.jena.reasoner.rulesys.Functor;
 
 public class KBRuleFunctorJena implements KBRuleFunctor {
 	transient Functor functor;

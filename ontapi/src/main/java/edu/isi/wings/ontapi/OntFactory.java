@@ -17,10 +17,10 @@
 
 package edu.isi.wings.ontapi;
 
-import com.hp.hpl.jena.ontology.OntDocumentManager;
-import com.hp.hpl.jena.reasoner.rulesys.BuiltinRegistry;
-import com.hp.hpl.jena.util.FileManager;
-import com.hp.hpl.jena.util.LocationMapper;
+import org.apache.jena.ontology.OntDocumentManager;
+import org.apache.jena.reasoner.rulesys.BuiltinRegistry;
+import org.apache.jena.util.FileManager;
+import org.apache.jena.util.LocationMapper;
 
 import java.io.InputStream;
 

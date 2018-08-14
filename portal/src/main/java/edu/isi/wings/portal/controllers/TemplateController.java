@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.apache.jena.util.FileUtils;
+
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
@@ -48,8 +50,6 @@ import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 import edu.isi.wings.workflow.template.classes.variables.VariableType;
-
-import org.mindswap.pellet.utils.FileUtils;
 
 import com.google.gson.Gson;
 
@@ -194,7 +194,7 @@ public class TemplateController {
 	  try {
       String beamerDir = 
           config.getDomain().getDomainDirectory() + File.separator + "beamer";
-      return FileUtils.readFile(beamerDir + File.separator + "paraphrases.json");
+      return FileUtils.readWholeFileAsUTF8(beamerDir + File.separator + "paraphrases.json");
 	  }
 	  catch (Exception e) {
 	    //e.printStackTrace();
@@ -206,7 +206,7 @@ public class TemplateController {
 	  try {
 	    String beamerDir = 
 	        config.getDomain().getDomainDirectory() + File.separator + "beamer";
-	    return FileUtils.readFile(beamerDir + File.separator + "mappings.json");
+	    return FileUtils.readWholeFileAsUTF8(beamerDir + File.separator + "mappings.json");
 	  }
 	  catch (Exception e) {
 	    //e.printStackTrace();

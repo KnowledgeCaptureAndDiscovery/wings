@@ -28,7 +28,7 @@ import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.template.api.Template;
 import org.junit.Assert;
 
-import com.hp.hpl.jena.util.FileUtils;
+import org.apache.jena.util.FileUtils;
 
 public class AWGUtil {
 	private static String DOMAINS_PATH = "/domains/";

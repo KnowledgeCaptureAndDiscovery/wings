@@ -23,11 +23,11 @@ package edu.isi.wings.ontapi.jena.extrules.date;
 
 import java.util.Calendar;
 
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.reasoner.rulesys.builtins.BaseBuiltin;
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
-import com.hp.hpl.jena.graph.*;
+import org.apache.jena.reasoner.rulesys.*;
+import org.apache.jena.reasoner.rulesys.builtins.BaseBuiltin;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.graph.*;
 
 /**
  * Bind the third arg to the value of first arg to the power of the second arg.

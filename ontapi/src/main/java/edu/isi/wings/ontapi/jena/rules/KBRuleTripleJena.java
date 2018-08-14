@@ -20,7 +20,7 @@ package edu.isi.wings.ontapi.jena.rules;
 import edu.isi.wings.ontapi.rules.KBRuleObject;
 import edu.isi.wings.ontapi.rules.KBRuleTriple;
 
-import com.hp.hpl.jena.reasoner.TriplePattern;
+import org.apache.jena.reasoner.TriplePattern;
 
 public class KBRuleTripleJena implements KBRuleTriple {
 	transient TriplePattern triple;

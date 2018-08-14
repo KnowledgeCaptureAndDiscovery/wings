@@ -21,7 +21,7 @@ import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.ontapi.jena.KBObjectJena;
 import edu.isi.wings.ontapi.rules.KBRuleObject;
 
-import com.hp.hpl.jena.graph.Node;
+import org.apache.jena.graph.Node;
 
 public class KBRuleObjectJena implements KBRuleObject {
 	transient Node node;
