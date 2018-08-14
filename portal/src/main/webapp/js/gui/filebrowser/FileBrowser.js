@@ -106,7 +106,7 @@ Ext.define('Wings.fb.FileBrowser',{
         var path = this.up('filebrowser').getPath(selectedItem);
         var cid = this.cid;
 
-        var tabId = 'tab-'+path;
+        var tabId = this.cname+'-tab-'+path;
         tabId = tabId.replace(/[ \/\.]/g,'-');
         var tab = tabs.getComponent(tabId);
         if(!tab){
