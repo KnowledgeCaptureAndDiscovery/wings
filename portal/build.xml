@@ -5,7 +5,7 @@
 
 	<property name="ext.version" value="4.2.1"/>
 	<property name="ext.relnum" value="883"/>
-	<property name="plupload.version" value="2.0.0"/>
+	<property name="plupload.version" value="2.3.6"/>
 
 	<target name="check-libs">
 		<available file="${jslib.dir}/extjs" property="extjs.found"/>
@@ -31,7 +31,7 @@
 
 	<target name="download_plupload" depends="check-libs" unless="plupload.found">
 		<mkdir dir="${temp.dir}"/>
-		<get src="https://github.com/moxiecode/plupload/archive/v${plupload.version}.zip" dest="${temp.dir}/plupload.zip"/>
+		<get src="https://codeload.github.com/moxiecode/plupload/zip/v${plupload.version}" dest="${temp.dir}/plupload.zip"/>
 		<unzip src="${temp.dir}/plupload.zip" dest="${temp.dir}"/>
 		<move file="${temp.dir}/plupload-${plupload.version}" tofile="${temp.dir}/plupload"/>
 		<copy file="${temp.dir}/plupload/js/plupload.full.min.js" tofile="${jslib.dir}/plupload/plupload.full.min.js"/>
