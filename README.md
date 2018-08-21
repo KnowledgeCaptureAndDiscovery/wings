@@ -1,6 +1,6 @@
  [![Build Status](https://travis-ci.org/KnowledgeCaptureAndDiscovery/wings.svg?branch=master)](https://travis-ci.org/KnowledgeCaptureAndDiscovery/wings)
 
-Wings 4.0-SNAPSHOT
+Wings 4.1-SNAPSHOT
 ==================
 
 Requirements
