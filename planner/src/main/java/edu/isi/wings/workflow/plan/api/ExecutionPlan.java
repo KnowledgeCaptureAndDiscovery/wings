@@ -19,7 +19,9 @@ package edu.isi.wings.workflow.plan.api;
 
 import java.util.ArrayList;
 
-public interface ExecutionPlan {
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+
+public interface ExecutionPlan extends TransactionsAPI {
 	
 	// ID functions
 	public void setID(String id);

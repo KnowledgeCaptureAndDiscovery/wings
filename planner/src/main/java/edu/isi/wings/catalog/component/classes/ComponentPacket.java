@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import edu.isi.wings.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.workflow.template.classes.Role;
 import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.*;

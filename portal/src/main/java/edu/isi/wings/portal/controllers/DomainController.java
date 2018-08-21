@@ -250,7 +250,6 @@ public class DomainController {
 			
 			ProvenanceAPI prov = ProvenanceFactory.getAPI(config.getProperties());
 			prov.removeAllDomainProvenance(dom.getDomainUrl());
-			prov.save();
 		}
 		if(this.saveUserConfig(this.userConfigFile))
 			return true;
@@ -272,7 +271,6 @@ public class DomainController {
 			
 			ProvenanceAPI prov = ProvenanceFactory.getAPI(config.getProperties());
 			prov.renameAllDomainProvenance(dom.getDomainUrl(), newdom.getDomainUrl());
-			prov.save();
 		}
 		if(this.saveUserConfig(this.userConfigFile))
 			return true;

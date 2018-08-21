@@ -11,16 +11,17 @@
 	<parent>
 		<groupId>edu.isi.wings</groupId>
 		<artifactId>wings-core</artifactId>
-		<version>4.0-SNAPSHOT</version>
+		<version>4.1-SNAPSHOT</version>
 		<relativePath>../core/pom.xml</relativePath>
 	</parent>
 
 	<properties>
 		<jsch.version>0.1.53</jsch.version>
+		<ontapi.version>1.0-SNAPSHOT</ontapi.version>
 		<nanocloud.version>0.8.11</nanocloud.version>
 		<gson.version>2.2.4</gson.version>
 		<junit.version>4.5</junit.version>
-		<log4j.version>1.2.14</log4j.version>
+		<slf4j-log4j.version>1.7.25</slf4j-log4j.version>
 		<jaxb.version>2.3.0</jaxb.version>
         <derby.version>10.10.1.1</derby.version>
 		<commons-io.version>2.4</commons-io.version>
@@ -29,6 +30,8 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
 	</properties>
 
 	<build>
@@ -54,9 +57,9 @@
 
 		<!-- log4j -->
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j-log4j.version}</version>
 		</dependency>
 
 		<!-- JAX XML Bind -->
@@ -68,9 +71,9 @@
 		
 		<!-- ontapi -->
 		<dependency>
-			<groupId>edu.isi.wings</groupId>
-			<artifactId>wings-ontapi</artifactId>
-			<version>${project.version}</version>
+			<groupId>edu.isi.kcap</groupId>
+			<artifactId>ontapi</artifactId>
+			<version>${ontapi.version}</version>
 		</dependency>
 
 		<!-- google gson -->

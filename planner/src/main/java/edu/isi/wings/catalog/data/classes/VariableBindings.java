@@ -19,7 +19,7 @@ package edu.isi.wings.catalog.data.classes;
 
 import java.util.ArrayList;
 
-import edu.isi.wings.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBObject;
 
 public class VariableBindings {
 

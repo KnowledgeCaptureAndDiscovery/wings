@@ -20,6 +20,7 @@ package edu.isi.wings.catalog.data.api;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
 import edu.isi.wings.catalog.data.classes.DataTree;
 import edu.isi.wings.catalog.data.classes.MetadataProperty;
@@ -29,7 +30,7 @@ import edu.isi.wings.catalog.data.classes.MetadataValue;
  * The interface used by data catalog viewers to query the data. Read/Only
  * access
  */
-public interface DataCreationAPI {
+public interface DataCreationAPI extends TransactionsAPI {
 	// Query
 	DataTree getDataHierarchy(); // Tree List of Data and Datatypes
 	
@@ -98,13 +99,20 @@ public interface DataCreationAPI {
 
 	boolean renameMetadataProperty(String oldid, String newid);
 
+	// Some Library specific writer functions separated out due to concurrency issues
+  boolean moveDatatypeParentInLibrary(String dtypeid, String fromtypeid, String totypeid);
+
+  boolean renameDatatypeInLibrary(String newtypeid, String oldtypeid);
+
+  boolean removeMetadataPropertyInLibrary(String propid);
+
+  boolean renamePropertyInLibrary(String oldid, String newid);
+  
 	// Sync/Save
 	boolean save();
 	
-	void end();
-	
-	void delete();
-	
+	boolean delete();
+
 	// Copy from another API (Advisable to give the same implementation of the API here)
 	void copyFrom(DataCreationAPI dc);
 
@@ -112,4 +120,5 @@ public interface DataCreationAPI {
 	DataCreationAPI getExternalCatalog();
 	
 	void setExternalCatalog(DataCreationAPI dc);
+
 }

@@ -303,6 +303,7 @@ DomainViewer.prototype.importDomain = function(domname, loc) {
         		 var ret = Ext.decode(response.responseText);
         		 if(!ret.error && ret.name) {
         			 This.domainsGrid.getStore().add(ret);
+        			 window.location.reload();
         		 }
         		 else {
         			 _console(ret);
@@ -368,6 +369,7 @@ DomainViewer.prototype.deleteDomain = function(domname) {
 			 if (response.responseText == "OK") {
 				var rec = This.domainsGrid.getStore().findExact('name', domname);
 				This.domainsGrid.getStore().removeAt(rec);
+				window.location.reload();
 			 } else {
 				_console(response.responseText);
 			 }

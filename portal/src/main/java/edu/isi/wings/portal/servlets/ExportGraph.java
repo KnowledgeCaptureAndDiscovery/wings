@@ -27,9 +27,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
 import edu.isi.wings.portal.classes.config.Config;
 
 /**
@@ -64,15 +64,20 @@ public class ExportGraph extends HttpServlet {
 		try {
 		  Pattern complibpat = Pattern.compile(".+\\/components\\/(.+)\\.owl");
 			KBAPI kb = tdbfac.getKB(uri, OntSpec.PLAIN);
+			
 			Matcher mat = complibpat.matcher(uri);
 			if(mat.find()) {
 			  String abslib = "abstract";
 			  String complib = mat.group(1);
 			  if(!complib.equals(abslib)) {
 			    String absuri = uri.replace(complib, abslib);
+			    tdbfac.start_write_transaction();
 			    kb.copyFrom(tdbfac.getKB(absuri, OntSpec.PLAIN));
+			    tdbfac.end_transaction();
 			  }
 			}
+			
+	    tdbfac.start_read_transaction();
 			if(kb.getAllTriples().size() > 0) {
 				response.setContentType("application/rdf+xml");
 				if(format != null) {
@@ -84,6 +89,7 @@ public class ExportGraph extends HttpServlet {
 				else
 				  out.println(kb.toAbbrevRdf(true));
 			}
+			tdbfac.end_transaction();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

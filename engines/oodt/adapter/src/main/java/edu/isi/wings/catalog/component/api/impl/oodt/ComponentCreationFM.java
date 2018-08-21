@@ -48,7 +48,7 @@ import edu.isi.wings.catalog.component.classes.ComponentTree;
 import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.common.URIEntity;
-import edu.isi.wings.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.wings.util.oodt.CurationServiceAPI;
 
 public class ComponentCreationFM implements ComponentCreationAPI {

@@ -19,6 +19,7 @@ package edu.isi.wings.planner.api;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
@@ -27,7 +28,7 @@ import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.template.api.Seed;
 import edu.isi.wings.workflow.template.api.Template;
 
-public interface WorkflowGenerationAPI {
+public interface WorkflowGenerationAPI extends TransactionsAPI {
 
 	public void useDataService(DataReasoningAPI dc);
 
@@ -54,5 +55,4 @@ public interface WorkflowGenerationAPI {
 	public ArrayList<String> getExplanations();
 	
 	public ExecutionPlan getExecutionPlan(Template template);
-	
 }

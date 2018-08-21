@@ -27,6 +27,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.SparqlQuery;
+import edu.isi.kcap.ontapi.SparqlQuerySolution;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
@@ -34,10 +39,6 @@ import edu.isi.wings.catalog.data.classes.metrics.Metric;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.common.logging.LoggerHelper;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.SparqlQuery;
-import edu.isi.wings.ontapi.SparqlQuerySolution;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class DataReasoningKB extends DataKB implements DataReasoningAPI {
@@ -93,6 +94,9 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 		HashMap<String, KBObject> variableMap = sq.getVariableMap();
 		String query = sq.getQuery();
 
+		this.start_read();
+		boolean batchok = this.start_batch_operation();
+		
 		//System.out.println(query);
 		ArrayList<ArrayList<SparqlQuerySolution>> queryResults = kb.sparqlQuery(query);
 		for (ArrayList<SparqlQuerySolution> queryResult : queryResults) {
@@ -111,6 +115,10 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 			String returnString = LoggerHelper.getReturnString("<findDataSources> q3.1", result);
 			logger.debug(returnString);
 		}
+		if(batchok)
+		  this.stop_batch_operation();
+		this.end();
+		
 		return result;
 	}
 
@@ -136,6 +144,9 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 
 		Metrics result = new Metrics();
 
+		this.start_read();
+		boolean batchok = this.start_batch_operation();
+		
 		KBObject dataObject = this.dataObjectForDataObjectNameOrId(dataObjectId);
 		if(dataObject == null)
 		  return result;
@@ -165,9 +176,14 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 					"<findDataMetricsForDataObject> q4.1", "<some xml>");
 			logger.debug(resultValue);
 		}
+		
+		if(batchok)
+		  this.stop_batch_operation();
+		this.end();
+		
 		return result;
 	}
-
+	  
 	 /**
    * Given dataObjectId this function Fetches Metrics from the .met file
    * 
@@ -177,6 +193,9 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
    */
   @Override
   public Metrics fetchDataMetricsForDataObject(String dataObjectId) {
+    this.start_read();
+    boolean batchok = this.start_batch_operation();
+    
     Metrics metrics = new Metrics();
     ExecutionFile file = new ExecutionFile(dataObjectId);
     String loc = this.getDataLocation(dataObjectId);
@@ -201,6 +220,11 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
         }
       }
     }
+    
+    if(batchok)
+      this.stop_batch_operation();
+    this.end();
+    
     return metrics;
   }
 	/**
@@ -208,11 +232,17 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 	 * Check if first class subsumes the second class
 	 */
 	public boolean checkDatatypeSubsumption(String subsumer, String subsumee) {
-		KBObject class1 = kb.getConcept(subsumer);
-		KBObject class2 = kb.getConcept(subsumee);
-		if (kb.hasSubClass(class1, class2))
-			return true;
-		return false;
+	  try {
+  	  this.start_read();
+  		KBObject class1 = kb.getConcept(subsumer);
+  		KBObject class2 = kb.getConcept(subsumee);
+  		if (kb.hasSubClass(class1, class2))
+  			return true;
+  		return false;
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	/**

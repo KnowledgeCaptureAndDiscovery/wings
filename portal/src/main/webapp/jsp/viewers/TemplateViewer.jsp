@@ -32,10 +32,11 @@ String provApi = tc.config.getCommunityPath() + "/provenance";
 String thisApi = tc.config.getScriptPath();
 
 String components = tc.json.toJson(tc.cc.getComponentHierarchy(editor).getRoot());
-String propVals = tc.json.toJson(tc.getConstraintProperties());
 String dataTree = editor ? tc.json.toJson(tc.dc.getDatatypeHierarchy().getRoot()) : null;
 String beamerParas = tellme ? tc.getBeamerParaphrasesJSON() : null;
 String beamerMaps = tellme ? tc.getBeamerMappingsJSON() : null;
+String propVals = tc.json.toJson(tc.getConstraintProperties());
+
 
 String template_id = null;
 if(template_name != null)

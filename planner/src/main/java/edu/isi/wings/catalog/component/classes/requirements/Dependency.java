@@ -19,8 +19,8 @@ package edu.isi.wings.catalog.component.classes.requirements;
 
 import java.util.ArrayList;
 
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
 
 public class Dependency {
   public static enum Operator {

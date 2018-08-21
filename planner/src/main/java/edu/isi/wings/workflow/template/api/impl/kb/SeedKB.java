@@ -20,9 +20,9 @@ package edu.isi.wings.workflow.template.api.impl.kb;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntSpec;
 import edu.isi.wings.workflow.template.api.ConstraintEngine;
 import edu.isi.wings.workflow.template.api.Seed;
 import edu.isi.wings.workflow.template.classes.Metadata;
@@ -48,7 +48,7 @@ public class SeedKB extends TemplateKB implements Seed {
 		super(seedid);
 		this.props = props;
 		super.initVariables(props);
-		super.initializeKB(props);
+		super.initializeKB(props, true);
 
 		this.templateURL = this.findTemplateUrl();
 		try {

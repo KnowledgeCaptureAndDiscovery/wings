@@ -75,119 +75,27 @@ public class TemplateController {
 		dc = DataFactory.getCreationAPI(props);
 		prov = ProvenanceFactory.getAPI(props);
 	}
-
-	/*public void show(PrintWriter out, HashMap<String, Boolean> options, String tid, boolean editor, boolean tellme) {
-		try {
-			// Get Hierarchy
-			String tree = this.getTemplatesListJSON();
-			String optionstr = json.toJson(options);
-			
-			HTMLLoader.printHeader(out);
-			out.println("<head>");
-			out.println("<title>Template "+(editor ? "Editor" : "Browser")+"</title>");
-			JSLoader.loadConfigurationJS(out, config);
-			CSSLoader.loadTemplateViewer(out, config.getContextRootPath());
-			JSLoader.loadTemplateViewer(out, config.getContextRootPath(), tellme);
-			out.println("</head>");
-	
-			out.println("<script>");
-			out.println("var opts = "+optionstr+";");
-			out.println("var tBrowser_" + guid + ";");
-			
-			// FIXME: Propvals issue: 
-			// - Add propval values -- get values via an ajax call ?
-			out.println("Ext.onReady(function() {"
-					+ "tBrowser_" + guid + " = new TemplateBrowser('" + guid + "', opts, { "
-							+ "tree: " + tree
-							+ ", components: { tree: " + json.toJson(cc.getComponentHierarchy(editor).getRoot()) + "}"
-							+ (editor ? ", propvals: "+ json.toJson(this.getConstraintProperties()) : "") 
-							+ (editor ? ", data: { tree: " + json.toJson(dc.getDatatypeHierarchy().getRoot()) + "}" : "")
-							+ (tellme ? ", beamer_paraphrases: " + this.getBeamerParaphrasesJSON() : "")
-							+ (tellme ? ", beamer_mappings: " + this.getBeamerMappingsJSON() : "")
-					+ " }, "
-					+ editor + ", "
-					+ tellme + ", "
-					+ "'" + this.thisScript + "', "
-					+ "'" + this.planScript + "', "
-					+ "'" + this.runScript + "', "
-					+ "'" + this.runScript + "', "
-					+ "'" + this.provScript + "', "
-					+ "'" + this.wliburl + "', "
-					+ "'" + this.dcdomns + "', "
-					+ "'" + this.dclibns + "', "
-					+ "'" + this.pcdomns + "', "
-					+ "'" + this.wflowns + "', "
-					+ config.isLightReasoner()				
-					+ ");\n"
-					+ "tBrowser_" + guid + ".initialize(" 
-					+ (tid != null ? "'"+tid+"'" : "")
-					+ ");\n"
-					+ "});");
-			
-			out.println("</script>");
-	
-			HTMLLoader.printFooter(out);
-		}
-		finally {
-			dc.end();
-			cc.end();
-			tc.end();
-			prov.end();
-		}
-	}*/
 	
 	public String getViewerJSON(String tplid) {
-		Template tpl = null;
-		try {
-			tpl = this.tc.getTemplate(tplid);
-			HashMap<String, Object> extra = new HashMap<String, Object>();
-			extra.put("inputs",  this.getTemplateInputs(tpl, true));
-			return JsonHandler.getTemplateJSON(json, tpl, extra);
-		}
-		finally {
-			if(tpl != null)
-				tpl.end();
-			dc.end();
-			cc.end();
-			tc.end();
-			prov.end();
-		}
+		Template tpl = this.tc.getTemplate(tplid);
+		HashMap<String, Object> extra = new HashMap<String, Object>();
+		extra.put("inputs",  this.getTemplateInputs(tpl, true));
+		
+		return JsonHandler.getTemplateJSON(json, tpl, extra);
 	}
 	
 	public String getTemplatesListJSON() {
-	  return json.toJson(tc.getTemplateList());	  
+	  return json.toJson(tc.getTemplateList());
 	}
 	
   public String getInputsJSON(String tplid) {
-    Template tpl = null;
-    try {
-      tpl = this.tc.getTemplate(tplid);
-      return json.toJson(this.getTemplateInputs(tpl, false));
-    }
-    finally {
-      if(tpl != null)
-        tpl.end();
-      dc.end();
-      cc.end();
-      tc.end();
-      prov.end();
-    }
+    Template tpl = this.tc.getTemplate(tplid);
+    return json.toJson(this.getTemplateInputs(tpl, false));
   }	
 	
 	public String getEditorJSON(String tplid) {
-		Template tpl = null;
-		try {
-			tpl = this.tc.getTemplate(tplid);
-			return JsonHandler.getTemplateJSON(json, tpl, null);
-		}
-		finally {
-			if(tpl != null)
-				tpl.end();
-			dc.end();
-			cc.end();
-			tc.end();
-			prov.end();
-		}
+		Template tpl = this.tc.getTemplate(tplid);
+		return JsonHandler.getTemplateJSON(json, tpl, null);
 	}
 	
 	public String getBeamerParaphrasesJSON() {
@@ -215,96 +123,71 @@ public class TemplateController {
 	}
 	
 	public synchronized String saveTemplateJSON(String tplid, String templatejson, String consjson) {
-		Template tpl = null;
-		try {
-			String provlog = "Updating template";
-			Provenance p = new Provenance(tplid);
-			p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+		String provlog = "Updating template";
+		Provenance p = new Provenance(tplid);
+		p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
 
-			tpl = JsonHandler.getTemplateFromJSON(this.json, templatejson, consjson);
+		Template tpl = JsonHandler.getTemplateFromJSON(this.json, templatejson, consjson);
 
-			if(!tpl.getMetadata().getContributors().contains(this.config.getUserId()))
-				tpl.getMetadata().addContributor(this.config.getUserId());
+		if(!tpl.getMetadata().getContributors().contains(this.config.getUserId()))
+			tpl.getMetadata().addContributor(this.config.getUserId());
 
-			if(tpl != null) {
-				boolean ok = false;
-				if(tplid.equals(tpl.getID()))
-					ok = this.tc.saveTemplate(tpl);
-				else
-					ok = this.tc.saveTemplateAs(tpl, tplid);
-				if(ok && prov.addProvenance(p) && prov.save()) 
-					return "OK";
+		if(tpl != null) {
+			boolean ok = false;
+			if(tplid.equals(tpl.getID())) {
+				ok = 
+				    tpl.save() &&
+				    this.tc.registerTemplate(tpl);
 			}
-			return "";
+			else {
+				ok = 
+				    tpl.saveAs(tplid);
+				    this.tc.registerTemplateAs(tpl, tplid);
+			}
+
+			if(ok && 
+			    prov.addProvenance(p)) 
+				return "OK";
 		}
-		finally {
-			if(tpl != null)
-				tpl.end();
-			dc.end();
-			cc.end();
-			tc.end();
-			prov.end();
-		}
+		return "";
 	}
 	
 	public synchronized String deleteTemplate(String tplid) {
-		Template tpl = null;
-		try {
-			tpl = this.tc.getTemplate(tplid);
-			if(tpl != null) {
-				if(this.tc.removeTemplate(tpl) 
-				    && prov.removeAllProvenance(tplid) && prov.save())
-					return "OK";
+		Template tpl = this.tc.getTemplate(tplid);
+		if(tpl != null) {
+			if(
+			    tpl.delete() &&
+			    this.tc.deregisterTemplate(tpl) &&
+			    prov.removeAllProvenance(tplid)) {
+			  return "OK";
 			}
-			return "";
 		}
-		finally {
-			if(tpl != null)
-				tpl.end();
-			dc.end();
-			cc.end();
-			tc.end();
-			prov.end();
-		}
+		return "";
 	}
 	
 	public synchronized String newTemplate(String tplid) {
-		Template tpl = null;
-		try {
-      String provlog = "Creating new template";
-      Provenance p = new Provenance(tplid);
-      p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
-			tpl = this.tc.createTemplate(tplid);
-			if(tpl != null) {
-				if(this.tc.saveTemplate(tpl) 
-				    && prov.addProvenance(p) && prov.save())
-					return "OK";
-			}
-			return "";
+		Template tpl = this.tc.createTemplate(tplid);
+	
+    String provlog = "Creating new template";
+    Provenance p = new Provenance(tplid);
+    p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+
+		if(tpl != null) {
+      if(
+          tpl.saveAs(tpl.getID()) &&
+          this.tc.registerTemplate(tpl) &&
+          prov.addProvenance(p)) {
+        return "OK";
+      }
 		}
-		finally {
-			if(tpl != null)
-				tpl.end();
-			dc.end();
-			cc.end();
-			tc.end();
-			prov.end();
-		}
+		return "";
 	}
 	
 	public String layoutTemplate(String tjson, String dotexe) 
 	    throws IOException {
-	  try {
-	    Template tpl = JsonHandler.getTemplateFromJSON(this.json, tjson, "[]");
-	    tpl.autoLayout();
-	    return JsonHandler.getTemplateJSON(this.json, tpl, null);
-    }
-    finally {
-      dc.end();
-      cc.end();
-      tc.end();
-      prov.end();
-    }
+	  Template tpl = JsonHandler.getTemplateFromJSON(this.json, tjson, "[]");
+    tpl.autoLayout();
+    return JsonHandler.getTemplateJSON(this.json, tpl, null);
 	}
 	
 	private ArrayList<Object> getTemplateInputs(Template tpl, boolean dataoptions) {
@@ -383,6 +266,7 @@ public class TemplateController {
 				vardata.put("dtype", roletypeid);
 				vardata.put("binding", (varbinding != null ? varbinding.getValue() : ""));
 			}
+			
 			returnList.add(vardata);
 		}
 		return returnList;

@@ -21,6 +21,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentTree;
@@ -34,18 +40,11 @@ import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareEnvironment;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 
-public class ResourceKB implements ResourceAPI {
+public class ResourceKB extends TransactionsJena implements ResourceAPI {
 
   public String onturl, liburl;
   private String tdbRepository;
-
-  private OntFactory ontologyFactory;
 
   private KBAPI ontkb, libkb;
   
@@ -78,9 +77,11 @@ public class ResourceKB implements ResourceAPI {
     try {
       this.ontkb = this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, false, true);
       this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
+      
       this.initializeMaps();
       this.initializeLibrary();
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
     }
   }
@@ -88,6 +89,8 @@ public class ResourceKB implements ResourceAPI {
   private void initializeMaps() {
     this.pmap = new HashMap<String, KBObject>();
     this.cmap = new HashMap<String, KBObject>();
+    
+    this.start_read();
     for (KBObject prop : this.ontkb.getAllObjectProperties()) {
       this.pmap.put(prop.getName(), prop);
     }
@@ -99,74 +102,96 @@ public class ResourceKB implements ResourceAPI {
       if(!cls.isAnonymous())
         this.cmap.put(cls.getName(), cls);
     }
+    this.end();
   }
   
   private void initializeLibrary() {
+    this.start_write();
+    this.start_batch_operation();
     Machine m = this.getMachine(this.localhost);
+    boolean ok = false;
     if(m == null) {
       m = new Machine(this.localhost);
       m.setHealthy(true);
       m.setHostName("Localhost");
       m.setHostIP("127.0.0.1");
-      if(this.addMachine(this.localhost) && this.saveMachine(m))
-        this.save();
+      ok = this.addMachine(this.localhost) && 
+          this.saveMachine(m);
     }
     else if(!m.isHealthy()) {
       m.setHealthy(true);
-      if(this.saveMachine(m))
-        this.save();
+      ok = this.saveMachine(m);
     }
+    this.stop_batch_operation();
+    if(ok)
+      this.save();
+    this.end();
   }
   
   private ArrayList<KBObject> getInstancesOfClass(KBObject cls, KBAPI kb) {
+    this.start_read();
     ArrayList<KBObject> insts = new ArrayList<KBObject>();
     for (KBTriple triple : kb.genericTripleQuery(null, this.pmap.get("type"), cls))
       insts.add(triple.getSubject());
+    this.end();
     return insts;
   }
   
   @Override
   public ArrayList<String> getMachineIds() {
+    this.start_read();
     ArrayList<String> machineIds = new ArrayList<String>();
     for (KBObject mobj : this.getInstancesOfClass(this.cmap.get("Machine"), this.libkb))
       machineIds.add(mobj.getID());
+    this.end();
     return machineIds;
   }
 
   @Override
   public ArrayList<String> getSoftwareIds() {
+    this.start_read();
     ArrayList<String> softwareIds = new ArrayList<String>();
     for (KBObject swobj : this.getInstancesOfClass(this.cmap.get("SoftwareGroup"), this.libkb))
       softwareIds.add(swobj.getID());
+    this.end();
     return softwareIds;
   }
 
   @Override
   public ArrayList<String> getSoftwareVersionIds(String softwareid) {
+    this.start_read();
     ArrayList<String> versionIds = new ArrayList<String>();
     KBObject swobj = this.libkb.getIndividual(softwareid);
     for (KBTriple vtriple : this.libkb.genericTripleQuery(null,
         this.pmap.get("hasSoftwareGroup"), swobj))
       versionIds.add(vtriple.getSubject().getID());
+    this.end();
     return versionIds;
   }
 
   @Override
   public boolean addMachine(String machineid) {
+    this.start_write();
     KBObject obj = this.libkb.createObjectOfClass(machineid,
         this.cmap.get("Machine"));
+    this.save();
+    this.end();
     return (obj != null);
   }
 
   @Override
   public boolean addSoftware(String softwareid) {
+    this.start_write();
     KBObject obj = this.libkb.createObjectOfClass(softwareid,
         this.cmap.get("SoftwareGroup"));
+    this.save();
+    this.end();
     return (obj != null);
   }
 
   @Override
   public boolean addSoftwareVersion(String versionid, String softwareid) {
+    this.start_write();
     KBObject obj = this.libkb.createObjectOfClass(versionid,
         this.cmap.get("SoftwareVersion"));
     if (obj == null)
@@ -175,11 +200,14 @@ public class ResourceKB implements ResourceAPI {
     if (swobj == null)
       return false;
     this.libkb.setPropertyValue(obj, this.pmap.get("hasSoftwareGroup"), swobj);
-    return true;
+    return this.save() && this.end();
   }
 
   @Override
   public boolean removeMachine(String machineid) {
+    this.start_write();
+    boolean batched = this.start_batch_operation();
+
     Machine m = this.getMachine(machineid);
     KBObject mobj = this.libkb.getIndividual(machineid);
     if(mobj == null)
@@ -192,11 +220,17 @@ public class ResourceKB implements ResourceAPI {
     }
     KBUtils.removeAllTriplesWith(this.libkb, machineid, false);
     GridkitCloud.resetNode(m);
-    return true;
+    
+    if(batched)
+      this.stop_batch_operation();
+    return this.save() && this.end();
   }
 
   @Override
   public boolean removeSoftware(String softwareid) {
+    this.start_write();
+    boolean batched = this.start_batch_operation();
+    
     Software sw = this.getSoftware(softwareid);
     
     // Remove environment variables
@@ -215,17 +249,22 @@ public class ResourceKB implements ResourceAPI {
     
     // Remove software
     KBUtils.removeAllTriplesWith(this.libkb, softwareid, false);
-    return true;
+    
+    if(batched)
+      this.stop_batch_operation();
+    return this.save() && this.end();
   }
 
   @Override
   public boolean removeSoftwareVersion(String versionid) {
+    this.start_write();
     KBUtils.removeAllTriplesWith(this.libkb, versionid, false);
-    return true;
+    return this.save() && this.end();
   }
 
   @Override
   public Machine getMachine(String machineid) {
+    this.start_read();
     Machine machine = new Machine(machineid);
     KBObject mobj = this.libkb.getIndividual(machineid);
     if(mobj == null)
@@ -295,11 +334,15 @@ public class ResourceKB implements ResourceAPI {
         machine.addEnvironmentValues(eval);
       }
     }
+    this.end();
     return machine;
   }
 
   @Override
   public Software getSoftware(String softwareid) {
+    this.start_read();
+    boolean batch = this.start_batch_operation();
+    
     Software software = new Software(softwareid);
     KBObject mobj = this.libkb.getIndividual(softwareid);
     if(mobj == null)
@@ -316,19 +359,34 @@ public class ResourceKB implements ResourceAPI {
     for(String versionid : this.getSoftwareVersionIds(softwareid)) {
       software.addVersion(this.getSoftwareVersion(versionid));
     }
+    
+    if(batch)
+      this.stop_batch_operation();
+    this.end();
+    
     return software;
   }
 
   @Override 
   public ArrayList<SoftwareVersion> getAllSoftwareVersions() {
+    this.start_read();
+    boolean batched = this.start_batch_operation();
     ArrayList<SoftwareVersion> versions = new ArrayList<SoftwareVersion>();
     for (KBObject verobj : this.getInstancesOfClass(this.cmap.get("SoftwareVersion"), this.libkb))
       versions.add(this.getSoftwareVersion(verobj.getID()));
+    
+    if(batched)
+      this.stop_batch_operation();
+    this.end();
+    
     return versions;
   }
   
   @Override 
   public ArrayList<SoftwareEnvironment> getAllSoftwareEnvironment() {
+    this.start_read();
+    boolean batched = this.start_batch_operation();
+    
     ArrayList<SoftwareEnvironment> environment = 
         new ArrayList<SoftwareEnvironment>();
     for (KBObject swobj : this.getInstancesOfClass(this.cmap.get("SoftwareGroup"), this.libkb)) {
@@ -343,11 +401,18 @@ public class ResourceKB implements ResourceAPI {
           }
         };
     }
+    if(batched)
+      this.stop_batch_operation();
+    
+    this.end();
+    
     return environment;
   }
   
   @Override
   public SoftwareVersion getSoftwareVersion(String versionid) {
+    this.start_read();
+    
     SoftwareVersion version = new SoftwareVersion(versionid);
     KBObject mobj = this.libkb.getIndividual(versionid);
     if(mobj == null)
@@ -365,6 +430,9 @@ public class ResourceKB implements ResourceAPI {
       version.setVersionText((String)vertext.getValue());
     if(group != null)
       version.setSoftwareGroupId(group.getID());
+    
+    this.end();
+    
     return version;
   }
 
@@ -434,6 +502,9 @@ public class ResourceKB implements ResourceAPI {
   
   @Override
   public boolean saveMachine(Machine machine) {
+    this.start_write();
+    boolean batched = this.start_batch_operation();
+    
     KBObject mobj = this.libkb.getIndividual(machine.getID());
     if(mobj == null)
       return false;
@@ -484,11 +555,17 @@ public class ResourceKB implements ResourceAPI {
         this.libkb.addPropertyValue(mobj, pmap.get("hasEnvironment"), eobj);
       }
     }
-    return true;
+    if(batched)
+      this.stop_batch_operation();
+    
+    return this.save() && this.end();
   }
 
   @Override
   public boolean saveSoftware(Software software) {
+    this.start_write();
+    boolean batched = this.start_batch_operation();
+    
     KBObject mobj = this.libkb.getIndividual(software.getID());
     if(mobj == null)
       return false;
@@ -546,11 +623,16 @@ public class ResourceKB implements ResourceAPI {
           this.libkb.createLiteral(evar));
     }
     
-    return true;
+    if(batched)
+      this.stop_batch_operation();
+    
+    return this.save() && this.end();
   }
 
   @Override
   public boolean saveSoftwareVersion(SoftwareVersion version) {
+    this.start_write();
+    
     KBObject mobj = this.libkb.getIndividual(version.getID());
     if(mobj == null)
       return false;
@@ -559,7 +641,8 @@ public class ResourceKB implements ResourceAPI {
         this.libkb.createLiteral(version.getVersionNumber()));
     this.libkb.setPropertyValue(mobj, pmap.get("hasVersionText"), 
         this.libkb.createLiteral(version.getVersionText()));
-    return true;
+    
+    return this.save() && this.end();
   }
 
   @Override
@@ -569,7 +652,12 @@ public class ResourceKB implements ResourceAPI {
   
   public void copyFrom(ResourceAPI rc, ComponentCreationAPI cc) {
     HashMap<String, SoftwareVersion> sws = new HashMap<String, SoftwareVersion>();
+    
+    this.start_write();
+    boolean batched = this.start_batch_operation();
+    
     ComponentTree tree = cc.getComponentHierarchy(true);
+    
     ArrayList<ComponentTreeNode> nodes = new ArrayList<ComponentTreeNode>();
     nodes.add(tree.getRoot());
     while(!nodes.isEmpty()) {
@@ -605,27 +693,26 @@ public class ResourceKB implements ResourceAPI {
         this.saveSoftware(mysw);
       }
     } 
+    if(batched)
+      this.stop_batch_operation();
+    
     this.save();
+    this.end();
   }
   
   @Override
   public boolean save() {
     if (this.libkb != null)
-      return this.libkb.save();
+      return this.save(this.libkb);
     return false;
   }
 
   @Override
-  public void end() {
-    if (this.ontkb != null)
-      this.ontkb.end();
-    if (this.libkb != null)
-      this.libkb.end();
-  }
-
-  @Override
-  public void delete() {
-    if (this.libkb != null)
-      this.libkb.delete();
+  public boolean delete() {
+    return 
+        this.start_write() &&
+        this.libkb.delete() &&
+        this.save() &&
+        this.end();
   }
 }

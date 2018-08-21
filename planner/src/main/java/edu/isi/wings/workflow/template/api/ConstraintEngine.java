@@ -19,10 +19,11 @@ package edu.isi.wings.workflow.template.api;
 
 import java.util.ArrayList;
 
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 
-public interface ConstraintEngine {
+public interface ConstraintEngine extends TransactionsAPI {
 	public void setConstraints(ArrayList<KBTriple> constraints);
 
 	public void addConstraints(ArrayList<KBTriple> constraints);

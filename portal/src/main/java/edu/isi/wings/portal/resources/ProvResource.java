@@ -29,8 +29,9 @@ public class ProvResource extends WingsResource {
   @Produces(MediaType.APPLICATION_JSON)
   public ArrayList<ProvActivity> getItemProvenance(  
       @QueryParam("id") String id) {
-    if(this.prov != null)
+    if(this.prov != null) {
       return this.prov.getProvenance(id).getActivities();
+    }
     return null;
   }
   
@@ -39,8 +40,10 @@ public class ProvResource extends WingsResource {
   @Produces(MediaType.APPLICATION_JSON)
   public ArrayList<ProvActivity> getUserActivity(  
       @QueryParam("userid") String userid) {
-    if(this.prov != null)
+    if(this.prov != null) {
       return this.prov.getAllUserActivities(userid);
+    }
+      
     return null;
   }
 

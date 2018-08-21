@@ -16,6 +16,7 @@ int guid = 1;
 String thisApi = rc.config.getScriptPath();
 String machineIds = rc.json.toJson(rc.api.getMachineIds());
 String softwareIds = rc.json.toJson(rc.api.getSoftwareIds());
+rc.api.end();
 
 %>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">

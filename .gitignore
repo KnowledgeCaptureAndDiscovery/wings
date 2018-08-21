@@ -1,6 +1,7 @@
 .*
 target
 !/.gitignore
+!/.travis.yml
 portal/src/main/webapp/lib/plupload
 portal/src/main/webapp/lib/extjs
 bin

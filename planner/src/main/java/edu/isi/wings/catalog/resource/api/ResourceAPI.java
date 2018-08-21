@@ -19,6 +19,7 @@ package edu.isi.wings.catalog.resource.api;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.classes.Machine;
@@ -26,7 +27,7 @@ import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareEnvironment;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
 
-public interface ResourceAPI {
+public interface ResourceAPI extends TransactionsAPI {
   // Query functions
   ArrayList<String> getMachineIds();
 
@@ -67,12 +68,11 @@ public interface ResourceAPI {
   
   void setMachineWhitelist(ArrayList<String> whitelist);
   
-  // Sync/Save
+  // Save/ Delete
+  
   boolean save();
 
-  void end();
-
-  void delete();
+  boolean delete();
   
   void copyFrom(ResourceAPI rc, ComponentCreationAPI dc);
 }

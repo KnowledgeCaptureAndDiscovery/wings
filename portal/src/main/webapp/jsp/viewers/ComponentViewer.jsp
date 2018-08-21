@@ -22,8 +22,8 @@ String thisApi = cc.config.getScriptPath();
 
 int guid = 1;
 
-String tree = cc.json.toJson(cc.cc.getComponentHierarchy(false).getRoot());
-String types = cc.json.toJson(cc.dc.getAllDatatypeIds());
+String tree = cc.getComponentHierarchyJSON();
+String types = cc.getDatatypeIdsJSON();
 %>
 <title><%=title%></title>
 

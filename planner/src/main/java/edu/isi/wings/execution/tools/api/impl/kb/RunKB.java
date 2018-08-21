@@ -23,6 +23,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.SparqlQuerySolution;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
@@ -37,11 +43,6 @@ import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
-import edu.isi.wings.ontapi.SparqlQuerySolution;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.workflow.plan.PlanFactory;
@@ -52,7 +53,8 @@ import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 
-public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
+public class RunKB extends TransactionsJena 
+implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	KBAPI kb;
 	KBAPI libkb;
 	KBAPI unionkb;
@@ -64,7 +66,6 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	String liburl;
 	String newrunurl;
 	String tdbRepository;
-	OntFactory ontologyFactory;
 
 	protected HashMap<String, KBObject> objPropMap;
 	protected HashMap<String, KBObject> dataPropMap;
@@ -89,7 +90,10 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
 			this.unionkb = 
 			    this.ontologyFactory.getKB("urn:x-arq:UnionGraph", OntSpec.PLAIN);
+			
+			this.start_write();
 			this.initializeMaps();
+			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -101,6 +105,7 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.dataPropMap = new HashMap<String, KBObject>();
 		this.conceptMap = new HashMap<String, KBObject>();
 
+		this.start_write();
 		for (KBObject prop : this.kb.getAllObjectProperties()) {
 			this.objPropMap.put(prop.getName(), prop);
 		}
@@ -114,18 +119,21 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			dataPropMap.put("hasLog", this.kb.createDatatypeProperty(this.onturl + "#hasLog"));
     if(!objPropMap.containsKey("hasSeededTemplate"))
       objPropMap.put("hasSeededTemplate", kb.createObjectProperty(this.onturl+"#hasSeededTemplate"));
+    this.end();
 	}
 
 	@Override
 	public void startLogging(RuntimePlan exe) {
 		try {
-		  KBAPI tkb = this.ontologyFactory.getKB(OntSpec.PLAIN);
+		  KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
+		  
+		  this.start_write();
 		  this.writeExecutionRun(tkb, exe);
-		  tkb.saveAs(exe.getURL());
-		  // exe.getPlan().save();
 		  KBObject exobj = kb.createObjectOfClass(exe.getID(), conceptMap.get("Execution"));
 		  this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
-		  kb.save();
+		  this.save();
+		  this.end();
+		  
 		} catch (Exception e) {
 		  e.printStackTrace();
 		}
@@ -135,12 +143,15 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	public void updateRuntimeInfo(RuntimePlan exe) {
 	  try {
 	    KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
+	    this.start_write();
+	    
 	    this.updateExecutionRun(tkb, exe);
-	    tkb.save();
-
 	    KBObject exobj = kb.getIndividual(exe.getID());
 	    this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
-	    kb.save();
+	    
+	    this.save(tkb);
+	    this.save();
+	    this.end();
 	  } catch (Exception e) {
 	    e.printStackTrace();
 	  }
@@ -151,8 +162,10 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     try {
       KBAPI tkb = this.ontologyFactory.getKB(stepexe.getRuntimePlan().getURL(),
           OntSpec.PLAIN);
+      this.start_write();
       this.updateExecutionStep(tkb, stepexe);
       tkb.save();
+      this.end();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -182,7 +195,7 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	      "}\n" + 
 	      "GROUP BY ?run ?status ?template ?start ?end";
 	  
-	  
+	  this.start_read();
 	  ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
 	  for(ArrayList<SparqlQuerySolution> row : result) {
 	    HashMap<String, KBObject> vals = new HashMap<String, KBObject>();
@@ -219,6 +232,8 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    rplan.setQueue(queue);
 	    rplans.add(rplan);
 	  }
+	  this.end();
+	  
 	  /*
 		ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
 		for (KBObject exobj : this.kb.getInstancesOfClass(conceptMap.get("Execution"), true)) {
@@ -249,7 +264,12 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	  try {
 	    String runurl = runid.replaceAll("#.*$", "");
 	    KBAPI tkb = this.ontologyFactory.getKB(runurl, OntSpec.PLAIN);
-	    if(tkb != null && tkb.getAllTriples().size() > 0)
+	    
+	    this.start_read();
+	    int size = tkb.getAllTriples().size();
+	    this.end();
+	    
+	    if(tkb != null && size > 0)
 	      return true;
 	  }
 	  catch (Exception e) {
@@ -260,11 +280,23 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	
 
 	@Override
-	public void delete() {
+	public boolean delete() {
+	  boolean ok = true;
 		for(RuntimePlan rplan : this.getRunList()) {
-			this.deleteRun(rplan.getID());
+			ok = this.deleteRun(rplan.getID());
+			if(!ok)
+			  return false;
 		}
-		this.kb.delete();
+		return
+		    this.start_write() && 
+		    this.kb.delete() && 
+		    this.save() && 
+		    this.end();
+	}
+	
+	@Override
+	public boolean save() {
+	  return this.save(this.kb);
 	}
 
 	/*
@@ -303,8 +335,13 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		RuntimeInfo.Status status = rplan.getRuntimeInfo().getStatus();
 		if (details
 				|| (status == RuntimeInfo.Status.FAILURE || status == RuntimeInfo.Status.RUNNING)) {
+		  
 			try {
 				KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
+				
+				this.start_read();
+				boolean batchok = this.start_batch_operation(); 
+				
 				exobj = tkb.getIndividual(rplan.getID());
 				// Get execution queue (list of steps)
 				ExecutionQueue queue = new ExecutionQueue();
@@ -321,6 +358,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         KBObject sobj = tkb.getPropertyValue(exobj, objPropMap.get("hasSeededTemplate"));
 				KBObject tobj = tkb.getPropertyValue(exobj, objPropMap.get("hasTemplate"));
 				KBObject pobj = tkb.getPropertyValue(exobj, objPropMap.get("hasPlan"));
+        
+        if(batchok)
+          this.stop_batch_operation();
+        this.end();
+        
 				if(xtobj != null)
 				  rplan.setExpandedTemplateID(xtobj.getID());
         if(sobj != null)
@@ -329,7 +371,7 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 				  rplan.setOriginalTemplateID(tobj.getID());
 				if(pobj != null)
 				  rplan.setPlan(PlanFactory.loadExecutionPlan(pobj.getID(), props));
-
+        
 				return rplan;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -340,8 +382,13 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void deleteGraph(String id) {
 	  try {
-	    if(id != null)
-	      ontologyFactory.getKB(new URIEntity(id).getURL(), OntSpec.PLAIN).delete();
+	    if(id != null) {
+	      KBAPI tkb = ontologyFactory.getKB(new URIEntity(id).getURL(), OntSpec.PLAIN);
+	      this.start_write();
+	      tkb.delete();
+	      this.save(tkb);
+	      this.end();
+	    }
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -361,7 +408,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         "  ?var pplan:isVariableOfPlan ?plan .\n" + 
         "  ?var wf:hasDataBinding \"" + file.getLocation() + "\"^^ xsd:string\n" + 
         "}";
+    
+    this.start_read();
     ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+    this.end();
+    
     if(result.size() > 1)
       return true;
     return false;
@@ -374,7 +425,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         "WHERE {\n" + 
         "  ?run exec:hasExpandedTemplate <" + graphid + "> .\n" +  
         "}";
+    
+    this.start_read();
     ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+    this.end();
+    
     if(result.size() > 1)
       return true;
     return false;
@@ -387,7 +442,11 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         "WHERE {\n" + 
         "  ?run exec:hasSeededTemplate <" + graphid + "> .\n" +  
         "}";
+    
+    this.start_read();
     ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+    this.end();
+    
     if(result.size() > 1)
       return true;
     return false;
@@ -395,6 +454,7 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	
 	private boolean deleteExecutionRun(String runid) {
 		RuntimePlan rplan = this.getExecutionRun(runid, true);
+		
 		try {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 
@@ -422,15 +482,22 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         this.deleteGraph(rplan.getPlan().getID());
       
       // Delete execution provenance
+      this.start_write();
       tkb.delete();
+      this.save(tkb);
+      this.end();
        			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 
+		this.start_write();
 		KBUtils.removeAllTriplesWith(this.kb, runid, false);
-		return this.kb.save();
+		this.save();
+		this.end();
+		
+		return true;
 	}
 
 	private KBObject writeExecutionStep(KBAPI tkb, RuntimeStep stepexe) {
@@ -470,6 +537,9 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	private RuntimeInfo getRuntimeInfo(KBAPI tkb, KBObject exobj) {
+	  this.start_read();
+	  boolean batchok = this.start_batch_operation();
+	  
 		RuntimeInfo info = new RuntimeInfo();
 		KBObject sttime = this.kb.getPropertyValue(exobj, dataPropMap.get("hasStartTime"));
 		KBObject endtime = this.kb.getPropertyValue(exobj, dataPropMap.get("hasEndTime"));
@@ -483,6 +553,10 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			info.setStatus(RuntimeInfo.Status.valueOf((String) status.getValue()));
 		if (log != null && log.getValue() != null)
 			info.setLog((String) log.getValue());
+		
+		if(batchok)
+		  this.stop_batch_operation();
+		this.end();
 		return info;
 	}
 	
@@ -497,123 +571,130 @@ public class RunKB implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
         ResourceFactory.getAPI(props), planexe.getID());
-    TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
-
-    Template seedtpl = tc.getTemplate(planexe.getSeededTemplateID());
-    Template itpl = wg.getInferredTemplate(seedtpl);
-    ArrayList<Template> candidates = wg.specializeTemplates(itpl);
-    if(candidates.size() == 0) 
-      return this.setPlanError(planexe, 
-          "No Specialized templates after planning");
-
-    ArrayList<Template> bts = new ArrayList<Template>();
-    for(Template t : candidates) {
-      VariableBindingsListSet bindingset = wg.selectInputDataObjects(t);
-      if(bindingset != null) {
-        ArrayList<VariableBindingsList> bindings = 
-            CollectionsHelper.combineVariableDataObjectMappings(bindingset);
-        for(VariableBindingsList binding : bindings) {
-          Template bt = wg.bindTemplate(t, binding);
-          if(bt != null)
-            bts.add(bt);
-        }
-      }
-    }
-    if(bts.size() == 0) 
-      return this.setPlanError(planexe, 
-          "No Bound templates after planning");
-
-    wg.setDataMetricsForInputDataObjects(bts);
-
-    ArrayList<Template> cts = new ArrayList<Template>();
-    for(Template bt : bts)
-      cts.addAll(wg.configureTemplates(bt));
-    if(cts.size() == 0)
-      return this.setPlanError(planexe, 
-          "No Configured templates after planning");
-
-    ArrayList<Template> ets = new ArrayList<Template>();
-    for(Template ct : cts)
-      ets.add(wg.getExpandedTemplate(ct));
-    if(ets.size() == 0)
-      return this.setPlanError(planexe, 
-          "No Expanded templates after planning");
-
-    // TODO: Should show all options to the user. Picking the top one for now
-    Template xtpl = ets.get(0);
-    xtpl.autoLayout();
     
-    String xpid = planexe.getExpandedTemplateID();
-
-    // Delete the existing expanded template
-    this.deleteGraph(xpid);
-    // Save the new expanded template
-    if (!xtpl.saveAs(xpid)) {
-      return this.setPlanError(planexe, 
-          "Could not save new Expanded template");
-    }
-    xtpl = tc.getTemplate(xpid);
-
-    String ppid = planexe.getPlan().getID();
-    ExecutionPlan newplan = wg.getExecutionPlan(xtpl);
-    if(newplan != null) {
-      // Delete the existing plan
-      this.deleteGraph(ppid);
-      // Save the new plan
-      if(!newplan.saveAs(ppid)) {
+    TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+    Template seedtpl = tc.getTemplate(planexe.getSeededTemplateID());
+    
+    try {
+      Template itpl = wg.getInferredTemplate(seedtpl);
+      ArrayList<Template> candidates = wg.specializeTemplates(itpl);
+      if(candidates.size() == 0) 
         return this.setPlanError(planexe, 
-            "Could not save new Plan");
-      }
-      newplan.setID(ppid);
-
-      // Get the new runtime plan
-      RuntimePlan newexe = new RuntimePlan(newplan);
-
-      // Update the current plan executable with the new plan
-      planexe.setPlan(newplan);
-
-      // Hash steps from current queue
-      HashMap<String, RuntimeStep>
-      stepMap = new HashMap<String, RuntimeStep>();
-      for(RuntimeStep step : planexe.getQueue().getAllSteps())
-        stepMap.put(step.getID(), step);
-
-      // Add new steps to the current queue
-      boolean newsteps = false;
-      for(RuntimeStep newstep : newexe.getQueue().getAllSteps()) {
-        // Add steps not already in current queue
-        if(!stepMap.containsKey(newstep.getID())) {
-          newsteps = true;
-
-          // Set runtime plan
-          newstep.setRuntimePlan(planexe);
-
-          // Set parents
-          @SuppressWarnings("unchecked")
-          ArrayList<RuntimeStep> parents = 
-          (ArrayList<RuntimeStep>) newstep.getParents().clone();
-          newstep.getParents().clear();
-          for(RuntimeStep pstep : parents) {
-            if(stepMap.containsKey(pstep.getID()))
-              pstep = stepMap.get(pstep.getID());
-            newstep.addParent(pstep);
+            "No Specialized templates after planning");
+  
+      ArrayList<Template> bts = new ArrayList<Template>();
+      for(Template t : candidates) {
+        VariableBindingsListSet bindingset = wg.selectInputDataObjects(t);
+        if(bindingset != null) {
+          ArrayList<VariableBindingsList> bindings = 
+              CollectionsHelper.combineVariableDataObjectMappings(bindingset);
+          for(VariableBindingsList binding : bindings) {
+            Template bt = wg.bindTemplate(t, binding);
+            if(bt != null)
+              bts.add(bt);
           }
-
-          // Add new step to queue
-          planexe.getQueue().addStep(newstep);
         }
       }
-
-      if(newsteps)
-        return planexe;
+      if(bts.size() == 0) 
+        return this.setPlanError(planexe, 
+            "No Bound templates after planning");
+  
+      wg.setDataMetricsForInputDataObjects(bts);
+  
+      ArrayList<Template> cts = new ArrayList<Template>();
+      for(Template bt : bts)
+        cts.addAll(wg.configureTemplates(bt));
+      if(cts.size() == 0)
+        return this.setPlanError(planexe, 
+            "No Configured templates after planning");
+  
+      ArrayList<Template> ets = new ArrayList<Template>();
+      for(Template ct : cts)
+        ets.add(wg.getExpandedTemplate(ct));
+      if(ets.size() == 0)
+        return this.setPlanError(planexe, 
+            "No Expanded templates after planning");
+  
+      // TODO: Should show all options to the user. Picking the top one for now
+      Template xtpl = ets.get(0);
+      xtpl.autoLayout();
+      
+      String xpid = planexe.getExpandedTemplateID();
+  
+      // Delete the existing expanded template
+      this.deleteGraph(xpid);
+      // Save the new expanded template
+      if (!xtpl.saveAs(xpid)) {
+        return this.setPlanError(planexe, 
+            "Could not save new Expanded template");
+      }
+      xtpl = tc.getTemplate(xpid);
+  
+      String ppid = planexe.getPlan().getID();
+      ExecutionPlan newplan = wg.getExecutionPlan(xtpl);
+      if(newplan != null) {
+        // Delete the existing plan
+        this.deleteGraph(ppid);
+        // Save the new plan
+        if(!newplan.saveAs(ppid)) {
+          return this.setPlanError(planexe, 
+              "Could not save new Plan");
+        }
+        newplan.setID(ppid);
+  
+        // Get the new runtime plan
+        RuntimePlan newexe = new RuntimePlan(newplan);
+  
+        // Update the current plan executable with the new plan
+        planexe.setPlan(newplan);
+  
+        // Hash steps from current queue
+        HashMap<String, RuntimeStep>
+        stepMap = new HashMap<String, RuntimeStep>();
+        for(RuntimeStep step : planexe.getQueue().getAllSteps())
+          stepMap.put(step.getID(), step);
+  
+        // Add new steps to the current queue
+        boolean newsteps = false;
+        for(RuntimeStep newstep : newexe.getQueue().getAllSteps()) {
+          // Add steps not already in current queue
+          if(!stepMap.containsKey(newstep.getID())) {
+            newsteps = true;
+  
+            // Set runtime plan
+            newstep.setRuntimePlan(planexe);
+  
+            // Set parents
+            @SuppressWarnings("unchecked")
+            ArrayList<RuntimeStep> parents = 
+            (ArrayList<RuntimeStep>) newstep.getParents().clone();
+            newstep.getParents().clear();
+            for(RuntimeStep pstep : parents) {
+              if(stepMap.containsKey(pstep.getID()))
+                pstep = stepMap.get(pstep.getID());
+              newstep.addParent(pstep);
+            }
+  
+            // Add new step to queue
+            planexe.getQueue().addStep(newstep);
+          }
+        }
+  
+        if(newsteps)
+          return planexe;
+        else {
+          return this.setPlanError(planexe, 
+              "No new steps in the new execution plan");
+        }
+      }
       else {
         return this.setPlanError(planexe, 
-            "No new steps in the new execution plan");
+            "Could not get a new Execution Plan");
       }
     }
-    else {
-      return this.setPlanError(planexe, 
-          "Could not get a new Execution Plan");
+    catch (Exception e) {
+      e.printStackTrace();
+      return this.setPlanError(planexe, e.getMessage());
     }
   }
 }

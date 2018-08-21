@@ -19,9 +19,10 @@ package edu.isi.wings.workflow.template.api;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.workflow.template.classes.ConstraintProperty;
 
-public interface TemplateCreationAPI {
+public interface TemplateCreationAPI extends TransactionsAPI {
 	// Query
 	ArrayList<String> getTemplateList();
 	
@@ -33,15 +34,16 @@ public interface TemplateCreationAPI {
 	
 	Template createTemplate(String tplid);
 	
-	boolean saveTemplate(Template tpl);
+	boolean registerTemplate(Template tpl);
 	
-	boolean saveTemplateAs(Template tpl, String newid);
+	boolean registerTemplateAs(Template tpl, String newid);
 	
-	boolean removeTemplate(Template tpl);
+	boolean deregisterTemplate(Template tpl);
 
-	void end();
+	// Transactions
+	boolean delete();
 	
-	void delete();
+	boolean save();
 	
 	// Copy from another API (Advisable to give the same implementation of the API here)
 	void copyFrom(TemplateCreationAPI tc);

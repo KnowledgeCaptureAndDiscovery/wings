@@ -24,7 +24,8 @@ import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
 
-public class ExecutionResourceKB implements ExecutionResourceAPI {
+public class ExecutionResourceKB 
+implements ExecutionResourceAPI {
   ResourceAPI api;
   String storageFolder;
   
@@ -34,7 +35,13 @@ public class ExecutionResourceKB implements ExecutionResourceAPI {
   
   @Override
   public Machine getMachine(String machineId) {
-    return this.api.getMachine(machineId);
+    try {
+      this.api.start_read();
+      return this.api.getMachine(machineId);
+    }
+    finally {
+      this.api.end();
+    }
   }
 
   @Override

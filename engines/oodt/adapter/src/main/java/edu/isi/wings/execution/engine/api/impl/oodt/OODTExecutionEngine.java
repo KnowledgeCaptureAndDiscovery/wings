@@ -38,7 +38,7 @@ import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
-import edu.isi.wings.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;

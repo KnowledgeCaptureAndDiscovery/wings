@@ -19,10 +19,10 @@ package edu.isi.wings.catalog.component.classes;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.rules.KBRule;
+import edu.isi.kcap.ontapi.rules.KBRuleList;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.common.URIEntity;
-import edu.isi.wings.ontapi.rules.KBRule;
-import edu.isi.wings.ontapi.rules.KBRuleList;
 
 public class Component extends URIEntity {
   private static final long serialVersionUID = 1L;

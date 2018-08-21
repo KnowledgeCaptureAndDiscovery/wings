@@ -21,23 +21,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
-public class PPlan extends URIEntity implements ExecutionPlan {
+public class PPlan extends URIEntity 
+implements ExecutionPlan, TransactionsAPI {
   private static final long serialVersionUID = 1L;
 
   transient Properties props;
-
+  OntFactory ontologyFactory;
   boolean incomplete;
+  
+  TransactionsJena transaction;
+  
   ArrayList<ExecutionStep> steps;
 
   public PPlan(String id, Properties props) {
@@ -86,20 +92,23 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     String pplan = "http://purl.org/net/p-plan";
     String wfont = this.props.getProperty("ont.workflow.url");
 
-    OntFactory fac;
     String tdbRepository = this.props.getProperty("tdb.repository.dir");
     if (tdbRepository == null) {
-      fac = new OntFactory(OntFactory.JENA);
+      this.ontologyFactory = new OntFactory(OntFactory.JENA);
     } else {
-      fac = new OntFactory(OntFactory.JENA, tdbRepository);
+      this.ontologyFactory = new OntFactory(OntFactory.JENA, tdbRepository);
     }
-    KBUtils.createLocationMappings(this.props, fac);
+    transaction = new TransactionsJena(this.ontologyFactory);
+    
+    KBUtils.createLocationMappings(this.props, this.ontologyFactory);
 
-    KBAPI kb = fac.getKB(this.getURL(), OntSpec.PLAIN);
-    kb.importFrom(fac.getKB(wfinst, OntSpec.PLAIN, true));
-    kb.importFrom(fac.getKB(pplan, OntSpec.PLAIN, true));
-    kb.importFrom(fac.getKB(wfont, OntSpec.PLAIN, true, true));
+    KBAPI kb = this.ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
+    kb.importFrom(this.ontologyFactory.getKB(wfinst, OntSpec.PLAIN, true));
+    kb.importFrom(this.ontologyFactory.getKB(pplan, OntSpec.PLAIN, true));
+    kb.importFrom(this.ontologyFactory.getKB(wfont, OntSpec.PLAIN, true, true));
 
+    this.start_read();
+    
     KBObject stepcls = kb.getConcept(wfinst + "#Step");
     KBObject varcls = kb.getConcept(wfinst + "#Variable");
     KBObject plancls = kb.getConcept(pplan + "#Plan");
@@ -168,6 +177,8 @@ public class PPlan extends URIEntity implements ExecutionPlan {
         this.addExecutionStep(step);
       }
     }
+    
+    this.end();
   }
 
   private KBAPI getKBModel() throws Exception {
@@ -175,18 +186,21 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     String pplan = "http://purl.org/net/p-plan";
     String wfont = this.props.getProperty("ont.workflow.url");
 
-    OntFactory fac;
     String tdbRepository = this.props.getProperty("tdb.repository.dir");
     if (tdbRepository == null) {
-      fac = new OntFactory(OntFactory.JENA);
+      this.ontologyFactory = new OntFactory(OntFactory.JENA);
     } else {
-      fac = new OntFactory(OntFactory.JENA, tdbRepository);
+      this.ontologyFactory = new OntFactory(OntFactory.JENA, tdbRepository);
     }
-    KBUtils.createLocationMappings(this.props, fac);
+    this.transaction = new TransactionsJena(this.ontologyFactory);
+    
+    KBUtils.createLocationMappings(this.props, this.ontologyFactory);
 
-    KBAPI kb = fac.getKB(OntSpec.PLAIN);
-    KBAPI wfkb = fac.getKB(wfinst, OntSpec.PLAIN, false, true);
-    KBAPI pkb = fac.getKB(pplan, OntSpec.PLAIN, false, true);
+    KBAPI kb = this.ontologyFactory.getKB(OntSpec.PLAIN);
+    KBAPI wfkb = this.ontologyFactory.getKB(wfinst, OntSpec.PLAIN, false, true);
+    KBAPI pkb = this.ontologyFactory.getKB(pplan, OntSpec.PLAIN, false, true);
+    
+    this.start_read();
 
     KBObject stepcls = wfkb.getConcept(wfinst + "#Step");
     KBObject varcls = wfkb.getConcept(wfinst + "#Variable");
@@ -200,6 +214,9 @@ public class PPlan extends URIEntity implements ExecutionPlan {
     KBObject outvarprop = pkb.getProperty(pplan + "#hasOutputVar");
     KBObject cbindingprop = wfkb.getProperty(wfinst + "#hasCodeBinding");
     // KBObject outvarprop = pkb.getProperty(pplan+"#isOutputVarOf");
+    
+    this.end();
+
     KBObject canrunonprop = kb.getProperty(wfont + "#canRunOn");
     KBObject cdataprop = kb.getProperty(wfont + "#hasCustomData");
 
@@ -246,14 +263,21 @@ public class PPlan extends URIEntity implements ExecutionPlan {
         kb.addTriple(stepobj, canrunonprop, kb.getResource(mid));
       }
     }
+    
     return kb;
   }
 
   @Override
   public boolean save() {
     try {
-      KBAPI kb = this.getKBModel();
-      return kb.saveAs(this.getURL());
+      // Write to temporary KB
+      KBAPI tkb = this.getKBModel();
+      
+      // Write to triple store;
+      this.start_write();
+      ontologyFactory.useTripleStore(tkb);      
+      return tkb.saveAs(this.getURL());
+      
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -262,14 +286,25 @@ public class PPlan extends URIEntity implements ExecutionPlan {
   
   public boolean saveAs(String newid) {
     try {
-      KBAPI kb = this.getKBModel();
+      // Save to temporary KB
+      KBAPI tkb = this.getKBModel();
+      
+      // Rename namespaces
       String curns = this.getNamespace();
-      this.setID(newid);
+      this.setID(newid); // Set new ID
       String newns = this.getNamespace();
-      KBUtils.renameTripleNamespace(kb, curns, newns);
-      return kb.saveAs(this.getURL());
+      KBUtils.renameTripleNamespace(tkb, curns, newns);
+      
+      // Write to triple store;
+      this.start_write();
+      ontologyFactory.useTripleStore(tkb);      
+      return tkb.saveAs(this.getURL());
+      
     } catch (Exception e) {
       e.printStackTrace();
+    }
+    finally {
+      this.end();
     }
     return false;
   }
@@ -282,5 +317,41 @@ public class PPlan extends URIEntity implements ExecutionPlan {
   @Override
   public void setIsIncomplete(boolean incomplete) {
     this.incomplete = incomplete;
+  }
+
+  // TransactionsAPI functions
+  @Override
+  public boolean start_read() {
+    return transaction.start_read();
+  }
+
+  @Override
+  public boolean start_write() {
+    return transaction.start_write();
+  }
+
+  @Override
+  public boolean saveAll() {
+    return transaction.saveAll();
+  }
+  
+  @Override
+  public boolean save(KBAPI kb) {
+    return transaction.save(kb);
+  }
+
+  @Override
+  public boolean end() {
+    return transaction.end();
+  }
+
+  @Override
+  public boolean start_batch_operation() {
+    return transaction.start_batch_operation();
+  }
+
+  @Override
+  public void stop_batch_operation() {
+    transaction.stop_batch_operation();
   }
 }

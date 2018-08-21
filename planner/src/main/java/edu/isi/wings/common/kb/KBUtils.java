@@ -18,12 +18,13 @@
 package edu.isi.wings.common.kb;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
 
 public class KBUtils {
 	public static String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -103,7 +104,7 @@ public class KBUtils {
 	}
 	
 	public static void renameTripleNamespace(KBAPI kb, String oldns, String newns) {
-		ArrayList<KBTriple> triples = kb.genericTripleQuery(null, null, null);
+		ArrayList<KBTriple> triples = kb.getAllTriples();
 		for (KBTriple t : triples) {
 			kb.removeTriple(t);
 			t.setSubject(renameKBObjectNamespace(kb, t.getSubject(), oldns, newns));
@@ -113,8 +114,22 @@ public class KBUtils {
 		}
 	}
 	
+  public static void renameTripleNamespaces(KBAPI kb, HashMap<String, String> map) {
+    ArrayList<KBTriple> triples = kb.getAllTriples();
+    for (KBTriple t : triples) {
+      kb.removeTriple(t);
+      for(String oldns: map.keySet()) {
+        String newns = map.get(oldns);
+        t.setSubject(renameKBObjectNamespace(kb, t.getSubject(), oldns, newns));
+        t.setPredicate(renameKBObjectNamespace(kb, t.getPredicate(), oldns, newns));
+        t.setObject(renameKBObjectNamespace(kb, t.getObject(), oldns, newns));
+      }
+      kb.addTriple(t);
+    }
+  }	
+	
 	public static void removeTriplesWithPrefix(KBAPI kb, String prefix) {
-	  ArrayList<KBTriple> triples = kb.genericTripleQuery(null, null, null);
+	  ArrayList<KBTriple> triples = kb.getAllTriples();
 	  for (KBTriple t : triples) {
 	    boolean remove = false;
 	    if(t.getSubject().getID() != null 
@@ -136,7 +151,7 @@ public class KBUtils {
 	
 	public static void renameTriplesWithPrefix(KBAPI kb, 
 	    String oldPrefix, String newPrefix) {
-	  ArrayList<KBTriple> triples = kb.genericTripleQuery(null, null, null);
+	  ArrayList<KBTriple> triples = kb.getAllTriples();
 	  for (KBTriple t : triples) {
       kb.removeTriple(t);
       t.setSubject(renameKBObjectPrefix(kb, t.getSubject(), oldPrefix, newPrefix));
@@ -145,6 +160,20 @@ public class KBUtils {
       kb.addTriple(t);
 	  }
 	}
+	
+  public static void renameTriplesWithPrefixes(KBAPI kb, HashMap<String, String> map) {
+    ArrayList<KBTriple> triples = kb.getAllTriples();
+    for (KBTriple t : triples) {
+      kb.removeTriple(t);
+      for(String oldPrefix: map.keySet()) {
+        String newPrefix = map.get(oldPrefix);      
+        t.setSubject(renameKBObjectPrefix(kb, t.getSubject(), oldPrefix, newPrefix));
+        t.setPredicate(renameKBObjectPrefix(kb, t.getPredicate(), oldPrefix, newPrefix));
+        t.setObject(renameKBObjectPrefix(kb, t.getObject(), oldPrefix, newPrefix));
+      }
+      kb.addTriple(t);
+    }
+  }
 	 
 	private static KBObject renameKBObjectNamespace(KBAPI kb, KBObject item, 
 	    String oldns, String newns) {

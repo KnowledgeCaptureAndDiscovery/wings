@@ -19,19 +19,24 @@ package edu.isi.wings.workflow.template.api.impl.kb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 import edu.isi.wings.workflow.template.classes.ConstraintProperty;
 
-public class TemplateCreationKB implements TemplateCreationAPI {
+public class TemplateCreationKB extends TransactionsJena 
+implements TemplateCreationAPI {
+  String ontVersion = "3.0";
+  
 	String wflowns;
 	String liburl;
 	String onturl;
@@ -40,8 +45,8 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 	String dclibns;
 	String pcdomns;
 	
-	OntFactory ontologyFactory;
 	KBAPI kb;
+	KBAPI ontkb;
 	KBAPI writerkb;
 	Properties props;
 	
@@ -63,15 +68,17 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 		} else {
 			this.ontologyFactory = new OntFactory(OntFactory.JENA, tdbRepository);
 		}
-       	KBUtils.createLocationMappings(props, this.ontologyFactory);
+    KBUtils.createLocationMappings(props, this.ontologyFactory);
 
 		this.initializeAPI(false);
+    this.addMissingVocabulary();		
 	}
 	
 	private void initializeAPI(boolean create_if_empty) {
 		try {
 			this.kb = this.ontologyFactory.getKB(liburl, OntSpec.PELLET, create_if_empty);
-			this.kb.importFrom(this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, create_if_empty, true));
+			this.ontkb = this.ontologyFactory.getKB(onturl, OntSpec.PLAIN, create_if_empty, true);
+			this.kb.importFrom(this.ontkb);
 			
 			this.writerkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
 		}
@@ -80,17 +87,83 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 		}
 	}
 	
+	private void addMissingVocabulary() {
+	  try {
+	    // Check if the ontology is an older version
+  	  this.start_write();
+  	  KBObject ontobj = this.ontkb.getIndividual(onturl);
+  	  KBObject version = this.ontkb.getPropertyValue(ontobj, this.ontkb.getProperty(KBUtils.OWL+"versionInfo"));
+  	  
+  	  if(version == null || !this.ontVersion.equals(version.getValue())) {
+        // Older ontologies don't have some concepts & properties. Add them in here 
+  	    // FIXME: Just reload from web instead of doing this
+  	    
+        HashMap<String, KBObject> terms = this.getKBTerms();
+        
+        String[] dprops = new String[] {
+            "hasRoleID", "autoFill",
+            "breakPoint", "isInactive", "tellmeData"
+        };
+        String[] oprops = new String[] { "derivedFrom", "hasMetadata" };
+        String[] concepts = new String[] { "ReduceDimensionality", "Shift"};
+        
+        for(String pname: dprops)
+          if(!terms.containsKey(this.wflowns + pname))
+            this.ontkb.createDatatypeProperty(this.wflowns + pname);
+
+        for(String pname: oprops) 
+          if(!terms.containsKey(this.wflowns + pname))
+            this.ontkb.createObjectProperty(this.wflowns + pname);
+
+        for(String cname: concepts) 
+          if(!terms.containsKey(this.wflowns + cname)) 
+            this.ontkb.createClass(this.wflowns + cname);
+
+        this.ontkb.setPropertyValue(
+            ontobj, 
+            this.ontkb.getProperty(KBUtils.OWL+"versionInfo"),
+            this.ontkb.createLiteral(this.ontVersion));
+        
+        this.save();
+  	  }
+  	  this.end();
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+	  }
+	}
+	
+  private HashMap<String, KBObject> getKBTerms() {
+    HashMap<String, KBObject> terms = new HashMap<String, KBObject>();
+    for (KBObject obj : ontkb.getAllClasses()) {
+      if(obj != null)
+        terms.put(obj.getName(), obj);
+    }
+    for (KBObject obj : ontkb.getAllObjectProperties()) {
+      if(obj != null)
+        terms.put(obj.getName(), obj);
+    }
+    for (KBObject obj : ontkb.getAllDatatypeProperties()) {
+      if(obj != null)
+        terms.put(obj.getName(), obj);
+    }
+    return terms;
+  }
+  
 	@Override
 	public ArrayList<String> getTemplateList() {
 		ArrayList<String> list = new ArrayList<String>();
 		if(this.kb == null)
 			return list;
-		//this.kb.beginread();
+		
+		this.start_read();
 		KBObject tconcept = this.kb.getConcept(this.wflowns + "WorkflowTemplate");
 		ArrayList<KBObject> tobjs = this.kb.getInstancesOfClass(tconcept, true);
 		for(KBObject tobj : tobjs) {
 			list.add(tobj.getID());
 		}
+		this.end();
+		
 		return list;
 	}
 
@@ -111,26 +184,21 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 	}
 	
 	@Override
-	public void end() {
-		if(this.kb != null)
-			this.kb.end();
+	public boolean save() {
+	  return this.writerkb.save();
 	}
 	
 	@Override
-	public boolean saveTemplate(Template tpl) {
+	public boolean registerTemplate(Template tpl) {
 		try {
-			// Save Template
-			if(!tpl.save())
-				return false;
-			
+		  this.start_write();
 			// Add to List if not already there
 			KBObject tplobj = this.kb.getIndividual(tpl.getID());
 			if(tplobj == null) {
 				KBObject tconcept = this.kb.getConcept(this.wflowns + "WorkflowTemplate");
 				this.writerkb.createObjectOfClass(tpl.getID(), tconcept);
-				return this.writerkb.save();
 			}
-			return true;
+			return this.save() && this.end();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -139,20 +207,16 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 	}
 	
 	@Override
-	public boolean saveTemplateAs(Template tpl, String newid) {
+	public boolean registerTemplateAs(Template tpl, String newid) {
 		try {
-			// Save Template As
-			if(!tpl.saveAs(newid))
-				return false;
-			
+		  this.start_write();
 			// Add to List if not already there
 			KBObject tplobj = this.kb.getIndividual(newid);
 			if(tplobj == null) {
 				KBObject tconcept = this.kb.getConcept(this.wflowns + "WorkflowTemplate");
 				this.writerkb.createObjectOfClass(newid, tconcept);
-				return this.writerkb.save();
 			}
-			return true;
+      return this.save() && this.end();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -161,21 +225,17 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 	}
 
 	@Override
-	public boolean removeTemplate(Template tpl) {
+	public boolean deregisterTemplate(Template tpl) {
 		try {
-			// Delete Template
-			if(!tpl.delete())
-				return false;
-			
+		  this.start_write();
 			KBObject tplobj = this.kb.getIndividual(tpl.getID());
 			if(tplobj != null) {
 				//Remove template from kb
 				KBObject tconcept = this.kb.getConcept(this.wflowns + "WorkflowTemplate");
 				KBObject typeprop = this.kb.getProperty(KBUtils.RDF + "type");
 				this.writerkb.removeTriple(tplobj, typeprop, tconcept);
-				return this.writerkb.save();
 			}
-			return true;
+      return this.save() && this.end();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -213,56 +273,93 @@ public class TemplateCreationKB implements TemplateCreationAPI {
 	@Override
 	public void copyFrom(TemplateCreationAPI tc) {
 		TemplateCreationKB tckb = (TemplateCreationKB) tc;
-
+    
+		System.out.println("Copying template list");
+		
+		// Edit local workflow list
+    this.start_write();
+    boolean batched = this.start_batch_operation();
+    
+    // Copy the workflow list
 		this.writerkb.copyFrom(tckb.writerkb);
 		
+		// Rename ontology namespaces to local ones
 		KBUtils.renameTripleNamespace(this.writerkb, tckb.wflowns, this.wflowns);
 		KBUtils.renameAllTriplesWith(this.writerkb, tckb.onturl, this.onturl, false);
 		KBUtils.renameAllTriplesWith(this.writerkb, tckb.liburl, this.liburl, false);
-				
-		for(String tplid : tckb.getTemplateList()) {
+		
+		// Rename template ids to local ones
+		ArrayList<String> tplids = tckb.getTemplateList();
+		for(String tplid: tplids) {
+		  String ntplid = tplid.replace(tckb.wdirurl, this.wdirurl); 
+		  KBUtils.renameAllTriplesWith(this.writerkb, tplid, ntplid, false);
+		}
+    
+    // Workflow/Template namespace rename maps
+    HashMap<String, String> nsmap = new HashMap<String, String>();
+    nsmap.put(tckb.wflowns, this.wflowns);
+    nsmap.put(tckb.dcdomns, this.dcdomns);
+    nsmap.put(tckb.dclibns, this.dclibns);
+    nsmap.put(tckb.pcdomns, this.pcdomns);
+    
+    // Copy workflows into local space and rename urls to local
+		for(String tplid : tplids) {
 			// Load and save the template in the latest format
 			TemplateKB tpl = (TemplateKB) tckb.getTemplate(tplid);
-			tpl.save();
+			//tpl.save();
 			
-			String ntplid = tplid.replace(tckb.wdirurl, this.wdirurl); 
 			String tplurl = tplid.replaceAll("#.*$", "");
 			String ntplurl = tplurl.replace(tckb.wdirurl, this.wdirurl);
+      //System.out.println("Copying template " + ntplurl);			
 			try {
-				KBAPI ntplkb = this.ontologyFactory.getKB(ntplurl, OntSpec.PLAIN);
-				ntplkb.copyFrom(tpl.getKBCopy(true));
-				KBUtils.renameTripleNamespace(ntplkb, tckb.wflowns, this.wflowns);
-				KBUtils.renameTripleNamespace(ntplkb, tckb.dcdomns, this.dcdomns);
-				KBUtils.renameTripleNamespace(ntplkb, tckb.dclibns, this.dclibns);
-				KBUtils.renameTripleNamespace(ntplkb, tckb.pcdomns, this.pcdomns);
+				KBAPI ntplkb = this.ontologyFactory.getKB(ntplurl, OntSpec.PLAIN);				
+				ntplkb.copyFrom(tpl.kb);
+				//System.out.println("Copied Template KB");
 				
-				KBUtils.renameTripleNamespace(ntplkb, tplurl+"#", ntplurl+"#");
+				HashMap<String, String> tnsmap = new HashMap<String, String>(nsmap);
+				tnsmap.put(tplurl+"#", ntplurl+"#");
+				KBUtils.renameTripleNamespaces(ntplkb, tnsmap);
 				KBUtils.renameAllTriplesWith(ntplkb, tplurl, ntplurl, false);
 				KBUtils.renameAllTriplesWith(ntplkb, tckb.onturl, this.onturl, false);
 				KBUtils.renameAllTriplesWith(ntplkb, tckb.liburl, this.liburl, false);
-				ntplkb.save();
+        //System.out.println("Renamed Triples in KB");
+
+        this.save(ntplkb);
+				
+				//System.out.println("Saved KB");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			KBUtils.renameAllTriplesWith(this.writerkb, tplid, ntplid, false);
 		}
-
-		writerkb.save();
 		
+		if(batched)
+		  this.stop_batch_operation();
+		
+		this.save();
+		this.end();
+		
+		//System.out.println("Done");
 		this.initializeAPI(true);
-
 	}
 
 	@Override
-	public void delete() {
+	public boolean delete() {
 		for(String tplid : this.getTemplateList()) {
 			try {
-				this.ontologyFactory.getKB(new URIEntity(tplid).getURL(), OntSpec.PLAIN).delete();
+				KBAPI tplkb = this.ontologyFactory.getKB(new URIEntity(tplid).getURL(), OntSpec.PLAIN);
+		    this.start_write();
+	      tplkb.delete(); 
+	      tplkb.save();
+	      this.end();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		this.writerkb.delete();
+		return 
+		    this.start_write() &&
+		    this.kb.delete() && 
+		    this.save() && 
+		    this.end();
 	}
 }

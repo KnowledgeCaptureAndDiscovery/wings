@@ -157,11 +157,10 @@ public interface Template extends Serializable {
 	
 	void autoLayout();
 	
+	// Save/Delete
 	boolean save();
 	
 	boolean saveAs(String newid);
 	
 	boolean delete();
-	
-	void end();
 }

@@ -320,22 +320,22 @@ public class Domain {
 		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 		ExecutionMonitorAPI em = ExecutionToolsFactory.createMonitor(props);
-		dc.delete();
-		acc.delete();
-		ccc.delete();
-		tc.delete();
-		em.delete();
 		
-		// Remove domain directory
-		if(deleteStorage) {
-			try {
-				FileUtils.deleteDirectory(new File(domain.getDomainDirectory()));
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
+		if(dc.delete() && acc.delete() && ccc.delete() &&
+		   tc.delete() && em.delete()) {
+  		// Remove domain directory
+  		if(deleteStorage) {
+  			try {
+  				FileUtils.deleteDirectory(new File(domain.getDomainDirectory()));
+  			} catch (IOException e) {
+  				e.printStackTrace();
+  				return false;
+  			}
+  		}
+  		return true;
 		}
-		return true;
+		
+		return false;
 	}
 
 	public static Domain renameDomain(Domain domain, String newname, Config config) {
@@ -428,6 +428,9 @@ public class Domain {
 
 	private void initializeDomain() {
 		try {
+		  if(!new File(this.domainConfigFile).exists())
+		    return;
+		  
 			PropertyListConfiguration config = new PropertyListConfiguration(this.domainConfigFile);
 
 			this.useSharedTripleStore = config.getBoolean("useSharedTripleStore", true);

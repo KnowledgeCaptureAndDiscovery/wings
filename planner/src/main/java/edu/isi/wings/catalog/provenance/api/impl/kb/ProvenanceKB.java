@@ -22,18 +22,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 
-public class ProvenanceKB implements ProvenanceAPI {
+public class ProvenanceKB extends TransactionsJena implements ProvenanceAPI {
   private String libns;
   private String liburl;
   private KBAPI kb;
@@ -47,7 +48,6 @@ public class ProvenanceKB implements ProvenanceAPI {
   private HashMap<String, KBObject> cmap;
   
   private String tdbRepository;
-  private OntFactory ontologyFactory;
   
   public ProvenanceKB(Properties props) {
     this.liburl = props.getProperty("lib.provenance.url");
@@ -82,6 +82,8 @@ public class ProvenanceKB implements ProvenanceAPI {
     this.propmap = new HashMap<String, KBObject>();
     this.cmap = new HashMap<String, KBObject>();
 
+    this.start_read();
+    
     String[] props = new String[] {"wasGeneratedBy", 
         "wasAttributedTo", "startedAtTime", "endedAtTime" };
     String[] concepts = new String[] {"Agent", "Entity", "Activity"};
@@ -89,24 +91,36 @@ public class ProvenanceKB implements ProvenanceAPI {
       this.propmap.put(propid, this.kb.getProperty(this.ontns + propid));
     for (String conceptid : concepts) 
       this.cmap.put(conceptid, this.kb.getConcept(this.ontns + conceptid));
+    
+    this.end();
   }
   
   @Override
   public Provenance getProvenance(String objectId) {
-    Provenance prov = new Provenance(objectId);
-    KBObject objres = this.kb.getIndividual(objectId);
-    ArrayList<KBObject> actobjs = 
-        this.kb.getPropertyValues(objres, propmap.get("wasGeneratedBy"));
-    for(KBObject actobj : actobjs) {
-      ProvActivity activity = this.getActivity(actobj);
-      activity.setObjectId(objectId);
-      prov.addActivity(activity);
+    try {
+      this.start_read();
+      Provenance prov = new Provenance(objectId);
+      KBObject objres = this.kb.getIndividual(objectId);
+      if(objres == null)
+        return prov;
+      
+      ArrayList<KBObject> actobjs = 
+          this.kb.getPropertyValues(objres, propmap.get("wasGeneratedBy"));
+      for(KBObject actobj : actobjs) {
+        ProvActivity activity = this.getActivity(actobj);
+        activity.setObjectId(objectId);
+        prov.addActivity(activity);
+      }
+      return prov;
     }
-    return prov;
+    finally {
+      this.end();
+    }
   }
 
   @Override
   public boolean setProvenance(Provenance prov) {
+    this.start_write();
     KBObject objres = this.libkb.getIndividual(prov.getObjectId());
     if(objres != null)
       this.removeAllProvenance(prov.getObjectId());
@@ -121,11 +135,12 @@ public class ProvenanceKB implements ProvenanceAPI {
       if(actobj != null)
         this.libkb.addPropertyValue(objres, propmap.get("wasGeneratedBy"), actobj);
     }
-    return true;
+    return this.save() && this.end();
   }
 
   @Override
   public boolean addProvenance(Provenance prov) {
+    this.start_write();
     KBObject objres = this.libkb.getIndividual(prov.getObjectId());
     if(objres == null)
       objres = this.libkb.createObjectOfClass(prov.getObjectId(), cmap.get("Entity"));
@@ -139,11 +154,12 @@ public class ProvenanceKB implements ProvenanceAPI {
       if(actobj != null)
         this.libkb.addPropertyValue(objres, propmap.get("wasGeneratedBy"), actobj);
     }
-    return true;
+    return this.save() && this.end();
   }
   
   @Override
   public boolean removeProvenance(Provenance prov) {
+    this.start_write();
     KBObject objres = this.libkb.getIndividual(prov.getObjectId());
     for(ProvActivity act : prov.getActivities()) {
       KBObject actobj = this.libkb.getIndividual(act.getId());
@@ -151,11 +167,12 @@ public class ProvenanceKB implements ProvenanceAPI {
         return false;
       this.libkb.removeTriple(objres, propmap.get("wasGeneratedBy"), actobj);
     }
-    return false;
+    return this.save() && this.end();
   }
 
   @Override
   public boolean removeAllProvenance(String objectId) {
+    this.start_write();
     KBObject objres = this.libkb.getIndividual(objectId);
     ArrayList<KBObject> actobjs = 
         this.kb.getPropertyValues(objres, propmap.get("wasGeneratedBy"));
@@ -164,12 +181,15 @@ public class ProvenanceKB implements ProvenanceAPI {
         return false;
     }
     KBUtils.removeAllTriplesWith(this.libkb, objectId, false);
-    return true;
+    return this.save() && this.end();
   }
   
   @Override
   public boolean removeAllDomainProvenance(String domainURL) {
-    for(KBObject objres : this.kb.getInstancesOfClass(cmap.get("Entity"), true)) {
+    this.start_read();
+    ArrayList<KBObject> objects = this.kb.getInstancesOfClass(cmap.get("Entity"), true);
+    this.end();
+    for(KBObject objres : objects) {
       if(objres.getID().startsWith(domainURL)) {
         this.removeAllProvenance(objres.getID());
       }
@@ -179,19 +199,22 @@ public class ProvenanceKB implements ProvenanceAPI {
   
   @Override
   public boolean removeUser(String userId) {
+    this.start_write();
     KBUtils.removeAllTriplesWith(this.libkb, this.libns + userId, false);
-    return true;
+    return this.save() && this.end();
   }
   
   @Override
   public boolean renameAllDomainProvenance(String oldDomainURL, String newDomainURL) {
+    this.start_write();
     KBUtils.renameTriplesWithPrefix(this.libkb, oldDomainURL, newDomainURL);
-    return true;
+    return this.save() && this.end();
   }
   
   @Override
   public ArrayList<ProvActivity> getAllUserActivities(String userId) {
     ArrayList<ProvActivity> acts = new ArrayList<ProvActivity>();
+    this.start_read();
     KBObject agentobj = this.kb.getIndividual(this.libns + userId);
     if(agentobj != null) {
       for(KBTriple t : this.kb.genericTripleQuery(null, propmap.get("wasAttributedTo"), 
@@ -205,22 +228,22 @@ public class ProvenanceKB implements ProvenanceAPI {
         acts.add(act);
       }
     }
+    this.end();
     return acts;
   }
   
   @Override
   public boolean save() {
-    return this.libkb.save();
+    return this.save(this.libkb);
   }
 
   @Override
   public boolean delete() {
-    return this.libkb.delete();
-  }
-  
-  @Override
-  public void end() {
-    this.libkb.end();
+    return 
+        this.start_write() &&
+        this.libkb.delete() &&
+        this.save() &&
+        this.end();
   }
   
   private KBObject addActivity(ProvActivity activity) {

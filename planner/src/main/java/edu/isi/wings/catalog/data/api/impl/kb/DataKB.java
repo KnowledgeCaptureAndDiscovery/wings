@@ -21,14 +21,15 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.SparqlFactory;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
-import edu.isi.wings.ontapi.SparqlFactory;
 
-public class DataKB {
+public class DataKB extends TransactionsJena {
 	protected KBAPI kb;
 	protected KBAPI ontkb;
 	protected KBAPI libkb;
@@ -49,7 +50,6 @@ public class DataKB {
 
 	protected HashMap<String, String> conceptNameFormat;
 
-	protected OntFactory ontologyFactory;
 	protected SparqlFactory sparqlFactory;
 	protected String tdbRepository;
 
@@ -96,6 +96,8 @@ public class DataKB {
 	}
 
 	private void initializeMaps() {
+	   this.start_read();
+
 		this.objPropMap = new HashMap<String, KBObject>();
 		this.dataPropMap = new HashMap<String, KBObject>();
 		this.conceptMap = new HashMap<String, KBObject>();
@@ -116,25 +118,41 @@ public class DataKB {
 				}
 			}
 		}
+		this.end();
 	}
 	
 	public String getDataLocation(String dataid) {
-		KBObject locprop = this.kb.getProperty(this.dcns + "hasLocation");
-		KBObject dobj = this.kb.getIndividual(dataid);
-		KBObject locobj = this.kb.getPropertyValue(dobj, locprop);
-		if (locobj != null && locobj.getValue() != null)
-			return locobj.getValueAsString();
-		else {
-			String location = this.getDefaultDataLocation(dataid);
-			File f = new File(location);
-			if(f.exists())
-				return location;
-		}
-		return null;
+	  try {
+  	  this.start_read();
+  		KBObject locprop = this.kb.getProperty(this.dcns + "hasLocation");
+  		KBObject dobj = this.kb.getIndividual(dataid);
+  		if(dobj == null)
+  		  return null;
+  		
+  		KBObject locobj = this.kb.getPropertyValue(dobj, locprop);
+  		if (locobj != null && locobj.getValue() != null)
+  			return locobj.getValueAsString();
+  		else {
+  			String location = this.getDefaultDataLocation(dataid);
+  			File f = new File(location);
+  			if(f.exists())
+  				return location;
+  		}
+  		return null;
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 	
 	public String getDefaultDataLocation(String dataid) {
-		KBObject dobj = this.kb.getResource(dataid);
-		return this.datadir + File.separator + dobj.getName();
+	  try {
+	    this.start_read();
+	    KBObject dobj = this.kb.getResource(dataid);
+	    return this.datadir + File.separator + dobj.getName();
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 }

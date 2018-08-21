@@ -19,15 +19,16 @@ package edu.isi.wings.catalog.data.api;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.metrics.Metrics;
-import edu.isi.wings.ontapi.KBTriple;
 
 /**
  * The interface used by the Workflow system to assist in Planning and
  * Generating workflows
  */
-public interface DataReasoningAPI {
+public interface DataReasoningAPI extends TransactionsAPI {
 	// API to help in Workflow Planning and Generation
 
 	ArrayList<VariableBindingsList> findDataSources(ArrayList<KBTriple> dods);

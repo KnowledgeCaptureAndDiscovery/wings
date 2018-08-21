@@ -53,175 +53,70 @@ public class ResourceController {
 
   // Query
   public String getAllSoftwareVersions() {
-    try {
-      return json.toJson(this.api.getAllSoftwareVersions());
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    } finally {
-      api.end();
-    }
+    return json.toJson(this.api.getAllSoftwareVersions());
   }
   
   public String getAllSoftwareEnvironment() {
-    try {
-      return json.toJson(this.api.getAllSoftwareEnvironment());
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    } finally {
-      api.end();
-    }
+    return json.toJson(this.api.getAllSoftwareEnvironment());
   }
   
   public String getMachineJSON(String resid) {
-    try {
-      return json.toJson(this.api.getMachine(resid));
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    } finally {
-      api.end();
-    }
+    return json.toJson(this.api.getMachine(resid));
   }
 
   public String getSoftwareJSON(String resid) {
-    try {
-      return json.toJson(this.api.getSoftware(resid));
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    } finally {
-      api.end();
-    }
+    return json.toJson(this.api.getSoftware(resid));
   }
 
   public String getSoftwareVersionJSON(String resid) {
-    try {
-      return json.toJson(this.api.getSoftwareVersion(resid));
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    } finally {
-      api.end();
-    }
+    return json.toJson(this.api.getSoftwareVersion(resid));
   }
   
   public String checkMachine(String resid) {
-    try {
-      Machine machine = this.api.getMachine(resid);
-      return json.toJson(machine.getMachineDetails());
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    } finally {
-      api.end();
-    }
+    Machine machine = this.api.getMachine(resid);
+    return json.toJson(machine.getMachineDetails());
   }
 
 
   // Add
   public boolean addMachine(String resid) {
-    try {
-      return this.api.addMachine(resid) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    return this.api.addMachine(resid);
   }
 
   public boolean addSoftware(String resid) {
-    try {
-      return this.api.addSoftware(resid) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    return this.api.addSoftware(resid);
   }
 
   public boolean addSoftwareVersion(String resid, String softwareid) {
-    try {
-      return this.api.addSoftwareVersion(resid, softwareid) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    return this.api.addSoftwareVersion(resid, softwareid);
   }
 
   // Save updates
   public boolean saveMachineJSON(String resid, String resvals_json) {
-    try {
-      Machine machine = json.fromJson(resvals_json, Machine.class);
-      return this.api.saveMachine(machine) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    Machine machine = json.fromJson(resvals_json, Machine.class);
+    return this.api.saveMachine(machine);
   }
 
   public boolean saveSoftwareJSON(String resid, String resvals_json) {
-    try {
-      Software software = json.fromJson(resvals_json, Software.class);
-      return this.api.saveSoftware(software) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    Software software = json.fromJson(resvals_json, Software.class);
+    return this.api.saveSoftware(software);
   }
 
   public boolean saveSoftwareVersionJSON(String resid, String resvals_json) {
-    try {
-      SoftwareVersion version = json.fromJson(resvals_json, SoftwareVersion.class);
-      return this.api.saveSoftwareVersion(version) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    SoftwareVersion version = json.fromJson(resvals_json, SoftwareVersion.class);
+    return this.api.saveSoftwareVersion(version);
   }
 
   // Remove
   public boolean removeMachine(String resid) {
-    try {
-      return this.api.removeMachine(resid) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    return this.api.removeMachine(resid);
   }
 
   public boolean removeSoftware(String resid) {
-    try {
-      return this.api.removeSoftware(resid) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    return this.api.removeSoftware(resid);
   }
 
   public boolean removeSoftwareVersion(String resid) {
-    try {
-      return this.api.removeSoftwareVersion(resid) && this.api.save();
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    } finally {
-      api.end();
-    }
+    return this.api.removeSoftwareVersion(resid);
   }
 }

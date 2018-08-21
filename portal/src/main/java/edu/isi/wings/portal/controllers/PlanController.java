@@ -27,6 +27,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
@@ -41,7 +42,6 @@ import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.CollectionsHelper;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
-import edu.isi.wings.ontapi.KBObject;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.config.Config;
@@ -147,6 +147,7 @@ public class PlanController {
 		this.addTemplateBindings(tpl, template_bindings);
 		
 		Template itpl = wg.getInferredTemplate(tpl);
+		
 		ArrayList<Template> candidates = wg.specializeTemplates(itpl);
 		if(candidates.size() == 0) {
 			printError(out);
@@ -446,7 +447,9 @@ public class PlanController {
 		String name = tpl.getName() + UuidGen.generateAUuid("");
 		String newid = wliburl + "/" + name + ".owl#" + name;
 		tpl.setID(newid);
-		tc.saveTemplate(tpl);
+		tpl.save();
+		tc.registerTemplate(tpl);
+		
 		// Now re-read the temporary template
 		return tc.getTemplate(newid);
 	}

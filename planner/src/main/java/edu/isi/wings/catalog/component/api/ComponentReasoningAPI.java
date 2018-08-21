@@ -19,6 +19,7 @@ package edu.isi.wings.catalog.component.api;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
 
@@ -26,7 +27,7 @@ import edu.isi.wings.catalog.component.classes.ComponentPacket;
  * The interface for communicating with the Component Catalog during Workflow
  * Planning and generation
  */
-public interface ComponentReasoningAPI {
+public interface ComponentReasoningAPI extends TransactionsAPI {
 	// Generation API
 	ArrayList<ComponentPacket> specializeAndFindDataDetails(ComponentPacket details);
 
@@ -35,4 +36,5 @@ public interface ComponentReasoningAPI {
 	ArrayList<ComponentPacket> findOutputDataPredictedDescriptions(ComponentPacket details);
 
 	ComponentInvocation getComponentInvocation(ComponentPacket details);
+
 }

@@ -24,23 +24,24 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Scanner;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
+import edu.isi.kcap.ontapi.rules.KBRule;
+import edu.isi.kcap.ontapi.rules.KBRuleClause;
+import edu.isi.kcap.ontapi.rules.KBRuleList;
+import edu.isi.kcap.ontapi.rules.KBRuleObject;
+import edu.isi.kcap.ontapi.rules.KBRuleTriple;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentRole;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
-import edu.isi.wings.ontapi.rules.KBRule;
-import edu.isi.wings.ontapi.rules.KBRuleClause;
-import edu.isi.wings.ontapi.rules.KBRuleList;
-import edu.isi.wings.ontapi.rules.KBRuleObject;
-import edu.isi.wings.ontapi.rules.KBRuleTriple;
 
-public class ComponentKB {
+public class ComponentKB extends TransactionsJena {
 	protected KBAPI kb;
 	protected KBAPI writerkb;
 	protected String dcns;
@@ -58,8 +59,6 @@ public class ComponentKB {
 	protected String topclass;
 
 	protected ResourceAPI resapi;
-	
-	protected OntFactory ontologyFactory;
 
 	protected HashMap<String, KBObject> objPropMap;
 	protected HashMap<String, KBObject> dataPropMap;
@@ -150,9 +149,14 @@ public class ComponentKB {
 				else
 					this.writerkb = this.ontologyFactory.getKB(absurl, OntSpec.PLAIN);
 			}
+			
+			this.start_read();
+			
 			this.initializeMaps(this.kb);
 			this.initDomainKnowledge();
 			this.setRuleMappings(this.kb);
+			
+			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -197,32 +201,47 @@ public class ComponentKB {
 	}
 
 	public String getComponentLocation(String cid) {
-		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
-		KBObject cobj = this.kb.getIndividual(cid);
-		KBObject locobj = this.kb.getPropertyValue(cobj, locprop);
-		if (locobj != null && locobj.getValue() != null)
-			return locobj.getValueAsString();
-		else if (cobj != null) {
-			String location = this.codedir + File.separator + cobj.getName();
-			File f = new File(location);
-			if(f.exists())
-				return location;
-		}
-		return null;
+	  try {
+  	  this.start_read();
+  		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
+  		KBObject cobj = this.kb.getIndividual(cid);
+  		KBObject locobj = this.kb.getPropertyValue(cobj, locprop);
+  		if (locobj != null && locobj.getValue() != null)
+  			return locobj.getValueAsString();
+  		else if (cobj != null) {
+  			String location = this.codedir + File.separator + cobj.getName();
+  			File f = new File(location);
+  			if(f.exists())
+  				return location;
+  		}
+  		return null;
+    }
+    finally {
+      this.end();
+    }
 	}
 	
 	public String getDefaultComponentLocation(String cid) {
-	  KBObject cobj = this.kb.getIndividual(cid);
-	  return this.codedir + File.separator + cobj.getName();
+	  try {
+	    this.start_read();
+  	  KBObject cobj = this.kb.getIndividual(cid);
+  	  return this.codedir + File.separator + cobj.getName();
+    }
+    finally {
+      this.end();
+    }
 	}
 	
 	protected void setComponentRules(String cid, String text) {
+	  this.start_write();
 		KBObject compobj = this.writerkb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		for(KBRule rule : ontologyFactory.parseRules(text).getRules()) {
 			KBObject ruleobj = writerkb.createLiteral(rule.toString());
 			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
 		}
+		this.save(this.writerkb);
+		this.end();
 	}
 	
 	protected KBRuleList getComponentRules(String cid) {
@@ -232,41 +251,53 @@ public class ComponentKB {
 	}
 	
 	protected KBRuleList getDirectComponentRules(String cid) {
-		String rulestr = "";
-		KBObject compobj = this.kb.getIndividual(cid);
-		KBObject ruleProp = this.dataPropMap.get("hasRule");
-		for(KBObject ruleobj : this.kb.getPropertyValues(compobj, ruleProp))
-			rulestr += ruleobj.getValueAsString();
-		try {
-		  return ontologyFactory.parseRules(rulestr);
-		}
-		catch (Exception e) {
-		  return ontologyFactory.createEmptyRuleList();
-		}
+	  try {
+	    this.start_read();
+  		String rulestr = "";
+  		KBObject compobj = this.kb.getIndividual(cid);
+  		KBObject ruleProp = this.dataPropMap.get("hasRule");
+  		for(KBObject ruleobj : this.kb.getPropertyValues(compobj, ruleProp))
+  			rulestr += ruleobj.getValueAsString();
+  		try {
+  		  return ontologyFactory.parseRules(rulestr);
+  		}
+  		catch (Exception e) {
+  		  return ontologyFactory.createEmptyRuleList();
+  		}
+    }
+    finally {
+      this.end();
+    }
 	}
 	
 	protected KBRuleList getInheritedComponentRules(String cid) {
-		String rulestr = "";
-		KBObject compobj = this.kb.getIndividual(cid);
-		KBObject ruleProp = this.dataPropMap.get("hasRule");
-		for(KBObject clsobj : this.kb.getAllClassesOfInstance(compobj, true)) {
-			for(KBObject superclsobj : this.kb.getSuperClasses(clsobj, false)) {
-				for(KBObject supercompobj : this.kb.getInstancesOfClass(superclsobj, true))
-					for(KBObject ruleobj : this.kb.getPropertyValues(supercompobj, ruleProp))
-						rulestr += ruleobj.getValueAsString();
-			}
-		}
-    try {
-      return ontologyFactory.parseRules(rulestr);
+	  try {
+	    this.start_read();
+  		String rulestr = "";
+  		KBObject compobj = this.kb.getIndividual(cid);
+  		KBObject ruleProp = this.dataPropMap.get("hasRule");
+  		for(KBObject clsobj : this.kb.getAllClassesOfInstance(compobj, true)) {
+  			for(KBObject superclsobj : this.kb.getSuperClasses(clsobj, false)) {
+  				for(KBObject supercompobj : this.kb.getInstancesOfClass(superclsobj, true))
+  					for(KBObject ruleobj : this.kb.getPropertyValues(supercompobj, ruleProp))
+  						rulestr += ruleobj.getValueAsString();
+  			}
+  		}
+  		return ontologyFactory.parseRules(rulestr);
     }
     catch (Exception e) {
       return ontologyFactory.createEmptyRuleList();
+    }
+    finally {
+      this.end();
     }
 	}
 	
 	 
   protected ComponentRequirement getComponentRequirements(KBObject compobj, 
       KBAPI tkb) {
+    this.start_read();
+    
     ComponentRequirement requirement = new ComponentRequirement();
     
     KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
@@ -280,18 +311,22 @@ public class ComponentKB {
     }
 
     KBObject hdobj = tkb.getPropertyValue(compobj, hdprop);
-    KBObject memobj = tkb.getPropertyValue(hdobj,
-        this.dataPropMap.get("requiresMemoryGB"));
-    KBObject stobj = tkb.getPropertyValue(hdobj,
-        this.dataPropMap.get("requiresStorageGB"));
-    KBObject s4bitobj = tkb.getPropertyValue(hdobj,
-        this.dataPropMap.get("needs64bit"));
-    if(memobj != null && memobj.getValue() != null)
-      requirement.setMemoryGB(Float.parseFloat(memobj.getValueAsString()));
-    if(stobj != null && stobj.getValue() != null)
-      requirement.setStorageGB(Float.parseFloat(stobj.getValueAsString()));
-    if(s4bitobj != null)
-      requirement.setNeed64bit((Boolean)s4bitobj.getValue());
+    if(hdobj != null) {
+      KBObject memobj = tkb.getPropertyValue(hdobj,
+          this.dataPropMap.get("requiresMemoryGB"));
+      KBObject stobj = tkb.getPropertyValue(hdobj,
+          this.dataPropMap.get("requiresStorageGB"));
+      KBObject s4bitobj = tkb.getPropertyValue(hdobj,
+          this.dataPropMap.get("needs64bit"));
+      
+      if(memobj != null && memobj.getValue() != null)
+        requirement.setMemoryGB(Float.parseFloat(memobj.getValueAsString()));
+      if(stobj != null && stobj.getValue() != null)
+        requirement.setStorageGB(Float.parseFloat(stobj.getValueAsString()));
+      if(s4bitobj != null)
+        requirement.setNeed64bit((Boolean)s4bitobj.getValue());
+    }
+    this.end();
     
     return requirement;
   }
@@ -299,6 +334,8 @@ public class ComponentKB {
 
   protected void setComponentRequirements(KBObject compobj,
       ComponentRequirement requirement, KBAPI tkb, KBAPI writerkb) {
+    this.start_write();
+    
     KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
     KBObject sdcls = this.conceptMap.get("SoftwareDependency");
     KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
@@ -327,6 +364,9 @@ public class ComponentKB {
         this.dataPropMap.get("needs64bit"), 
         writerkb.createLiteral(requirement.isNeed64bit()));
     writerkb.setPropertyValue(compobj, hdprop, hdobj);
+    
+    this.save(writerkb);
+    this.end();
   }
 
 	/*
@@ -348,6 +388,8 @@ public class ComponentKB {
 				return;
 			
 			try {
+			  this.start_write();
+			  
 				KBAPI abskb = this.ontologyFactory.getKB(absurl, OntSpec.PLAIN);
 				KBAPI libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
 				
@@ -406,8 +448,9 @@ public class ComponentKB {
 						}
 					}
 				}
-				abskb.save();
-				libkb.save();
+				this.save(abskb);
+				this.save(libkb);
+				this.end();
 				
 				this.kb = this.ontologyFactory.getKB(this.absurl, OntSpec.PELLET);
 				
@@ -425,23 +468,25 @@ public class ComponentKB {
 	// Legacy Porting code
 	private void createAbstractFromConcrete() {
 		try {
+		  this.start_read();
+		  
 			KBAPI abskb = this.ontologyFactory.getKB(OntSpec.PLAIN);
 			KBAPI libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
 			KBAPI kb = this.ontologyFactory.getKB(liburl, OntSpec.PELLET);
 			kb.importFrom(this.ontologyFactory.getKB(this.props.getProperty("ont.component.url"), OntSpec.PLAIN));
+			
 			this.initializeMaps(kb);
 			
 			HashMap<String, KBObject> cmap = this.conceptMap;
 			HashMap<String, KBObject> dpmap = this.dataPropMap;
 			HashMap<String, KBObject> opmap = this.objPropMap;
 			
+			ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
+			
 			ArrayList<KBObject> compobjs = kb.getInstancesOfClass(cmap.get("Component"), false);
 			for(KBObject compobj : compobjs) {
 				KBObject dval = kb.getDatatypePropertyValue(compobj, dpmap.get("isConcrete"));
 				if(dval != null && dval.getValue() != null && !(Boolean)dval.getValue()) {
-					// Not concrete -- move to abstract
-					ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
-					
 					// Get Component Class
 					KBObject compcls = libkb.getClassOfInstance(compobj);
  
@@ -453,16 +498,19 @@ public class ComponentKB {
 						triples.addAll(libkb.genericTripleQuery(inputobj, null, null));
 					for(KBObject outputobj : libkb.getPropertyValues(compobj, opmap.get("hasOutput")))
 						triples.addAll(libkb.genericTripleQuery(outputobj, null, null));
-					
-					for(KBTriple triple : triples)
-						libkb.removeTriple(triple);
-					
-					abskb.addTriples(triples);
 				}
 			}
+			this.end();
+			
+			this.start_write();
+      for(KBTriple triple : triples)
+        libkb.removeTriple(triple);
+      libkb.save();
+
+      abskb.addTriples(triples);			
 			abskb.createImport(this.absurl, props.getProperty("ont.component.url"));
 			abskb.saveAs(this.absurl);
-			libkb.save();
+			this.end();
 			
 			this.kb = this.ontologyFactory.getKB(this.absurl, OntSpec.PELLET);
 		}
@@ -501,57 +549,87 @@ public class ComponentKB {
 	}
 	
   public Component getComponent(String cid, boolean details) {
-    KBObject compobj = kb.getIndividual(cid);
-    if(compobj == null) return null;
+    this.start_read();
+    boolean batchok = this.start_batch_operation();
     
-    KBObject concobj = kb.getDatatypePropertyValue(compobj, this.dataPropMap.get("isConcrete"));
-    boolean isConcrete = false;
-    if(concobj != null && concobj.getValue() != null)
-      isConcrete = ((Boolean) concobj.getValue()).booleanValue();
-    int ctype = isConcrete ? Component.CONCRETE : Component.ABSTRACT;
-
-    Component comp = new Component(compobj.getID(), ctype);
-    if (isConcrete)
-      comp.setLocation(this.getComponentLocation(cid));
-
-    if (details) {
-      comp.setDocumentation(this.getComponentDocumentation(compobj));
-      comp.setComponentRequirement(
-          this.getComponentRequirements(compobj, this.kb));
+    try {
+      KBObject compobj = kb.getIndividual(cid);
+      if(compobj == null) return null;
       
-      ArrayList<KBObject> inobjs = this.getComponentInputs(compobj);
-      for (KBObject inobj : inobjs) {
-        comp.addInput(this.getRole(inobj));
+      KBObject concobj = kb.getDatatypePropertyValue(compobj, this.dataPropMap.get("isConcrete"));
+      boolean isConcrete = false;
+      if(concobj != null && concobj.getValue() != null)
+        isConcrete = ((Boolean) concobj.getValue()).booleanValue();
+      int ctype = isConcrete ? Component.CONCRETE : Component.ABSTRACT;
+  
+      Component comp = new Component(compobj.getID(), ctype);
+      if (isConcrete)
+        comp.setLocation(this.getComponentLocation(cid));
+  
+      if (details) {
+        comp.setDocumentation(this.getComponentDocumentation(compobj));
+        comp.setComponentRequirement(
+            this.getComponentRequirements(compobj, this.kb));
+        
+        ArrayList<KBObject> inobjs = this.getComponentInputs(compobj);
+        for (KBObject inobj : inobjs) {
+          comp.addInput(this.getRole(inobj));
+        }
+        ArrayList<KBObject> outobjs = this.getComponentOutputs(compobj);
+        for (KBObject outobj : outobjs) {
+          comp.addOutput(this.getRole(outobj));
+        }
+        comp.setRules(this.getDirectComponentRules(cid));
+        comp.setInheritedRules(this.getInheritedComponentRules(cid));
       }
-      ArrayList<KBObject> outobjs = this.getComponentOutputs(compobj);
-      for (KBObject outobj : outobjs) {
-        comp.addOutput(this.getRole(outobj));
-      }
-      comp.setRules(this.getDirectComponentRules(cid));
-      comp.setInheritedRules(this.getInheritedComponentRules(cid));
+      return comp;
     }
-    return comp;
+    finally {
+      if(batchok)
+        this.stop_batch_operation();
+      this.end();      
+    }
   }	
   
   protected ArrayList<KBObject> getComponentInputs(KBObject compobj) {
-    KBObject inProp = kb.getProperty(this.pcns + "hasInput");
-    return kb.getPropertyValues(compobj, inProp);
+    try {
+      this.start_read();
+      KBObject inProp = kb.getProperty(this.pcns + "hasInput");
+      return kb.getPropertyValues(compobj, inProp);
+    }
+    finally {
+      this.end();
+    }
   }
 
   protected ArrayList<KBObject> getComponentOutputs(KBObject compobj) {
-    KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
-    return kb.getPropertyValues(compobj, outProp);
+    try {
+      this.start_read();
+      KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
+      return kb.getPropertyValues(compobj, outProp);
+    }
+    finally {
+      this.end();
+    }
   }
 
   protected String getComponentDocumentation(KBObject compobj) {
-    KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
-    KBObject doc = kb.getPropertyValue(compobj, docProp);
-    if(doc != null && doc.getValue() != null)
-        return doc.getValueAsString();
-    return null;
+    try {
+      this.start_read();
+      KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
+      KBObject doc = kb.getPropertyValue(compobj, docProp);
+      if(doc != null && doc.getValue() != null)
+          return doc.getValueAsString();
+      return null;
+    }
+    finally {
+      this.end();
+    }
   }
   
   protected ComponentRole getRole(KBObject argobj) {
+    this.start_read();
+    
     ComponentRole arg = new ComponentRole(argobj.getID());
     KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");
     KBObject dimProp = kb.getProperty(this.pcns + "hasDimensionality");
@@ -586,6 +664,8 @@ public class ComponentKB {
       arg.setDimensionality((Integer) dim.getValue());
     if (pfx != null && pfx.getValue() != null)
       arg.setPrefix(pfx.getValueAsString());
+    
+    this.end();
     return arg;
   }
   

@@ -32,14 +32,16 @@ import java.util.Properties;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 import edu.isi.wings.workflow.template.api.ConstraintEngine;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.classes.Link;
@@ -62,7 +64,8 @@ import edu.isi.wings.workflow.template.classes.variables.ParameterVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 import edu.isi.wings.workflow.template.classes.variables.VariableType;
 
-public class TemplateKB extends URIEntity implements Template {
+public class TemplateKB extends URIEntity 
+implements Template, TransactionsAPI {
 	private static final long serialVersionUID = 1L;
 	private static final int latestVersion = 3;
 
@@ -70,6 +73,8 @@ public class TemplateKB extends URIEntity implements Template {
 
 	protected transient OntFactory ontologyFactory;
 	protected transient KBAPI kb;
+	
+	protected transient TransactionsAPI transaction;
 
 	protected String onturl;
 	protected String wflowns;
@@ -122,7 +127,7 @@ public class TemplateKB extends URIEntity implements Template {
 		this.initMaps();
 		this.initVariables(props);
 		this.initializeKB(props, false);
-		kb.createObjectOfClass(this.getID(), kb.getConcept(wflowns + "WorkflowTemplate"));
+		this.registerBlankTemplate();
 		this.metadata = new Metadata();
 		this.rules = new Rules();
 	}
@@ -139,44 +144,58 @@ public class TemplateKB extends URIEntity implements Template {
     nodeOutputLinks = new HashMap<String, TreeSet<Link>>();
     variableLinks = new HashMap<String, TreeSet<Link>>(); 	  
 	}
-	
-	protected void initializeKB(Properties props) {
-		this.initializeKB(props, true);
+
+	protected String getTripleStoreDir(Properties props) {
+	  return props.getProperty("tdb.repository.dir");	  
 	}
 	
-	private void initializeKB(Properties props, boolean load_template) {
-		String tdbRepository = props.getProperty("tdb.repository.dir");
+  protected void initializeKB(Properties props) {
+    this.initializeKB(props, true);
+  }
+	 
+	protected void initializeKB(Properties props, boolean load_template) {
+	  String tdbRepository = this.getTripleStoreDir(props);
 		if (tdbRepository == null) {
 			this.ontologyFactory = new OntFactory(OntFactory.JENA);
 		} else {
 			this.ontologyFactory = new OntFactory(OntFactory.JENA, tdbRepository);
 		}
+    this.transaction = new TransactionsJena(this.ontologyFactory);
+    
 		KBUtils.createLocationMappings(props, this.ontologyFactory);
 		try {
 			// Using a PLAIN kb as we don't need much inference here
-			if(load_template)
-				kb = this.ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
-			else
-				kb = this.ontologyFactory.getKB(OntSpec.PLAIN);
-			kb.importFrom(ontologyFactory.getKB(this.onturl, OntSpec.PLAIN, true));
-			this.constraintEngine = new ConstraintEngineKB(kb, this.wflowns);
+      if(load_template)
+        kb = this.ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
+      else
+        kb = this.ontologyFactory.getKB(OntSpec.PLAIN);
+      
+      kb.importFrom(ontologyFactory.getKB(this.onturl, OntSpec.PLAIN, true));
+      
+			this.start_read();
+			this.constraintEngine = new ConstraintEngineKB(this.kb, this.wflowns);
+			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	
+	protected void registerBlankTemplate() {
+	  this.start_write();
+    kb.createObjectOfClass(this.getID(), kb.getConcept(wflowns + "WorkflowTemplate"));
+    this.end();
+	}
+
 	/**
-	 * Make a copy of another template
-	 * @param t
-	 *            the template to copy from
+	 * Make a copy of another template in memory
+	 * @param t Original template
 	 */
 	public TemplateKB(TemplateKB t) {
 		super(t.getID());
-		this.props = t.props;
-		this.initMaps();
-		this.initVariables(this.props);
+    this.props = t.props;
+    this.initMaps();
+    this.initVariables(props);
 		
 		copyBookkeepingInfo(t);
 
@@ -191,20 +210,29 @@ public class TemplateKB extends URIEntity implements Template {
 			this.metadata.documentation = t.metadata.documentation;
 			this.metadata.contributors = new ArrayList<String>(t.metadata.contributors);
 		}
-		this.ontologyFactory = t.ontologyFactory;
-		this.kb = t.kb;
+		
+		// copy kb
+    this.ontologyFactory = t.ontologyFactory;
+    this.kb = t.kb;
+    this.transaction = t.transaction;
 		
 		this.constraintEngine = new ConstraintEngineKB((ConstraintEngineKB) t.getConstraintEngine());
 	}
 
 	private void copyBookkeepingInfo(TemplateKB t) {
-		this.setID(t.getID());;
+		this.setID(t.getID());
 		this.wflowns = t.wflowns;
 	}
 
 	public String getInternalRepresentation() {
 		// return this.kb.toN3();
-		return this.kb.toRdf(true);
+	  try {
+  	  this.start_read();
+  		return this.kb.toRdf(true);
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 	
 	public void setName(String name) {
@@ -212,6 +240,7 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	private void cacheConceptsAndProperties() {
+	  this.start_read();
 		for (KBObject obj : kb.getAllClasses()) {
 			if(obj != null)
 				conceptObjMap.put(obj.getName(), obj);
@@ -224,32 +253,15 @@ public class TemplateKB extends URIEntity implements Template {
 			if(obj != null)
 				propertyObjMap.put(obj.getName(), obj);
 		}
-		// Legacy ontologies don't have some concepts & properties. Add them in here
-		if(!propertyObjMap.containsKey("hasRoleID"))
-			propertyObjMap.put("hasRoleID", kb.createDatatypeProperty(this.wflowns+"hasRoleID"));
-		if(!propertyObjMap.containsKey("hasMetadata"))
-			propertyObjMap.put("hasMetadata", kb.createDatatypeProperty(this.wflowns+"hasMetadata"));
-    if(!propertyObjMap.containsKey("autoFill"))
-      propertyObjMap.put("autoFill", kb.createDatatypeProperty(this.wflowns+"autoFill"));
-    if(!propertyObjMap.containsKey("breakPoint"))
-      propertyObjMap.put("breakPoint", kb.createDatatypeProperty(this.wflowns+"breakPoint"));
-    if(!propertyObjMap.containsKey("isInactive"))
-      propertyObjMap.put("isInactive", kb.createDatatypeProperty(this.wflowns+"isInactive"));
-    if(!propertyObjMap.containsKey("tellmeData"))
-      propertyObjMap.put("tellmeData", kb.createDatatypeProperty(this.wflowns+"tellmeData"));
-    if(!propertyObjMap.containsKey("derivedFrom"))
-      propertyObjMap.put("derivedFrom", kb.createObjectProperty(this.wflowns+"derivedFrom"));
-    
-		if(!conceptObjMap.containsKey("ReduceDimensionality"))
-			conceptObjMap.put("ReduceDimensionality", kb.createClass(this.wflowns+"ReduceDimensionality"));
-		if(!conceptObjMap.containsKey("Shift"))
-			conceptObjMap.put("Shift", kb.createClass(this.wflowns+"Shift"));
+		this.end();
 	}
 
 	private Node readNodeFromKB(KBObject obj) {
 		if (obj == null)
 			return null;
 
+		this.start_read();
+		
 		KBObject compObj = kb.getPropertyValue(obj, propertyObjMap.get("hasComponent"));
 		KBObject wObj = kb.getPropertyValue(obj, propertyObjMap.get("hasWorkflow"));
     KBObject isInactive = kb.getPropertyValue(obj, propertyObjMap.get("isInactive"));
@@ -298,6 +310,8 @@ public class TemplateKB extends URIEntity implements Template {
     if(dnode != null)
       n.setDerivedFrom(dnode.getID());
 
+    this.end();
+    
 		return n;
 	}
 
@@ -311,6 +325,9 @@ public class TemplateKB extends URIEntity implements Template {
 	protected void readTemplate() {
 		cacheConceptsAndProperties();
 
+    this.start_read();
+    boolean batched = this.start_batch_operation();
+    
 		ArrayList<KBObject> tobjs = kb.getInstancesOfClass(conceptObjMap.get("WorkflowTemplate"),
 				false);
 
@@ -318,6 +335,11 @@ public class TemplateKB extends URIEntity implements Template {
 		for (KBObject tobj : tobjs) {
 			readTemplate(tobj);
 		}
+		
+		if(batched)
+		  this.stop_batch_operation();
+		
+		this.end();
 
 		// Get the root template (no parent). Copy over its links, nodes, and
 		// variables
@@ -567,7 +589,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 		t.metadata = readMetadata(this.kb, templateObj);
 		t.rules = readRules(this.kb, templateObj);
-
+		
 		return t;
 	}
 
@@ -755,6 +777,7 @@ public class TemplateKB extends URIEntity implements Template {
 	protected Metadata readMetadata(KBAPI kb, KBObject tobj) {
 		this.cacheConceptsAndProperties();
 
+		this.start_read();
 		Metadata m = new Metadata();
 		KBObject mobj = kb.getPropertyValue(tobj, this.propertyObjMap.get("hasMetadata"));
 		if (mobj == null)
@@ -786,12 +809,17 @@ public class TemplateKB extends URIEntity implements Template {
 			if (!m.createdFrom.contains(tmp.getValue()))
 				m.createdFrom.add((String) tmp.getValue());
 		}
+		
+		this.end();
+		
 		return m;
 	}
 
 	protected Rules readRules(KBAPI kb, KBObject tobj) {
 		this.cacheConceptsAndProperties();
 
+		this.start_read();
+		
 		Rules r = new Rules();
 		KBObject robj = kb.getPropertyValue(tobj, this.propertyObjMap.get("hasRules"));
 		if (robj == null)
@@ -802,6 +830,7 @@ public class TemplateKB extends URIEntity implements Template {
 		if (val != null)
 			r.setRulesText((String) val.getValue());
 
+		this.end();
 		return r;
 	}
 
@@ -1445,80 +1474,91 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	public String serialize() {
-		KBAPI tkb = this.serializeAndGetKB();
+    KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
+    tkb = serializeIntoKB(tkb, false);
 		// Return RDF representation
 		// return tkb.toN3(this.url);
 		return tkb.toAbbrevRdf(false, this.getURL());
 	}
 	
-	public void resetInternalRepresentation() {
-		this.kb = this.serializeAndGetKB();
-		try {
-			this.kb.importFrom(ontologyFactory.getKB(this.onturl, OntSpec.PLAIN));
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		this.constraintEngine = new ConstraintEngineKB(this.kb, this.wflowns);
-	}
-	
-	private KBAPI serializeAndGetKB() {
-		// If this template has no ontology backing it, then initialize the API
-		if(ontologyFactory == null || kb == null) {
-			this.initVariables(this.props);
-			this.initializeKB(this.props, this.Nodes.size() == 0); 
-		}
-		// Create a plain new KBAPI
-		KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
-		tkb = serializeIntoKB(tkb, false);
-		return tkb;
-	}
-
+  public void resetInternalRepresentation() {
+    this.kb = this.serializeAndGetKB();
+    try {
+      this.kb.importFrom(ontologyFactory.getKB(this.onturl, OntSpec.PLAIN));
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    this.start_read();
+    this.constraintEngine = new ConstraintEngineKB(this.kb, this.wflowns);
+    this.end();
+  }
+  
+  private KBAPI serializeAndGetKB() {
+    // If this template has no ontology backing it, then initialize the API
+    if(ontologyFactory == null || kb == null) {
+      this.initVariables(this.props);
+      this.initializeKB(this.props, this.Nodes.size() == 0); 
+    }
+    // Create a plain new KBAPI
+    KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
+    tkb = serializeIntoKB(tkb, false);
+    return tkb;
+  }
+  
 	public boolean save() {
-		KBAPI tkb = null;
-		try {
-			tkb = ontologyFactory.getKB(OntSpec.PLAIN);
-			serializeIntoKB(tkb, false);
-			return tkb.saveAs(this.getURL());
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-		finally {
-			if(tkb != null)
-				tkb.end();
-		}
-	}
-	
-	public void end() {
-		if (this.kb != null)
-			this.kb.end();
+    try {
+      // Serialize to temporary KB
+      KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
+      serializeIntoKB(tkb, false);
+      
+      // Write to triple store
+      this.start_write();
+      ontologyFactory.useTripleStore(tkb);
+      return tkb.saveAs(this.getURL());
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    finally {
+      this.end();
+    }
 	}
 	
 	public boolean saveAs(String newid) {
-		String curns = this.getNamespace();
-		this.setID(newid);
-		String newns = this.getNamespace();
-		KBAPI tkb = null;
 		try {
-			tkb = ontologyFactory.getKB(OntSpec.PLAIN);
-			serializeIntoKB(tkb, false);
-			KBUtils.renameTripleNamespace(tkb, curns, newns);
-			return tkb.saveAs(this.getURL());
+	    URIEntity newentity = new URIEntity(newid);
+	    
+      // Serialize to temporary KB
+      KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
+      serializeIntoKB(tkb, false);
+
+      // Change namespaces
+      String curns = this.getNamespace();
+      String newns = newentity.getNamespace();
+      KBUtils.renameTripleNamespace(tkb, curns, newns);
+
+      // Write to triple store
+      this.start_write();
+      ontologyFactory.useTripleStore(tkb);
+      return tkb.saveAs(newentity.getURL());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 		finally {
-			if(tkb != null)
-				tkb.end();
+		  this.end();
 		}
 	}
 	
 	public boolean delete() {
-		return kb.delete();
+		return 
+		    this.start_write() &&
+		    kb.delete() && 
+		    this.save(kb) && 
+		    this.end();
 	}
 	
 	private Binding readBindingObjectFromKB(KBAPI tkb, KBObject bobj) {
@@ -1576,7 +1616,8 @@ public class TemplateKB extends URIEntity implements Template {
 	}
 
 	private KBAPI serializeIntoKB(KBAPI tkb, boolean subtemplate) {
-		cacheConceptsAndProperties();
+	  cacheConceptsAndProperties();
+		
 		autoUpdateTemplateRoles();
 
 		HashMap<String, KBObject> pmap = propertyObjMap;
@@ -1615,9 +1656,10 @@ public class TemplateKB extends URIEntity implements Template {
 
 			ComponentVariable c = n.getComponentVariable();
 			if (c != null && !c.isTemplate()) {
-				KBObject cobj = tkb.getResource(c.getID());
-				tkb.addClassForInstance(cobj, cmap.get("ComponentVariable"));
-
+				KBObject cobj = tkb.getIndividual(c.getID());
+				if(cobj == null)
+				  cobj = tkb.createObjectOfClass(c.getID(), cmap.get("ComponentVariable"));
+				
 				if (cobj != null) {
 					tkb.addPropertyValue(nobj, pmap.get("hasComponent"), cobj);
 					if (c.isConcrete())
@@ -1705,7 +1747,8 @@ public class TemplateKB extends URIEntity implements Template {
 				SetExpression expr = prule.getSetExpression();
 				if (expr != null) {
 					KBObject exprobj = writeSetExpressionInKB(tkb, expr);
-					tkb.addPropertyValue(pruleobj, pmap.get("createSetsOn"), exprobj);
+					if(exprobj != null)
+					  tkb.addPropertyValue(pruleobj, pmap.get("createSetsOn"), exprobj);
 				}
 				tkb.addPropertyValue(nobj, pmap.get("hasPortSetCreationRule"), pruleobj);
 			}
@@ -1801,6 +1844,8 @@ public class TemplateKB extends URIEntity implements Template {
 			if(rules != null)
 			  writeRules(tkb, tobj, rules);
 		}
+		
+    tkb.setURI(this.getURL());
 
 		return tkb;
 	}
@@ -1917,7 +1962,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 	protected void writeMetadataDescription(KBAPI tkb, KBObject tobj, Metadata m) {
 		// Add metadata
-		this.cacheConceptsAndProperties();
+		// this.cacheConceptsAndProperties();
 		KBObject mobj = tkb.createObjectOfClass(this.getID()+"_meta", conceptObjMap.get("Metadata"));
 		tkb.setPropertyValue(tobj, propertyObjMap.get("hasMetadata"), mobj);
 
@@ -1945,7 +1990,7 @@ public class TemplateKB extends URIEntity implements Template {
 
 	protected void writeRules(KBAPI tkb, KBObject tobj, Rules rules) {
 		// Add rules
-		this.cacheConceptsAndProperties();
+		// this.cacheConceptsAndProperties();
 		if (rules.getRulesText() != null)
 			tkb.setPropertyValue(tobj, propertyObjMap.get("hasRules"),
 			    tkb.createLiteral(rules.getRulesText()));
@@ -2205,4 +2250,45 @@ public class TemplateKB extends URIEntity implements Template {
 		return outputRoles;
 	}
 
+	// TransactionsAPI functions
+  @Override
+  public boolean start_read() {
+    if(transaction != null)
+      return transaction.start_read();
+    return true;
+  }
+
+  @Override
+  public boolean start_write() {
+    if(transaction != null)
+      return transaction.start_write();
+    return true;
+  }
+  
+  @Override
+  public boolean save(KBAPI kb) {
+    return transaction.save(kb);
+  }
+  
+  @Override
+  public boolean saveAll() {
+    return transaction.saveAll();
+  }
+
+  @Override
+  public boolean end() {
+    if(transaction != null)
+      return transaction.end();
+    return true;
+  }
+
+  @Override
+  public boolean start_batch_operation() {
+    return transaction.start_batch_operation();
+  }
+
+  @Override
+  public void stop_batch_operation() {
+    transaction.stop_batch_operation();
+  }
 }

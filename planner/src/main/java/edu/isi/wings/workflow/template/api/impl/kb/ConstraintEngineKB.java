@@ -19,15 +19,17 @@ package edu.isi.wings.workflow.template.api.impl.kb;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 import edu.isi.wings.workflow.template.api.ConstraintEngine;
 
-public class ConstraintEngineKB implements ConstraintEngine {
+public class ConstraintEngineKB extends TransactionsJena 
+implements ConstraintEngine {
 	KBAPI kb;
 
 	ArrayList<String> blacklistns;
@@ -36,11 +38,10 @@ public class ConstraintEngineKB implements ConstraintEngine {
 	ArrayList<String> blacklistIds;
 	ArrayList<String> allowedIds;
 
-	transient protected static OntFactory ontFactory = new OntFactory(OntFactory.JENA);
-
 	public ConstraintEngineKB(KBAPI kb, String wflowns) {
 		// The ConstraintEngine KB is kept separate from template kb 
-		this.kb = ontFactory.getKB(OntSpec.PLAIN);
+	  this.ontologyFactory = new OntFactory(OntFactory.JENA);
+		this.kb = this.ontologyFactory.getKB(OntSpec.PLAIN);
 		initializeBlacklistNS(wflowns);
 		initializeWhitelistNS();
 		initializeAllowedIds(wflowns);
@@ -49,7 +50,8 @@ public class ConstraintEngineKB implements ConstraintEngine {
 	}
 
 	public ConstraintEngineKB(ConstraintEngineKB engine) {
-		this.kb = ontFactory.getKB(OntSpec.PLAIN);
+	  this.ontologyFactory = new OntFactory(OntFactory.JENA);
+		this.kb = ontologyFactory.getKB(OntSpec.PLAIN);
 
 		if (engine.blacklistns != null)
 			blacklistns = new ArrayList<String>(engine.blacklistns);
@@ -61,10 +63,14 @@ public class ConstraintEngineKB implements ConstraintEngine {
 			allowedIds = new ArrayList<String>(engine.allowedIds);
 		
 		// Copy over triples from existing engine
+		this.start_write();
 		this.kb.addTriples(engine.getConstraints());
+		this.save(this.kb);
+		this.end();
 	}
 
 	private void initKB(KBAPI kb) {
+	  this.start_write();
 		ArrayList<KBTriple> triples = kb.getAllTriples();
 		ArrayList<KBTriple> newTriples = new ArrayList<KBTriple>();
 		for (KBTriple t : triples) {
@@ -74,6 +80,8 @@ public class ConstraintEngineKB implements ConstraintEngine {
 			newTriples.add(t);
 		}
 		this.kb.addTriples(newTriples);
+		this.save(this.kb);
+		this.end();
 	}
 
 	private void initializeBlacklistNS(String wflowns) {
@@ -171,8 +179,10 @@ public class ConstraintEngineKB implements ConstraintEngine {
 	// filterType = 1 : Filter only subject for relevance
 	// filterType = 2 : Filter only object for relevance
 	private ArrayList<KBTriple> getTriplesFor(KBObject forsubj, KBObject forobj, int filterType) {
-
+	  this.start_read();
 		ArrayList<KBTriple> triples = this.kb.genericTripleQuery(forsubj, null, forobj);
+		this.end();
+		
 		ArrayList<KBTriple> relevantTriples = new ArrayList<KBTriple>();
 		for (KBTriple triple : triples) {
 			// System.out.println(triple);
@@ -192,6 +202,9 @@ public class ConstraintEngineKB implements ConstraintEngine {
 	}
 
 	private ArrayList<KBTriple> getConstraintsForId(String id, ArrayList<String> done) {
+	  this.start_read();
+	  boolean batched = this.start_batch_operation();
+	  
 		KBObject item = this.kb.getResource(id);
 		if (done.contains(id) || blacklistIds.contains(id)) {
 			return new ArrayList<KBTriple>();
@@ -229,7 +242,13 @@ public class ConstraintEngineKB implements ConstraintEngine {
 		 * constraints.addAll(getConstraintsForId(subj.getID(), done)); } }
 		 */
 
-		return this.removeUselessConstraints(constraints);
+		ArrayList<KBTriple> cleanConstraints = this.removeUselessConstraints(constraints);
+		
+		if(batched)
+		  this.stop_batch_operation();
+		this.end();
+		
+		return cleanConstraints;
 	}
 
 	public ArrayList<KBTriple> getConstraints() {
@@ -249,22 +268,34 @@ public class ConstraintEngineKB implements ConstraintEngine {
 	}
 
 	public void setConstraints(ArrayList<KBTriple> constraints) {
+	  this.start_write();
 		// Modify the internal kb to add statements
 		this.kb.addTriples(constraints);
+		this.save(this.kb);
+		this.end();
 	}
 
 	public void addConstraints(ArrayList<KBTriple> constraints) {
+	  this.start_write();
 		// Modify the internal kb to add constraints
 		// this.constraints.addAll(constraints);
 		this.kb.addTriples(constraints);
+    this.save(this.kb);
+    this.end();
 	}
 
 	public void removeConstraint(KBTriple constraint) {
+    this.start_write();	  
 		this.kb.removeTriple(constraint);
+    this.save(this.kb);
+    this.end();
 	}
 
 	public void removeObjectAndConstraints(KBObject obj) {
+	  this.start_write();
 		this.kb.deleteObject(obj, true, true);
+		this.save(this.kb);
+		this.end();
 	}
 
 	public void addBlacklistedNamespace(String ns) {
@@ -287,60 +318,91 @@ public class ConstraintEngineKB implements ConstraintEngine {
 	}
 
 	public boolean containsConstraint(KBTriple cons) {
-		if (this.kb.genericTripleQuery(cons.getSubject(), cons.getPredicate(), cons.getObject()) != null)
-			return true;
-		return false;
+	  try {
+	    this.start_read();
+  		if (this.kb.genericTripleQuery(cons.getSubject(), cons.getPredicate(), cons.getObject()) != null)
+  			return true;
+  		return false;
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	public void replaceSubjectInConstraints(KBObject subj, KBObject newSubj) {
+	  this.start_write();
 		for (KBTriple t : this.kb.genericTripleQuery(subj, null, null)) {
 			this.kb.removeTriple(t);
 			t.setSubject(newSubj);
 			this.kb.addTriple(t);
 		}
+		this.save(this.kb);
+		this.end();
 	}
 
 	public void replaceObjectInConstraints(KBObject obj, KBObject newObj) {
+	  this.start_write();
 		for (KBTriple t : this.kb.genericTripleQuery(null, null, obj)) {
 			this.kb.removeTriple(t);
 			t.setObject(newObj);
 			this.kb.addTriple(t);
 		}
+		this.save(this.kb);
+		this.end();
 	}
 
 	public KBTriple createNewConstraint(String subjID, String predID, String objID) {
+	  this.start_write();
 		KBObject subjkb = kb.getResource(subjID);
 		KBObject predkb = kb.getProperty(predID);
 		KBObject objkb = kb.getResource(objID);
 		if (subjkb != null && predkb != null && objkb != null) {
 			return this.kb.addTriple(subjkb, predkb, objkb);
 		}
+		this.save(this.kb);
+		this.end();
 		return null;
 	}
 
 	public KBTriple createNewDataConstraint(String subjID, String predID, String obj, String type) {
+	  this.start_write();
+	  KBTriple triple = null;
 		KBObject subjkb = kb.getResource(subjID);
 		KBObject predkb = kb.getProperty(predID);
 		if (subjkb != null && predkb != null) {
 			try {
 				KBObject objkb = kb.createXSDLiteral(obj, type); // null type is ok
 				if (objkb != null) {
-					return this.kb.addTriple(subjkb, predkb, objkb);
+					triple = this.kb.addTriple(subjkb, predkb, objkb);
+          this.save(this.kb);
 				}
 			} catch (Exception e) {
 				System.err.println(obj + " is not of type " + type);
 			}
 		}
-		return null;
+    this.end();
+		return triple;
 	}
 
 	public KBObject getResource(String ID) {
-		return kb.getResource(ID);
+	  try {
+  	  this.start_read();
+  		return kb.getResource(ID);
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	public String toString() {
 		// return this.kb.toN3();
-		return this.kb.toRdf(false);
+	  try {
+	    this.start_read();
+	    return this.kb.toRdf(false);	    
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	public void removeBlacklistedNamespace(String ns) {

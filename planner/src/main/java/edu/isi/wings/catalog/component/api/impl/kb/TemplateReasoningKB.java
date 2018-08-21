@@ -20,12 +20,13 @@ package edu.isi.wings.catalog.component.api.impl.kb;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.classes.Role;
@@ -33,7 +34,7 @@ import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 
-public class TemplateReasoningKB implements ComponentReasoningAPI {
+public class TemplateReasoningKB extends TransactionsJena implements ComponentReasoningAPI {
 
 	WorkflowGenerationKB swg;
 	String requestId;

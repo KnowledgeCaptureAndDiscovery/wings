@@ -17,10 +17,11 @@
 
 package edu.isi.wings.execution.tools.api;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 
-public interface ExecutionLoggerAPI {
+public interface ExecutionLoggerAPI extends TransactionsAPI {
 	
 	void startLogging(RuntimePlan plan);
 	
@@ -28,4 +29,8 @@ public interface ExecutionLoggerAPI {
 	
 	void updateRuntimeInfo(RuntimeStep step);
   
+	// Save/Delete
+	boolean save();
+	
+	boolean delete();
 }

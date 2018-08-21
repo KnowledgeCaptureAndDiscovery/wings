@@ -19,9 +19,10 @@ package edu.isi.wings.execution.tools.api;
 
 import java.util.ArrayList;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 
-public interface ExecutionMonitorAPI {
+public interface ExecutionMonitorAPI extends TransactionsAPI {
 	// The RuntimePlan here is expected to not contain detail about all steps here
 	ArrayList<RuntimePlan> getRunList();
 	
@@ -33,5 +34,8 @@ public interface ExecutionMonitorAPI {
 	
 	RuntimePlan rePlan(RuntimePlan planexe);
 	
-	void delete();
+	// Save/Delete
+	boolean save();
+	
+	boolean delete();
 }

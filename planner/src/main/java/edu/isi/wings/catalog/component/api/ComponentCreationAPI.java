@@ -17,10 +17,11 @@
 
 package edu.isi.wings.catalog.component.api;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentTree;
 
-public interface ComponentCreationAPI {
+public interface ComponentCreationAPI extends TransactionsAPI {
 	// Query
 	ComponentTree getComponentHierarchy(boolean details);
 
@@ -49,10 +50,8 @@ public interface ComponentCreationAPI {
 	
 	// Saving
 	boolean save();
-
-	void end();
 	
-	void delete();
+	boolean delete();
 	
 	// Copy from another API (Advisable to give the same implementation of the API here)
 	void copyFrom(ComponentCreationAPI dc);

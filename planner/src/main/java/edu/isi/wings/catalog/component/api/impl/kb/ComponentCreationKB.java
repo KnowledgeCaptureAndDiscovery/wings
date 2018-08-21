@@ -20,11 +20,14 @@ package edu.isi.wings.catalog.component.api.impl.kb;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentHolder;
@@ -32,8 +35,6 @@ import edu.isi.wings.catalog.component.classes.ComponentRole;
 import edu.isi.wings.catalog.component.classes.ComponentTree;
 import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
 
 public class ComponentCreationKB extends ComponentKB implements ComponentCreationAPI {
   ComponentCreationAPI externalCatalog;
@@ -65,13 +66,18 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		ArrayList<ComponentTreeNode> queue = new ArrayList<ComponentTreeNode>();
 		queue.add(rootnode);
 
+		ArrayList<String> tbd = new ArrayList<String>();
+
+		this.start_read();
+		boolean batchok = this.start_batch_operation();
+		
 		while (!queue.isEmpty()) {
 			ComponentTreeNode node = queue.remove(0);
 			ComponentHolder cls = node.getCls();
 			if (cls.getID() == null)
 				continue;
-			
-			KBObject clsobj = kb.getConcept(cls.getID());
+
+	    KBObject clsobj = kb.getConcept(cls.getID());
 			if(clsobj == null) continue;
 			
 			ArrayList<KBObject> compobjs = kb.getInstancesOfClass(clsobj, true);
@@ -79,7 +85,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 				if(cls.getID().equals(this.topclass)) {
 					// The top class cannot be used as a holder. If we find any
 					// components having the top class as the holder, we delete them
-					this.removeComponent(compobj.getID(), true, true);
+				  tbd.add(compobj.getID());
 				}
 				else {
 					// Add the component as the holder's component
@@ -96,21 +102,30 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 				ComponentTreeNode childnode = new ComponentTreeNode(clsitem);
 				node.addChild(childnode);
 				queue.add(childnode);
-			}
+			}			
 		}
+		if(batchok)
+		  this.stop_batch_operation();
+		
+		this.end();
+		
+		for(String compid: tbd)
+		  this.removeComponent(compid, true, true);
+
 		ComponentTree tree = new ComponentTree(rootnode);
 		return tree;
 	}
 
 	@Override
 	public boolean setComponentLocation(String cid, String location) {
+	  this.start_write();
 		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
 		KBObject cobj = this.writerkb.getResource(cid);
 		KBObject locobj = writerkb.createLiteral(location);
 		this.writerkb.setPropertyValue(cobj, locprop, locobj);
     if(this.externalCatalog != null)
       this.externalCatalog.setComponentLocation(cid, location);
-		return true;
+		return this.save() && this.end();
 	}
 	
 	@Override
@@ -136,16 +151,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	@Override
 	public boolean save() {
 		if(this.writerkb != null)
-			return this.writerkb.save();
+			return this.save(writerkb);
 		return false;
-	}
-	
-	@Override
-	public void end() {
-		if(this.kb != null)
-			this.kb.end();
-		if(this.writerkb != null)
-			this.writerkb.end();
 	}
 
 	@Override
@@ -163,6 +170,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 		String cid = comp.getID();
 		String cholderid = this.getComponentHolderId(cid);
+		
+		this.start_write();
+		this.start_batch_operation();
 		
 		// If parent holder passed in, create a holder as subclass of parent holder
 		// Else assume that current holder already exists and fetch that
@@ -211,74 +221,77 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
     if(this.externalCatalog != null)
       this.externalCatalog.addComponent(comp, pholderid);
-		return true;
+
+    this.stop_batch_operation();
+		return this.save() && this.end();
 	}
 
 	@Override
 	public boolean addComponentHolder(String holderid, String pholderid) {
+	  this.start_write();
 		writerkb.createClass(holderid, pholderid);
     if(this.externalCatalog != null)
       this.externalCatalog.addComponentHolder(holderid, pholderid);
-		return true;
+		return this.save() && this.end();
 	}
 	
 	@Override
 	public boolean removeComponentHolder(String ctype) {
+	  this.start_write();
 		KBUtils.removeAllTriplesWith(writerkb, ctype, false);
     if(this.externalCatalog != null)
       this.externalCatalog.removeComponentHolder(ctype);
-		return true;
+		return this.save() && this.end();
 	}
 
 	@Override
 	public boolean removeComponent(String cid, boolean remove_holder, boolean unlink) {
+	  this.start_read();
+	  this.start_batch_operation();
+	  
 		KBObject compobj = kb.getIndividual(cid);
-		if(compobj == null) return false;
-		
-		//Remove holder
-		if(remove_holder) {
-			String holderid = this.getComponentHolderId(cid);
-			this.removeComponentHolder(holderid);
-			/*KBObject holdercls = this.kb.getConcept(holderid);
-			if(holdercls == null) return false;
-			
-			ArrayList<KBObject> subholders = this.kb.getSubClasses(holdercls, false);
-			ArrayList<KBObject> subcomps = this.kb.getInstancesOfClass(holdercls, false);
-			for(KBObject subholder : subholders) {
-				this.removeComponentHolder(subholder.getID());
-			}
-			for(KBObject subcomp : subcomps) {
-				this.removeComponent(subcomp.getID(), false, unlink);
-			}*/
+		if(compobj == null) {
+		  this.stop_batch_operation();
+		  this.end();
+		  return false;
 		}
-		
 		ArrayList<KBObject> inputobjs = this.getComponentInputs(compobj);
 		ArrayList<KBObject> outputobjs = this.getComponentOutputs(compobj);
+    ArrayList<KBObject> sdobjs = this.kb.getPropertyValues(compobj, 
+        this.objPropMap.get("hasSoftwareDependency"));
+    ArrayList<KBObject> hdobjs = this.kb.getPropertyValues(compobj,
+        this.objPropMap.get("hasHardwareDependency"));
+    String loc = this.getComponentLocation(cid);
+    this.stop_batch_operation();
+    this.end();
+    
+    this.start_write();
+    this.start_batch_operation();
+    
+    //Remove holder
+    if(remove_holder) {
+      String holderid = this.getComponentHolderId(cid);
+      this.removeComponentHolder(holderid);
+    }
+    
 		for (KBObject obj : inputobjs) {
 			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
 		}
 		for (KBObject obj : outputobjs) {
 			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
 		}
-		
-		ArrayList<KBObject> sdobjs = this.kb.getPropertyValues(compobj, 
-		    this.objPropMap.get("hasSoftwareDependency"));
 		for(KBObject obj : sdobjs)
 		  for(KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
 		    this.writerkb.removeTriple(t);
 
-		ArrayList<KBObject> hdobjs = this.kb.getPropertyValues(compobj,
-        this.objPropMap.get("hasHardwareDependency"));
     for(KBObject obj : hdobjs)
       for (KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
         this.writerkb.removeTriple(t);
-		
 		KBUtils.removeAllTriplesWith(writerkb, cid, false);
 		
 		// Delete the component directory
 		if (unlink) {
 			// Remove component if it is in the catalog's component directory
-			String loc = this.getComponentLocation(cid);
 			if(loc != null) {
 				File f = new File(loc);
 				if(f.getParentFile().getAbsolutePath().equals(this.codedir)) {
@@ -295,17 +308,21 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		}
     if(this.externalCatalog != null)
       this.externalCatalog.removeComponent(cid, remove_holder, unlink);
-		return true;
+    
+    return this.save() && this.end();
 	}
 
 	@Override
 	public boolean renameComponent(String oldid, String newid) {
+	  this.start_write();
 		KBUtils.renameAllTriplesWith(writerkb, this.getComponentHolderId(oldid), 
 				this.getComponentHolderId(newid), false);
 		KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
-    if(this.externalCatalog != null)
+    
+		if(this.externalCatalog != null)
       this.externalCatalog.renameComponent(oldid, newid);
-		return true;
+		
+    return this.save() && this.end();
 	}
 	
 	@Override
@@ -319,48 +336,57 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	public void copyFrom(ComponentCreationAPI dc) {
 		ComponentCreationKB dckb = (ComponentCreationKB)dc;
 		
+		this.start_write();
 		this.writerkb.copyFrom(dckb.writerkb);
 		
-		// Change any specified locations of data
-		KBObject locProp = this.writerkb.getProperty(this.pcns+"hasLocation");
-		ArrayList<KBTriple> triples = 
-				this.writerkb.genericTripleQuery(null, locProp, null);
-		for(KBTriple t : triples) {
-			this.writerkb.removeTriple(t);
-			if(t.getObject() == null || t.getObject().getValue() == null)
-				continue;
-			KBObject comp = t.getSubject();
-			String loc = (String) t.getObject().getValue();
-			File f = new File(loc);
-			loc = this.codedir + File.separator + f.getName();
-			this.writerkb.setPropertyValue(comp, locProp, this.writerkb.createLiteral(loc));
-		}
+    // Namespace rename maps
+    HashMap<String, String> nsmap = new HashMap<String, String>();
+    nsmap.put(dckb.dcns, this.dcns);
+    nsmap.put(dckb.pcns, this.pcns);
+    nsmap.put(dckb.dcdomns, this.dcdomns);
+    nsmap.put(dckb.pcdomns, this.pcdomns);
+		KBUtils.renameTripleNamespaces(this.writerkb, nsmap);
 		
-		KBUtils.renameTripleNamespace(this.writerkb, dckb.dcns, this.dcns);
-		KBUtils.renameTripleNamespace(this.writerkb, dckb.pcns, this.pcns);
-		KBUtils.renameTripleNamespace(this.writerkb, dckb.dcdomns, this.dcdomns);
-		KBUtils.renameTripleNamespace(this.writerkb, dckb.pcdomns, this.pcdomns);
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.pcurl, this.pcurl, false);
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.absurl, this.absurl, false);
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.liburl, this.liburl, false);
 		KBUtils.renameAllTriplesWith(this.writerkb, dckb.dconturl, this.dconturl, false);
-		
+    
+    // Change any specified locations of data
+    KBObject locProp = this.writerkb.getProperty(this.pcns+"hasLocation");
+    ArrayList<KBTriple> triples = 
+        this.writerkb.genericTripleQuery(null, locProp, null);
+    for(KBTriple t : triples) {
+      this.writerkb.removeTriple(t);
+      if(t.getObject() == null || t.getObject().getValue() == null)
+        continue;
+      KBObject comp = t.getSubject();
+      String loc = (String) t.getObject().getValue();
+      File f = new File(loc);
+      loc = this.codedir + File.separator + f.getName();
+      this.writerkb.setPropertyValue(comp, locProp, this.writerkb.createLiteral(loc));
+    }
+    
 		//FIXME: A hack to get the imported domain's resource namespace. Should be explicit
 		String dcreslibns = dckb.liburl.replaceAll("\\/export\\/users\\/.+$", 
 		    "/export/common/resource/library.owl#");
 		KBUtils.renameTripleNamespace(this.writerkb, dcreslibns, this.resliburl+"#");
-		
-		this.writerkb.save();
-		
-		this.initializeAPI(true, true, true);
-	}
+		this.save();
+		this.end();
 
+		this.start_read();
+		this.initializeAPI(true, true, true);
+		this.end();
+	}
 
 	@Override
-	public void delete() {
-		this.writerkb.delete();
+	public boolean delete() {
+		return 
+		    this.start_write() && 
+		    this.writerkb.delete() &&
+		    this.save() &&
+		    this.end();
 	}
-	
   
   @Override
   public ComponentCreationAPI getExternalCatalog() {
@@ -376,7 +402,6 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	/*
 	 * Private helper functions
 	 */
-	
 	private void setComponentDocumentation(KBObject compobj, String doc) {
 		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
 		kb.setPropertyValue(compobj, docProp, kb.createLiteral(doc));

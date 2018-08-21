@@ -6,7 +6,7 @@ import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import edu.isi.wings.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.wings.portal.filters.resources.CORSResponseFilter;
 import edu.isi.wings.portal.filters.resources.GZIPReaderInterceptor;
 import edu.isi.wings.portal.filters.resources.GZIPWriterInterceptor;

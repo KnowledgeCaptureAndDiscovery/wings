@@ -19,6 +19,12 @@ package edu.isi.wings.planner.api.impl.kb;
 
 import org.apache.log4j.Logger;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.KBObject;
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.api.impl.kb.TemplateReasoningKB;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
@@ -34,11 +40,6 @@ import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.common.logging.LogEvent;
-import edu.isi.wings.ontapi.KBAPI;
-import edu.isi.wings.ontapi.KBObject;
-import edu.isi.wings.ontapi.KBTriple;
-import edu.isi.wings.ontapi.OntFactory;
-import edu.isi.wings.ontapi.OntSpec;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.workflow.plan.PlanFactory;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
@@ -76,7 +77,8 @@ import java.util.TreeMap;
 /**
  * Name: WorkflowGenerationKB
  */
-public class WorkflowGenerationKB implements WorkflowGenerationAPI {
+public class WorkflowGenerationKB extends TransactionsJena 
+implements WorkflowGenerationAPI {
 	private Logger logger;
 
 	public Seed currentSeed;

@@ -18,42 +18,17 @@
 package edu.isi.wings.portal.servlets;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.PrintStream;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import edu.isi.kcap.ontapi.util.SparqlAPI;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.controllers.DomainController;
-
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.QuerySolution;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.rdf.model.impl.StatementImpl;
-import org.apache.jena.sparql.resultset.ResultsFormat;
-import org.apache.jena.tdb.TDB;
-import org.apache.jena.tdb.TDBFactory;
-import org.apache.jena.update.UpdateAction;
-import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateRequest;
 
 /**
  * Servlet implementation class SparqlEndpoint
@@ -61,20 +36,22 @@ import org.apache.jena.update.UpdateRequest;
 public class SparqlEndpoint extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-	private ServletOutputStream out;
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public SparqlEndpoint() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
+	private PrintStream out;
+	private SparqlAPI api;
+	
+  /**
+   * @see HttpServlet#HttpServlet()
+   */
+  public SparqlEndpoint() {
+    super();
+  }
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		this.out = response.getOutputStream();
+		this.out = new PrintStream(response.getOutputStream());
+		
 		Config config = new Config(request, null, null);
 		String queryString = request.getParameter("query");
 		String updateString = request.getParameter("update");
@@ -107,26 +84,13 @@ public class SparqlEndpoint extends HttpServlet {
 
 	private void showQueryResults(String queryString, HttpServletRequest request, HttpServletResponse response) 
 			throws IOException {
-		Query query = QueryFactory.create(queryString);
-		if(query.isSelectType()) {
-			Config config = new Config(request, null, null);
 
-			ResultsFormat fmt = ResultsFormat.lookup(request.getParameter("format"));
+			Config config = new Config(request, null, null);
+			String tdbdir = config.getTripleStoreDir();
+			String format = request.getParameter("format");
 			
-			Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
-			QueryExecution qexec = QueryExecutionFactory.create(query, tdbstore);
-			qexec.getContext().set(TDB.symUnionDefaultGraph, true);
-			ResultSet results = qexec.execSelect();
-			if(fmt == null) {
-				out.print(queryString+"\n");
-				ResultSetFormatter.out(out, results, query);
-			}
-			else
-				ResultSetFormatter.output(out, results, fmt);
-		}
-		else {
-			out.print("Only select queries allowed");
-		}
+			this.api = new SparqlAPI(tdbdir);
+			this.api.showQueryResults(queryString, format, out);
 	}
 	
 	private void updateDataset(String updateString, HttpServletRequest request, HttpServletResponse response) 
@@ -134,80 +98,24 @@ public class SparqlEndpoint extends HttpServlet {
 		Config config = new Config(request, null, null);
 		if(!config.checkDomain(request, response))
 			return;
-		Dataset tdbstore = TDBFactory.createDataset(config.getTripleStoreDir());
+
+		String tdbdir = config.getTripleStoreDir();		
+		this.api = new SparqlAPI(tdbdir);
+		
 		if(updateString.startsWith("__SERVER_RENAME:")) {
 	    String newurl = updateString.substring(updateString.indexOf(":")+1);
-	    this.updateServerURL(newurl, tdbstore, config);
+	    this.updateServerURL(newurl, config);
 		}
 		else {
-  		UpdateRequest update = UpdateFactory.create(updateString);
-  		UpdateAction.execute(update, tdbstore);
+  		this.api.executeUpdateQuery(updateString, out);
 		}
-		out.print("Updated");
-		TDB.sync(tdbstore);
 	}
 	
-	private void updateServerURL(String newurl, Dataset tdbstore, Config config) {
+	private void updateServerURL(String newurl, Config config) {
     String cururl = config.getServerUrl();
-    try {out.println(cururl +" ==>> "+newurl);}
-    catch (Exception e) {System.out.println(cururl +" ==>> "+newurl);}
     
-    // Update all graphs in the Dataset
-    ArrayList<String> graphnames = new ArrayList<String>();
-    try {
-      Query query = QueryFactory.create("SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o }}");
-      QueryExecution qexec = QueryExecutionFactory.create(query, tdbstore);
-      qexec.getContext().set(TDB.symUnionDefaultGraph, true);
-      ResultSet results = qexec.execSelect();
-      while(results.hasNext()) {
-        QuerySolution soln = results.next();
-        RDFNode graph = soln.get("g");
-        if(graph.isURIResource())
-          graphnames.add(graph.asResource().getURI());
-      }
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-    }
-    
-    for(String graphname : graphnames) {
-      if(graphname.startsWith(cururl)) {
-        String newname = graphname.replace(cururl, newurl);
-        try {out.println(graphname + " -> "+newname);}
-        catch (Exception e) {System.out.println(graphname + " -> "+newname);}
-        
-        try {
-          Model m = tdbstore.getNamedModel(graphname);
-          Model nm = ModelFactory.createDefaultModel();
-          
-          for(StmtIterator iter = m.listStatements(); iter.hasNext(); ) {
-            Statement st = iter.next();
-            Resource subj = st.getSubject();
-            Property pred = st.getPredicate();
-            RDFNode obj = st.getObject();
-            if(subj.isURIResource() && subj.getURI().startsWith(cururl)) {
-              String nurl = subj.getURI().replace(cururl, newurl);
-              subj = new ResourceImpl(nurl);
-            }
-            if(pred.getURI().startsWith(cururl)) {
-              String nurl = pred.getURI().replace(cururl, newurl);
-              pred = new PropertyImpl(nurl);
-            }
-            if(obj.isURIResource() && obj.asResource().getURI().startsWith(cururl)) {
-              String nurl = obj.asResource().getURI().replace(cururl, newurl);
-              obj = new ResourceImpl(nurl);
-            }
-            nm.add(new StatementImpl(subj, pred, obj));
-          }
-          tdbstore.removeNamedModel(graphname);
-          tdbstore.addNamedModel(newname, nm);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    TDB.sync(tdbstore);
+    // Update all graphs in the triple store
+    this.api.updateGraphURLs(cururl, newurl, out);
     
     // Update all User domains
     for(String userid : config.getUsersList()) {

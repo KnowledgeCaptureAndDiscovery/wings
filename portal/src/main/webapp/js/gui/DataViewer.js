@@ -825,8 +825,8 @@ DataViewer.prototype.openDataEditor = function(args) {
                 // data.push(rec.data);
                 var name = rec.data.name;
                 var val = rec.data.value;
-                if (!val)
-                    return true;
+                if(val == null)
+                	return true;
                 if (val instanceof Date) {
                 	val.setHours(1, 0, 0, 0);
                 	val = val.toJSON().replace(/T.*$/, '');
