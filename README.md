@@ -5,7 +5,7 @@ Wings 4.0-SNAPSHOT
 
 Requirements
 ------------
-1. Java JDK 1.6+ (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+1. Java JDK 1.8+ (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 2. Maven 2/3 (http://maven.apache.org/ -- To install from source)
 3. Tomcat 7+ (http://tomcat.apache.org/)
 4. Graphviz (http://www.graphviz.org/)
