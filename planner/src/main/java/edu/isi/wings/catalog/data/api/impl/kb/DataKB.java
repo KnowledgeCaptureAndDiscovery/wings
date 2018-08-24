@@ -126,12 +126,11 @@ public class DataKB extends TransactionsJena {
   	  this.start_read();
   		KBObject locprop = this.kb.getProperty(this.dcns + "hasLocation");
   		KBObject dobj = this.kb.getIndividual(dataid);
-  		if(dobj == null)
-  		  return null;
-  		
-  		KBObject locobj = this.kb.getPropertyValue(dobj, locprop);
-  		if (locobj != null && locobj.getValue() != null)
-  			return locobj.getValueAsString();
+  		if(dobj != null) {
+    		KBObject locobj = this.kb.getPropertyValue(dobj, locprop);
+    		if (locobj != null && locobj.getValue() != null)
+    			return locobj.getValueAsString();
+  		}
   		else {
   			String location = this.getDefaultDataLocation(dataid);
   			File f = new File(location);

@@ -39,10 +39,10 @@ implements ExecutionPlan, TransactionsAPI {
   private static final long serialVersionUID = 1L;
 
   transient Properties props;
-  OntFactory ontologyFactory;
+  transient OntFactory ontologyFactory;
   boolean incomplete;
   
-  TransactionsJena transaction;
+  transient TransactionsJena transaction;
   
   ArrayList<ExecutionStep> steps;
 
