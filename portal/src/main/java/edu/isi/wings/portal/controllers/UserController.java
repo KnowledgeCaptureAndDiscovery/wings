@@ -49,6 +49,9 @@ public class UserController {
   public String getUserJSON(String userid) {
     try {
       User user = api.getUser(userid);
+      if(user == null)
+        return null;
+      
       if(user.getPassword() != null)
         user.setPassword(user.getPassword().replaceAll(".", "*"));
       return json.toJson(user);

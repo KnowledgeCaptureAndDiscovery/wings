@@ -90,11 +90,13 @@ implements TemplateCreationAPI {
 	private void addMissingVocabulary() {
 	  try {
 	    // Check if the ontology is an older version
-  	  this.start_write();
+  	  this.start_read();
   	  KBObject ontobj = this.ontkb.getIndividual(onturl);
   	  KBObject version = this.ontkb.getPropertyValue(ontobj, this.ontkb.getProperty(KBUtils.OWL+"versionInfo"));
   	  
   	  if(version == null || !this.ontVersion.equals(version.getValue())) {
+  	    this.end();
+  	    this.start_write();
         // Older ontologies don't have some concepts & properties. Add them in here 
   	    // FIXME: Just reload from web instead of doing this
   	    
