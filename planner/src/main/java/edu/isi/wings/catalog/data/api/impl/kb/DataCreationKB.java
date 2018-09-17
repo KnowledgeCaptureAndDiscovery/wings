@@ -748,20 +748,25 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBObject dmprop = this.kb.getProperty(this.dcns + "hasDataMetrics");
 		ArrayList<KBObject> properties = this.kb.getSubPropertiesOf(mprop, false);
 		properties.addAll(this.kb.getSubPropertiesOf(dmprop, false));
-		this.end();
 		
 		for(KBObject prop : properties) {
 			ArrayList<KBObject> doms = this.ontkb.getPropertyDomains(prop);
 			if(doms.size() > 1) {
+			  this.end();
+			  
 			  this.start_write();
 				for(KBObject dom : doms)
 					this.ontkb.removePropertyDomain(prop.getID(), dom.getID());
 				for(KBObject dom : doms)
 					this.ontkb.addPropertyDomainDisjunctive(prop.getID(), dom.getID());
 		    this.ontkb.save();
-		    this.end();				
+		    this.end();			
+		    
+		    this.start_read();
 			}
 		}
+		
+		this.end();
 	}
 	
 	private ArrayList<MetadataProperty> createMetadataProperties(ArrayList<KBObject> properties) {

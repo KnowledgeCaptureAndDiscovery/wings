@@ -309,6 +309,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
     if(this.externalCatalog != null)
       this.externalCatalog.removeComponent(cid, remove_holder, unlink);
     
+    this.stop_batch_operation();
     return this.save() && this.end();
 	}
 
