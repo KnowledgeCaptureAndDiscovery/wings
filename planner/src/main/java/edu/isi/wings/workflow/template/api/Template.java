@@ -62,6 +62,8 @@ public interface Template extends Serializable {
 	Variable[] getVariables();
 
 	Variable[] getInputVariables();
+	
+	Variable[] getInputDataVariables();	
 
 	Variable[] getOutputVariables();
 

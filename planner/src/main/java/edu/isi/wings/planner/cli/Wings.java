@@ -223,6 +223,12 @@ public class Wings {
 		// wg.setCurrentLogEvent(event);
 		ArrayList<Template> boundWorkflows = new ArrayList<Template>();
 		for (Template candidateWorkflow : candidateWorkflows) {
+      // If template has no input data variables, skip
+      if(candidateWorkflow.getInputDataVariables().length == 0) {
+        boundWorkflows.add(candidateWorkflow);
+        continue;
+      }
+      
 		  VariableBindingsListSet bindingset = wg.selectInputDataObjects(candidateWorkflow);
       if(bindingset != null) {
         ArrayList<VariableBindingsList> bindings = 

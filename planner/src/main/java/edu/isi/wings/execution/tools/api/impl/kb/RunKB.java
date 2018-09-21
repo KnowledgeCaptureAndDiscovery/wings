@@ -584,6 +584,12 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
   
       ArrayList<Template> bts = new ArrayList<Template>();
       for(Template t : candidates) {
+        // If template has no input data variables, skip
+        if(t.getInputDataVariables().length == 0) {
+          bts.add(t);
+          continue;
+        }
+        
         VariableBindingsListSet bindingset = wg.selectInputDataObjects(t);
         if(bindingset != null) {
           ArrayList<VariableBindingsList> bindings = 

@@ -889,6 +889,17 @@ implements Template, TransactionsAPI {
 	public Variable[] getInputVariables() {
 		return getLinkVariables(getInputLinks());
 	}
+	
+	public Variable[] getInputDataVariables() {
+	  Link[] links = this.getInputLinks();
+    HashSet<Variable> varAr = new HashSet<Variable>();
+    for (int i = 0; i < links.length; i++) {
+      Variable var = links[i].getVariable();
+      if(var.isDataVariable())
+        varAr.add(var);
+    }
+    return varAr.toArray(new Variable[varAr.size()]);
+	}
 
 	public Variable[] getInputVariables(Node n) {
 		return getLinkVariables(getInputLinks(n));
