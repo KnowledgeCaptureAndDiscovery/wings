@@ -38,9 +38,9 @@ Example: (The following needs to go inside the <tomcat-users ..> Section.
 
  `<Resource name="UserDatabase" ...  readonly="false"/>`
 
-5. Add the following to the <Context> section
+5. Add the following to the "Context" section
  
- `<ResourceLink name="users" global="UserDatabase" />`
+ `<ResourceLink name="users" global="UserDatabase" type="org.apache.catalina.UserDatabase" />`
 
 6. Start tomcat
 
