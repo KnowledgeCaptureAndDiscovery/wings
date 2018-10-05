@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pgeConfig>
-        <!-- How to run the PGE -->
-        <exe dir="[JobDir]" shell="/bin/bash">
-          <!-- cd to PGE root -->
-          <cmd>cd [PGE_ROOT]/file_concatenator</cmd>
-          <cmd>cp [InputFile1] [OutputFile]</cmd>
-          <cmd>cat [InputFile2] >> [OutputFile]</cmd>
-        </exe>
-
-	    <!-- Files to ingest -->
-	    <output>
-        	<!-- one or more of these -->
-       	 	<dir path="[JobDir]" createBeforeExe="false">
-            
-            	<!-- one or more of these ** regExp or name can be used-->
-            	<files regExp=".*\.txt" metFileWriterClass="org.apache.oodt.cas.workflow.misc.writers.ConcactenatingFilenameExtractorWriter"  args="[PGE_ROOT]/file_concatenator/extractors/concatenatingfilename.extractor.config.xml"/>
-                <files regExp=".*\.txt" metFileWriterClass="org.apache.oodt.cas.pge.writers.metlist.MetadataListPcsMetFileWriter" args="[PGE_ROOT]/file_concatenator/extractors/metlistwriter/metout.xml"/>
-            </dir>
-        </output>
-
-        <!-- Custom metadata to add to output files -->
-        <customMetadata>
-                <!-- helpful keys -->
-                <metadata key="LessThan" val="&#x3C;"/>
-                <metadata key="LessThanOrEqualTo" val="[LessThan]="/>
-                <metadata key="GreaterThan" val="&#x3E;"/>
-                <metadata key="GreaterThanOrEqualTo" val="[GreaterThan]="/>
-                <metadata key="Exclamation" val="&#33;"/>
-                <metadata key="Ampersand" val="&#38;"/>
-                <metadata key="NotEqualTo" val="[Ampersand]="/>
-                <metadata key="LogicalAnd" val="[Ampersand][Ampersand]"/>
-                <metadata key="CshPipeToStdOutAndError" val="[GreaterThan][Ampersand][Exclamation]"/>
-
-				<metadata key="ProductionDateTime" val="[DATE.UTC]"/>
-				<metadata key="JobDir" val="[PGE_ROOT]/file_concatenator/output/jobs/job-[ProductionDateTime]"/>
-				<metadata key="InputFile1" val="[PGE_ROOT]/file_concatenator/files/concatenatingInputFile1.txt"/>
-				<metadata key="InputFile2" val="[PGE_ROOT]/file_concatenator/files/concatenatingInputFile2.txt"/>
-				<metadata key="OutputFile" val="[JobDir]/concatenatedOutputFile-[ProductionDateTime].txt"/>        
-      </customMetadata>
-
+    <!-- How to run the PGE -->
+    <exe dir="[JobDir]" shell="/bin/bash">
+        <!-- cd to PGE root -->
+        <cmd>cd [PGE_ROOT]/file_concatenator</cmd>
+        <cmd>cp [InputFile1] [OutputFile]</cmd>
+        <cmd>cat [InputFile2] &gt;&gt; [OutputFile]</cmd>
+    </exe>
+    <!-- Files to ingest -->
+    <output>
+        <!-- one or more of these -->
+        <dir path="[JobDir]" createBeforeExe="false">
+            <!-- one or more of these ** regExp or name can be used-->
+            <files regExp=".*\.txt" metFileWriterClass="org.apache.oodt.cas.workflow.misc.writers.ConcactenatingFilenameExtractorWriter" args="[PGE_ROOT]/file_concatenator/extractors/concatenatingfilename.extractor.config.xml" />
+            <files regExp=".*\.txt" metFileWriterClass="org.apache.oodt.cas.pge.writers.metlist.MetadataListPcsMetFileWriter" args="[PGE_ROOT]/file_concatenator/extractors/metlistwriter/metout.xml" />
+        </dir>
+    </output>
+    <!-- Custom metadata to add to output files -->
+    <customMetadata>
+        <!-- helpful keys -->
+        <metadata key="LessThan" val="&lt;" />
+        <metadata key="LessThanOrEqualTo" val="[LessThan]=" />
+        <metadata key="GreaterThan" val="&gt;" />
+        <metadata key="GreaterThanOrEqualTo" val="[GreaterThan]=" />
+        <metadata key="Exclamation" val="!" />
+        <metadata key="Ampersand" val="&amp;" />
+        <metadata key="NotEqualTo" val="[Ampersand]=" />
+        <metadata key="LogicalAnd" val="[Ampersand][Ampersand]" />
+        <metadata key="CshPipeToStdOutAndError" val="[GreaterThan][Ampersand][Exclamation]" />
+        <metadata key="ProductionDateTime" val="[DATE.UTC]" />
+        <metadata key="JobDir" val="[PGE_ROOT]/file_concatenator/output/jobs/job-[ProductionDateTime]" />
+        <metadata key="InputFile1" val="[PGE_ROOT]/file_concatenator/files/concatenatingInputFile1.txt" />
+        <metadata key="InputFile2" val="[PGE_ROOT]/file_concatenator/files/concatenatingInputFile2.txt" />
+        <metadata key="OutputFile" val="[JobDir]/concatenatedOutputFile-[ProductionDateTime].txt" />
+    </customMetadata>
 </pgeConfig>

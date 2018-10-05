@@ -34,6 +34,8 @@ import org.apache.oodt.cas.filemgr.structs.exceptions.RepositoryManagerException
 import org.apache.oodt.cas.filemgr.structs.exceptions.ValidationLayerException;
 import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
 import org.apache.oodt.cas.metadata.Metadata;
+
+import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
 import edu.isi.wings.catalog.data.classes.DataTree;
@@ -360,12 +362,12 @@ public class DataCreationFM implements DataCreationAPI {
 		// Not currently supported
 		return false;
 	}
-  
-  @Override
-  public boolean moveDataParent(String arg0, String arg1, String arg2) {
-    // Not currently supported
-    return false;
-  }
+
+	@Override
+	public boolean moveDataParent(String arg0, String arg1, String arg2) {
+	    // Not currently supported
+	    return false;
+	}
 
 	@Override
 	public boolean addData(String dataid, String dtypeid) {
@@ -601,17 +603,6 @@ public class DataCreationFM implements DataCreationAPI {
 	}
 
 	@Override
-	public void end() {
-		// TODO NOT implemented
-
-	}
-
-	@Override
-	public void delete() {
-		// TODO NOT implemented
-	}
-
-	@Override
 	public void copyFrom(DataCreationAPI dc) {
 		DataTree tree = dc.getDataHierarchy();
 		DataTreeNode root = tree.getRoot();
@@ -723,5 +714,83 @@ public class DataCreationFM implements DataCreationAPI {
 		}
 		return false;
 	}
+
+  @Override
+  public boolean end() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean save(KBAPI arg0) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean saveAll() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean start_batch_operation() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean start_read() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean start_write() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void stop_batch_operation() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public HashMap<String, ArrayList<String>> getAllDatatypeDatasets() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean moveDatatypeParentInLibrary(String dtypeid, String fromtypeid, String totypeid) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean renameDatatypeInLibrary(String newtypeid, String oldtypeid) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean removeMetadataPropertyInLibrary(String propid) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean renamePropertyInLibrary(String oldid, String newid) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean delete() {
+    // TODO Auto-generated method stub
+    return false;
+  }
 
 }
