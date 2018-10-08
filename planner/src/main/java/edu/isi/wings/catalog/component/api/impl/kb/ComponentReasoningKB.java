@@ -105,7 +105,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	  for(KBTriple triple : this.getObjectClassTriples(id, obj, includeNS, excludeNS, direct)) {
 	    tkb.addTriple(triple);
 	  }
-	  return tkb.getIndividual(id);
+	  KBObject ind = tkb.getIndividual(id);
+	  if(ind == null)
+	    ind = tkb.createIndividual(id);
+	  return ind;
 	}
 	
 	protected ArrayList<String> getConcreteComponentsForAbstract(String id) {
