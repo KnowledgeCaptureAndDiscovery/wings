@@ -13,7 +13,7 @@ Modifications to Wings
 
 Modifications to OODT
 ---------------------
-1. Install OODT (Latest 0.8-SNAPSHOT from trunk)
+1. Install OODT (Latest master branch from https://github.com/apache/oodt.git)
 2. Copy engines/oodt/task/target/wings-oodt-task-<version>.jar to [OODT_HOME]/workflow/lib
 3. Copy [OODT_HOME]/filemgr/lib/cas-filemgr-<version>.jar to [OODT_HOME]/workflow/lib
 4. Make sure that the cas-curator webapp is installed in tomcat
@@ -43,10 +43,7 @@ Additions to Wings portal.properties
 
 That's it !
 
-
 Usage
 -----
 1. From the "Manage Domains" interface, change the domain execution engine to OODT
 2. Go to the "Manage Data" interface once. This will sync up the data with OODT file manager
-
-

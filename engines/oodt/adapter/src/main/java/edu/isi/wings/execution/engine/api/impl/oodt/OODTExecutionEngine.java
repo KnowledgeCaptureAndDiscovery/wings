@@ -258,7 +258,7 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
           }
 
           ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
-          steps.addAll(planexe.getQueue().getStepsReadyToExecute());
+          steps.addAll(planexe.getQueue().getNextStepsToExecute());
           steps.addAll(planexe.getQueue().getRunningSteps());
 
           boolean shortsleep = false;
@@ -319,7 +319,7 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
             }
           }
 
-          steps = planexe.getQueue().getStepsReadyToExecute();
+          steps = planexe.getQueue().getNextStepsToExecute();
           if(steps.size() == 0) {
             // Nothing to execute. Check if finished
             if(planexe.getQueue().getRunningSteps().size() == 0) {
