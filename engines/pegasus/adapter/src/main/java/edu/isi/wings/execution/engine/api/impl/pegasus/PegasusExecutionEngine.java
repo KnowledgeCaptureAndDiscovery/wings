@@ -84,6 +84,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             this.monitoringThread.start();
 
         } catch (Exception e) {
+            exe.onStart(this.logger);
             exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
             log.error(e.getMessage(), e);
         }
