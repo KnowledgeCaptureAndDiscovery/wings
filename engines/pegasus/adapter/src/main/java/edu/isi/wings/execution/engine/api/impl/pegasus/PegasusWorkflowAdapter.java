@@ -371,7 +371,10 @@ public class PegasusWorkflowAdapter {
         ComponentRequirement tmp = this.req.get(componentID);
         if (tmp.getMemoryGB() > 0) {
             job.addProfile(Profile.NAMESPACE.pegasus, "memory", (Math.round(Math.ceil(tmp.getMemoryGB() * 1024))) + "");
+        }
 
+        if (tmp.getStorageGB() > 0) {
+            job.addProfile(Profile.NAMESPACE.pegasus, "diskspace", (Math.round(Math.ceil(tmp.getStorageGB() * 1024))) + "");
         }
 
         adag.addJob(job);
