@@ -39,6 +39,7 @@ Additions to Wings portal.properties
                     storage-dir  = <STORAGE_DIR>;
                     site-catalog = <SITE_CATALOG_FILE>;
                     site         = <SITE-1>,<SITE-2>,..,<SITE-N>;
+                    force        = false;
                 }
             }
         }
@@ -50,6 +51,7 @@ Where,
     SITE_CATALOG_FILE - sites.xml file describing the cluster where Pegasus jobs will execute.
                         Example: engines/pegasus/resources/sites.xml
     SITE              - Comma separated list of sites, where jobs can be executed, as defined in the SITE_CATALOG_FILE.
+    FORCE             - Should jobs where the output file already exist be rerun?
 
 
 Usage
