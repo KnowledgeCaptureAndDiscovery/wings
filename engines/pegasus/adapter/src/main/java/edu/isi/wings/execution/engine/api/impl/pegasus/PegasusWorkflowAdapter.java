@@ -41,6 +41,7 @@ public class PegasusWorkflowAdapter {
     String codeDir = null;
     String dataDir = null;
     String pegasusHome = null;
+    String cleanup = null;
     boolean force = false;
 
     Properties props = null;
@@ -61,6 +62,7 @@ public class PegasusWorkflowAdapter {
         this.codeDir = props.getProperty("lib.domain.code.storage") + java.io.File.separator;
         this.dataDir = props.getProperty("lib.domain.data.storage") + java.io.File.separator;
         this.pegasusHome = props.getProperty("pegasus.home") + java.io.File.separator;
+        this.cleanup = props.getProperty("pegasus.cleanup", "inplace");
         this.force = Boolean.parseBoolean(props.getProperty("pegasus.force", "false"));
 
         this.inputs = new HashSet<String>();
@@ -77,7 +79,6 @@ public class PegasusWorkflowAdapter {
             log.error("Invalid Pegasus Home: " + pegasusHome + " is not a directory");
             throw new Exception("Invalid Pegasus Home: " + pegasusHome + " is not a directory");
         }
-
     }
 
     public ADAG runWorkflow(RuntimePlan plan, String siteCatalog, String site, String baseDir) throws Exception {
@@ -118,6 +119,7 @@ public class PegasusWorkflowAdapter {
                     "--output-dir", dataDir,
                     "--sites", site,
                     "--verbose",
+                    "--cleanup", this.cleanup.toLowerCase(),
                     "--submit" + (this.force ? " --force" : "")
                 ).redirectErrorStream(true).start();
 

@@ -40,6 +40,7 @@ Additions to Wings portal.properties
                     site-catalog = <SITE_CATALOG_FILE>;
                     site         = <SITE-1>,<SITE-2>,..,<SITE-N>;
                     force        = false;
+                    cleanup      = none;
                 }
             }
         }
@@ -52,6 +53,7 @@ Where,
                         Example: engines/pegasus/resources/sites.xml
     SITE              - Comma separated list of sites, where jobs can be executed, as defined in the SITE_CATALOG_FILE.
     FORCE             - Should jobs where the output file already exist be rerun?
+    CLEANUP           - Can be none, inplace, leaf.  Defaults to inplace.
 
 
 Usage
