@@ -30,6 +30,7 @@ import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.*;
@@ -261,12 +262,60 @@ public class PegasusWorkflowAdapter {
 
         Transformation transformation = new Transformation(componentName);
         String dir = eStep.getCodeBinding().getCodeDirectory() + java.io.File.separator;
+        Path profiles = Paths.get(dir + "__pegasus-job.properties");
 
         Executable executable = new Executable(componentName);
         executable.addPhysicalFile(new PFN("file://" + dir + "run"));
         executable.setInstalled(false);
         executable.setArchitecture(Executable.ARCH.X86_64);
         executable.setOS(Executable.OS.LINUX);
+
+        if (profiles.toFile().exists()) {
+            InputStream input = null;
+            String key = null;
+            String value = null;
+            String namespace = null;
+
+            try {
+                Properties jobProfiles = new Properties();
+
+                input = new FileInputStream(profiles.toFile());
+                jobProfiles.load(input);
+
+                Enumeration<?> e = jobProfiles.propertyNames();
+                while (e.hasMoreElements()) {
+                    key = (String) e.nextElement();
+                    value = jobProfiles.getProperty(key);
+
+                    int indexOf = key.indexOf('.');
+                    if (indexOf == -1) {
+                        throw new Exception(
+                            "Invalid Pegasus profile \"" + key + "\" in __pegasus-job.properties of component " + componentName
+                        );
+                    }
+
+                    namespace = key.substring(0, indexOf);
+                    key = key.substring(indexOf + 1);
+                    executable.addProfile(
+                        Profile.NAMESPACE.valueOf(namespace.toLowerCase()), key, value
+                    );
+                }
+            } catch (IllegalArgumentException e) {
+                throw new Exception(
+                    "Invalid Pegasus profile namespace \"" + namespace + "\" in __pegasus-job.properties of component " + componentName, e
+                );
+            } catch (IOException e) {
+		        e.printStackTrace();
+	        } finally {
+		        if (input != null) {
+			        try {
+				        input.close();
+			        } catch (IOException e) {
+				        e.printStackTrace();
+			        }
+		        }
+	        }
+        }
         transformation.uses(executable);
 
         adag.addExecutable(executable);
@@ -286,7 +335,10 @@ public class PegasusWorkflowAdapter {
             log.debug("Popped Dir: " + currentDir + " " + stack.size());
 
             for (java.io.File file : new java.io.File(currentDir).listFiles()) {
-                if (file.getName().equals(".") || file.getName().equals("..") || file.getName().equals("run")) {
+                if (
+                    file.getName().equals(".") || file.getName().equals("..") ||
+                    file.getName().equals("run") || Files.isSameFile(profiles, file.toPath())
+                ) {
                     log.debug("Skipped: " + file.getName());
                     continue;
                 }
