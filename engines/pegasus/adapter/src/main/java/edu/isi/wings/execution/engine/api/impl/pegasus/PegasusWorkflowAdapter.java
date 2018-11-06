@@ -110,18 +110,39 @@ public class PegasusWorkflowAdapter {
         try {
             // Write Properties file to submit dir
             String props = writePropertiesFile(baseDir, siteCatalog);
+            List<String> command = new ArrayList<String>();
+
+            command.add(pegasusHome + "bin/pegasus-plan");
+            command.add(props);
+
+            command.add("--dax");
+            command.add(baseDir + plan.getName() + ".dax");
+
+            command.add("--dir");
+            command.add(baseDir);
+
+            command.add("--relative-submit-dir");
+            command.add("submit");
+
+            command.add("--output-dir");
+            command.add(dataDir);
+
+            command.add("--sites");
+            command.add(site);
+
+            command.add("--verbose");
+
+            command.add("--cleanup");
+            command.add(this.cleanup.toLowerCase());
+
+            if (this.force) {
+                command.add("--force");
+            }
+
+            command.add("--submit");
 
             // Execute pegasus-plan
-            process = new ProcessBuilder(pegasusHome + "bin/pegasus-plan", props,
-                    "--dax", baseDir + plan.getName() + ".dax",
-                    "--dir", baseDir,
-                    "--relative-submit-dir", "submit",
-                    "--output-dir", dataDir,
-                    "--sites", site,
-                    "--verbose",
-                    "--cleanup", this.cleanup.toLowerCase(),
-                    "--submit" + (this.force ? " --force" : "")
-                ).redirectErrorStream(true).start();
+            process = new ProcessBuilder(command).redirectErrorStream(true).start();
 
             writeOutStd(process, plan);
 
