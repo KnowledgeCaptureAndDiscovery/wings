@@ -383,7 +383,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
                             // Job status only contains jobs that Wings is aware of.
                             // Jobs created by Pegasus to manage data transfer, and cleanup are ignored.
                             step.getRuntimeInfo().setStatus(newStatus);
-                            log.debug("Job Name: " + jobName + "Old Status: " + oldStatus + " New Status: " + newStatus);
+                            log.debug("Job Name: " + jobName + " Old Status: " + oldStatus + " New Status: " + newStatus);
                         }
                     }
                 }
