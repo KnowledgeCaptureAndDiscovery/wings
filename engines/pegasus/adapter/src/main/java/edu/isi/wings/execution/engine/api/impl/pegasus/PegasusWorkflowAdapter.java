@@ -40,6 +40,7 @@ public class PegasusWorkflowAdapter {
     String codeDir = null;
     String dataDir = null;
     String pegasusHome = null;
+    boolean force = false;
 
     Properties props = null;
 
@@ -51,13 +52,16 @@ public class PegasusWorkflowAdapter {
     private Logger log = null;
 
     /**
-     * @param props Properties with lib.domain.code.storage, lib.domain.data.storage, and pegasus.home properties.
+     * @param props Properties with lib.domain.code.storage, lib.domain.data.storage, pegasus.home,
+     * and pegasus.force properties.
      */
     public PegasusWorkflowAdapter(Properties props) throws Exception {
         this.props = props;
         this.codeDir = props.getProperty("lib.domain.code.storage") + java.io.File.separator;
         this.dataDir = props.getProperty("lib.domain.data.storage") + java.io.File.separator;
         this.pegasusHome = props.getProperty("pegasus.home") + java.io.File.separator;
+        this.force = Boolean.parseBoolean(props.getProperty("pegasus.force", "false"));
+
         this.inputs = new HashSet<String>();
         this.executables = new HashSet<String>();
         this.log = Logger.getLogger(this.getClass());
@@ -100,35 +104,36 @@ public class PegasusWorkflowAdapter {
         // Write DAX file to submit dir
         adag.writeToFile(baseDir + plan.getName() + ".dax");
 
-        // Write Properties file to submit dir
-        String props = writePropertiesFile(baseDir, siteCatalog);
-
+        Process process = null;
         try {
+            // Write Properties file to submit dir
+            String props = writePropertiesFile(baseDir, siteCatalog);
+
             // Execute pegasus-plan
-            Process process = new ProcessBuilder(pegasusHome + "bin/pegasus-plan", props,
+            process = new ProcessBuilder(pegasusHome + "bin/pegasus-plan", props,
                     "--dax", baseDir + plan.getName() + ".dax",
                     "--dir", baseDir,
                     "--relative-submit-dir", "submit",
                     "--output-dir", dataDir,
                     "--sites", site,
                     "--verbose",
-                    "--force",
-                    "--submit").redirectErrorStream(true).start();
+                    "--submit" + (this.force ? " --force" : "")
+                ).redirectErrorStream(true).start();
 
             writeOutStd(process, plan);
 
             process.waitFor();
 
-            if (process.exitValue() == 0) {
-                return adag;
-            } else {
-                return null;
-            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
 
-        return null;
+        if (process.exitValue() == 0) {
+            return adag;
+        } else {
+            log.debug("Plan Failure: " + plan.getName() + " Exit Code: " + process.exitValue());
+            throw new Exception("pegasus-plan failed with exit code " + process.exitValue());
+        }
     }
 
     /**
@@ -204,11 +209,32 @@ public class PegasusWorkflowAdapter {
                 continue;
             }
 
-            log.debug("Replica: " + lfn + " " + pfn.normalize().toUri() + "site=local");
+            log.debug("Replica: " + lfn + " " + pfn.normalize().toUri() + " site=local Exists?: " + pfn.toFile().exists());
 
-            File f = new File(lfn);
-            f.addPhysicalFile(pfn.normalize().toUri().toString(), "local");
-            adag.addFile(f);
+            if (pfn.toFile().exists()) {
+                File f = new File(lfn);
+                f.addPhysicalFile(pfn.normalize().toUri().toString(), "local");
+                adag.addFile(f);
+            }
+
+            inputs.add(lfn);
+        }
+
+        for (ExecutionFile output : eStep.getOutputFiles()) {
+            String lfn = output.getBinding();
+            Path pfn = Paths.get(output.getLocation());
+
+            if (inputs.contains(lfn)) {
+                continue;
+            }
+
+            log.debug("Replica: " + lfn + " " + pfn.normalize().toUri() + " site=local Exists?: " + pfn.toFile().exists());
+
+            if (pfn.toFile().exists()) {
+                File f = new File(lfn);
+                f.addPhysicalFile(pfn.normalize().toUri().toString(), "local");
+                adag.addFile(f);
+            }
 
             inputs.add(lfn);
         }

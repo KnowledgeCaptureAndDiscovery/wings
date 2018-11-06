@@ -48,6 +48,7 @@ import edu.isi.wings.catalog.component.classes.ComponentTree;
 import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.common.URIEntity;
+import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.wings.util.oodt.CurationServiceAPI;
 
@@ -337,18 +338,6 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   }
 
   @Override
-  public void end() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public void delete() {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public void copyFrom(ComponentCreationAPI cc) {
     ComponentTree tree = cc.getComponentHierarchy(true);
     ComponentTreeNode root = tree.getRoot();
@@ -524,6 +513,59 @@ public class ComponentCreationFM implements ComponentCreationAPI {
         ioe.printStackTrace();
       }
     }
+  }
+
+  @Override
+  public boolean end() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean save(KBAPI arg0) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean saveAll() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean start_batch_operation() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean start_read() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean start_write() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void stop_batch_operation() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public String getDefaultComponentLocation(String cid) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean delete() {
+    return false;
   }
 }
 
