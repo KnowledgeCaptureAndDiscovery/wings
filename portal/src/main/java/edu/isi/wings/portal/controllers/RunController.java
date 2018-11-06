@@ -93,8 +93,12 @@ public class RunController {
   }
 
   public String getRunListJSON() {
+    return json.toJson(this.getRunList());
+  }
+
+  public ArrayList<HashMap<String, Object>> getRunList() {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    ArrayList<Object> list = new ArrayList<Object>();
+    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunList()) {
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
@@ -115,7 +119,7 @@ public class RunController {
       }
       list.add(map);
     }
-    return json.toJson(list);
+    return list;
   }
 
   private String getStepIds(ArrayList<RuntimeStep> steps) {

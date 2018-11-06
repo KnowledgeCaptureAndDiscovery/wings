@@ -78,7 +78,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 name: item.name,
                 wtype: item.type,
                 fieldLabel: Ext.util.Format.ellipsis(item.name, 25)
-                };
+            };
             if (item.type == "data") {
                 var emptyText = 'Select ' + (item.dim ? 'multiple files': 'a file') + '...';
                 copts = setURLComboListOptions(copts, item.options, item.binding, emptyText, !item.dim, item.dim);
@@ -99,7 +99,15 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                         store: [[true, 'true'], [false, 'false']]
                         });
                     Ext.apply(formitem, copts);
-                } else if (dtype == "float") {
+                }
+                else if (dtype == "anyURI" && 
+                		typeof(runs) != 'undefined' && 
+                		Array.isArray(runs)) {
+                	var emptyText = "Select a runid...";
+                	copts = setURLComboListOptions(copts, runs, item.binding, emptyText, !item.dim, item.dim);
+                    formitem = new Ext.form.field.ComboBox(copts);
+                }
+                else if (dtype == "float") {
                     copts['decimalPrecision'] = 6;
                     formitem = new Ext.form.NumberField(copts);
                 } else if (dtype == "int" || dtype == "integer") {
@@ -204,6 +212,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     var fetchOp = 'getViewerJSON';
                     var url = me.op_url + '/' + fetchOp + '?template_id=' + me.template_id;
                     me.templatePanel.getLoader().load({
+                    	method: 'get',
                         url: url
                     });
                 }

@@ -338,6 +338,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		ComponentCreationKB dckb = (ComponentCreationKB)dc;
 		
 		this.start_write();
+		dckb.start_read();
 		this.writerkb.copyFrom(dckb.writerkb);
 		
     // Namespace rename maps
@@ -373,6 +374,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		    "/export/common/resource/library.owl#");
 		KBUtils.renameTripleNamespace(this.writerkb, dcreslibns, this.resliburl+"#");
 		this.save();
+		dc.end();
 		this.end();
 
 		this.start_read();

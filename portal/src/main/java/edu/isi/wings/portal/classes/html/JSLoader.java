@@ -38,6 +38,7 @@ public class JSLoader {
 	static String[] run_scripts = { "js/gui/RunBrowser.js" };
 	static String[] data_scripts = { "js/gui/DataViewer.js" };
 	static String[] user_scripts = { "js/gui/UserViewer.js" };
+	static String[] metaworkflow_scripts = { "js/gui/MetaworkflowBrowser.js" };
 	static String[] resource_scripts = { "js/gui/ResourceViewer.js" };
 	static String[] template_scripts = { "js/gui/SeedForm.js", "js/gui/template/GraphItem.js",
     "js/gui/template/config/GraphItemConfig.js", "js/gui/template/GraphLink.js", 
@@ -73,6 +74,7 @@ public class JSLoader {
     jsvars.put("DOMAINS", config.getDomainsList());
     jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
+    jsvars.put("METAWORKFLOWS", config.hasMetaWorkflows());
     
 		JSLoader.showScriptKeyVals(out, jsvars);
 	}
@@ -105,11 +107,16 @@ public class JSLoader {
 		showScriptTags(out, path, plupload_scripts);
 	}
 
-	 public static void loadResourceViewer(PrintWriter out, String path) {
-	    showScriptTags(out, path, common_scripts);
-	    showScriptTags(out, path, resource_scripts);
-	  }
-	 
+	public static void loadResourceViewer(PrintWriter out, String path) {
+	  showScriptTags(out, path, common_scripts);
+	  showScriptTags(out, path, resource_scripts);
+	}
+
+	public static void loadMetaworkflowViewer(PrintWriter out, String path) {
+	  showScriptTags(out, path, common_scripts);
+	  showScriptTags(out, path, metaworkflow_scripts);
+	}
+	
 	public static void loadRunViewer(PrintWriter out, String path) {
 		showScriptTags(out, path, common_scripts);
 		showScriptTags(out, path, run_scripts);
@@ -155,6 +162,7 @@ public class JSLoader {
     jsvars.put("DOMAINS", config.getDomainsList());
     jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
+    jsvars.put("METAWORKFLOWS", config.hasMetaWorkflows());
     
     return JSLoader.getScriptKeyVals(jsvars);
   }
@@ -196,7 +204,14 @@ public class JSLoader {
         getScriptTags(path, common_scripts) +
         getScriptTags(path, resource_scripts);
   }
-   
+
+  public static String getMetaworkflowViewer(String path) {
+    return 
+        getScriptTags(path, common_scripts) +
+        getScriptTags(path, metaworkflow_scripts) +
+        getScriptTags(path, template_scripts);
+  }
+  
   public static String getRunViewer(String path) {
     return
         getScriptTags(path, common_scripts) +

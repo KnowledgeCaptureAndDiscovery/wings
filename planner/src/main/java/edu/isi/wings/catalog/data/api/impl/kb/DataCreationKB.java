@@ -618,6 +618,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		DataCreationKB dckb = (DataCreationKB)dc;
 		
 		this.start_write();
+		dckb.start_read();
 		this.libkb.copyFrom(dckb.libkb);
 		
 		KBUtils.renameTripleNamespace(this.libkb, dckb.dcns, this.dcns);
@@ -648,6 +649,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		KBUtils.renameAllTriplesWith(this.ontkb, dckb.onturl, this.onturl, false);
 		
 		this.save();
+		dckb.end();
 		this.end();
 		
 		this.start_read();

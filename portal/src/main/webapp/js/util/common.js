@@ -154,8 +154,15 @@ function getPortalHeader() {
 			+ "/components\">Manage Components</a></li>\n"
 			+ "<li class=\"last\"><a href=\""
 			+ userpath
-			+ "/domains\">Manage Domain</a></li>\n"
-			+ "</ul></li>\n";
+			+ "/domains\">Manage Domain</a></li>\n";
+		
+		if(METAWORKFLOWS) {
+			html += "<li class=\"last\"><a href=\"" 
+			+ userdompath
+			+ "/metaworkflows\">Comparison & Benchmarking</a></li>\n";			
+		}
+		
+		html +=  "</ul></li>\n";
 		
 		if(ISADMIN) {
 			html +=  "<li><a href=\"#\">Admin</a><ul>\n"

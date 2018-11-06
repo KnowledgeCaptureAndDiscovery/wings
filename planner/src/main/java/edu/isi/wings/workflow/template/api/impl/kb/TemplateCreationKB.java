@@ -283,6 +283,7 @@ implements TemplateCreationAPI {
     boolean batched = this.start_batch_operation();
     
     // Copy the workflow list
+    tckb.start_read();
 		this.writerkb.copyFrom(tckb.writerkb);
 		
 		// Rename ontology namespaces to local ones
@@ -314,8 +315,10 @@ implements TemplateCreationAPI {
 			String ntplurl = tplurl.replace(tckb.wdirurl, this.wdirurl);
       //System.out.println("Copying template " + ntplurl);			
 			try {
-				KBAPI ntplkb = this.ontologyFactory.getKB(ntplurl, OntSpec.PLAIN);				
+				KBAPI ntplkb = this.ontologyFactory.getKB(ntplurl, OntSpec.PLAIN);
+				tpl.start_read();
 				ntplkb.copyFrom(tpl.kb);
+				tpl.end();
 				//System.out.println("Copied Template KB");
 				
 				HashMap<String, String> tnsmap = new HashMap<String, String>(nsmap);
@@ -338,6 +341,7 @@ implements TemplateCreationAPI {
 		  this.stop_batch_operation();
 		
 		this.save();
+		tckb.end();
 		this.end();
 		
 		//System.out.println("Done");

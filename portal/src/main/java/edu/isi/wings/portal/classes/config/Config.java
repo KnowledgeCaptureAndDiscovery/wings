@@ -107,6 +107,7 @@ public class Config {
     private String userDir;
     private ArrayList<String> usersList;
     private boolean isAdminViewer;
+    private boolean hasMetaWorkflows;
 
     private Domain domain;
     private String domainId;
@@ -334,6 +335,9 @@ public class Config {
         this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
         this.executionOntologyUrl = serverConfig.getString("ontology.execution");
         this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
+        
+        if(serverConfig.containsKey("metaworkflows"))
+          this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
         
         if(serverConfig.containsKey("light-reasoner"))
           this.isLightReasoner = serverConfig.getBoolean("light-reasoner");
@@ -714,7 +718,15 @@ public class Config {
     public void setAdminViewer(boolean isAdminViewer) {
         this.isAdminViewer = isAdminViewer;
     }
-
+    
+    public boolean hasMetaWorkflows() {
+      return hasMetaWorkflows;
+    }
+  
+    public void setMetaWorkflows(boolean hasMetaWorkflows) {
+        this.hasMetaWorkflows = hasMetaWorkflows;
+    }
+    
     public void setExportUserUrl(String exportUserUrl) {
         this.exportUserUrl = exportUserUrl;
     }

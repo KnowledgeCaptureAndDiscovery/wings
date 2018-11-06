@@ -13,6 +13,7 @@ import edu.isi.wings.portal.filters.resources.GZIPWriterInterceptor;
 import edu.isi.wings.portal.resources.ComponentResource;
 import edu.isi.wings.portal.resources.DataResource;
 import edu.isi.wings.portal.resources.DomainResource;
+import edu.isi.wings.portal.resources.MetaworkflowResource;
 import edu.isi.wings.portal.resources.PlannerResource;
 import edu.isi.wings.portal.resources.ProvResource;
 import edu.isi.wings.portal.resources.RunResource;
@@ -39,6 +40,7 @@ class WingsServer extends ResourceConfig {
     register(TemplateResource.class);
     register(PlannerResource.class);
     register(RunResource.class);
+    register(MetaworkflowResource.class);
     register(DomainResource.class);
     register(ProvResource.class);
     register(SoftwareResource.class);

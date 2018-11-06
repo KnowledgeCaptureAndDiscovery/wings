@@ -332,6 +332,10 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
             // Convert xsd:integer to xsd:int (to be consistent)
             if (ip.type == this.ns['xsd'] + 'integer')
                 ip.type = this.ns['xsd'] + 'int';
+            if(typeof(ip.paramDefaultValue) == "object" && 
+            		"lexicalValue" in ip.paramDefaultValue ) {
+            	ip.paramDefaultValue = ip.paramDefaultValue["lexicalValue"];
+            }
             params.push(ip);
         } else {
             inputs.push(ip);
@@ -392,27 +396,35 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
             forceSelection: true,
             allowBlank: false
         });
+        var xsdtypes = [{
+            id: this.ns['xsd'] + 'string',
+            type: 'xsd:string'
+        }, {
+            id: this.ns['xsd'] + 'boolean',
+            type: 'xsd:boolean'
+        }, {
+            id: this.ns['xsd'] + 'int',
+            type: 'xsd:int'
+        }, {
+            id: this.ns['xsd'] + 'float',
+            type: 'xsd:float'
+        }, {
+			id : this.ns['xsd'] + 'date',
+			type : 'xsd:date'
+		}];
+        
+        if(METAWORKFLOWS) {
+	        xsdtypes.push({
+	        	id : this.ns['xsd'] + 'anyURI',
+	        	type : 'xsd:runid'
+	        });
+        }
+        
         var pTypeEditor = new Ext.form.ComboBox({
             store: {
                 model: 'dataPropRangeTypes',
-                data: [{
-                    id: this.ns['xsd'] + 'string',
-                    type: 'xsd:string'
-                }, {
-                    id: this.ns['xsd'] + 'boolean',
-                    type: 'xsd:boolean'
-                }, {
-                    id: this.ns['xsd'] + 'int',
-                    type: 'xsd:int'
-                }, {
-                    id: this.ns['xsd'] + 'float',
-                    type: 'xsd:float'
-                }, {
-					id : this.ns['xsd'] + 'date',
-					type : 'xsd:date'
-				}
-                ]
-                },
+                data: xsdtypes
+            },
             displayField: 'type',
             valueField: 'id',
             queryMode: 'local',
@@ -448,7 +460,10 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
             header: 'Type',
             flex: 1,
             renderer: function(url) {
-                return getPrefixedUrl(url, This.ns);
+                var typestr = getPrefixedUrl(url, This.ns);
+                if(typestr == "xsd:anyURI")
+                	typestr = "xsd:runid";
+                return typestr;
             },
             editor: (i == 1 ? pTypeEditor: typeEditor),
             menuDisabled: true
@@ -870,6 +885,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                     notok = true;
                 }
                 else if(rec.data.type != This.ns['xsd'] + "string" && 
+                		rec.data.type != This.ns['xsd'] + "anyURI" &&
                		 (rec.data.paramDefaultValue+"") == "") {
                 	message += "Input Parameter Default Value not specified.. ";
                 	notok = true;
