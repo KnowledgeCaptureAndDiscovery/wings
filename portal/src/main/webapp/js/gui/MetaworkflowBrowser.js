@@ -34,13 +34,6 @@ MetaworkflowBrowser.prototype.openTemplate = function(tid, tname, path, doLayout
 	Ext.apply(tpanel, { closable: true });
 	
 	This.tabPanel.add(tpanel);
-	
-	tpanel.getLoader().on("load", function(event, response) {
-		var data = Ext.decode(response.responseText);
-		var inputs = data.inputs;
-		console.log(inputs);
-	});
-	
 	tpanel.getLoader().load({method : 'get'});
 
 	This.tabPanel.setActiveTab(tpanel);
