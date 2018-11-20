@@ -360,7 +360,7 @@ public class PegasusWorkflowAdapter {
             for (java.io.File file : new java.io.File(currentDir).listFiles()) {
                 if (
                     file.getName().equals(".") || file.getName().equals("..") ||
-                    file.getName().equals("run") || Files.isSameFile(profiles, file.toPath())
+                    file.getName().equals("run") || (Files.exists(profiles) && Files.isSameFile(profiles, file.toPath()))
                 ) {
                     log.debug("Skipped: " + file.getName());
                     continue;
