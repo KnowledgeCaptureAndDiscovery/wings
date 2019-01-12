@@ -7,7 +7,8 @@ import edu.isi.wings.portal.classes.config.ServerDetails;
  */
 public class Publisher {
     String url;
-    String tstoreUrl;
+    String tstorePublishUrl;
+    String tstoreQueryUrl;
     ServerDetails uploadServer;
 
     public String getUrl() {
@@ -18,12 +19,20 @@ public class Publisher {
         this.url = url;
     }
 
-    public String getTstoreUrl() {
-        return tstoreUrl;
+    public String getTstorePublishUrl() {
+      return tstorePublishUrl;
     }
 
-    public void setTstoreUrl(String tstoreUrl) {
-        this.tstoreUrl = tstoreUrl;
+    public void setTstorePublishUrl(String tstorePublishUrl) {
+      this.tstorePublishUrl = tstorePublishUrl;
+    }
+
+    public String getTstoreQueryUrl() {
+      return tstoreQueryUrl;
+    }
+
+    public void setTstoreQueryUrl(String tstoreQueryUrl) {
+      this.tstoreQueryUrl = tstoreQueryUrl;
     }
 
     public ServerDetails getUploadServer() {

@@ -1,38 +1,27 @@
-/*
- * Copyright 2012-2013 Ontology Engineering Group, Universidad Politécnica de Madrid, Spain
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
 package edu.isi.wings.opmm;
 
 /**
- *
- * @author Daniel Garijo
+ * 
+ * @author dgarijo
  */
+
+//TO DO: Cleanup of the deprecated properties is needed
+
+
 public class Constants {
     
     /*****
     ONTOLOGY PREFIXES
     *****/
+    public static String PREFIX_EXPORT_GENERIC =  "http://www.opmw.org/";
     public static String PREFIX_EXPORT_RESOURCE =  "http://www.opmw.org/export/resource/";
     public static final String PREFIX_EXTENSION =  "http://www.opmw.org/extension/";
     public static final String PREFIX_OPMW =  "http://www.opmw.org/ontology/";
     public static final String PREFIX_OPMO =  "http://openprovenance.org/model/opmo#";
     public static final String PREFIX_OPMV =  "http://purl.org/net/opmv/ns#";
     public static final String PREFIX_FOAF = "http://xmlns.com/foaf/0.1/";
-    public static final String PREFIX_GEO = "http://www.w3.org/2003/01/geo/wgs84_pos#";
-    public static final String PREFIX_SIOC =  "http://rdfs.org/sioc/ns#";
+   // public static final String PREFIX_GEO = "http://www.w3.org/2003/01/geo/wgs84_pos#";
+   // public static final String PREFIX_SIOC =  "http://rdfs.org/sioc/ns#";
     public static final String PREFIX_DCTERMS = "http://purl.org/dc/terms/";
     public static final String PREFIX_RDFS = "http://www.w3.org/2000/01/rdf-schema#";
     public static final String PREFIX_PROV = "http://www.w3.org/ns/prov#";
@@ -40,7 +29,60 @@ public class Constants {
     public static final String PREFIX_WEXEC = "http://www.wings-workflows.org/ontology/execution.owl#";
     public static final String PREFIX_WFINVOC = "http://purl.org/net/wf-invocation#";
     public static final String PREFIX_P_PLAN = "http://purl.org/net/p-plan#";
+    public static final String PREFIX_COMPONENT = "http://www.wings-workflows.org/ontology/component.owl#";
+    public static final String PREFIX_OWL = "http://www.w3.org/2002/07/owl#";
+    public static final String PREFIX_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    public static final String PREFIX_RESOURCE = "http://www.wings-workflows.org/ontology/resource.owl#";
+  //  public static final String PREFIX_WICUS = "http://purl.org/net/wicus#";
+  //  public static final String PREFIX_ONTOSOFT = "http://ontosoft.org/software#";
+    //TIME AND LICENSE ADDITIONS
+    public static final String DC_ISSUED_TIME = "http://purl.org/dc/terms/issued";
+    public static final String DC_LICENSE = "http://purl.org/dc/terms/license";
+    
+    //top level component class
+    public static final String WINGS_COMPONENT =PREFIX_COMPONENT+"Component";
 
+    /*****
+    COMPONENT CLASS AND ITS RELATIONS
+    *****/
+    public static final String COMPONENT_HAS_SUPERCLASS_FOLDER=PREFIX_COMPONENT+"hasFolderORSuperComponent";
+    public static final String COMPONENT_HAS_INPUT=PREFIX_COMPONENT+"hasInput";
+    public static final String COMPONENT_HAS_OUTPUT=PREFIX_COMPONENT+"hasOutput";
+    public static final String COMPONENT_HAS_LOCATION=PREFIX_COMPONENT+"hasLocation";
+    public static final String COMPONENT_IS_CONCRETE=PREFIX_COMPONENT+"isConcrete";
+    public static final String COMPONENT_HAS_ARGUMENT_ID=PREFIX_COMPONENT+"hasArgumentID";
+    public static final String COMPONENT_HAS_ARGUMENT_NAME=PREFIX_COMPONENT+"hasArgumentName";
+    public static final String COMPONENT_HAS_DIMENSIONALITY=PREFIX_COMPONENT+"hasDimensionality";
+    public static final String COMPONENT_HAS_VALUE=PREFIX_COMPONENT+"hasValue";
+    public static final String COMPONENT_HAS_DOCUMENTATION = PREFIX_COMPONENT+"hasDocumentation"; 
+    public static final String COMPONENT_HAS_MD5_CODE = PREFIX_COMPONENT+"hasMD5Code";
+    
+    
+    //H/W AND S/W DEPENDENCIES
+    public static final String REQUIRES_STORAGEGB = "http://www.wings-workflows.org/ontology/resource.owl#requiresStorageGB";
+    //public static final String NEEDS_64BIT = "http://purl.org/net/wicus-hwspecs#HardwareSpec";
+    public static final String WINGS_PROP_NEEDS_64BIT = "http://www.wings-workflows.org/ontology/resource.owl#needs64bit";
+    public static final String WINGS_PROP_REQUIRES_MEMORYGB = "http://www.wings-workflows.org/ontology/resource.owl#requiresMemoryGB";
+    public static final String HARDWARE_DEPENDENCY = "http://purl.org/net/wicus-hwspecs#HardwareComponent";
+    public static final String WINGS_PROP_HAS_HARDWARE_DEPENDENCY = "http://www.wings-workflows.org/ontology/resource.owl#hasHardwareDependency";
+    public static final String WINGS_PROP_HAS_SOFTWARE_DEPENDENCY = "http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareDependency";
+    public static final String REQUIRES_VERSION ="http://purl.org/net/wicus-stack#requiresVersion";
+    public static final String SOFTWARE_DEPENDENCY = "http://purl.org/net/wicus-stack#SoftwareComponent";
+    
+    //COMP ontology
+    public static final String WINGS_PROP_COMP_HAS_INPUT = "http://www.wings-workflows.org/ontology/component.owl#hasInput";
+    public static final String WINGS_PROP_COMP_HAS_OUTPUT = "http://www.wings-workflows.org/ontology/component.owl#hasOutput";
+    public static final String WINGS_PROP_COMP_HAS_LOCATION = "http://www.wings-workflows.org/ontology/component.owl#hasLocation";
+    
+    
+    
+
+
+    
+    
+    
+    
+    
     /*****
     OPM AND OPMW CONCEPTS
     *****/
@@ -56,7 +98,20 @@ public class Constants {
     public static final String CONCEPT_WORKFLOW_TEMPLATE_ARTIFACT = "WorkflowTemplateArtifact";
     public static final String CONCEPT_WORKFLOW_TEMPLATE = "WorkflowTemplate";
     public static final String CONCEPT_WORKFLOW_EXECUTION_ACCOUNT = "WorkflowExecutionAccount";
+    //new
+    public static final String CONCEPT_SOFTWARE_CONFIGURATION = "SoftwareConfiguration";
+    public static final String CONCEPT_SOFTWARE_SCRIPT = "SoftwareScript";
+    
+    //ADDITIONS BY TIRTH *******************//
+    public static final String CONCEPT_WORKFLOW_EXPANDED_TEMPLATE = "WorkflowExpandedTemplate";
+    //public static final String CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_PROCESS = "WorkflowExpandedTemplateProcess";
+    //public static final String CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_PARAMETER_VARIABLE = "WorkflowExpandedTemplateParameterVariable";
+    //public static final String CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_DATA_VARIABLE = "WorkflowExpandedTemplateDataVariable";
+    //public static final String CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_ARTIFACT = "WorkflowExpandedTemplateArtifact";
 
+    //*******************//
+    
+    
     /*****
     OPM relationships 
     *****/
@@ -76,8 +131,16 @@ public class Constants {
     public static final String OPM_ACCOUNT = PREFIX_OPMO+CONCEPT_ACCOUNT;
     
     /*****
+    Taxonomy classes
+    *****/
+    public static final String CATALOG_URI = "https://w3id.org/wings/";
+    
+    
+    
+    /*****
     OPMW classes
     *****/
+    public static final String OPMW_WORKFLOW_EXECUTION_ARTIFACT_EXPORT_DIRECT = PREFIX_EXPORT_RESOURCE+CONCEPT_WORKFLOW_EXECUTION_ARTIFACT;
     public static final String OPMW_WORKFLOW_EXECUTION_PROCESS = PREFIX_OPMW+CONCEPT_WORKFLOW_EXECUTION_PROCESS;
     public static final String OPMW_WORKFLOW_EXECUTION_ARTIFACT = PREFIX_OPMW+CONCEPT_WORKFLOW_EXECUTION_ARTIFACT;
     public static final String OPMW_WORKFLOW_TEMPLATE_PROCESS = PREFIX_OPMW+CONCEPT_WORKFLOW_TEMPLATE_PROCESS;
@@ -86,6 +149,15 @@ public class Constants {
     public static final String OPMW_WORKFLOW_TEMPLATE = PREFIX_OPMW+CONCEPT_WORKFLOW_TEMPLATE;
     public static final String OPMW_WORKFLOW_TEMPLATE_ARTIFACT = PREFIX_OPMW+CONCEPT_WORKFLOW_TEMPLATE_ARTIFACT;
     public static final String OPMW_WORKFLOW_EXECUTION_ACCOUNT = PREFIX_OPMW+CONCEPT_WORKFLOW_EXECUTION_ACCOUNT;
+    public static final String OPMW_WORKFLOW_EXPANDED_TEMPLATE = PREFIX_OPMW + CONCEPT_WORKFLOW_EXPANDED_TEMPLATE;
+    //new
+    public static final String OPMW_SOFTWARE_CONFIGURATION = PREFIX_OPMW + CONCEPT_SOFTWARE_CONFIGURATION;
+    public static final String OPMW_SOFTWARE_SCRIPT = PREFIX_OPMW + CONCEPT_SOFTWARE_SCRIPT;
+    
+    //public static final String OPMW_WORKFLOW_EXPANDED_TEMPLATE_PROCESS = PREFIX_OPMW + CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_PROCESS;
+    //public static final String OPMW_WORKFLOW_EXPANDED_TEMPLATE_DATA_VARIABLE = PREFIX_OPMW + CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_DATA_VARIABLE;
+    //public static final String OPMW_WORKFLOW_EXPANDED_TEMPLATE_PARAMETER_VARIABLE = PREFIX_OPMW + CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_PARAMETER_VARIABLE;
+    //public static final String OPMW_WORKFLOW_EXPANDED_TEMPLATE_ARTIFACT = PREFIX_OPMW+CONCEPT_WORKFLOW_EXPANDED_TEMPLATE_ARTIFACT;
     
     /*****
     OPMW relationships
@@ -101,6 +173,24 @@ public class Constants {
     public static final String OPMW_PROP_IS_VARIABLE_OF_TEMPLATE = PREFIX_OPMW+"isVariableOfTemplate";
     public static final String OPMW_PROP_IS_PARAMETER_OF_TEMPLATE = PREFIX_OPMW+"isParameterOfTemplate";
     public static final String OPMW_PROP_EXECUTED_IN_WORKFLOW_SYSTEM = PREFIX_OPMW+"executedInWorkflowSystem";
+    public static final String OPMW_PROP_EXECUTABLE_COMPONENT = PREFIX_OPMW+"ExecutableComponent";
+    //new
+    public static final String OPMW_PROP_HAD_SOFTWARE_CONFIGURATION = PREFIX_OPMW+"hadSoftwareConfiguration";
+    public static final String OPMW_PROP_HAS_MAIN_SCRIPT = PREFIX_OPMW+"hasMainScript";
+    
+    
+    
+    public static final String OPMW_PROP_IMPLEMENTS_TEMPLATE = PREFIX_OPMW +"implementsTemplate";
+    public static final String OPMW_PROP_IMPLEMENTS_TEMPLATE_PROCESS = PREFIX_OPMW+"implementsTemplateProcess";
+    public static final String OPMW_PROP_IMPLEMENTS_TEMPLATE_ARTIFACT = PREFIX_OPMW+"implementsTemplateArtifact";
+    
+    
+    public static final String OPMW_PROP_IS_IMPLEMENTATION_OF_TEMPLATE_PARAMETER_VARIABLE = PREFIX_OPMW+"isImplementationofTemplateParameterVariable";
+    
+    // *********ADDITIONS BY TIRTH
+   
+
+    //
 
     /*****
     OPMW data properties
@@ -112,8 +202,8 @@ public class Constants {
     public static final String OPMW_DATA_PROP_HAS_DIMENSIONALITY = PREFIX_OPMW+"hasDimensionality";
     public static final String OPMW_DATA_PROP_HAS_DOCUMENTATION = PREFIX_OPMW+"hasDocumentation";    
     public static final String OPMW_DATA_PROP_HAS_NATIVE_SYSTEM_TEMPLATE = PREFIX_OPMW+"hasNativeSystemTemplate";
-    public static final String OPMW_DATA_PROP_HAS_ORIGINAL_LOG_FILE = PREFIX_OPMW+"hasOriginalLogFile";
-    public static final String OPMW_DATA_PROP_HAS_STATUS = PREFIX_OPMW+"hasStatus";
+    public static final String OPMW_DATA_PROP_HAS_ORIGINAL_EXECUTION_FILE = PREFIX_OPMW+"hasOriginalExecutionFile";
+    public static final String OPMW_DATA_PROP_STATUS = PREFIX_OPMW+"executionStatus";
     public static final String OPMW_DATA_PROP_OVERALL_START_TIME = PREFIX_OPMW+"overallStartTime";
     public static final String OPMW_DATA_PROP_OVERALL_END_TIME = PREFIX_OPMW+"overallEndTime";
     public static final String OPMW_DATA_PROP_HAS_TEMPLATE_DIAGRAM = PREFIX_OPMW+"hasTemplateDiagram";
@@ -124,8 +214,27 @@ public class Constants {
     public static final String OPMW_DATA_PROP_HAS_VALUE = PREFIX_OPMW + "hasValue";
     public static final String DATA_PROP_RIGHTS = "http://purl.org/dc/elements/1.1/rights";
     public static final String DATA_PROP_MODIFIED = "http://purl.org/dc/terms/modified";
-
-
+    public static final String OPMW_COMPONENT_HAS_RULES = PREFIX_OPMW + "hasRules";
+    public static final String OPMW_DATA_PROP_IS_COLLECTION = PREFIX_OPMW + "isCollection";
+    public static final String OPMW_DATA_PROP_TYPE_OF_COMPONENT = PREFIX_OPMW + "ComponentType";
+    public static final String OPMW_DATA_PROP_HAS_LANGUAGE = PREFIX_OPMW + "hasLanguage";
+    public static final String OPMW_DATA_PROP_HAS_TOPIC = PREFIX_OPMW + "hasTopic";
+    public static final String OPMW_DATA_PROP_HAS_DOMAIN = PREFIX_OPMW + "hasDomain";
+    public static final String OPMW_DATA_PROP_HAS_MD5 = PREFIX_OPMW+"hasMD5";
+    public static final String OPMW_DATA_PROP_HAS_RULE = PREFIX_OPMW+"hasRule";
+    //new props
+    public static final String OPMW_DATA_PROP_HAS_RUN_ID = PREFIX_OPMW + "hasRunID";
+    public static final String OPMW_DATA_PROP_HAD_INVOCATION_COMMAND =  PREFIX_OPMW + "hadInvocationCommand";
+    public static final String OPMW_DATA_PROP_HAD_START_TIME =  PREFIX_OPMW + "hadStarTime";
+    public static final String OPMW_DATA_PROP_HAD_END_TIME =  PREFIX_OPMW + "hadEndTime";
+    public static final String OPMW_DATA_PROP_RELEASE_VERSION=  PREFIX_OPMW + "releaseVersion";
+    
+    
+    
+    public static final String  OPMW_PROP_IS_DATA_BINDING_OF_EXPANDED_TEMPLATE_DATA_VARIABLE = PREFIX_OPMW + "isDataBindingofExpandedTemplateDataVariable";
+    
+    public static final String OPMW_PROP_IS_PARVALUE_OF_EXPANDED_TEMPLATE_PARAMETER_VARIABLE = PREFIX_OPMW + "isParValueofExpandedTemplateParameterVariable";
+    
     /*****
     Wings template constants. Prefixes
     *****/
@@ -146,6 +255,8 @@ public class Constants {
     public static final String WINGS_METADATA = PREFIX_WFLOW + "Metadata";
     public static final String WINGS_EXECUTION = PREFIX_WEXEC + "Execution";
     public static final String WINGS_EXECUTION_STEP= PREFIX_WEXEC + "ExecutionStep";
+   
+    
     /*****
     Wings properties
     *****/
@@ -161,6 +272,10 @@ public class Constants {
     public static final String WINGS_PROP_HAS_EXPANDED_TEMPLATE = PREFIX_WEXEC + "hasExpandedTemplate";
     public static final String WINGS_PROP_HAS_PLAN = PREFIX_WEXEC + "hasPlan";
     public static final String WINGS_PROP_DERIVED_FROM = PREFIX_WFLOW + "derivedFrom";
+    
+    public static final String WINGS_PROP_HAS_INPUT_PORT = PREFIX_WFLOW + "hasInputPort";
+    public static final String WINGS_PROP_HAS_OUTPUT_PORT = PREFIX_WFLOW + "hasOutputPort";
+    public static final String WINGS_PROP_HAS_LINK = PREFIX_WFLOW + "hasLink";
 //    public static final String WINGS_PROP_HAS_ARGUMENT_ID = AC + "hasArgumentID";
     
     //execution properties
@@ -181,11 +296,12 @@ public class Constants {
     public static final String WINGS_PROP_USES_TOOL = PREFIX_WFLOW + "usesTool";
     public static final String WINGS_PROP_HAS_USER = PREFIX_WEXEC + "hasUser";
     
-    static String WINGS_PROP_HAS_RULE = "http://www.wings-workflows.org/ontology/component.owl#hasRule";
     /*****
     Wings data properties
     *****/
+    public static final String WINGS_DATA_PROP_HAS_RULE = PREFIX_COMPONENT + "hasRule";
     public static final String WINGS_DATA_PROP_IS_CONCRETE = PREFIX_WFLOW + "isConcrete";
+    public static final String WINGS_DATA_PROP_IS_CONCRETE2= PREFIX_WFLOW +"isConcrete";
     public static final String WINGS_DATA_PROP_HAS_DIMENSIONALITY = PREFIX_WFLOW + "hasDimensionality";
     public static final String WINGS_DATA_PROP_CREATED_FROM = PREFIX_WFLOW + "createdFrom";
     public static final String WINGS_DATA_PROP_HAS_CONTRIBUTOR = PREFIX_WFLOW + "hasContributor";
@@ -202,10 +318,14 @@ public class Constants {
     public static final String WINGS_DATA_PROP_HAS_START_TIME = PREFIX_WEXEC + "hasStartTime";
     public static final String WINGS_DATA_PROP_HAS_END_TIME = PREFIX_WEXEC + "hasEndTime";    
     public static final String WINGS_DATA_PROP_HAS_LICENSE = PREFIX_WEXEC + "hasLicense";
-    public static final String WINGS_DATA_PROP_HAS_CREATION_TOOL = PREFIX_WEXEC + "creationTool";  
+    public static final String WINGS_DATA_PROP_HAS_CREATION_TOOL = PREFIX_WEXEC + "creationTool"; 
     
     //component (to get variabletypes)
     public static final String WINGS_DATA_PROP_HAS_ARGUMENT_ID = "http://www.wings-workflows.org/ontology/component.owl#hasArgumentID";
+    
+    //new
+    public static final String WINGS_PROP_HAS_PARAMETER_VALUE = PREFIX_WFLOW+"hasParameterValue";
+    public static final String WINGS_DATA_PROP_HAS_METADATA = PREFIX_WFLOW+"hasMetadata";
     
     /**
      * WF-INVOC
@@ -236,13 +356,19 @@ public class Constants {
     public static final String PROV_STARTED_AT_TIME = PREFIX_PROV+ "startedAtTime";
     public static final String PROV_ENDED_AT_TIME = PREFIX_PROV+ "endedAtTime";
     public static final String PROV_WAS_DERIVED_FROM = PREFIX_PROV+ "wasDerivedFrom";
+    public static final String PROV_WAS_REVISION_OF = PREFIX_PROV+ "wasRevisionOf";
+    public static final String PROV_ACTED_ON_BEHALF_OF = PREFIX_PROV+ "actedOnBehalfOf";
+    public static final String PROV_ALTERNATE_OF = PREFIX_PROV+"alternateOf";
                 
     /*****
     other useful properties
     *****/
     public static final String RDFS_LABEL = PREFIX_RDFS+"label";
+    public static final String RDFS_SUBCLASS_OF = PREFIX_RDFS+"subClassOf";
     public static final String PROP_HAS_CONTRIBUTOR = PREFIX_DCTERMS +"contributor";    
+    public static final String PROP_HAS_CREATOR = PREFIX_DCTERMS +"creator";
     public static final String RDFS_COMMENT = PREFIX_RDFS+"comment";
+    public static final String OWL_VERSION_INFO = "http://www.w3.org/2002/07/owl#versionInfo";
     
     /*****
     P-Plan classes
@@ -261,7 +387,13 @@ public class Constants {
     public static final String P_PLAN_PROP_CORRESPONDS_TO_STEP = PREFIX_P_PLAN+ "correspondsToStep";
     public static final String P_PLAN_PROP_CORRESPONDS_TO_VAR = PREFIX_P_PLAN+ "correspondsToVariable";
     public static final String P_PLAN_PROP_IS_STEP_OF_PLAN =  PREFIX_P_PLAN+ "isStepOfPlan";
+    //this does not exist in PPlan but it's used in WINGS
+    public static final String P_PLAN_PROP_HAS_INVOCATION_LINE =  PREFIX_P_PLAN+ "hasInvocationLine";
     
+    
+    
+    //---------
+    public static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     
     
 }
