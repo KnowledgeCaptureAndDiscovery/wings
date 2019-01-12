@@ -30,6 +30,7 @@ import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.*;
@@ -40,6 +41,7 @@ public class PegasusWorkflowAdapter {
     String codeDir = null;
     String dataDir = null;
     String pegasusHome = null;
+    String cleanup = null;
     boolean force = false;
 
     Properties props = null;
@@ -60,6 +62,7 @@ public class PegasusWorkflowAdapter {
         this.codeDir = props.getProperty("lib.domain.code.storage") + java.io.File.separator;
         this.dataDir = props.getProperty("lib.domain.data.storage") + java.io.File.separator;
         this.pegasusHome = props.getProperty("pegasus.home") + java.io.File.separator;
+        this.cleanup = props.getProperty("pegasus.cleanup", "inplace");
         this.force = Boolean.parseBoolean(props.getProperty("pegasus.force", "false"));
 
         this.inputs = new HashSet<String>();
@@ -76,7 +79,6 @@ public class PegasusWorkflowAdapter {
             log.error("Invalid Pegasus Home: " + pegasusHome + " is not a directory");
             throw new Exception("Invalid Pegasus Home: " + pegasusHome + " is not a directory");
         }
-
     }
 
     public ADAG runWorkflow(RuntimePlan plan, String siteCatalog, String site, String baseDir) throws Exception {
@@ -108,17 +110,39 @@ public class PegasusWorkflowAdapter {
         try {
             // Write Properties file to submit dir
             String props = writePropertiesFile(baseDir, siteCatalog);
+            List<String> command = new ArrayList<String>();
+
+            command.add(pegasusHome + "bin/pegasus-plan");
+            command.add(props);
+
+            command.add("--dax");
+            command.add(baseDir + plan.getName() + ".dax");
+
+            command.add("--dir");
+            command.add(baseDir);
+
+            command.add("--relative-submit-dir");
+            command.add("submit");
+
+            command.add("--output-dir");
+            command.add(dataDir);
+
+            command.add("--sites");
+            command.add(site);
+
+            command.add("--verbose");
+
+            command.add("--cleanup");
+            command.add(this.cleanup.toLowerCase());
+
+            if (this.force) {
+                command.add("--force");
+            }
+
+            command.add("--submit");
 
             // Execute pegasus-plan
-            process = new ProcessBuilder(pegasusHome + "bin/pegasus-plan", props,
-                    "--dax", baseDir + plan.getName() + ".dax",
-                    "--dir", baseDir,
-                    "--relative-submit-dir", "submit",
-                    "--output-dir", dataDir,
-                    "--sites", site,
-                    "--verbose",
-                    "--submit" + (this.force ? " --force" : "")
-                ).redirectErrorStream(true).start();
+            process = new ProcessBuilder(command).redirectErrorStream(true).start();
 
             writeOutStd(process, plan);
 
@@ -261,12 +285,60 @@ public class PegasusWorkflowAdapter {
 
         Transformation transformation = new Transformation(componentName);
         String dir = eStep.getCodeBinding().getCodeDirectory() + java.io.File.separator;
+        Path profiles = Paths.get(dir + "__pegasus-job.properties");
 
         Executable executable = new Executable(componentName);
         executable.addPhysicalFile(new PFN("file://" + dir + "run"));
         executable.setInstalled(false);
         executable.setArchitecture(Executable.ARCH.X86_64);
         executable.setOS(Executable.OS.LINUX);
+
+        if (profiles.toFile().exists()) {
+            InputStream input = null;
+            String key = null;
+            String value = null;
+            String namespace = null;
+
+            try {
+                Properties jobProfiles = new Properties();
+
+                input = new FileInputStream(profiles.toFile());
+                jobProfiles.load(input);
+
+                Enumeration<?> e = jobProfiles.propertyNames();
+                while (e.hasMoreElements()) {
+                    key = (String) e.nextElement();
+                    value = jobProfiles.getProperty(key);
+
+                    int indexOf = key.indexOf('.');
+                    if (indexOf == -1) {
+                        throw new Exception(
+                            "Invalid Pegasus profile \"" + key + "\" in __pegasus-job.properties of component " + componentName
+                        );
+                    }
+
+                    namespace = key.substring(0, indexOf);
+                    key = key.substring(indexOf + 1);
+                    executable.addProfile(
+                        Profile.NAMESPACE.valueOf(namespace.toLowerCase()), key, value
+                    );
+                }
+            } catch (IllegalArgumentException e) {
+                throw new Exception(
+                    "Invalid Pegasus profile namespace \"" + namespace + "\" in __pegasus-job.properties of component " + componentName, e
+                );
+            } catch (IOException e) {
+		        e.printStackTrace();
+	        } finally {
+		        if (input != null) {
+			        try {
+				        input.close();
+			        } catch (IOException e) {
+				        e.printStackTrace();
+			        }
+		        }
+	        }
+        }
         transformation.uses(executable);
 
         adag.addExecutable(executable);
@@ -286,7 +358,10 @@ public class PegasusWorkflowAdapter {
             log.debug("Popped Dir: " + currentDir + " " + stack.size());
 
             for (java.io.File file : new java.io.File(currentDir).listFiles()) {
-                if (file.getName().equals(".") || file.getName().equals("..") || file.getName().equals("run")) {
+                if (
+                    file.getName().equals(".") || file.getName().equals("..") ||
+                    file.getName().equals("run") || (Files.exists(profiles) && Files.isSameFile(profiles, file.toPath()))
+                ) {
                     log.debug("Skipped: " + file.getName());
                     continue;
                 }
@@ -371,7 +446,10 @@ public class PegasusWorkflowAdapter {
         ComponentRequirement tmp = this.req.get(componentID);
         if (tmp.getMemoryGB() > 0) {
             job.addProfile(Profile.NAMESPACE.pegasus, "memory", (Math.round(Math.ceil(tmp.getMemoryGB() * 1024))) + "");
+        }
 
+        if (tmp.getStorageGB() > 0) {
+            job.addProfile(Profile.NAMESPACE.pegasus, "diskspace", (Math.round(Math.ceil(tmp.getStorageGB() * 1024))) + "");
         }
 
         adag.addJob(job);

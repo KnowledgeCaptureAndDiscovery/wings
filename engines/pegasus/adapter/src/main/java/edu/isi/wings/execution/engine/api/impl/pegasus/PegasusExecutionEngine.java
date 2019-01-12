@@ -31,6 +31,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -273,6 +280,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
         ExecutionMonitorAPI monitor = null;
         PlanExecutionEngine planEngine = null;
         Map<String, RuntimeStep> jobMap = null;
+        Map<String, String> jobFileLoc = null;
         RuntimeInfo.Status workflowStatus = null;
 
         public ExecutionMonitoringThread(PlanExecutionEngine planEngine, RuntimePlan plan, ExecutionLoggerAPI logger,
@@ -286,6 +294,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             this.failedJobs = new HashSet<String>();
             this.log = Logger.getLogger(this.getClass());
             this.jobMap = new HashMap<String, RuntimeStep>();
+            this.jobFileLoc = new HashMap<String, String>();
         }
 
         private int getSleepTime() {
@@ -310,6 +319,76 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
         }
 
         /**
+         * Get most recent job retry count. i.e. If <job-name>.out.002 then return 002.
+         */
+        private String getRetryCount(String jobLoc, String jobName) {
+            int retryCount = 0;
+
+            while (true) {
+                if (new File(jobLoc + "/" + jobName + ".out" + String.format(".%03d", retryCount)).exists()) {
+                    retryCount++;
+                } else {
+                    if (retryCount > 0) {
+                        retryCount--;
+                    }
+                    break;
+                }
+            }
+
+            return String.format(".%03d", retryCount);
+        }
+
+        private String showStdOutErr(String jobLoc, String jobName) throws IOException, Exception {
+            String ext = getRetryCount(jobLoc, jobName);
+
+            File kickstartFile = new File(jobLoc + "/" + jobName + ".out" + ext);
+            log.debug("Reading " + kickstartFile.getCanonicalPath() + " Exists? " + kickstartFile.exists());
+
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(kickstartFile);
+
+            //optional, but recommended
+            //read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+            doc.getDocumentElement().normalize();
+
+            NodeList nodeList = doc.getElementsByTagName("statcall");
+            StringBuffer out = new StringBuffer();
+            StringBuffer err = new StringBuffer();
+            StringBuffer sb = new StringBuffer();
+
+            for (int temp = 0; temp < nodeList.getLength(); temp++) {
+                Node n = nodeList.item(temp);
+
+                if (n.getNodeType() == Node.ELEMENT_NODE) {
+                    Element e = (Element) n;
+
+                    if (e.getAttribute("id").equals("stdout") && e.getElementsByTagName("data").getLength() > 0) {
+                        out.append(e.getElementsByTagName("data").item(0).getTextContent());
+                    } else if (e.getAttribute("id").equals("stderr") && e.getElementsByTagName("data").getLength() > 0) {
+                        err.append(e.getElementsByTagName("data").item(0).getTextContent());
+                    }
+                }
+            }
+
+            // Standard Output
+            if (out.length() > 0) {
+                sb.append(String.format("%n---Standard Output---%n"));
+                sb.append(out.toString().trim());
+                sb.append(String.format("%n---Standard Output---%n"));
+            }
+
+            // Standard Error
+            if (err.length() > 0) {
+                sb.append(String.format("%n---Standard Error---%n"));
+                sb.append(err.toString().trim());
+                sb.append(String.format("%n---Standard Error---%n"));
+            }
+
+            return sb.toString();
+        }
+
+        /**
          * Traverse the jobstate log and update the status of the workflow, and all the jobs.
          * For jobs that Wings is aware off, update the job's step objects status attribute.
          * For jobs that Wings is NOT aware off, like transfer, or cleanup jobs, update the overall workflow status,
@@ -329,6 +408,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
                     String jobName = lineParts[1];
                     String jobState = lineParts[2];
+                    String jobLoc = this.jobFileLoc.get(jobName);
                     RuntimeStep step = jobMap.get(jobName);
 
                     jobstateLogMark += 1;
@@ -364,10 +444,18 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
                                 if (oldStatus != newStatus) {
                                     step.onEnd(logger, newStatus, "Success");
                                 }
+                                if (jobState.equals("POST_SCRIPT_SUCCESS")) {
+                                    step.onEnd(logger, newStatus, showStdOutErr(jobLoc, jobName));
+                                    step.onEnd(logger, newStatus, "Success");
+                                }
                             } else if (jobState.equals("JOB_FAILURE") || jobState.equals("POST_SCRIPT_FAILURE")) {
                                 isFailed = true;
                                 newStatus = RuntimeInfo.Status.FAILURE;
                                 if (oldStatus != newStatus) {
+                                    step.onEnd(logger, newStatus, "Failure");
+                                }
+                                if (jobState.equals("POST_SCRIPT_FAILURE")) {
+                                    step.onEnd(logger, newStatus, showStdOutErr(jobLoc, jobName));
                                     step.onEnd(logger, newStatus, "Failure");
                                 }
                             } else {
@@ -383,7 +471,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
                             // Job status only contains jobs that Wings is aware of.
                             // Jobs created by Pegasus to manage data transfer, and cleanup are ignored.
                             step.getRuntimeInfo().setStatus(newStatus);
-                            log.debug("Job Name: " + jobName + "Old Status: " + oldStatus + " New Status: " + newStatus);
+                            log.debug("Job Name: " + jobName + " Old Status: " + oldStatus + " New Status: " + newStatus);
                         }
                     }
                 }
@@ -392,6 +480,9 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
                 log.debug("Overall Workflow Status: " + workflowStatus);
             } catch (IOException e) {
                 plan.getRuntimeInfo().addLog("Exception while reading jobstate.log " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                plan.getRuntimeInfo().addLog("Exception " + e.getMessage());
             }
         }
 
@@ -405,7 +496,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
          * After Pegasus has planned a workflow, it would have added new jobs for file transfer, cleanup, etc.
          * Wings isn't aware of these jobs yet. This methd will create dummy RuntimeSteps to represent these new jobs.
          */
-        private void registerPegasusJobsWithPlan() {
+        private void registerPegasusJobsWithPlan() throws IOException {
             RuntimeStep step = null;
             ExecutionQueue queue = plan.getQueue();
 
@@ -414,7 +505,8 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             log.debug("Iterating over " + submitDir + " to get all .sub files");
 
             while (it.hasNext()) {
-                final String sub = FilenameUtils.removeExtension(it.next().getName());
+                final File file = it.next();
+                final String sub = FilenameUtils.removeExtension(file.getName());
 
                 if (sub.endsWith(".condor")) {
                     log.debug("Ignoring " + sub + ".sub file");
@@ -431,6 +523,9 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
                     queue.addStep(step);
                     jobMap.put(sub, step);
                 }
+
+                jobFileLoc.put(sub, file.getParentFile().getCanonicalPath());
+                log.debug("Job " + sub + " Sub File " + file.getParentFile().getCanonicalPath());
             }
         }
 

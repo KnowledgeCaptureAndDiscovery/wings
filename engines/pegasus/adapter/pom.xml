@@ -20,7 +20,7 @@
   <properties>
     <log4j.version>1.2.14</log4j.version>
     <commons-io.version>2.4</commons-io.version>
-    <pegasus.version>4.6.0</pegasus.version>
+    <pegasus.version>4.9.0</pegasus.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
