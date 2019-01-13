@@ -73,17 +73,18 @@ public class WorkflowExecutionExport {
             wingsExecutionModel.add(ModelUtils.loadModel(plan));
             //ask if an execution with same run id exists. If so, return URI. The local name of the execution is its run id.
             String queryExec = QueriesWorkflowExecutionExport.getOPMWExecutionsWithRunID(wingsExecution.getLocalName());
-            ResultSet rs = ModelUtils.queryOnlineRepository(queryExec, endpointURI);
-            if(rs.hasNext()){
+            QuerySolution solution = ModelUtils.queryOnlineRepository(queryExec, endpointURI);
+            if(solution != null){
                 System.out.println("Execution exists!");
-                this.transformedExecutionURI = (rs.next().getResource("?exec").getURI()); 
+                this.transformedExecutionURI = (solution.getResource("?exec").getURI()); 
                 isExecPublished = true;
             }else{
                 System.out.println("Execution does not exist! Publishing new execution");
                 this.transformedExecutionURI =  convertExecutionToOPMW(wingsExecution);
             }
         }catch(Exception e){
-            System.err.println("Error: "+e.getMessage()+"\n The execution was not exported");
+          e.printStackTrace();
+          System.err.println("Error: "+e.getMessage()+"\n The execution was not exported");
         }
     }
     
@@ -304,6 +305,14 @@ public class WorkflowExecutionExport {
     
     //TO DO: When exporting, do the execution inputs and output collection as I discussed with Milan.?
     
+    public WorkflowTemplateExport getConcreteTemplateExport() {
+      return concreteTemplateExport;
+    }
+
+    public void setConcreteTemplateExport(WorkflowTemplateExport concreteTemplateExport) {
+      this.concreteTemplateExport = concreteTemplateExport;
+    }
+
     public static void main(String[] args){
         //String taxonomyURL = "http://www.wings-workflows.org/wings-omics-portal/export/users/ravali/genomics/components/library.owl";
         String taxonomyURL = "C:\\Users\\dgarijo\\Dropbox (OEG-UPM)\\NetBeansProjects\\WingsToOPMWMapper\\NEW_TEST\\templates\\concreteWorkflow\\library-gen.owl";

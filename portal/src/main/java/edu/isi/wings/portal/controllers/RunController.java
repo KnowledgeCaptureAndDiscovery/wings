@@ -20,7 +20,9 @@ package edu.isi.wings.portal.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 
@@ -61,6 +63,7 @@ import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
+import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
@@ -291,7 +294,7 @@ public class RunController {
 
         String tstoreurl = publisher.getTstorePublishUrl();
         String tstorequery = publisher.getTstoreQueryUrl();
-        String puburl = publisher.getUrl();
+        String exportName = publisher.getUrl();
         String upurl = publisher.getUploadServer().getUrl();
 
         //opmm.setPublishExportPrefix(puburl);
@@ -316,41 +319,15 @@ public class RunController {
 
         File datadir = new File(tempdir.getAbsolutePath() + "/data");                
         File codedir = new File(tempdir.getAbsolutePath() + "/code");
-        File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
-        File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
-        File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
-        File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
-
-        File tplexportdir = new File(tempdir.getAbsolutePath() + "/template_export");
-        
         datadir.mkdirs();
         codedir.mkdirs();
-        dcontdir.mkdirs();
-        acontdir.mkdirs();
-        wflowdir.mkdirs();
-        execsdir.mkdirs();
-        tplexportdir.mkdirs();
-
+        
         String tupurl = upurl + "/" + tempdir.getName();
         String dataurl  = tupurl + "/data";
         String codeurl  = tupurl + "/code";
-        String dconturl = tupurl + "/ont/data";
-        String aconturl = tupurl + "/ont/components";
-        String wflowurl = tupurl + "/ont/workflows";
-        String execsurl = tupurl + "/ont/executions";
-
-        Properties props = config.getProperties();
-        String dclib = props.getProperty("lib.domain.data.url");
-        String dcont = props.getProperty("ont.domain.data.url");
-        String aclib = props.getProperty("lib.concrete.url");
-        String acabs = props.getProperty("lib.abstract.url");
-        String wfpfx = props.getProperty("domain.workflows.dir.url");
-        String expfx = props.getProperty("domain.executions.dir.url");
-
         String cdir = props.getProperty("lib.domain.code.storage");
         String ddir = props.getProperty("lib.domain.data.storage");
-
-        /*
+        
         // Get files to upload && modify "Locations" to point to uploaded urls
         HashSet<ExecutionFile> uploadFiles = new HashSet<ExecutionFile>();
         HashSet<ExecutionCode> uploadCodes = new HashSet<ExecutionCode>();
@@ -372,7 +349,6 @@ public class RunController {
               (maxsize == 0 || copyfile.length() < maxsize)) {
             // Copy over file to temp directory
             FileUtils.copyFileToDirectory(copyfile, datadir);
-
             // Change file path in plan to the web accessible one 
             file.setLocation(file.getLocation().replace(ddir, dataurl));
           }
@@ -399,79 +375,74 @@ public class RunController {
           // Change path in plan to the web accessible one
           code.setLocation(code.getLocation().replace(cdir, codeurl));                  
         }
-        */
 
-        String dcontdata = IOUtils.toString(new URL(dcont));
-        File dcontfile = new File(dcontdir.getAbsolutePath() + "/ontology.owl");
-        FileUtils.write(dcontfile, dcontdata);
+        // Upload data/code and delete tempdir
+        uploadDirectory(publisher.getUploadServer(), tempdir);
+        FileUtils.deleteQuietly(tempdir);
+        
+        // Next round of creating tempdir
+        tempdir.mkdirs();
+        File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
+        File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
+        File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
+        File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
 
-        String dclibdata = IOUtils.toString(new URL(dclib));
-        File dclibfile = new File(dcontdir.getAbsolutePath() + "/library.owl");
-        FileUtils.write(dclibfile, dclibdata);
-
-        String aclibdata = IOUtils.toString(new URL(aclib));  
+        File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
+        File tpl_exportdir = new File(tempdir.getAbsolutePath() + "/export/template");
+        dcontdir.mkdirs();
+        acontdir.mkdirs();
+        wflowdir.mkdirs();
+        execsdir.mkdirs();
+        run_exportdir.mkdirs();
+        tpl_exportdir.mkdirs();
+        
+        // Merge both concrete and abstract component libraries
+        String aclib = props.getProperty("lib.concrete.url");
+        String abslib = props.getProperty("lib.abstract.url");
+        String aclibdata = IOUtils.toString(new URL(aclib));
+        String abslibdata = IOUtils.toString(new URL(abslib));
+        abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
+        abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
+        abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
+        aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
+        aclibdata += abslibdata + "</rdf:RDF>\n";
         File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
         FileUtils.write(aclibfile, aclibdata);
-
-        String acabsdata = IOUtils.toString(new URL(acabs));
-        File acabsfile = new File(acontdir.getAbsolutePath() + "/abstract.owl");
-        FileUtils.write(acabsfile, acabsdata);
-
-        File planfile = new File(execsdir.getAbsolutePath() + "/" + 
-            plan.getPlan().getName() + ".owl");
-        String plandata = plan.getPlan().serialize();
-        FileUtils.write(planfile, plandata);
-
-        String rplanurl = execsurl + "/" + plan.getName() + ".owl";
+        
         File rplanfile = new File(execsdir.getAbsolutePath() + "/" + 
             plan.getName() + ".owl");
         String rplandata = IOUtils.toString(new URL(runid));
         FileUtils.write(rplanfile, rplandata);
 
         URL otplurl = new URL(plan.getOriginalTemplateID());
-        String otmplurl = wflowurl + "/" + otplurl.getRef() + ".owl";
         File otplfile = new File(wflowdir.getAbsolutePath() + "/" + 
             otplurl.getRef() + ".owl");
         String otpldata = IOUtils.toString(otplurl);
         FileUtils.write(otplfile, otpldata);
-
-        URL xtplurl = new URL(plan.getExpandedTemplateID());
-        File xtplfile = new File(execsdir.getAbsolutePath() + "/" + 
-            xtplurl.getRef() + ".owl");
-        String xtpldata = IOUtils.toString(xtplurl);
-        FileUtils.write(xtplfile, xtpldata);
-
-        String exliburl = props.getProperty("lib.domain.execution.url");
-        String exlibdata = IOUtils.toString(new URL(exliburl));
-        File exlibfile = new File(execsdir.getAbsolutePath() + "/library.owl");
-        FileUtils.write(exlibfile, exlibdata);
         
-        /*
-        uploadDirectory(publisher.getUploadServer(), tempdir);
-        FileUtils.deleteQuietly(tempdir);
-        */
-
-        // Convert results into prov and opmw
-        File opmwfile = File.createTempFile("opmw-", ".owl");
-        File provfile = File.createTempFile("prov-", ".owl");
-        File tmplfile = File.createTempFile("tmpl-", ".owl");
-        
-        Catalog catalog = new Catalog(config.getDomainId(), "testExport", "domains", aclibfile.getAbsolutePath());
+        Catalog catalog = new Catalog(config.getDomainId(), exportName, 
+            publisher.getDomainsDir(), aclibfile.getAbsolutePath());
         WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, "exportTest", tstorequery);
-        exp.exportAsOPMW(opmwfile.getAbsolutePath(), "RDF/XML");
-        exp.exportAsPROV(provfile.getAbsolutePath(), "RDF/XML");
+            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery);
+        exp.exportAsOPMW(run_exportdir.getAbsolutePath(), "RDF/XML");
+        catalog.exportCatalog(null);
+        for(File f : run_exportdir.listFiles()) {
+          this.publishFile(tstoreurl, exp.getTransformedExecutionURI(), f.getAbsolutePath());
+        }
         
-        WorkflowTemplateExport texp = new WorkflowTemplateExport(
-            otplfile.getAbsolutePath(), catalog, "exportTest", tstorequery);
-        String turl = texp.exportAll(tplexportdir.getAbsolutePath(), "RDF/XML");
-        System.out.println(turl);
+        WorkflowTemplateExport texp = exp.getConcreteTemplateExport();
+        if(texp != null) {
+          texp.exportAsOPMW(tpl_exportdir.getAbsolutePath(), "RDF/XML");
+          for(File f : tpl_exportdir.listFiles()) {
+            this.publishFile(tstoreurl, 
+                texp.getTransformedTemplateIndividual().getURI(),
+                f.getAbsolutePath());
+          }
+        }
         
-        opmwfile.delete();
-        provfile.delete();
-        tmplfile.delete();
-
-        retmap.put("url", turl);
+        FileUtils.deleteQuietly(tempdir);
+        
+        retmap.put("url", exp.getTransformedExecutionURI());
 
       } catch (Exception e) {
         e.printStackTrace();

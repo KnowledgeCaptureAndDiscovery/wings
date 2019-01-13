@@ -10,6 +10,7 @@ public class Publisher {
     String tstorePublishUrl;
     String tstoreQueryUrl;
     ServerDetails uploadServer;
+    String domainsDir;
 
     public String getUrl() {
         return url;
@@ -41,5 +42,13 @@ public class Publisher {
 
     public void setUploadServer(ServerDetails uploadServer) {
         this.uploadServer = uploadServer;
+    }
+
+    public String getDomainsDir() {
+      return domainsDir;
+    }
+
+    public void setDomainsDir(String domainsDir) {
+      this.domainsDir = domainsDir;
     }
 }

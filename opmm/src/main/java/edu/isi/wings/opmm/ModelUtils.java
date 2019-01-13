@@ -8,6 +8,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -82,12 +83,16 @@ public class ModelUtils {
      * @param endpointURI URI of the repository
      * @return 
      */
-    public static ResultSet queryOnlineRepository(String queryIn, String endpointURI){
+    public static QuerySolution queryOnlineRepository(String queryIn, String endpointURI){
         Query query = QueryFactory.create(queryIn);
         // Execute the query and obtain results
         QueryExecution qe = QueryExecutionFactory.sparqlService(endpointURI, query);
         ResultSet rs =  qe.execSelect();
-        return rs;
+        QuerySolution solution = null;
+        if(rs.hasNext())
+          solution = rs.next();
+        qe.close();
+        return solution;
     }
     
     /**

@@ -170,15 +170,17 @@ public class Catalog {
                     String componentName = libCanonicalInstance.getLocalName();
                     //if it doesn't exist, then create a new version of the component. First retrieve the latest version number
                     ResultSet latestVersionCI = ModelUtils.queryLocalRepository(QueriesCatalog.getMostRecentVersionNumber(componentName), localCatalog);
-                    QuerySolution latestVersionQS = latestVersionCI.next();
-                    int versionNumber = latestVersionQS.getLiteral("?number").getInt();
-                    System.out.println("Latest version for "+wingsComponentType+" is " +versionNumber);
-                    String newLocalComponent = copyComponentToCatalog(wingsComponentType,componentName, versionNumber+1);
-                    //link the versions of the canonical instances: newCI wasRevisionOf latestVersionCI                    
-                    Individual newCI = (Individual) localCatalog.getOntClass(newLocalComponent).listInstances().next();
-                    newCI.addProperty(localCatalog.createOntProperty(Constants.PROV_WAS_REVISION_OF), 
-                        localCatalog.getIndividual(latestVersionQS.getResource("?ci").getURI()));
-                    return newLocalComponent;
+                    if(latestVersionCI.hasNext()) {
+                      QuerySolution latestVersionQS = latestVersionCI.next();
+                      int versionNumber = latestVersionQS.getLiteral("?number").getInt();
+                      System.out.println("Latest version for "+wingsComponentType+" is " +versionNumber);
+                      String newLocalComponent = copyComponentToCatalog(wingsComponentType,componentName, versionNumber+1);
+                      //link the versions of the canonical instances: newCI wasRevisionOf latestVersionCI                    
+                      Individual newCI = (Individual) localCatalog.getOntClass(newLocalComponent).listInstances().next();
+                      newCI.addProperty(localCatalog.createOntProperty(Constants.PROV_WAS_REVISION_OF), 
+                          localCatalog.getIndividual(latestVersionQS.getResource("?ci").getURI()));
+                      return newLocalComponent;
+                    }
                 }
             }else{
                 System.out.println("Component "+wingsComponentType+" does not have a canonical instance, and has been ignored.");

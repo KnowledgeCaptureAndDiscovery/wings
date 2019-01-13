@@ -378,6 +378,7 @@ public class Config {
           String publishUrl = serverConfig.getString("publisher.url");
           String tstorePublishUrl = serverConfig.getString("publisher.triple-store.publish");
           String tstoreQueryUrl = serverConfig.getString("publisher.triple-store.query");
+          String domainsDir = serverConfig.getString("publisher.triple-store.domains-directory");
           String uploadUrl = serverConfig.getString("publisher.upload-server.url");
           String uploadDir = serverConfig.getString("publisher.upload-server.directory");
           String uploadHost = serverConfig.getString("publisher.upload-server.host");
@@ -386,6 +387,7 @@ public class Config {
           String sizeString = serverConfig.getString("publisher.upload-server.max-upload-size");
           this.publisher = new Publisher();
           this.publisher.setUrl(publishUrl);
+          this.publisher.setDomainsDir(domainsDir);
           this.publisher.setTstorePublishUrl(tstorePublishUrl);
           this.publisher.setTstoreQueryUrl(tstoreQueryUrl);
           ServerDetails upserver = new ServerDetails();

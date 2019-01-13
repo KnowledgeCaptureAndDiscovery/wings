@@ -93,7 +93,8 @@ public class HashUtils {
             QuerySolution qs = rs.next();
             String wingsComponentURI = qs.getResource("?compURI").getURI();
             Individual wingsComp = wingsTaxonomy.getIndividual(wingsComponentURI);
-            connectionsAndComponents.add(HashUtils.createMD5ForWINGSComponent(wingsComp));
+            if(wingsComp != null)
+              connectionsAndComponents.add(HashUtils.createMD5ForWINGSComponent(wingsComp));
         }
         return serializeArrayListAsMD5(connectionsAndComponents);
     }

@@ -93,9 +93,9 @@ public class WorkflowTemplateExport {
             System.out.println("WINGS Template hash: "+templateHash);
             String queryMd5 = QueriesWorkflowTemplateExport.getOPMWTemplatesWithMD5Hash(templateHash);  
             //if same MD5, return URI of the found template (there may be diferent versions and found a previous one)
-            ResultSet rs = ModelUtils.queryOnlineRepository(queryMd5, endpointURI);
-            if(rs.hasNext()){
-                Resource foundTemplateURI = rs.next().getResource("?t");
+            QuerySolution solution = ModelUtils.queryOnlineRepository(queryMd5, endpointURI);
+            if(solution != null){
+                Resource foundTemplateURI = solution.getResource("?t");
                 System.out.println("Template " +wingsTemplateName+" has already been published as "+foundTemplateURI.getURI());
                 //no export is necessary
                 transformedTemplate = opmwModel.createClass(Constants.OPMW_WORKFLOW_TEMPLATE).createIndividual(foundTemplateURI.getURI());
@@ -106,18 +106,17 @@ public class WorkflowTemplateExport {
                 //get all templates published with the same label. All published templates will have a version
                 //note: union graph only works when there are more graphs than the defaul one.
                 String queryT = QueriesWorkflowTemplateExport.getOPMWTemplatesWithLabel(wingsTemplateName);
-                rs = ModelUtils.queryOnlineRepository(queryT, endpointURI);
-                if(!rs.hasNext()){
+                solution = ModelUtils.queryOnlineRepository(queryT, endpointURI);
+                if(solution == null){
                     //template name does not exist, hence this is the first version
                     System.out.println("Template name does not exist. Publishing with latest version");
                     exportedTemplateURI = convertTemplateToOPMW(wingsTemplate, 1);
                 }else{
-                    QuerySolution qs = rs.next();
-                    Resource latestTemplate = qs.getResource("?t");
+                    Resource latestTemplate = solution.getResource("?t");
                     //check if there is a version number automatically associated to template.
                     int latestTemplateVersionNumber;
                     try{
-                        latestTemplateVersionNumber = qs.getLiteral("?v").getInt();
+                        latestTemplateVersionNumber = solution.getLiteral("?v").getInt();
                     }catch(Exception e){
                         //Existing template but no version number available, using default (1)
                         latestTemplateVersionNumber = 1;
@@ -134,7 +133,8 @@ public class WorkflowTemplateExport {
             }
             this.transformedTemplate = opmwModel.getIndividual(exportedTemplateURI);
         }catch(Exception e){
-            System.err.println("Error: "+e.getMessage()+"\n The template was not exported");
+          e.printStackTrace();
+          System.err.println("Error: "+e.getMessage()+"\n The template was not exported");
         }
     }
     
@@ -224,7 +224,8 @@ public class WorkflowTemplateExport {
             Literal roleId = qs.getLiteral("?roleID");
             Resource derivedFrom = qs.getResource("?derivedFrom");
             //add it as a variable or parameter
-            if(type.getURI().equals(Constants.WINGS_DATA_VARIABLE)||(type.getURI().equals(Constants.WINGS_PARAMETER_VARIABLE))){
+            if(type.isURIResource() && 
+                (type.getURI().equals(Constants.WINGS_DATA_VARIABLE)||(type.getURI().equals(Constants.WINGS_PARAMETER_VARIABLE)))) {
                 String varNS, varURI;
                 Individual workflowVariable;
                 if(type.getURI().equals(Constants.WINGS_DATA_VARIABLE)){
