@@ -1407,7 +1407,7 @@ implements WorkflowGenerationAPI {
 		curt.setID(this.exPrefix + "/" + curt.getName() + ".owl#" + curt.getName());
 		
 		String ns = curt.getNamespace();
-		
+				
 		int jobCounter = 0;
 		ArrayList<Node> nodesDone = new ArrayList<Node>();
 		HashMap<String, Variable> newVariables = new HashMap<String, Variable>();
@@ -1572,6 +1572,11 @@ implements WorkflowGenerationAPI {
 										// Add Binding metrics as constraints
 										curt.getConstraintEngine().addConstraints(
 												this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
+										
+                    // Remove original variable constraints
+                    for(KBTriple t : curt.getConstraintEngine().getConstraints(variable.getID())) {
+                      curt.getConstraintEngine().removeConstraint(t);
+                    }
                   }
 								}
 							}
@@ -1635,6 +1640,12 @@ implements WorkflowGenerationAPI {
 									// Add Binding metrics as constraints
 									curt.getConstraintEngine().addConstraints(
 											this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
+
+                  // Remove original variable constraints
+                  for(KBTriple t : curt.getConstraintEngine().getConstraints(variable.getID())) {
+                    curt.getConstraintEngine().removeConstraint(t);
+                  }
+
 								}
 
 								// Add outputLink to Navigate and investigate further
@@ -1648,6 +1659,7 @@ implements WorkflowGenerationAPI {
 				}
 			}
 		}
+		
 		return curt;
 	}
 	
