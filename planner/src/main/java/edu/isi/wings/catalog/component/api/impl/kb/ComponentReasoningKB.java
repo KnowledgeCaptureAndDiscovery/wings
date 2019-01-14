@@ -693,6 +693,14 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
     
 		if(!comp.hasRules()) {
 		  // No rules. Just set default parameter values (if not already set)
+		  
+		  // Also set output type metrics
+	    for(ComponentRole role : comp.getOutputs()) {
+	      Variable v = sRoleMap.get(role.getRoleName());
+        v.getBinding().getMetrics().addMetric(
+            KBUtils.RDF + "type", 
+            new Metric(Metric.URI, role.getType()));
+	    }
 		  list.add(details);
 		  return list;
 		}
