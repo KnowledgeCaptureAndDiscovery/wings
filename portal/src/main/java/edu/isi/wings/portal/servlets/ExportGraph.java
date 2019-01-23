@@ -56,9 +56,13 @@ public class ExportGraph extends HttpServlet {
 		//if(!config.checkDomain(request, response))
 		//	return;
 		
-		String format = request.getParameter("format");
-		response.addHeader("Access-Control-Allow-Origin", "*");
+		response.addHeader("Access-Control-Allow-Origin", config.getClients());
+		response.addHeader("Access-Control-Allow-Credentials", "true");
+		response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
+		response.addHeader("Access-Control-Allow-Headers",
+        "X-Requested-With, Content-Type, X-HTTP-Method-Override");		
 		
+    String format = request.getParameter("format");
 		String uri = config.getServerUrl() + request.getRequestURI();
 		OntFactory tdbfac = new OntFactory(OntFactory.JENA, config.getTripleStoreDir());
 		try {
