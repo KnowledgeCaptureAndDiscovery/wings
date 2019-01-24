@@ -96,6 +96,16 @@ public class DataResource extends WingsResource {
     return Response.status(Status.FORBIDDEN).build();    
   }
   
+  @GET
+  @Path("publish")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String publishData(
+      @QueryParam("data_id") String data_id) {
+    if(this.dc != null)
+      return this.dc.publishData(data_id);
+    return null;
+  }
+  
   @POST
   @Path("saveDataJSON")
   @Produces(MediaType.TEXT_PLAIN)

@@ -113,9 +113,9 @@ public class Test {
 		// System.out.println(var.getSize());
 
 		// Binding a = new ValueBinding(1);
-		Binding a = new ValueBinding(new String[] { "msg", "myr", "xt" });
-		Binding b = new ValueBinding(new String[] { "s1", "s2" });
-		Binding c = new ValueBinding(new String[] { "hg19" });
+		Binding a = new ValueBinding(new String[] { "maize", "sorghum" });
+		Binding b = new ValueBinding(new String[] { "s0", "s5" });
+		Binding c = new ValueBinding(new String[] { "p1", "p2" });
 		// Binding c = new ValueBinding(new Integer[]{ 3, 4 });
 		// Binding d = new ValueBinding(new ValueBinding(new String[]{ "y", "z" }));
 		// Binding d = new ValueBinding(new ValueBinding(new ValueBinding(new
@@ -123,23 +123,23 @@ public class Test {
 		//Binding d = new ValueBinding(new ValueBinding(new String[] { "y1", "z1" }));
 		//d.add(new ValueBinding(new String[] { "y2", "z2" }));
 		// d.add(new ValueBinding("M"));
-		Binding d = new Binding();
+		/*Binding d = new Binding();
 		Binding e = new Binding();
 		Binding f = new Binding();
 		e.add(a);
 		e.add(b);
 		d.add(c);
 		f.add(d);
-		f.add(e);
-		System.out.println(f);
+		f.add(e);*/
+		/*System.out.println(f);
 		System.out.println(f.getMaxDimension());
 		f.reduceDimensionBy(1);
 		System.out.println(f);
-		System.out.println(f.getMaxDimension());
+		System.out.println(f.getMaxDimension());*/
 
-		/*Port p1 = new Port(ns + "param");
-		Port p2 = new Port(ns + "sample");
-		Port p3 = new Port(ns + "fasta");
+		Port p1 = new Port(ns + "crop");
+		Port p2 = new Port(ns + "subsidy");
+		Port p3 = new Port(ns + "point");
 		//Port p4 = new Port(ns + "p4");
 
 		p1.setRole(new Role(ns + "arole"));
@@ -160,18 +160,27 @@ public class Test {
 //		SetExpression s = new SetExpression(SetOperator.XPRODUCT, new Port[] { p1, p2 });
 //		SetExpression s1 = new SetExpression(SetOperator.INCREASEDIM, new Port[] { p2 });
 //		s.add(s1);
-		SetExpression s = new SetExpression(SetOperator.XPRODUCT, new Port[] { p2, p3 });
+		SetExpression s = new SetExpression(SetOperator.XPRODUCT, new Port[] { p1 });
 //		SetExpression s2 = new SetExpression(SetOperator.NWISE, new Port[] { p3, p4 });
-		s.add(new SetExpression(SetOperator.INCREASEDIM, new Port[] { p1 }));
+		SetExpression s2 = new SetExpression(SetOperator.INCREASEDIM, new Port[] { p2 });
+		s.add(s2);
+		
+		SetExpression s4 = new SetExpression(SetOperator.INCREASEDIM);
+    s4.add(s);
+    
+    SetExpression s3 = new SetExpression(SetOperator.XPRODUCT, new Port[] { p3 });
+    s3.add(s4);
+
+		//s.add(s4);
 		//s.add(new SetExpression(SetOperator.REDUCEDIM, new Port[] { p4 }));
 		//s.add(s2);
 
-		System.out.println("Expression: " + s);
+		System.out.println("Expression: " + s3);
 		System.out.println("Original Bindings: " + portBindings);
 		PortBindingList possibleBindings = new PortBindingList();
-		possibleBindings = PortSetRuleHandler.handlePortSetRule(s, s, portBindings,
+		possibleBindings = PortSetRuleHandler.handlePortSetRule(s3, s3, portBindings,
 				possibleBindings);
-		System.out.println("Final possible Bindings: \n" + possibleBindings);*?
+		System.out.println("Final possible Bindings: \n" + possibleBindings);
 		/*
 		 * possibleBindings =
 		 * PortSetRuleHandler.flattenPortBindingList(possibleBindings, 1);

@@ -18,6 +18,7 @@
 package edu.isi.wings.portal.controllers;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -42,8 +44,12 @@ import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
+import edu.isi.wings.catalog.resource.classes.GridkitCloud;
+import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.common.kb.KBUtils;
+import edu.isi.wings.opmm.HashUtils;
 import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 
@@ -142,6 +148,45 @@ public class DataController {
 			mtree = json.toJson(tree.getRoot());
 		return mtree;
 	}
+	
+	public String publishData(String dataid) {
+	  String location = dc.getDataLocation(dataid);
+	  File datafile = new File(location);
+	  if(config.getPublisher() != null && datafile.exists()) {
+	    return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
+	  }
+	  return null;
+	}
+	
+  private String uploadFile(ServerDetails server, File datafile) {
+    String upurl = config.getPublisher().getUploadServer().getUrl();
+    if(datafile.exists()) {
+      // FIXME: Add timestamp for MD5
+      String md5 = HashUtils.MD5(datafile.getName() + datafile.length());
+      String dataurl = upurl + "/" + md5 + "/" + datafile.getName(); 
+      if(server.getHost() != null) {
+        Machine m = new Machine(server.getHost());
+        m.setHostName(server.getHost());
+        m.setUserId(server.getHostUserId());
+        m.setUserKey(server.getPrivateKey());
+        HashMap<String, String> filemap = new HashMap<String, String>();
+        String srvpath = server.getDirectory() + "/" + md5 + datafile.getName();
+        filemap.put(datafile.getAbsolutePath(), srvpath);
+        GridkitCloud.uploadFiles(m, filemap);
+      }
+      else {
+        try {
+          File updir = new File(server.getDirectory() + "/" + md5);
+          updir.mkdirs();
+          FileUtils.copyFileToDirectory(datafile, updir);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      return dataurl;
+    }
+    return null;
+  }
 	
 	public Response streamData(String dataid, ServletContext context) {
 		String location = dc.getDataLocation(dataid);

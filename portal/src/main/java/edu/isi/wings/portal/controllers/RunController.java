@@ -317,6 +317,7 @@ public class RunController {
         if(!_tmpdir.delete() || !tempdir.mkdirs())
           throw new Exception("Cannot create temp directory");
 
+        /*
         File datadir = new File(tempdir.getAbsolutePath() + "/data");                
         File codedir = new File(tempdir.getAbsolutePath() + "/code");
         datadir.mkdirs();
@@ -379,6 +380,7 @@ public class RunController {
         // Upload data/code and delete tempdir
         uploadDirectory(publisher.getUploadServer(), tempdir);
         FileUtils.deleteQuietly(tempdir);
+        */
         
         // Next round of creating tempdir
         tempdir.mkdirs();
