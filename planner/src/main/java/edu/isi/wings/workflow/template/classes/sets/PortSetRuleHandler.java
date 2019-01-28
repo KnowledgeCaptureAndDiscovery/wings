@@ -99,7 +99,8 @@ public class PortSetRuleHandler {
 	public static PortBindingList handlePortSetRule(SetExpression expr, SetExpression default_expr,
 			PortBinding initPortBinding, PortBindingList finalPortBindings) {
 		PortBindingList tmpBindings = getPossiblePortBindings(expr,
-				modPortBindings(expr, initPortBinding), finalPortBindings);
+				modPortBindings(expr, initPortBinding, new ArrayList<SetOperator>()), 
+				finalPortBindings);
 		int numext = 1;
 		while (numext > 0) {
 			numext = 0;
@@ -122,7 +123,7 @@ public class PortSetRuleHandler {
 						numext++;
 						// FIXME: Replaced expr with default_expr (X Product) on
 						// second iteration ! (Testing phase)
-						PortBindingList tmp = handlePortSetRule(default_expr, default_expr,
+						PortBindingList tmp = handlePortSetRule(expr, default_expr,
 								b.getPortBinding(), new PortBindingList());
 						tmpBindings1.add(tmp);
 					} else {
@@ -136,26 +137,41 @@ public class PortSetRuleHandler {
 		return tmpBindings;
 	}
 
-	private static PortBinding modPortBindings(SetExpression expr, PortBinding portBindings) {
+	/*
+	 * Increase or decrease the dimensionality of a port binding. (or shift collection) 
+	 * NOTE: 
+	 *  - These should only be used on a single port ? 
+	 */
+	private static PortBinding modPortBindings(SetExpression expr, PortBinding portBindings, ArrayList<SetOperator> operators) {
 		// System.out.println("-"+expr);
 		// System.out.println("--"+portBindings);
-		if (expr.isSet()) {
+		if (expr.isSet()) {		  
 			// System.out.println("--- is Set");
 			for (SetExpression cexpr : expr) {
-				if (expr.getOperator() == SetOperator.INCREASEDIM && !cexpr.isSet()) {
-					portBindings.get(cexpr.getPort()).increaseDimensionBy(1);
-					expr.setOperator(null);
-				}
-				if (expr.getOperator() == SetOperator.REDUCEDIM && !cexpr.isSet()) {
-				  portBindings.get(cexpr.getPort()).reduceDimensionBy(1);
-          expr.setOperator(null);
-				}
-				if (expr.getOperator() == SetOperator.SHIFT && !cexpr.isSet()) {
-					portBindings.get(cexpr.getPort()).shift();
-					expr.setOperator(null);
-				}
-				portBindings = modPortBindings(cexpr, portBindings);
+        SetOperator op = cexpr.getOperator();
+        ArrayList<SetOperator> newops = new ArrayList<SetOperator>(operators);
+        newops.add(op);
+        portBindings = modPortBindings(cexpr, portBindings, newops);
+        
+			  if (op == SetOperator.INCREASEDIM ||
+			      op == SetOperator.REDUCEDIM || 
+			      op == SetOperator.SHIFT ) {
+			    cexpr.setOperator(null);
+			  }
 			}
+		}
+		else {
+		  for(SetOperator op : operators) {
+		    if (op == SetOperator.INCREASEDIM) {
+		      portBindings.get(expr.getPort()).increaseDimensionBy(1);
+		    }
+		    else if (op == SetOperator.REDUCEDIM) {
+          portBindings.get(expr.getPort()).reduceDimensionBy(1);
+        }
+		    else if (op == SetOperator.SHIFT) {
+          portBindings.get(expr.getPort()).shift();
+        }
+		  }
 		}
 		return portBindings;
 	}
