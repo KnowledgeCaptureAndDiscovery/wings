@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.UUID;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -151,9 +150,11 @@ public class DataController {
 	
 	public String publishData(String dataid) {
 	  String location = dc.getDataLocation(dataid);
-	  File datafile = new File(location);
-	  if(config.getPublisher() != null && datafile.exists()) {
-	    return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
+	  if(location != null) {
+  	  File datafile = new File(location);
+  	  if(config.getPublisher() != null && datafile.exists()) {
+  	    return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
+  	  }
 	  }
 	  return null;
 	}
