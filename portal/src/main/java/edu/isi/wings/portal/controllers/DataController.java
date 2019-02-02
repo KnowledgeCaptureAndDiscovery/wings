@@ -174,8 +174,8 @@ public class 	DataController {
 	}
 
 	private String uploadFile(ServerDetails server, File datafile) {
-		String upUrl = "http://ontosoft.isi.edu:7071";
-		//String upurl = server.getUrl();
+		//String upUrl = "http://ontosoft.isi.edu:7071";
+		String upurl = server.getUrl();
 		if(datafile.exists()) {
 			AsyncHttpClient client = Dsl.asyncHttpClient();
 			InputStream inputStream;
