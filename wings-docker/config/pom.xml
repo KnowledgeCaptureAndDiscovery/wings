@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.isi.wings</groupId>
+  <artifactId>wings-portal</artifactId>
+  <version>4.1-SNAPSHOT</version>
+  <name>Wings Portal Snapshot [08-24-2018]</name>
+  <packaging>war</packaging>
+
+  <repositories>
+    <repository>
+      <id>archiva.snapshots</id>
+      <name>Internal Snapshot Repository</name>
+      <url>http://www.wings-workflows.org/archiva/repository/snapshots/</url>
+    </repository>
+  </repositories>
+
+  <dependencies> 
+    <dependency>
+      <groupId>edu.isi.wings</groupId>
+      <artifactId>wings-portal</artifactId>
+      <version>4.1-SNAPSHOT</version>
+      <type>war</type>
+    </dependency>
+  </dependencies> 
+
+</project>
