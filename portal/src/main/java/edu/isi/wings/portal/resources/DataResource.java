@@ -95,12 +95,12 @@ public class DataResource extends WingsResource {
       return this.dc.streamData(data_id, this.context);
     return Response.status(Status.FORBIDDEN).build();    
   }
-  
+
   @POST
   @Path("publish")
   @Produces(MediaType.TEXT_PLAIN)
   public String publishData(
-      @QueryParam("data_id") String data_id) {
+          @FormParam("data_id") String data_id) {
     if(this.dc != null)
       return this.dc.publishData(data_id);
     return null;
