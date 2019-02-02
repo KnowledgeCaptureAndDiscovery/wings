@@ -462,8 +462,9 @@ public class Config {
         // Create configFile if it doesn't exist (portal.properties)
         File cfile = new File(this.configFile);
         if (!cfile.exists()) {
-            if (!cfile.getParentFile().mkdirs()) {
-                System.err.println("Cannot create config file directory : " + cfile.getParent());
+            File configDir = cfile.getParentFile();
+            if (!configDir.exists() && !configDir.mkdirs()) {
+                System.err.println("Cannot create config file directory : " + configDir);
                 return null;
             }
             if (request != null)
@@ -476,6 +477,7 @@ public class Config {
             props.load(this.configFile);
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
         return props;
     }
@@ -490,7 +492,9 @@ public class Config {
         else
             storageDir = System.getProperty("java.io.tmpdir") +
                     File.separator + "wings" + File.separator + "storage";
-        if (!new File(storageDir).mkdirs())
+        
+        File storageDirFile = new File(storageDir);
+        if (!storageDirFile.exists() && !storageDirFile.mkdirs())
             System.err.println("Cannot create storage directory: " + storageDir);
 
         PropertyListConfiguration config = new PropertyListConfiguration();
