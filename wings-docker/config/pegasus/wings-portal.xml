@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Context docBase="/lfs/wings/server" debug="0" reloadable="true" crossContext="true">
+   <Parameter name="config.file" value="/lfs/wings/storage/default/portal.properties" />
+   <ResourceLink name="users" global="UserDatabase" />
+</Context>
