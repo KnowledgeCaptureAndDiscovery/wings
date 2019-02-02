@@ -96,7 +96,7 @@ public class DataResource extends WingsResource {
     return Response.status(Status.FORBIDDEN).build();    
   }
   
-  @GET
+  @POST
   @Path("publish")
   @Produces(MediaType.TEXT_PLAIN)
   public String publishData(
