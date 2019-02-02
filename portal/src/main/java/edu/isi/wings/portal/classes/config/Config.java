@@ -374,7 +374,6 @@ public class Config {
         }
 
         // Load publishing configuration
-        if(serverConfig.containsKey("publisher.url")) {
           String publishUrl = serverConfig.getString("publisher.url");
           String tstorePublishUrl = serverConfig.getString("publisher.triple-store.publish");
           String tstoreQueryUrl = serverConfig.getString("publisher.triple-store.query");
@@ -401,7 +400,6 @@ public class Config {
             upserver.setMaxUploadSize(size);
           }
           this.publisher.setUploadServer(upserver);
-        }
     }
     
     private long getSizeFromString(String sizeString) {
