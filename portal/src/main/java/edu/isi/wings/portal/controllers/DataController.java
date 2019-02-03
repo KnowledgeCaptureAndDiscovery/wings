@@ -161,9 +161,9 @@ public class DataController {
 	
   private String uploadFile(ServerDetails server, File datafile) {
     String upurl = config.getPublisher().getUploadServer().getUrl();
-    String md5 = HashUtils.MD5(datafile.getName() + datafile.length());
-    String dataurl = upurl + "/" + md5 + "/" + datafile.getName(); 
     if(datafile.exists()) {
+      String md5 = HashUtils.MD5(datafile.getName() + datafile.length());
+      String dataurl = upurl + "/" + md5 + "/" + datafile.getName(); 
       // FIXME: Add timestamp for MD5
       if(server.getHost() != null) {
         Machine m = new Machine(server.getHost());
