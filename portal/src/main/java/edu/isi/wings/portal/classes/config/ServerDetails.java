@@ -9,6 +9,8 @@ public class ServerDetails {
     String host;
     String privateKey;
     String hostUserId;
+    String username;
+    String password;
     long maxUploadSize = 0; // Defaults to No limit
 
     public String getUrl() {
@@ -31,9 +33,7 @@ public class ServerDetails {
         return host;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
+    public void setHost(String host) { this.host = host; }
 
     public String getPrivateKey() {
         return privateKey;
@@ -57,5 +57,22 @@ public class ServerDetails {
 
     public void setMaxUploadSize(long maxUploadSize) {
       this.maxUploadSize = maxUploadSize;
+    }
+
+
+    public String getUsername(){
+       return username;
+    }
+
+    public void setUsername(String username){
+        this.username = username;
+    }
+
+    public String getPassword(){
+        return password;
+    }
+
+    public void setPassword(String password){
+        this.password = password;
     }
 }
