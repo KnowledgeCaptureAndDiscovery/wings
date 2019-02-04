@@ -374,18 +374,19 @@ public class Config {
         }
 
         // Load publishing configuration
-          String publishUrl = serverConfig.getString("publisher.url");
-          String tstorePublishUrl = serverConfig.getString("publisher.triple-store.publish");
-          String tstoreQueryUrl = serverConfig.getString("publisher.triple-store.query");
-          String domainsDir = serverConfig.getString("publisher.triple-store.domains-directory");
-          String uploadUrl = serverConfig.getString("publisher.upload-server.url");
-          String uploadDir = serverConfig.getString("publisher.upload-server.directory");
-          String uploadHost = serverConfig.getString("publisher.upload-server.host");
-          String uploadUserId = serverConfig.getString("publisher.upload-server.userid");
-          String uploadKey = serverConfig.getString("publisher.upload-server.private-key");
-          String uploadUsername = serverConfig.getString("publisher.upload-server.username");
-          String uploadPassword = serverConfig.getString("publisher.upload-server.password");
-          String sizeString = serverConfig.getString("publisher.upload-server.max-upload-size");
+          String publishUrl         = serverConfig.getString("publisher.url");
+          String tstorePublishUrl   = serverConfig.getString("publisher.triple-store.publish");
+          String tstoreQueryUrl     = serverConfig.getString("publisher.triple-store.query");
+          String domainsDir         = serverConfig.getString("publisher.triple-store.domains-directory");
+          String uploadUrl          = serverConfig.getString("publisher.upload-server.url");
+          String uploadUsername     = serverConfig.getString("publisher.upload-server.username");
+          String uploadPassword     = serverConfig.getString("publisher.upload-server.password");
+          String uploadDir          = serverConfig.getString("publisher.upload-server.directory");
+          String uploadHost         = serverConfig.getString("publisher.upload-server.host");
+          String uploadUserId       = serverConfig.getString("publisher.upload-server.userid");
+          String uploadKey          = serverConfig.getString("publisher.upload-server.private-key");
+          String sizeString         = serverConfig.getString("publisher.upload-server.max-upload-size");
+
           this.publisher = new Publisher();
           this.publisher.setUrl(publishUrl);
           this.publisher.setDomainsDir(domainsDir);

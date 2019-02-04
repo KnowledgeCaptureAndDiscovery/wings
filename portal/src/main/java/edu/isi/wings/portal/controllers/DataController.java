@@ -178,6 +178,10 @@ public class 	DataController {
 		String upUrl = server.getUrl();
 		String username = server.getUsername();
 		String password = server.getPassword();
+
+		if (username == null || password == null){
+			return "missing username or password " + upUrl + " " + username + " " + password;
+		}
 		if(datafile.exists()) {
 			AsyncHttpClient client = Dsl.asyncHttpClient();
 			InputStream inputStream;
