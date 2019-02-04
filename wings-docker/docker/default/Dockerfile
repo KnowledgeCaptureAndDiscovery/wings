@@ -39,11 +39,12 @@ RUN apt-get update && apt-get install -y git default-jdk
 RUN mkdir -p /wings-src/wings/
 WORKDIR /wings-src/wings
 COPY . .
+COPY ./wings-docker/config/default/portal.properties /opt/wings/storage/default/portal.properties
+
 RUN _JAVA_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true mvn package
 
 # Add wings properties
 RUN mkdir -p /opt/wings/storage/default
-RUN cp ./wings-docker/config/default/portal.properties /opt/wings/storage/default/portal.properties
 
 # Add Wings build to tomcat (Deploy)
 RUN cp -R /wings-src/wings/portal/target/wings-portal-4.1-SNAPSHOT /usr/local/tomcat/webapps/wings-portal
