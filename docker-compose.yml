@@ -5,14 +5,13 @@ services:
     image: "mosorio/wings:dev"
     build:
       context: .
-      dockerfile: wings-docker/docker/default/Dockerfile
+      dockerfile: Dockerfile
     environment:
       WINGS_MODE: dind
     volumes:
-      - wings_data:/opt/wings
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - 8080:8080
+      - 7072:8080
 
 volumes:
   wings_data:

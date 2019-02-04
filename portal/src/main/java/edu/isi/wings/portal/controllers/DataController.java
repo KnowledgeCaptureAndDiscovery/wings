@@ -66,6 +66,7 @@ import org.asynchttpclient.request.body.multipart.InputStreamPart;
 import org.tukaani.xz.check.None;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.asynchttpclient.Dsl.basicAuthRealm;
 
 
 public class 	DataController {
@@ -167,14 +168,20 @@ public class 	DataController {
 				return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
 			}
 			else {
-				return "fail";
+				return null;
 			}
 		}
-		return null;
+        return null;
 	}
 
 	private String uploadFile(ServerDetails server, File datafile) {
 		String upUrl = server.getUrl();
+		String username = server.getUsername();
+		String password = server.getPassword();
+
+		if (username == null || password == null){
+			return "missing username or password " + upUrl + " " + username + " " + password;
+		}
 		if(datafile.exists()) {
 			AsyncHttpClient client = Dsl.asyncHttpClient();
 			InputStream inputStream;
@@ -182,9 +189,12 @@ public class 	DataController {
 			try {
 				inputStream = new BufferedInputStream(new FileInputStream(datafile));
 				try {
-					org.asynchttpclient.Response response = client.preparePost(upUrl).addBodyPart(new
+					org.asynchttpclient.Response response = client.preparePost(upUrl)
+							.setRealm(basicAuthRealm(username, password).setUsePreemptiveAuth(true))
+							.addBodyPart(new
 							InputStreamPart(
-							datafile.getName(), inputStream, datafile.getName(), -1, "application/octet-stream", UTF_8)
+							datafile.getName(), inputStream, datafile.getName(), -1,
+							"application/octet-stream", UTF_8)
 					).execute().get();
 					return response.getResponseBody();
 				} catch (InterruptedException e) {
@@ -194,7 +204,7 @@ public class 	DataController {
 				}
 
 			} catch (FileNotFoundException e) {
-				return null;
+                return null;
 			}
 		}
 		return null;
