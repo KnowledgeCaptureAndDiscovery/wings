@@ -168,10 +168,10 @@ public class 	DataController {
 				return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
 			}
 			else {
-				return "fail";
+				return null;
 			}
 		}
-        return location + " does not exists";
+        return null;
 	}
 
 	private String uploadFile(ServerDetails server, File datafile) {
@@ -198,16 +198,16 @@ public class 	DataController {
 					).execute().get();
 					return response.getResponseBody();
 				} catch (InterruptedException e) {
-					return "InterruptedException " + e.getMessage();
+					return null;
 				} catch (ExecutionException e) {
-					return "ExecutionException" + e.getMessage();
+					return null;
 				}
 
 			} catch (FileNotFoundException e) {
-                return "file not found" + e.getMessage();
+                return null;
 			}
 		}
-		return upUrl + " " + username + " " + password + " " + datafile;
+		return null;
 	}
 	
 	public Response streamData(String dataid, ServletContext context) {
