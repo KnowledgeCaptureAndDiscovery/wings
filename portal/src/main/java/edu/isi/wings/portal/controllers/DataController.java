@@ -171,7 +171,7 @@ public class 	DataController {
 				return "fail";
 			}
 		}
-		return null;
+        return location + " does not exists";
 	}
 
 	private String uploadFile(ServerDetails server, File datafile) {
@@ -207,7 +207,7 @@ public class 	DataController {
                 return "file not found" + e.getMessage();
 			}
 		}
-		return null;
+		return upUrl + " " + username + " " + password + " " + datafile;
 	}
 	
 	public Response streamData(String dataid, ServletContext context) {
