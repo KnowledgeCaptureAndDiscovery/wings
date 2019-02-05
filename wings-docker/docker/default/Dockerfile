@@ -43,14 +43,13 @@ COPY . .
 RUN _JAVA_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true mvn package
 
 # Add wings properties
-RUN mkdir -p /opt/wings/storage/default
+RUN mkdir -p /opt/wings/storage/default && mkdir -p /etc/wings/
 
 # Add Wings build to tomcat (Deploy)
 RUN cp -R /wings-src/wings/portal/target/wings-portal-4.1-SNAPSHOT /usr/local/tomcat/webapps/wings-portal
 
 # Add wings context file to the wings portal webapp
 COPY ./wings-docker/config/default/wings-portal.xml /usr/local/tomcat/webapps/wings-portal/META-INF/context.xml
-COPY ./wings-docker/config/default/portal.properties /opt/wings/storage/default/portal.properties
+COPY ./wings-docker/config/default/portal.properties /etc/wings/portal.properties
 
 WORKDIR /usr/local/tomcat
-
