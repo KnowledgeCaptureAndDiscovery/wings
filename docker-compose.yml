@@ -9,7 +9,7 @@ services:
     environment:
       WINGS_MODE: dind
     volumes:
-      - wings_data:/opt/wings
+      - wings_data:/opt/wings/storage
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8080:8080
