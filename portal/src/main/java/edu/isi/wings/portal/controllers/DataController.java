@@ -198,13 +198,13 @@ public class 	DataController {
 					).execute().get();
 					return response.getResponseBody();
 				} catch (InterruptedException e) {
-					return null;
+					return "InterruptedException " + e.getMessage();
 				} catch (ExecutionException e) {
-					return null;
+					return "ExecutionException" + e.getMessage();
 				}
 
 			} catch (FileNotFoundException e) {
-				return null;
+                return "file not found" + e.getMessage();
 			}
 		}
 		return null;
