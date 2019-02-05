@@ -5,7 +5,7 @@ services:
     image: "mosorio/wings:dev"
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: wings-docker/docker/default/Dockerfile
     environment:
       WINGS_MODE: dind
     volumes:
