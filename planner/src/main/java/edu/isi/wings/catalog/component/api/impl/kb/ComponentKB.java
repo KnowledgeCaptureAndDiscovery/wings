@@ -236,11 +236,16 @@ public class ComponentKB extends TransactionsJena {
 	  this.start_write();
 		KBObject compobj = this.writerkb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
-		for(KBRule rule : ontologyFactory.parseRules(text).getRules()) {
-			KBObject ruleobj = writerkb.createLiteral(rule.toString());
-			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
+		try {
+  		for(KBRule rule : ontologyFactory.parseRules(text).getRules()) {
+  			KBObject ruleobj = writerkb.createLiteral(rule.toString());
+  			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
+  		}
+      this.save(this.writerkb);
 		}
-		this.save(this.writerkb);
+		catch (Exception e) {
+		  e.printStackTrace();
+		}
 		this.end();
 	}
 	

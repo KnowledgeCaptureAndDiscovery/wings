@@ -33,9 +33,9 @@ public class CORSFilter implements Filter{
     if(clients != null) {
       res.setHeader("Access-Control-Allow-Origin", clients);
       res.setHeader("Access-Control-Allow-Credentials", "true");
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS");
       res.setHeader("Access-Control-Allow-Headers",
-          "X-Requested-With, Content-Type, X-HTTP-Method-Override");
+          "X-Requested-With, Content-Type, Content-Encoding, X-HTTP-Method-Override");
     }    
     chain.doFilter(request, response);
   }
