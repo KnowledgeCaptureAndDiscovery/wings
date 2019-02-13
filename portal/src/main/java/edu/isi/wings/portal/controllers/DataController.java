@@ -17,8 +17,7 @@
 
 package edu.isi.wings.portal.controllers;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -57,7 +56,20 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class DataController {
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.concurrent.ExecutionException;
+
+import org.asynchttpclient.*;
+import org.asynchttpclient.request.body.multipart.InputStreamPart;
+import org.tukaani.xz.check.None;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.asynchttpclient.Dsl.basicAuthRealm;
+
+
+public class 	DataController {
 	public String dcns;
 	public String domns;
 	public String libns;
@@ -147,47 +159,56 @@ public class DataController {
 			mtree = json.toJson(tree.getRoot());
 		return mtree;
 	}
-	
+
 	public String publishData(String dataid) {
-	  String location = dc.getDataLocation(dataid);
-	  if(location != null) {
-  	  File datafile = new File(location);
-  	  if(config.getPublisher() != null && datafile.exists()) {
-  	    return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
-  	  }
-	  }
-	  return null;
+		String location = dc.getDataLocation(dataid);
+		if(location != null) {
+			File datafile = new File(location);
+			if(config.getPublisher() != null) {
+				return this.uploadFile(config.getPublisher().getUploadServer(), datafile);
+			}
+			else {
+				return null;
+			}
+		}
+        return null;
 	}
-	
-  private String uploadFile(ServerDetails server, File datafile) {
-    String upurl = config.getPublisher().getUploadServer().getUrl();
-    if(datafile.exists()) {
-      String md5 = HashUtils.MD5(datafile.getName() + datafile.length());
-      String dataurl = upurl + "/" + md5 + "/" + datafile.getName(); 
-      // FIXME: Add timestamp for MD5
-      if(server.getHost() != null) {
-        Machine m = new Machine(server.getHost());
-        m.setHostName(server.getHost());
-        m.setUserId(server.getHostUserId());
-        m.setUserKey(server.getPrivateKey());
-        HashMap<String, String> filemap = new HashMap<String, String>();
-        String srvpath = server.getDirectory() + "/" + md5 + datafile.getName();
-        filemap.put(datafile.getAbsolutePath(), srvpath);
-        GridkitCloud.uploadFiles(m, filemap);
-      }
-      else {
-        try {
-          File updir = new File(server.getDirectory() + "/" + md5);
-          updir.mkdirs();
-          FileUtils.copyFileToDirectory(datafile, updir);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-      return dataurl;
-    }
-    return null;
-  }
+
+	private String uploadFile(ServerDetails server, File datafile) {
+		String upUrl = server.getUrl();
+		String username = server.getUsername();
+		String password = server.getPassword();
+
+		if (username == null || password == null){
+			return "missing username or password " + upUrl + " " + username + " " + password;
+		}
+		if(datafile.exists()) {
+			AsyncHttpClient client = Dsl.asyncHttpClient();
+			InputStream inputStream;
+
+			try {
+				inputStream = new BufferedInputStream(new FileInputStream(datafile));
+				try {
+					org.asynchttpclient.Response response = client.preparePost(upUrl)
+							.setRealm(basicAuthRealm(username, password).setUsePreemptiveAuth(true))
+							.addBodyPart(new
+							InputStreamPart(
+							datafile.getName(), inputStream, datafile.getName(), -1,
+							"application/octet-stream", UTF_8)
+					).execute().get();
+					return response.getResponseBody();
+				} catch (InterruptedException e) {
+					return null;
+				} catch (ExecutionException e) {
+					return null;
+				}
+
+			} catch (FileNotFoundException e) {
+                return null;
+			}
+		}
+		return null;
+	}
 	
 	public Response streamData(String dataid, ServletContext context) {
 		String location = dc.getDataLocation(dataid);
