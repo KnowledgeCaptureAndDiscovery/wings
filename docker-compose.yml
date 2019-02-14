@@ -2,7 +2,7 @@ version: '3'
 
 services:
   wings:
-    image: "mosorio/wings:dev"
+    image: "kcapd/wings-base:latest"
     build:
       context: .
       dockerfile: wings-docker/docker/default/Dockerfile
