@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   wings:
     image: "kcapd/wings-base:latest"

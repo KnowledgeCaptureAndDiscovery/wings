@@ -1,6 +1,7 @@
 #Environment dev
-
-wings:
-  image: "kcapd/wings-base:dev"
-  ports:
-    - 7074:8080
+version: '3'
+services:
+  wings:
+    image: "kcapd/wings-base:dev"
+    ports:
+      - 7074:8080
