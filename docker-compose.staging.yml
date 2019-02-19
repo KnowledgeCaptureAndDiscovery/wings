@@ -1,0 +1,6 @@
+#Environment staging
+
+wings:
+  image: "kcapd/wings-base:staging"
+  ports:
+    - 7073:8080
