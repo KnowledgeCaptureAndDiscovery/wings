@@ -1,18 +1,6 @@
-version: '3'
+#Environment dev
 
-services:
-  wings:
-    image: "kcapd/wings-base:latest"
-    build:
-      context: .
-      dockerfile: wings-docker/docker/default/Dockerfile
-    environment:
-      WINGS_MODE: dind
-    volumes:
-      - wings_data:/opt/wings
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 7072:8080
-
-volumes:
-  wings_data:
+wings:
+  image: "kcapd/wings-base:latest"
+  ports:
+    - 7072:8080
