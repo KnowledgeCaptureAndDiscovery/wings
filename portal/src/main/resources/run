@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 checkExitCode() {
 if [ $? -ne 0 ]; then
     echo "Error"
@@ -11,6 +12,7 @@ BASEDIR=`dirname $0`
 
 . $BASEDIR/io.sh *i* *p* *o* "$@"
 
+set -x
 $BASEDIR/generic_code
 
 checkExitCode
