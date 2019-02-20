@@ -4,4 +4,4 @@ services:
   wings:
     image: "kcapd/wings-base:dev"
     ports:
-      - 7074:8080
+      - 7020:8080

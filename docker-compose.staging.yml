@@ -4,4 +4,4 @@ services:
   wings:
     image: "kcapd/wings-base:staging"
     ports:
-      - 7073:8080
+      - 7021:8080
