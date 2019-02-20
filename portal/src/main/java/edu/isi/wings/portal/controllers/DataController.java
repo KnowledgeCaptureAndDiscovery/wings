@@ -486,6 +486,8 @@ public class 	DataController {
 			}
 		}
 		catch(Exception e) {
+      this.dc.stop_batch_operation();
+      this.dc.end();		  
 			e.printStackTrace();
 			errors.add(e.getMessage());
 		}
