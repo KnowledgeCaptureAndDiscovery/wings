@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   wings:
     image: "kcapd/wings-base:latest"
@@ -11,8 +10,6 @@ services:
     volumes:
       - wings_data:/opt/wings
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - 7072:8080
 
 volumes:
   wings_data:
