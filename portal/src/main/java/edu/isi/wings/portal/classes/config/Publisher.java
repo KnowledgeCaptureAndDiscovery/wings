@@ -11,6 +11,16 @@ public class Publisher {
     String tstoreQueryUrl;
     ServerDetails uploadServer;
     String domainsDir;
+    String exportName;
+
+    public String getExportName() {
+        return exportName;
+    }
+
+    public void setExportName(String exportName) {
+        this.exportName = exportName;
+    }
+
 
     public String getUrl() {
         return url;
