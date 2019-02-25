@@ -64,7 +64,7 @@ public class DataKB extends TransactionsJena {
 		this.dcdomns = onturl + hash;
 		this.dclibns = liburl + hash;
 
-		this.sparqlFactory = new SparqlFactory(this.dcns, this.dcdomns, this.liburl);
+		this.sparqlFactory = new SparqlFactory();
 
 		this.tdbRepository = props.getProperty("tdb.repository.dir");
 		if (tdbRepository == null) {

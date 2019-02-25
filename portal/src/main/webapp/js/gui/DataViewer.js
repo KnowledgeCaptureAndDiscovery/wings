@@ -264,13 +264,13 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         }
         if (mine)
             myProperties.push({
-            prop: getLocalName(prop.id),
-            range: This.getPrefixedDataRange(prop.range)
+            	prop: prop.id,
+            	range: This.getPrefixedDataRange(prop.range)
             });
         else
             inhProperties.push({
-            prop: getLocalName(prop.id),
-            range: This.getPrefixedDataRange(prop.range)
+            	prop: prop.id,
+            	range: This.getPrefixedDataRange(prop.range)
             });
     });
 
@@ -298,10 +298,10 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                         rec.set('prop', sdata.prop);
                         var mod = rec.modified;
                         if (!mod.prop && !mod.range) {
-                            propmods.addedProperties[This.ontns + sdata.prop] = sdata;
+                            propmods.addedProperties[sdata.prop] = sdata;
                         } else {
                             var prop = mod.prop ? mod.prop: sdata.prop;
-                            propmods.modifiedProperties[This.ontns + prop] = sdata;
+                            propmods.modifiedProperties[prop] = sdata;
                         }
                     }
                 });
@@ -445,6 +445,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     
     var typeTabPanel = new Ext.tab.Panel({
         plain: true,
+        region: 'center',
         margin: 5
     });
 
@@ -474,6 +475,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             handler: function() {
                 var p = new dataPropRange();
                 p.set('range', "xsd:string");
+                p.set('prop', This.ontns);
                 var pos = dataTypeStore.getCount();
                 editorPlugin.cancelEdit();
                 dataTypeStore.insert(pos, p);
@@ -498,7 +500,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                         // This property was just added, don't mark it as a
                         // deletedProperty for the server
                     } else if (prop != "") {
-                        propmods.deletedProperties[This.ontns + prop] = 1;
+                        propmods.deletedProperties[prop] = 1;
                     }
                     dataTypeStore.remove(r);
                 }
@@ -517,6 +519,9 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
             flex: 1,
             header: 'Property',
             editor: propEditor,
+            renderer: function(url) {
+				return getLocalName(url);
+			},
             editable: This.advanced_user ? true: false,
             menuDisabled: true
         }, {
@@ -609,7 +614,22 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         layout: 'fit',
         tbar: mainTbar,
         //autoScroll: true,
-        items: typeTabPanel
+        items: [
+        	{
+        		layout: 'border',
+        		border: false,
+        		items: [
+        			typeTabPanel,
+        			{ 
+        				html: '<a href="'+id+'">'+id+'</a>', 
+        				margins: '0 0 6 6', 
+        				border: false,
+        				region: 'south',
+        				bodyStyle: { background: 'transparent' }
+        			}
+        		]
+        	}
+        ]
     });
     tab.add(mainPanel);
 };
@@ -666,14 +686,19 @@ DataViewer.prototype.confirmAndRenameDatatype = function(node) {
     
     var dtypeid = node.data.id;
     var dtypeName = getLocalName(dtypeid);
+    var title = "Rename " + dtypeName;
+    for(var i=0; i<150; i++)
+    	title += "&nbsp;";
+    title += ".";
 
-    Ext.Msg.prompt("Rename " + dtypeName, "Enter new name:", function(btn, text) {
+    Ext.Msg.prompt(title, "Enter new name:", function(btn, text) {
         if (btn == 'ok' && text) {
-            var newName = getRDFID(text);
-            var newid = This.ontns + newName;
+        	var newName = getRDFID(getLocalName(text));
+            var newid = getNamespace(text) + newName;
+            
             var enode = This.dataTreePanel.getStore().getNodeById(newid);
             if (enode) {
-                showError(getRDFID(text) + ' already exists ! Choose a different name.');
+                showError(newName + ' already exists ! Choose a different name.');
                 This.confirmAndRenameDatatype(node);
                 return;
             }
@@ -704,7 +729,7 @@ DataViewer.prototype.confirmAndRenameDatatype = function(node) {
                 }
             });
         }
-    }, this, false, dtypeName);
+    }, this, false, dtypeid);
 };
 
 DataViewer.prototype.confirmAndDeleteData = function(node) {
@@ -1500,9 +1525,14 @@ DataViewer.prototype.addDatatype = function(parentNode) {
     }
     var parentType = parentNode.data.id;
 
-    Ext.Msg.prompt("Add Datatype", "Enter name for the new Datatype:", function(btn, text) {
+    var title = "Add Datatype";
+    for(var i=0; i<150; i++)
+    	title += "&nbsp;";
+    title += ".";
+    
+    Ext.Msg.prompt(title, "Enter name for the new Datatype:", function(btn, text) {
         if (btn == 'ok' && text) {
-            var newid = This.ontns + getRDFID(text);
+            var newid = getNamespace(text) + getRDFID(getLocalName(text));
             var enode = This.dataTreePanel.getStore().getNodeById(newid);
             if (enode) {
                 showError('Datatype ' + text + ' already exists');
@@ -1540,7 +1570,7 @@ DataViewer.prototype.addDatatype = function(parentNode) {
                 }
             });
         }
-    }, window, false);
+    }, window, false, this.ontns);
 };
 
 DataViewer.prototype.saveDatatype = function(

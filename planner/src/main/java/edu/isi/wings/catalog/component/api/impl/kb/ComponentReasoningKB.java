@@ -91,7 +91,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	}
 
 	protected KBObject copyObjectIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
-			String excludeNS, boolean direct) {
+	    ArrayList<String> excludeNS, boolean direct) {
 		// Add component to the temporary KB (add all its classes explicitly)
 		for(KBTriple triple : this.getTriplesForObject(id, obj, includeNS, excludeNS, direct)) {
 		  tkb.addTriple(triple);
@@ -100,7 +100,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	}
 	
 	protected KBObject copyObjectClassesIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
-	    String excludeNS, boolean direct) {
+	    ArrayList<String> excludeNS, boolean direct) {
 	  // Add component to the temporary KB (add all its classes explicitly)
 	  for(KBTriple triple : this.getObjectClassTriples(id, obj, includeNS, excludeNS, direct)) {
 	    tkb.addTriple(triple);
@@ -129,7 +129,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	}
 	
 	protected ArrayList<KBTriple> getTriplesForObject(String id, KBObject obj, 
-	    String includeNS, String excludeNS, boolean direct) {
+	    String includeNS, ArrayList<String> excludeNS, boolean direct) {
 	  ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
 	  triples.add(ontologyFactory.getTriple(
 	      ontologyFactory.getObject(id), 
@@ -140,7 +140,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	}
 
 	protected ArrayList<KBTriple> getObjectClassTriples(String id, KBObject obj,
-			String includeNS, String excludeNS, boolean direct) {
+			String includeNS, ArrayList<String> excludeNS, boolean direct) {
 		// Add component to the temporary KB (add all its classes explicitly)
 	  ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
 	  
@@ -158,8 +158,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		ArrayList<KBObject> objclses = 
 		    this.getAllCachedClassesOfInstance(obj.getID(), direct);
 		for (KBObject objcls : objclses) {
-			if ((includeNS != null && objcls.getNamespace().equals(includeNS))
-					|| (excludeNS != null && !objcls.getNamespace().equals(excludeNS))) {
+			if ( (includeNS != null && objcls.getNamespace().equals(includeNS))
+					|| (excludeNS != null && !excludeNS.contains(objcls.getNamespace())) ) {
 				triples.add(ontologyFactory.getTriple(
 				    tobj, ontologyFactory.getObject(KBUtils.RDF + "type"), objcls));
 			}
@@ -426,8 +426,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   
   				// Copy over the argument's classes to the variable
   				KBObject argobj = this.kb.getIndividual(arg.getID());
-  				KBObject varobj = this.copyObjectClassesIntoKB(varid, argobj, tkb, this.dcdomns,
-  						null, false);
+  				ArrayList<String> excludeNS = new ArrayList<String>();
+  				excludeNS.add(this.pcns);
+  				excludeNS.add(this.dcns);
+  				KBObject varobj = this.copyObjectClassesIntoKB(varid, argobj, tkb, null, excludeNS, false);
   				if(varobj == null)
   				  continue;
   
