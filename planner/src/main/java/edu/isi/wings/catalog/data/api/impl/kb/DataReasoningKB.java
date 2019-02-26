@@ -74,7 +74,7 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 	 *         from the dc namespace
 	 */
 	@Override
-	public ArrayList<VariableBindingsList> findDataSources(ArrayList<KBTriple> dods) {
+	public ArrayList<VariableBindingsList> findDataSources(ArrayList<KBTriple> dods, String templateNS) {
 		if (logger.isInfoEnabled()) {
 			HashMap<String, Object> argumentMap = new HashMap<String, Object>(2);
 			argumentMap.put("dods", dods);
@@ -90,7 +90,7 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 
 		result = new ArrayList<VariableBindingsList>();
 
-		SparqlQuery sq = sparqlFactory.makeSparqlQueryFromDataObjectDescriptions(dods);
+		SparqlQuery sq = sparqlFactory.makeSparqlQueryFromDataObjectDescriptions(dods, templateNS);
 		HashMap<String, KBObject> variableMap = sq.getVariableMap();
 		String query = sq.getQuery();
 
