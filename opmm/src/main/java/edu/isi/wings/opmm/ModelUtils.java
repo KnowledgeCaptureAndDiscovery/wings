@@ -39,6 +39,7 @@ public class ModelUtils {
         try{
             m.read(in, null);
         }catch(Exception e){
+            System.out.println("Trying uploading "+path+"  as a turtle file");
             in = FileManager.get().open(path);
             m.read(in, null, "TURTLE");
         }
