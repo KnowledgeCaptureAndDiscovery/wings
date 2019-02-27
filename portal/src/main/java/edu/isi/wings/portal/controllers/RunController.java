@@ -20,18 +20,12 @@ package edu.isi.wings.portal.controllers;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
-import java.nio.file.Path;
-import java.nio.file.Files;
-import java.util.zip.ZipOutputStream;
 
 import javax.servlet.ServletContext;
 
 import edu.isi.wings.opmm.Catalog;
-import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 
