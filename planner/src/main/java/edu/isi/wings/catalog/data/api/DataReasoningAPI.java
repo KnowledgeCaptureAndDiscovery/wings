@@ -31,7 +31,7 @@ import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 public interface DataReasoningAPI extends TransactionsAPI {
 	// API to help in Workflow Planning and Generation
 
-	ArrayList<VariableBindingsList> findDataSources(ArrayList<KBTriple> dods, String templateNS);
+	ArrayList<VariableBindingsList> findDataSources(ArrayList<KBTriple> dods, String variableNS);
 
 	Metrics findDataMetricsForDataObject(String dataObjectId);
 	

@@ -42,8 +42,16 @@ To run the server use
 ```bash
 docker-compose up
 ```
-
+This command runs the default (dev) configuration in docker-compose.override.yml.
 You may also specify the `-d` flag to run in detached mode.
+
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+This deploys WINGS using the configuration in docker-compose.yml and docker-compose.prod.yml.
+
 
 If the server is running, you can enter the container by running
 

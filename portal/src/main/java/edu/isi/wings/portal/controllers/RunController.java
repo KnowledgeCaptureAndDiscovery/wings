@@ -292,7 +292,7 @@ public class RunController {
 
         String tstoreurl = publisher.getTstorePublishUrl();
         String tstorequery = publisher.getTstoreQueryUrl();
-        String exportName = publisher.getUrl();
+        String exportName = publisher.getExportName();
         String upurl = publisher.getUploadServer().getUrl();
 
         //opmm.setPublishExportPrefix(puburl);
@@ -314,6 +314,7 @@ public class RunController {
         FileUtils.deleteQuietly(tempdir);
         if(!_tmpdir.delete() || !tempdir.mkdirs())
           throw new Exception("Cannot create temp directory");
+
 
         /*
         File datadir = new File(tempdir.getAbsolutePath() + "/data");                
@@ -408,7 +409,8 @@ public class RunController {
         aclibdata += abslibdata + "</rdf:RDF>\n";
         File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
         FileUtils.write(aclibfile, aclibdata);
-        
+
+        //obtain the .owl files
         File rplanfile = new File(execsdir.getAbsolutePath() + "/" + 
             plan.getName() + ".owl");
         String rplandata = IOUtils.toString(new URL(runid));
@@ -477,6 +479,12 @@ public class RunController {
     }
   }
 
+  /**
+   * Upload triples to a rdf store
+   * @param tstoreurl: triple store url. e.g., http://ontosoft.isi.edu:3030/provenance/data
+   * @param graphurl: graph url.
+   * @param filepath
+   */
   private void publishFile(String tstoreurl, String graphurl, String filepath) {
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
