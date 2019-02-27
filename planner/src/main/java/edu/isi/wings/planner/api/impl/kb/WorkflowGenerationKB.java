@@ -389,8 +389,10 @@ implements WorkflowGenerationAPI {
 
     Variable[] variables = specializedTemplate.getVariables();
     ArrayList<String> blacklist = new ArrayList<String>(variables.length);
+    String variableNS = null;
     for (Variable variable : variables) {
       blacklist.add(variable.getID());
+      variableNS = variable.getNamespace();
     }
 
     // Data Filtering properties
@@ -485,7 +487,7 @@ implements WorkflowGenerationAPI {
 
     this.addExplanation("Querying the DataReasoningAPI with the following constraints: <br/>"
         + inputConstraints.toString().replaceAll(",", "<br/>"));
-    ArrayList<VariableBindingsList> partialList = dc.findDataSources(inputConstraints);
+    ArrayList<VariableBindingsList> partialList = dc.findDataSources(inputConstraints, variableNS);
 
     if (partialList == null
         || partialList.isEmpty()) {
