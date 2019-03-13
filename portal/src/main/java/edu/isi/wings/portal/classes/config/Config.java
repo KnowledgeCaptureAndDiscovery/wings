@@ -375,6 +375,7 @@ public class Config {
 
         // Load publishing configuration
           String publishUrl         = serverConfig.getString("publisher.url");
+          String publishExportName  = serverConfig.getString("publisher.name");
           String tstorePublishUrl   = serverConfig.getString("publisher.triple-store.publish");
           String tstoreQueryUrl     = serverConfig.getString("publisher.triple-store.query");
           String domainsDir         = serverConfig.getString("publisher.triple-store.domains-directory");
@@ -389,6 +390,7 @@ public class Config {
 
           this.publisher = new Publisher();
           this.publisher.setUrl(publishUrl);
+          this.publisher.setExportName(publishExportName);
           this.publisher.setDomainsDir(domainsDir);
           this.publisher.setTstorePublishUrl(tstorePublishUrl);
           this.publisher.setTstoreQueryUrl(tstoreQueryUrl);

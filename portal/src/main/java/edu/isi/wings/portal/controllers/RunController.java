@@ -17,10 +17,9 @@
 
 package edu.isi.wings.portal.controllers;
 
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -63,7 +62,6 @@ import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
-import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
@@ -145,13 +143,13 @@ public class RunController {
 
       TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
       Template tpl = tc.getTemplate(planexe.getExpandedTemplateID());
-      
+
       Map<String, Object> variables = new HashMap<String, Object>();
       variables.put("input", tpl.getInputVariables());
       variables.put("intermediate", tpl.getIntermediateVariables());
       variables.put("output", tpl.getOutputVariables());
       returnmap.put("variables", variables);
-      returnmap.put("constraints", this.getShortConstraints(tpl));            
+      returnmap.put("constraints", this.getShortConstraints(tpl));
     }
     returnmap.put("execution", planexe);
     returnmap.put("published_url", this.getPublishedURL(runid));
@@ -233,9 +231,11 @@ public class RunController {
     return false;
   }
 
+
+
   public String runExpandedTemplate(String origtplid, String templatejson,
       String consjson, String seedjson, String seedconsjson, ServletContext context) {
-    
+
     Gson json = JsonHandler.createTemplateGson();
     Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
     xtpl.autoLayout();
@@ -245,18 +245,18 @@ public class RunController {
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
         ResourceFactory.getAPI(props), requestid);
-    
+
     ExecutionPlan plan = wg.getExecutionPlan(xtpl);
-    
+
     String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
     if (plan != null) {
       // Save the expanded template, seeded template and plan
       if (!xtpl.save())
         return "";
-      
+
       if (!seedtpl.saveAs(seedid))
         return "";
-      
+
       if(plan.save()) {
         RuntimePlan rplan = new RuntimePlan(plan);
         rplan.setExpandedTemplateID(xtpl.getID());
@@ -280,6 +280,7 @@ public class RunController {
     context.setAttribute("engine_" + rplan.getID(), engine);
   }
 
+
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
@@ -292,9 +293,10 @@ public class RunController {
 
         Publisher publisher = config.getPublisher();
 
+        ServerDetails publishUrl = publisher.getUploadServer();
         String tstoreurl = publisher.getTstorePublishUrl();
         String tstorequery = publisher.getTstoreQueryUrl();
-        String exportName = publisher.getUrl();
+        String exportName = publisher.getExportName();
         String upurl = publisher.getUploadServer().getUrl();
 
         //opmm.setPublishExportPrefix(puburl);
@@ -317,72 +319,21 @@ public class RunController {
         if(!_tmpdir.delete() || !tempdir.mkdirs())
           throw new Exception("Cannot create temp directory");
 
-        /*
-        File datadir = new File(tempdir.getAbsolutePath() + "/data");                
+
+        File datadir = new File(tempdir.getAbsolutePath() + "/data");
         File codedir = new File(tempdir.getAbsolutePath() + "/code");
         datadir.mkdirs();
         codedir.mkdirs();
-        
+
         String tupurl = upurl + "/" + tempdir.getName();
         String dataurl  = tupurl + "/data";
         String codeurl  = tupurl + "/code";
         String cdir = props.getProperty("lib.domain.code.storage");
         String ddir = props.getProperty("lib.domain.data.storage");
-        
-        // Get files to upload && modify "Locations" to point to uploaded urls
-        HashSet<ExecutionFile> uploadFiles = new HashSet<ExecutionFile>();
-        HashSet<ExecutionCode> uploadCodes = new HashSet<ExecutionCode>();
 
-        for (ExecutionStep step : plan.getPlan().getAllExecutionSteps()) {
-          for(ExecutionFile file : step.getInputFiles())
-            uploadFiles.add(file);
-          for(ExecutionFile file : step.getOutputFiles())
-            uploadFiles.add(file);
-          uploadCodes.add(step.getCodeBinding());
-        }
-
-        for(ExecutionFile file : uploadFiles) {
-          File copyfile = new File(file.getLocation());
-
-          // Only upload files below a threshold file size
-          long maxsize = publisher.getUploadServer().getMaxUploadSize();
-          if(copyfile.length() > 0 &&
-              (maxsize == 0 || copyfile.length() < maxsize)) {
-            // Copy over file to temp directory
-            FileUtils.copyFileToDirectory(copyfile, datadir);
-            // Change file path in plan to the web accessible one 
-            file.setLocation(file.getLocation().replace(ddir, dataurl));
-          }
-          else {
-            String bindingid = varBindings.get(file.getID());
-            file.setLocation(config.getServerUrl() + this.dataUrl+
-                "/fetch?data_id=" + URLEncoder.encode(bindingid, "UTF-8"));
-          }
-        }
-        for(ExecutionCode code : uploadCodes) {
-          File copydir = null;
-          if(code.getCodeDirectory() != null) {
-            copydir = new File(code.getCodeDirectory());
-            // Change path in plan to the web accessible one
-            code.setCodeDirectory(code.getCodeDirectory().replace(cdir, codeurl));
-          }
-          else {
-            File f = new File(code.getLocation());
-            copydir = f.getParentFile();
-          }
-          // Copy over directory to temp directory
-          FileUtils.copyDirectoryToDirectory(copydir, codedir);
-
-          // Change path in plan to the web accessible one
-          code.setLocation(code.getLocation().replace(cdir, codeurl));                  
-        }
-
-        // Upload data/code and delete tempdir
-        uploadDirectory(publisher.getUploadServer(), tempdir);
         FileUtils.deleteQuietly(tempdir);
-        */
-        
-        // Next round of creating tempdir
+
+        //Create the temporal directory to store data, components, workflow and exection
         tempdir.mkdirs();
         File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
         File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
@@ -397,8 +348,8 @@ public class RunController {
         execsdir.mkdirs();
         run_exportdir.mkdirs();
         tpl_exportdir.mkdirs();
-        
-        // Merge both concrete and abstract component libraries
+
+        // Merge both concrete and abstract component libraries from WINGS
         String aclib = props.getProperty("lib.concrete.url");
         String abslib = props.getProperty("lib.abstract.url");
         String aclibdata = IOUtils.toString(new URL(aclib));
@@ -407,43 +358,48 @@ public class RunController {
         abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
         abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
         aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
+
+        String rplandata = IOUtils.toString(new URL(runid));
+
+        //write aclibfie and rplanfile
         aclibdata += abslibdata + "</rdf:RDF>\n";
         File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
+        File rplanfile = new File(execsdir.getAbsolutePath() + "/" +
+                plan.getName() + ".owl");
         FileUtils.write(aclibfile, aclibdata);
-        
-        File rplanfile = new File(execsdir.getAbsolutePath() + "/" + 
-            plan.getName() + ".owl");
-        String rplandata = IOUtils.toString(new URL(runid));
         FileUtils.write(rplanfile, rplandata);
 
+        //workflow file?
         URL otplurl = new URL(plan.getOriginalTemplateID());
-        File otplfile = new File(wflowdir.getAbsolutePath() + "/" + 
+        File otplfile = new File(wflowdir.getAbsolutePath() + "/" +
             otplurl.getRef() + ".owl");
         String otpldata = IOUtils.toString(otplurl);
         FileUtils.write(otplfile, otpldata);
-        
-        Catalog catalog = new Catalog(config.getDomainId(), exportName, 
+
+        Catalog catalog = new Catalog(config.getDomainId(), exportName,
             publisher.getDomainsDir(), aclibfile.getAbsolutePath());
         WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery);
+            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery,
+                publishUrl.getUrl(), publishUrl.getUsername(), publishUrl.getPassword());
         exp.exportAsOPMW(run_exportdir.getAbsolutePath(), "RDF/XML");
         catalog.exportCatalog(null);
+
+        //run_exportdir the files to export
         for(File f : run_exportdir.listFiles()) {
           this.publishFile(tstoreurl, exp.getTransformedExecutionURI(), f.getAbsolutePath());
         }
-        
         WorkflowTemplateExport texp = exp.getConcreteTemplateExport();
         if(texp != null) {
           texp.exportAsOPMW(tpl_exportdir.getAbsolutePath(), "RDF/XML");
           for(File f : tpl_exportdir.listFiles()) {
-            this.publishFile(tstoreurl, 
+            this.publishFile(tstoreurl,
                 texp.getTransformedTemplateIndividual().getURI(),
                 f.getAbsolutePath());
           }
         }
-        
+
         FileUtils.deleteQuietly(tempdir);
-        
+
         retmap.put("url", exp.getTransformedExecutionURI());
 
       } catch (Exception e) {
@@ -479,6 +435,12 @@ public class RunController {
     }
   }
 
+  /**
+   * Upload triples to a rdf store
+   * @param tstoreurl: triple store url. e.g., http://ontosoft.isi.edu:3030/provenance/data
+   * @param graphurl: graph url.
+   * @param filepath
+   */
   private void publishFile(String tstoreurl, String graphurl, String filepath) {
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -509,7 +471,7 @@ public class RunController {
 
   private boolean graphExists(String tstoreurl, String graphurl) {
     try {
-      CloseableHttpClient httpClient = HttpClients.createDefault();            
+      CloseableHttpClient httpClient = HttpClients.createDefault();
       HttpGet getRequest = new HttpGet(tstoreurl + "?graph=" + graphurl);
 
       int timeoutSeconds = 5;
