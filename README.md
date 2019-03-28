@@ -17,6 +17,7 @@ Installation
 Alternative A): Use our Docker image (you need to have Docker installed: https://www.docker.com/):
  - `docker pull kcapd/wings-base`
  - Or build it with additional software using our proposed Docker files. 
+ 
  See https://github.com/KnowledgeCaptureAndDiscovery/wings-docker for additional instructions on running the Docker image.
 
 Alternative B): Follow the steps below to install WINGS locally:
