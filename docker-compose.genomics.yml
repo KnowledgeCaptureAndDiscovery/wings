@@ -1,0 +1,7 @@
+#Environment dev
+version: '3'
+services:
+  wings:
+    image: "test"
+    ports:
+      - 7022:8080

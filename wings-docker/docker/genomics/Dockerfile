@@ -17,7 +17,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
         libssl-dev
 
 RUN pip install RSeQC
-ADD ./docker/genomics/R-install.R /tmp/R-install.R
+ADD R-install.R /tmp/R-install.R
 RUN Rscript /tmp/R-install.R
 
 # Start WINGS
