@@ -1,0 +1,10 @@
+#Environment genomics
+version: '3'
+services:
+  wings:
+    build:
+      context: .
+      dockerfile: wings-docker/docker/genomics/Dockerfile
+    image: "kcapd/wings-base:genomics"
+    ports:
+      - 7023:8080
