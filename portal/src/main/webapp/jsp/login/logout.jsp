@@ -19,5 +19,5 @@
 <%
 //String message = "User '"+request.getRemoteUser()+"' has been logged out.";
 session.invalidate();
-response.sendRedirect(request.getContextPath());
+response.sendRedirect(request.getContextPath() + "/login");
 %>

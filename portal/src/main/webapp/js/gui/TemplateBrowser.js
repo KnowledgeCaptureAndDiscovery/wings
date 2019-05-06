@@ -375,7 +375,7 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 			dock : 'top',
 			items : [
 					{
-						text : 'New Template',
+						text : 'New',
 						iconCls : 'icon-add fa fa-green',
 						handler : function() {
 							This.createNewTemplate();
@@ -383,7 +383,15 @@ TemplateBrowser.prototype.createTemplatesListTree = function(templateList) {
 					},
 					'-',
 					{
-						text : 'Delete Template',
+						text : 'Duplicate',
+						iconCls : 'icon-docs fa fa-blue',
+						handler : function() {
+                            This.saveActiveTemplateAs();
+						}
+					},
+					'-',
+					{
+						text : 'Delete',
 						iconCls : 'icon-del fa fa-red',
 						handler : function() {
 							var nodes = This.treePanel.getSelectionModel()
