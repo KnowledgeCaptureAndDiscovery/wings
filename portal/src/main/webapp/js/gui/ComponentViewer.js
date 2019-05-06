@@ -150,12 +150,11 @@ ComponentViewer.prototype.createTreeToolbar = function() {
     	var additem = This.getAddMenuItem();
     	var addcatitem = This.getAddCategoryMenuItem()
     	var delitem = This.getDeleteMenuItem();
-    	var duplicate_item = This.getDuplicateMenuItem();
         items.push(additem);
         if (!this.load_concrete) {
             items.push(addcatitem);
         }
-        items.push(duplicate_item);
+        //items.push(duplicate_item);
         items.push(delitem);
         var toolbar = Ext.create('Ext.toolbar.Toolbar', {
             dock: 'top',
@@ -174,16 +173,20 @@ ComponentViewer.prototype.onComponentItemContextMenu =
     	var additem = This.getAddMenuItem();
     	var addcatitem = This.getAddCategoryMenuItem()
     	var delitem = This.getDeleteMenuItem();
+    	var duplicate_item = This.getDuplicateMenuItem()
     	additem.iconCls = 'icon-add fa-menu fa-green';
     	addcatitem.iconCls = 'icon-folder-open fa-menu fa-yellow';
     	delitem.iconCls = 'icon-del fa-menu fa-red';
-    	
+        duplicate_item.iconCls = 'icon-docs fa-menu fa-orange';
+
         var items = [additem];
         if (!this.load_concrete) {
             items.push(addcatitem);
+        } else {
+            items.push(duplicate_item);
         }
         items.push(delitem);
-        
+
         var roitems = [additem];
         this.menu = Ext.create('Ext.menu.Menu', {
             items: items });
