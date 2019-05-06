@@ -177,7 +177,7 @@ ComponentViewer.prototype.onComponentItemContextMenu =
     	additem.iconCls = 'icon-add fa-menu fa-green';
     	addcatitem.iconCls = 'icon-folder-open fa-menu fa-yellow';
     	delitem.iconCls = 'icon-del fa-menu fa-red';
-        duplicate_item.iconCls = 'icon-docs fa-menu fa-orange';
+        duplicate_item.iconCls = 'icon-docs fa-menu fa-blue';
 
         var items = [additem];
         if (!this.load_concrete) {
