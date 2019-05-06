@@ -18,6 +18,7 @@
 package edu.isi.wings.portal.controllers;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -42,6 +43,7 @@ import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 
 import com.google.gson.Gson;
+
 
 public class ComponentController {
 	public String pcdomns;
@@ -136,6 +138,7 @@ public class ComponentController {
 		    prov.addProvenance(p);
 	}
 
+
 	public synchronized boolean setComponentLocation(String cid, String location) {
 	  String provlog = "Setting location";
     Provenance p = new Provenance(cid);
@@ -154,6 +157,34 @@ public class ComponentController {
 		return cc.removeComponent(cid, true, true) &&
 		    prov.removeAllProvenance(cid);
 	}
+
+    public synchronized boolean duplicateComponent(String cid, String pid, String ptype, String new_cid){
+	    //create a temporal component using the source component
+        Component temp_component = cc.getComponent(cid, true);
+
+        this.addComponent(new_cid, pid, ptype);
+
+        //edit the id field
+        temp_component.setID(new_cid);
+        //copy the location file
+        String old_location = temp_component.getLocation();
+        String new_location = cc.getDefaultComponentLocation(new_cid);
+        File old_file = new File(old_location);
+        File new_file = new File(new_location);
+        if(old_file.exists() && !new_file.exists()) {
+            try {
+                FileUtils.copyDirectory(old_file, new_file);
+                temp_component.setLocation(new_location);
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        //generate new json component
+        String new_component_json = json.toJson(temp_component);
+        //add the new component and save it
+        this.saveComponentJSON(new_cid, new_component_json);
+        return true;
+    }
 
 	public synchronized boolean delCategory(String ctype) {
 		return cc.removeComponentHolder(ctype);
