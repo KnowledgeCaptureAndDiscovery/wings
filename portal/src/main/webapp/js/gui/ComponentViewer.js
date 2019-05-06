@@ -113,6 +113,21 @@ ComponentViewer.prototype.getAddCategoryMenuItem = function() {
     };
 };
 
+ComponentViewer.prototype.getDuplicateMenuItem = function() {
+    var This = this;
+    return {
+        text: 'Duplicate',
+        iconCls: 'icon-docs fa fa-blue',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            if (!nodes || !nodes.length)
+                return;
+            var node = nodes[0];
+            This.duplicateComponent(node);
+        }
+    };
+};
+
 ComponentViewer.prototype.getDeleteMenuItem = function() {
     var This = this;
 	return {
@@ -135,10 +150,12 @@ ComponentViewer.prototype.createTreeToolbar = function() {
     	var additem = This.getAddMenuItem();
     	var addcatitem = This.getAddCategoryMenuItem()
     	var delitem = This.getDeleteMenuItem();
+    	var duplicate_item = This.getDuplicateMenuItem();
         items.push(additem);
         if (!this.load_concrete) {
             items.push(addcatitem);
         }
+        items.push(duplicate_item);
         items.push(delitem);
         var toolbar = Ext.create('Ext.toolbar.Toolbar', {
             dock: 'top',
@@ -800,6 +817,82 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
             });
         }
     });
+};
+
+
+ComponentViewer.prototype.duplicateComponent = function(node) {
+    var This = this;
+    var cTree = this.treePanel;
+    var c = node.data.component;
+    var cls = node.data.cls;
+    var parentNode = node.parentNode
+    var pc = parentNode.data;
+    var parentType = pc.cls;
+    var parentId = pc.component ? pc.component.id: null;
+    var parentIsConcrete = pc.component.concrete;
+    // New: Can only add concrete components to existing component types
+    if (this.load_concrete && (!parentId || parentIsConcrete)) {
+        showError('Please select a Component Type first');
+        return;
+    }
+
+
+    Ext.MessageBox.prompt("Duplicate component", "Enter the new name", function(btn, txt) {
+        if (btn == "ok" && txt) {
+            var new_cid = This.ns[''] + txt;
+            var enode = cTree.getStore().getNodeById(new_cid);
+            if (enode) {
+                showError('Component ' + txt + ' already exists');
+                return;
+            }
+            var url = This.op_url + '/duplicateComponent';
+            This.treePanel.getEl().mask("Duplicate..");
+            Ext.Ajax.request({
+                url: url,
+                params: {
+                    new_cid: new_cid,
+                    parent_cid: parentId,
+                    parent_type: parentType,
+                    cid: c.id,
+                    load_concrete: This.load_concrete
+                },
+                //TODO: Fix me
+                success: function(response) {
+                    cTree.getEl().unmask();
+                    if (response.responseText == "OK") {
+                        var clsid = new_cid + 'Class';
+                        // FIXME: Should get the cls from server
+                        var tmp = This.getComponentTree({
+                            cls: {
+                                id: clsid,
+                                component: {
+                                    id: new_cid,
+                                    text: txt,
+                                    cls: clsid,
+                                    type: (This.load_concrete ? 2: 1),
+                                    location: "blank"
+                                }
+                            }
+                        });
+                        if (tmp) {
+                            parentNode.data.leaf = false;
+                            parentNode.data.expanded = true;
+                            parentNode.appendChild(tmp);
+                            This.treePanel.getStore().sort('text', 'ASC');
+                        }
+                    } else {
+                        if (window.console)
+                            window.console.log(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    cTree.getEl().unmask();
+                    if (window.console)
+                        window.console.log(response.responseText);
+                }
+            });
+        }
+    }, window, false);
 };
 
 ComponentViewer.prototype.refreshInactiveTabs = function() {
