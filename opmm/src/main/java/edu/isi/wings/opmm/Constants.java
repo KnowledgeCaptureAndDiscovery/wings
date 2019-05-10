@@ -13,10 +13,10 @@ public class Constants {
     /*****
     ONTOLOGY PREFIXES
     *****/
-    public static String PREFIX_EXPORT_GENERIC =  "http://www.opmw.org/";
-    public static String PREFIX_EXPORT_RESOURCE =  "http://www.opmw.org/export/resource/";
-    public static final String PREFIX_EXTENSION =  "http://www.opmw.org/extension/";
-    public static final String PREFIX_OPMW =  "http://www.opmw.org/ontology/";
+    public static String PREFIX_EXPORT_GENERIC =  "https://www.opmw.org/";
+    public static String PREFIX_EXPORT_RESOURCE =  "https://www.opmw.org/export/resource/";
+    public static final String PREFIX_EXTENSION =  "https://www.opmw.org/extension/";
+    public static final String PREFIX_OPMW =  "https://www.opmw.org/ontology/";
     public static final String PREFIX_OPMO =  "http://openprovenance.org/model/opmo#";
     public static final String PREFIX_OPMV =  "http://purl.org/net/opmv/ns#";
     public static final String PREFIX_FOAF = "http://xmlns.com/foaf/0.1/";
@@ -56,8 +56,9 @@ public class Constants {
     public static final String COMPONENT_HAS_VALUE=PREFIX_COMPONENT+"hasValue";
     public static final String COMPONENT_HAS_DOCUMENTATION = PREFIX_COMPONENT+"hasDocumentation"; 
     public static final String COMPONENT_HAS_MD5_CODE = PREFIX_COMPONENT+"hasMD5Code";
-    
-    
+
+
+
     //H/W AND S/W DEPENDENCIES
     public static final String REQUIRES_STORAGEGB = "http://www.wings-workflows.org/ontology/resource.owl#requiresStorageGB";
     //public static final String NEEDS_64BIT = "http://purl.org/net/wicus-hwspecs#HardwareSpec";

@@ -28,7 +28,7 @@ public class QueriesWorkflowTemplateExport {
     public static String getOPMWTemplatesWithMD5Hash(String templateHash){
         return "select distinct ?t from <urn:x-arq:UnionGraph> where {"
                 + "?t a <"+Constants.OPMW_WORKFLOW_TEMPLATE+">."
-                + "?t <http://www.opmw.org/ontology/hasMD5> \""+templateHash+"\".}";
+                + "?t <" + Constants.OPMW_DATA_PROP_HAS_MD5 + "> \""+templateHash+"\".}";
     }   
     
     //Below are the methods for queries to retrieve against a WINGS template loaded in a local OntModel
