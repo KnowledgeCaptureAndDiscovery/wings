@@ -12,14 +12,13 @@ import org.apache.jena.rdf.model.Resource;
 /**
  * Class designed to export WINGS workflow execution traces in RDF according to the OPMW-PROV model.
  * See: http://www.opmw.org/ontology/
- *
+ * 
  * This class also has methods for retrieving data in PROV.
  * See https://www.w3.org/TR/prov-o/ and http://purl.org/net/p-plan#
- *
+ * 
  * @author Daniel Garijo, with the help of Tirth Rajen Mehta
  */
 public class WorkflowExecutionExport {
-
     private final OntModel wingsExecutionModel;
     private OntModel opmwModel;
     private final Catalog componentCatalog;//needed to publish expanded templates and the extensions of opmw.
@@ -40,19 +39,22 @@ public class WorkflowExecutionExport {
      * @param catalog
      * @param exportName
      * @param endpointURI
+     * @param uploadURL
+     * @param uploadUsername
+     * @param uploadPassword
      */
     public WorkflowExecutionExport(String executionFile, Catalog catalog, String exportName, String endpointURI,
                                    String uploadURL, String uploadUsername, String uploadPassword) {
         this.wingsExecutionModel = ModelUtils.loadModel(executionFile);
         this.opmwModel = ModelUtils.initializeModel(opmwModel);
         this.componentCatalog = catalog;
-        this.uploadURL = uploadURL;
-        this.uploadUsername = uploadUsername;
-        this.uploadPassword = uploadPassword;
 
         PREFIX_EXPORT_RESOURCE = Constants.PREFIX_EXPORT_GENERIC+exportName+"/"+"resource/";
         this.endpointURI = endpointURI;
         this.exportName = exportName;
+        this.uploadURL = uploadURL;
+        this.uploadUsername = uploadUsername;
+        this.uploadPassword = uploadPassword;
         isExecPublished = false;
     }
 
@@ -67,7 +69,7 @@ public class WorkflowExecutionExport {
         return transformedExecutionURI;
     }
 
-
+    
 
     /**
      * Function that will check if an execution exists and then transforms it as RDF under the OPMW model.
@@ -157,7 +159,7 @@ public class WorkflowExecutionExport {
         }else{
             System.out.println("ERROR: Could not find an expanded template!");
         }
-
+        
         //transform all steps and data dependencies (params are in expanded template)
         String queryExecutionStepMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionStepsAndMetadata();
         rs = ModelUtils.queryLocalRepository(queryExecutionStepMetadata, wingsExecutionModel);
@@ -293,7 +295,7 @@ public class WorkflowExecutionExport {
                 Individual concreteTemplateParameter = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateParameterURI);
                 parameter.addProperty(opmwModel.createAnnotationProperty(Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT),
                             concreteTemplateParameter);
-
+                
             }
             //link step to execution
             executionStep.addProperty(opmwModel.createProperty(Constants.OPM_PROP_ACCOUNT), weInstance);
@@ -308,7 +310,7 @@ public class WorkflowExecutionExport {
         weInstance.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE),concreteTemplateExport.getTransformedTemplateIndividual());
         return we;
     }
-
+    
     /**
      * Function that exports the transformed template in OPMW. This function should be called after
      * "transform". If not, it will call transform() automatically.
@@ -324,7 +326,7 @@ public class WorkflowExecutionExport {
             ModelUtils.exportRDFFile(outFilePath+File.separator+opmwModel.getResource(transformedExecutionURI).getLocalName(),opmwModel,serialization);
         }
     }
-
+    
     /**
      * Function that exports the transformed template in P-Plan format. This function should be called after
      * "transform". If not, it will call transform() automatically.
@@ -335,7 +337,7 @@ public class WorkflowExecutionExport {
         //TO DO
         System.out.println("Not done yet!");
     }
-
+    
     /**
      * Function that exports the transformed template in OPMW and P-Plan (in different files)
      * @param outFileDirectory path where to write the serialized model

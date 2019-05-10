@@ -175,10 +175,10 @@ public class Catalog {
                       int versionNumber = latestVersionQS.getLiteral("?number").getInt();
                       System.out.println("Latest version for "+wingsComponentType+" is " +versionNumber);
                       String newLocalComponent = copyComponentToCatalog(wingsComponentType,componentName, versionNumber+1);
-                      //link the versions of the canonical instances: newCI wasRevisionOf latestVersionCI                    
+                      //link the versions of the canonical instances: newCI wasRevisionOf latestVersionCI
                       Individual newCI = (Individual) localCatalog.getOntClass(newLocalComponent).listInstances().next();
-                      newCI.addProperty(localCatalog.createOntProperty(Constants.PROV_WAS_REVISION_OF), 
-                          localCatalog.getIndividual(latestVersionQS.getResource("?ci").getURI()));
+                      newCI.addProperty(localCatalog.createOntProperty(Constants.PROV_WAS_REVISION_OF),
+                              localCatalog.getIndividual(latestVersionQS.getResource("?ci").getURI()));
                       return newLocalComponent;
                     }
                 }
@@ -353,7 +353,7 @@ public class Catalog {
      * (like an input, etc.) its properties will be copied recursively. If it is an anon 
      * node, the node will be made non-anon and its properties copied as well.
      * Note that when copying objects, new URIs will be issued for canonical instances.
-     * @param object the object to be copied.
+     * @param objectToCopy the object to be copied.
      * @param version version of the component you are copying. Important for consistency with the component
      * @return The URI of the copied object in the catalog
      */

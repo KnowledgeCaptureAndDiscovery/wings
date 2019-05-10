@@ -133,8 +133,7 @@ public class WorkflowTemplateExport {
             }
             this.transformedTemplate = opmwModel.getIndividual(exportedTemplateURI);
         }catch(Exception e){
-          e.printStackTrace();
-          System.err.println("Error: "+e.getMessage()+"\n The template was not exported");
+            System.err.println("Error: "+e.getMessage()+"\n The template was not exported");
         }
     }
     
