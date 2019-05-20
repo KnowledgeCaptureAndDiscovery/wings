@@ -286,24 +286,44 @@ RunBrowser.prototype.getVariableBindingData = function(data) {
 };
 
 RunBrowser.prototype.stopRun = function(rec) {
-	var This = this;
-	var url = this.op_url + '/stopRun';
-	var msgTarget = this.runList.getEl();
-	msgTarget.mask('Stopping...', 'x-mask-loading');
-	Ext.Ajax.request({
-		url : url,
-		params : {
-			run_id : rec.data.id,
-		},
-		success : function(response) {
-			msgTarget.unmask();
-			This.runList.getStore().load();
-			
-		},
-		failure : function(response) {
-			_console(response.responseText);
-		}
-	});
+    var This = this;
+    var url = this.op_url + '/stopRun';
+    var msgTarget = this.runList.getEl();
+    msgTarget.mask('Stopping...', 'x-mask-loading');
+    Ext.Ajax.request({
+        url: url,
+        params: {
+            run_id: rec.data.id,
+        },
+        success: function (response) {
+            msgTarget.unmask();
+            This.runList.getStore().load();
+
+        },
+        failure: function (response) {
+            _console(response.responseText);
+        }
+    });
+}
+
+RunBrowser.prototype.reRun = function(rec) {
+    var This = this;
+    var url = this.op_url + '/reRunWorkflow';
+    var msgTarget = this.runList.getEl();
+    msgTarget.mask('Creating the new workflow...', 'x-mask-loading');
+    Ext.Ajax.request({
+        url : url,
+        params : {
+            run_id : rec.data.id,
+        },
+        success : function(response) {
+            msgTarget.unmask();
+            This.runList.getStore().load();
+        },
+        failure : function(response) {
+            _console(response.responseText);
+        }
+    });
 };
 
 RunBrowser.prototype.registerData = function(b, runid) {
@@ -785,6 +805,19 @@ RunBrowser.prototype.getRunList = function() {
 						}
 					}
 				},
+				{
+					text : 'Re-run',
+					iconCls : 'icon-reload fa fa-green',
+					disabled : false,
+					id : 'rerunButton',
+					handler : function() {
+						var recs = grid.getSelectionModel().getSelection();
+						if (recs && recs.length) {
+							This.reRun(recs[0]);
+						}
+					}
+				},
+
 				{
 					text : 'Stop',
 					iconCls : 'icon-cancel fa fa-red',
