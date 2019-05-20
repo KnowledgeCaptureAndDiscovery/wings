@@ -22,9 +22,7 @@ import java.io.File;
 //import java.io.FileNotFoundException;
 //import java.util.Scanner;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.jena.util.FileUtils;
 
@@ -190,7 +188,7 @@ public class TemplateController {
     return JsonHandler.getTemplateJSON(this.json, tpl, null);
 	}
 	
-	private ArrayList<Object> getTemplateInputs(Template tpl, boolean dataoptions) {
+	private ArrayList<HashMap<String, Object>> getTemplateInputs(Template tpl, boolean dataoptions) {
 		HashMap<String, Integer> varDims = new HashMap<String, Integer>();
 		HashMap<String, Role> iroles = tpl.getInputRoles();
 		for (String varid : iroles.keySet()) {
@@ -198,7 +196,7 @@ public class TemplateController {
 			varDims.put(varid, r.getDimensionality());
 		}
 
-		ArrayList<Object> returnList = new ArrayList<Object>();
+		ArrayList<HashMap<String, Object>> returnList = new ArrayList<HashMap<String, Object>>();
 
 		// Some caches
 		HashMap<String, Boolean> varsDone = new HashMap<String, Boolean>();
@@ -266,10 +264,10 @@ public class TemplateController {
 				vardata.put("dtype", roletypeid);
 				vardata.put("binding", (varbinding != null ? varbinding.getValue() : ""));
 			}
-			
-			returnList.add(vardata);
+            returnList.add(vardata);
 		}
-		return returnList;
+        Collections.sort(returnList, new PositionComparator());
+        return returnList;
 	}
 	
 	public ArrayList<Object> getConstraintProperties() {
@@ -279,4 +277,12 @@ public class TemplateController {
 		return allprops;
 	}
 
+}
+
+
+class PositionComparator implements Comparator<HashMap<String, Object>> {
+    @Override
+    public int compare(HashMap<String, Object> o1, HashMap<String, Object> o2) {
+        return ((String)(o1.get("name"))).compareTo((String)(o2.get("name")));
+    }
 }
