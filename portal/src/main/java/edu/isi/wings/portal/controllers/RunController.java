@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
+import javax.ws.rs.core.Response;
 
 import edu.isi.wings.opmm.Catalog;
 import edu.isi.wings.portal.classes.config.Publisher;
@@ -81,12 +82,17 @@ public class RunController {
 
   private Properties props;
 
+  public TemplateCreationAPI tc;
+
+
   public RunController(Config config) {
     this.config = config;
     this.json = JsonHandler.createRunGson();
     this.props = config.getProperties();
     this.dataUrl = config.getUserDomainUrl() + "/data";
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
+
+    tc = TemplateFactory.getCreationAPI(props);
   }
 
   public String getRunListJSON() {
@@ -241,6 +247,10 @@ public class RunController {
     xtpl.autoLayout();
     Template seedtpl = JsonHandler.getTemplateFromJSON(json, seedjson, seedconsjson);
 
+    return createPlan(origtplid, context, xtpl, seedtpl);
+  }
+
+  private String createPlan(String origtplid, ServletContext context, Template xtpl, Template seedtpl) {
     String requestid = UuidGen.generateAUuid("");
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
@@ -267,6 +277,19 @@ public class RunController {
       }
     }
     return "";
+  }
+
+
+  public Response reRunPlan(String run_id, ServletContext context){
+    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    RuntimePlan plan = monitor.getRunDetails(run_id);
+    TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+    String orig_tp_id = plan.getOriginalTemplateID();
+    Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
+    Template seedtpl = tc.getTemplate(plan.getSeededTemplateID());
+    if (createPlan(orig_tp_id, context, xtpl, seedtpl) == "")
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal error").build();
+    return Response.status(Response.Status.CREATED).entity("CREATED").build();
   }
 
   // Run the Runtime Plan
