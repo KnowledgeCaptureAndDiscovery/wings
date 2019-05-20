@@ -224,7 +224,6 @@ public class WorkflowExecutionExport {
                 catch (Exception e) {
                     e.printStackTrace();
                 }
-
                 Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
                         Constants.OPMW_SOFTWARE_SCRIPT, null);
                 stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT),mainScript);

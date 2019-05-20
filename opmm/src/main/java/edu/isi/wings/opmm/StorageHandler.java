@@ -33,27 +33,6 @@ import static org.asynchttpclient.Dsl.basicAuthRealm;
 
 public class StorageHandler {
 
-    public static void zipAndStream(File dir, ZipOutputStream zos, String prefix)
-            throws Exception {
-        byte bytes[] = new byte[2048];
-        for (File file : dir.listFiles()) {
-            if(file.isDirectory())
-                StorageHandler.zipAndStream(file, zos, prefix + file.getName() + "/" );
-            else {
-                FileInputStream fis = new FileInputStream(file.getAbsolutePath());
-                BufferedInputStream bis = new BufferedInputStream(fis);
-                zos.putNextEntry(new ZipEntry(prefix + file.getName()));
-                int bytesRead;
-                while ((bytesRead = bis.read(bytes)) != -1) {
-                    zos.write(bytes, 0, bytesRead);
-                }
-                zos.closeEntry();
-                bis.close();
-                fis.close();
-            }
-        }
-    }
-
     public static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
         if (fileToZip.isHidden()) {
             return;
@@ -85,16 +64,15 @@ public class StorageHandler {
 
     public static String zipStreamUpload(File dir, String server, String username, String password)
             throws Exception {
-
         File _tmpZip = File.createTempFile(dir.getName(), "");
         FileOutputStream fos = new FileOutputStream(_tmpZip);
         ZipOutputStream zipOut = new ZipOutputStream(fos);
         zipFile(dir, _tmpZip.getName(), zipOut);
-
-        String remoteURL = uploadFile(_tmpZip, server, username, password);
         zipOut.close();
         fos.close();
 
+
+        String remoteURL = uploadFile(_tmpZip, server, username, password);
         FileUtils.deleteQuietly(_tmpZip);
 
         return remoteURL;
@@ -124,28 +102,7 @@ public class StorageHandler {
             finally {
                 inputStream.close();
             }
-
-            }
+        }
         return null;
     }
 }
-
-class ZipStreamer extends Thread {
-    public PipedInputStream pis;
-    public OutputStream os;
-
-    public ZipStreamer(PipedInputStream pis, OutputStream os) {
-        super();
-        this.pis = pis;
-        this.os = os;
-    }
-
-    public void run() {
-        try {
-            IOUtils.copyLarge(pis, os);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-
