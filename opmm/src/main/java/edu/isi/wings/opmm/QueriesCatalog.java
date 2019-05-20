@@ -71,7 +71,7 @@ public class QueriesCatalog {
      */
     public static String getComponentsWithMD5(String md5){
         String query = "SELECT distinct ?c WHERE{"
-                + "?c <http://www.opmw.org/ontology/hasMD5> \""+md5+"\".}";
+                + "?c <" + Constants.OPMW_DATA_PROP_HAS_MD5 + "> \""+md5+"\".}";
         return query;
     }
     

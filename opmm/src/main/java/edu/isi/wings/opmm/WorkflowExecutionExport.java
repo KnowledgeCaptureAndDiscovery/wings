@@ -11,7 +11,7 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  * Class designed to export WINGS workflow execution traces in RDF according to the OPMW-PROV model.
- * See: http://www.opmw.org/ontology/
+ * See: https://www.opmw.org/ontology/
  * 
  * This class also has methods for retrieving data in PROV.
  * See https://www.w3.org/TR/prov-o/ and http://purl.org/net/p-plan#
