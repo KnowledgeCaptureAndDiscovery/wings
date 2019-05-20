@@ -84,8 +84,7 @@ public class StorageHandler {
         }
         if(datafile.exists()) {
             AsyncHttpClient client = Dsl.asyncHttpClient();
-            InputStream inputStream;
-            inputStream = new BufferedInputStream(new FileInputStream(datafile));
+            InputStream inputStream = new BufferedInputStream(new FileInputStream(datafile));
             try {
                 org.asynchttpclient.Response response = client.preparePost(upUrl)
                         .setRealm(basicAuthRealm(username, password).setUsePreemptiveAuth(true))

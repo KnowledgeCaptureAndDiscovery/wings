@@ -196,13 +196,13 @@ public class WorkflowExecutionExport {
             }
             File directory = new File(configLocation);
             String configLocationRemote = configLocation;
-            //TODO: zip and upload
-            try {
-                configLocationRemote = StorageHandler.zipStreamUpload(directory,
-                        this.uploadURL, this.uploadUsername, this.uploadPassword);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+//            try {
+//                configLocationRemote = StorageHandler.zipStreamUpload(directory,
+//                        this.uploadURL, this.uploadUsername, this.uploadPassword);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
             /*Export the mainscript and upload */
             Individual stepConfig = opmwModel.createClass(Constants.OPMW_SOFTWARE_CONFIGURATION).createIndividual(configURI);
@@ -218,12 +218,12 @@ public class WorkflowExecutionExport {
                 String mainScriptLocationLocal = executionScript.getString();
                 String mainScriptLocation = mainScriptLocationLocal;
                 File mainScriptFile = new File(mainScriptLocationLocal);
-                try {
-                    mainScriptLocation = StorageHandler.uploadFile(mainScriptFile, uploadURL, uploadUsername, uploadPassword);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    mainScriptLocation = StorageHandler.uploadFile(mainScriptFile, uploadURL, uploadUsername, uploadPassword);
+//                }
+//                catch (Exception e) {
+//                    e.printStackTrace();
+//                }
                 Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
                         Constants.OPMW_SOFTWARE_SCRIPT, null);
                 stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT),mainScript);
@@ -245,12 +245,12 @@ public class WorkflowExecutionExport {
 
                 //upload data input or output
                 String dataLocation = null;
-                try {
-                    File dataFile = new File(binding.toString());
-                    dataLocation = StorageHandler.uploadFile(dataFile, uploadURL, uploadUsername, uploadPassword);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    File dataFile = new File(binding.toString());
+//                    dataLocation = StorageHandler.uploadFile(dataFile, uploadURL, uploadUsername, uploadPassword);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
 
                 if ( dataLocation != null ) {
                     executionArtifact.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), dataLocation);
