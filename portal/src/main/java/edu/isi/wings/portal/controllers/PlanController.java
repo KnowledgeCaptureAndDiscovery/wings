@@ -142,7 +142,7 @@ public class PlanController {
 	private void printPlannerJSON(TemplateBindings template_bindings,
 	    String op, boolean noexplain, PrintWriter out) {
 	  
-	  String tplid = template_bindings.getTemplateId();
+	  	String tplid = template_bindings.getTemplateId();
 		Template tpl = tc.getTemplate(tplid);
 		this.addTemplateBindings(tpl, template_bindings);
 		
@@ -238,13 +238,13 @@ public class PlanController {
 	}
 
 	private HashMap<String, Object> getTemplateDetails(Template t) {
-    ArrayList<String> varids = new ArrayList<String>();
-    for(Variable v : t.getVariables()) varids.add(v.getID());
-    HashMap<String, Object> tstore = new HashMap<String, Object>();
-    tstore.put("template",  t);
-    tstore.put("constraints",  t.getConstraintEngine().getConstraints(varids));
-    //tstore.put("time", this.getEstimatedExecutionTime(t, tplid));
-    return tstore;
+		ArrayList<String> varids = new ArrayList<String>();
+		for(Variable v : t.getVariables()) varids.add(v.getID());
+		HashMap<String, Object> tstore = new HashMap<String, Object>();
+		tstore.put("template",  t);
+		tstore.put("constraints",  t.getConstraintEngine().getConstraints(varids));
+		//tstore.put("time", this.getEstimatedExecutionTime(t, tplid));
+		return tstore;
 	}
 	
 	private void printTemplatesJSON(ArrayList<Template> ts, String tplid,

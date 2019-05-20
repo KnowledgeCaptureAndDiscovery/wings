@@ -8,6 +8,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import edu.isi.wings.portal.controllers.RunController;
 
@@ -71,6 +72,18 @@ public class RunResource extends WingsResource {
     if(this.rc != null)
       return rc.runExpandedTemplate(template_id, json, constraints_json,
           seed_json, seed_constraints_json, this.context);
+    return null;
+  }
+
+
+  @POST
+  @Path("reRunWorkflow")
+  @Produces("application/json")
+  public Response reRunWorkflow(
+          @FormParam("run_id") String run_id) {
+    if(this.rc != null){
+        return rc.reRunPlan(run_id, this.context);
+    }
     return null;
   }
   
