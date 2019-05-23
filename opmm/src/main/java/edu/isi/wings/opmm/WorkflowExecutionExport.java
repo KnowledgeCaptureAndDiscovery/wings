@@ -196,10 +196,10 @@ public class WorkflowExecutionExport {
             }
             File directory = new File(configLocation);
             String configLocationRemote = configLocation;
-            //TODO: zip and upload
+            StorageHandler storage = new StorageHandler();
             try {
-                configLocationRemote = StorageHandler.zipStreamUpload(directory,
-                        this.uploadURL, this.uploadUsername, this.uploadPassword);
+                File tempFile = storage.zipFolder(directory);
+                configLocationRemote = storage.uploadFile(tempFile, this.uploadURL, this.uploadUsername, this.uploadPassword);
             } catch (Exception e) {
                 e.printStackTrace();
             }
