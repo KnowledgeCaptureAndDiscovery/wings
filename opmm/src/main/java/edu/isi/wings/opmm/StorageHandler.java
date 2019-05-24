@@ -18,11 +18,23 @@
 package edu.isi.wings.opmm;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Base64;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Dsl;
 import org.asynchttpclient.request.body.multipart.InputStreamPart;
@@ -73,31 +85,5 @@ public class StorageHandler {
         fos.close();
     }
 
-    public static String uploadFile(File datafile, String upUrl, String username, String password) throws Exception {
-        if (username == null || password == null){
-            return "missing username or password " + upUrl + " " + username + " " + password;
-        }
-        if(datafile.exists()) {
-            AsyncHttpClient client = Dsl.asyncHttpClient();
-            InputStream inputStream;
-            inputStream = new BufferedInputStream(new FileInputStream(datafile));
-            try {
-                org.asynchttpclient.Response response = client.preparePost(upUrl)
-                        .setRealm(basicAuthRealm(username, password).setUsePreemptiveAuth(true))
-                        .addBodyPart(new
-                                InputStreamPart(
-                                datafile.getName(), inputStream, datafile.getName(), -1,
-                                "application/octet-stream", UTF_8)
-                        ).execute().get();
-                String returnURL = response.getResponseBody().replace("\n", "");
-                return returnURL;
-            } catch (Exception e) {
-                return null;
-            }
-            finally {
-                inputStream.close();
-            }
-        }
-        return null;
-    }
+
 }
