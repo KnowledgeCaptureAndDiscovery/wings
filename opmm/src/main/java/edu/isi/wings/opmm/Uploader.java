@@ -13,7 +13,6 @@ public class Uploader {
     private final String crlf = "\r\n";
     private final String twoHyphens = "--";
 
-
     /**
      * This constructor initializes a new HTTP POST request with content type
      * is set to multipart/form-data
@@ -40,7 +39,6 @@ public class Uploader {
         String basicAuthPayload = "Basic " + Base64.getEncoder().encodeToString(usernameColonPassword.getBytes());
         httpConn.setRequestProperty("Authorization", basicAuthPayload);
         request = new DataOutputStream(httpConn.getOutputStream());
-
     }
 
     /**
