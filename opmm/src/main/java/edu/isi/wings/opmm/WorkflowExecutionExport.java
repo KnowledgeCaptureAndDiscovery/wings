@@ -182,19 +182,17 @@ public class WorkflowExecutionExport {
             if (end != null) {
                 executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_END_TIME), end);
             }
-            String configURI = null;
-            String configLocation = null;//this is where the ZIP file with the contents will be stored
             //Creation of the software config. This may be moved to another class for simplicity and because it
             //can be used in the catalog too.
             //TODO: if there are errors, then create a config URI based on the node and URI (i.e., unique)
-            //config URI will be: https://exportResource/SoftwareConfiguration/MD5_Config
 
-            /* Export the component code */
-            if (configURI == null) {
-                //if the config URI could not be created with MD5, then we give it a unique id (runID+steplocalName)
-                configURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_config";
-                configLocation = executionScript.getString().replace("/run", "");
-            }
+            /*
+            Export the component code
+            Zip the directory and upload
+            */
+
+            String configURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_config";
+            String configLocation = executionScript.getString().replace("/run", "");
             File directory = new File(configLocation);
             StorageHandler storage = new StorageHandler();
             try {
@@ -203,12 +201,12 @@ public class WorkflowExecutionExport {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            /*Export the mainscript and upload */
             Individual stepConfig = opmwModel.createClass(Constants.OPMW_SOFTWARE_CONFIGURATION).createIndividual(configURI);
             stepConfig.addLabel(stepConfig.getLocalName(), null);
             stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
-            //upload file
+
+
+            /*Export the mainscript and upload */
             String mainScriptLocation = uploadFile(executionScript.getString());
             Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
                     Constants.OPMW_SOFTWARE_SCRIPT, null);
@@ -223,9 +221,7 @@ public class WorkflowExecutionExport {
                 String varType = qsVar.getResource("?varType").getURI();
                 Resource variable = qsVar.getResource("?variable");
                 Literal binding = qsVar.getLiteral("?binding");
-                String executionArtifactURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT + "/" + runID + "_" + variable.getLocalName();
-                Individual executionArtifact = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT).createIndividual(executionArtifactURI);
-                executionArtifact.addLabel(variable.getLocalName(), null);
+                Individual executionArtifact = getIndividual(runID, variable);
                 String pathFile = binding.toString();
                 String dataLocation = uploadFile(pathFile);
                 executionArtifact.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), dataLocation);
@@ -283,6 +279,18 @@ public class WorkflowExecutionExport {
         return we;
     }
 
+    private Individual getIndividual(String runID, Resource variable) {
+        String executionArtifactURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT + "/" + runID + "_" + variable.getLocalName();
+        Individual executionArtifact = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT).createIndividual(executionArtifactURI);
+        executionArtifact.addLabel(variable.getLocalName(), null);
+        return executionArtifact;
+    }
+
+    /**
+     * Upload a file to publisher
+     * @param filePath the path of the file
+     * @return a string with URL
+     */
     private String uploadFile(String filePath) {
         try {
             Uploader upload = new Uploader(this.uploadURL, this.uploadUsername, this.uploadPassword);
