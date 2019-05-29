@@ -321,7 +321,10 @@ public class RunController {
         String tstorequery = publisher.getTstoreQueryUrl();
         String exportName = publisher.getExportName();
         String upurl = publisher.getUploadServer().getUrl();
-
+        String uploadURL = publishUrl.getUrl();
+        String uploadUsername = publishUrl.getUsername();
+        String uploadPassword = publishUrl.getPassword();
+        long uploadMaxSize = publishUrl.getMaxUploadSize();
         //opmm.setPublishExportPrefix(puburl);
 
         String rname = runid.substring(runid.indexOf('#') + 1);
@@ -401,9 +404,13 @@ public class RunController {
 
         Catalog catalog = new Catalog(config.getDomainId(), exportName,
             publisher.getDomainsDir(), aclibfile.getAbsolutePath());
+
         WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery,
-                publishUrl.getUrl(), publishUrl.getUsername(), publishUrl.getPassword());
+            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery);
+        exp.setUploadURL(uploadURL);
+        exp.setUploadUsername(uploadUsername);
+        exp.setUploadPassword(uploadPassword);
+        exp.setUploadMaxSize(uploadMaxSize);
         exp.exportAsOPMW(run_exportdir.getAbsolutePath(), "RDF/XML");
         catalog.exportCatalog(null);
 

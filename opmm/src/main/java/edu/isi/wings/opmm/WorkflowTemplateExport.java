@@ -291,12 +291,14 @@ public class WorkflowTemplateExport {
             Individual templateProcessInstance = opmwModel.createClass(Constants.OPMW_WORKFLOW_TEMPLATE_PROCESS).createIndividual(templateProcessURI);
             templateProcessInstance.addLabel(nodeID.getLocalName(), null);
             //retrieve the right type from the component catalog, and add it as the type as well
-            opmwModel.createClass(componentCatalog.getCatalogTypeForComponentInstanceURI(componentBinding.getURI())).
+            String componentBindingURI = componentBinding.getURI();
+            opmwModel.createClass(componentCatalog.getCatalogTypeForComponentInstanceURI(componentBindingURI)).
                     createIndividual(templateProcessURI);
             //add that that step belongs to the template above.
             templateProcessInstance.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_IS_STEP_OF_TEMPLATE), wtInstance);
             //add the binding to the component of the catalog. We use the WINGS property for this.
-            templateProcessInstance.addProperty(opmwModel.createProperty(Constants.WINGS_PROP_HAS_COMPONENT_BINDING), componentCatalog.getCatalogResourceForComponentInstanceURI(componentBinding.getURI()));
+            Resource catalogResourceForComponentInstanceURI = componentCatalog.getCatalogResourceForComponentInstanceURI(componentBindingURI);
+            templateProcessInstance.addProperty(opmwModel.createProperty(Constants.WINGS_PROP_HAS_COMPONENT_BINDING), catalogResourceForComponentInstanceURI);
             if(isConcrete!=null){
                 templateProcessInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_IS_CONCRETE), isConcrete);
             }
