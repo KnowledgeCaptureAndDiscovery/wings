@@ -50,7 +50,7 @@ public class WorkflowExecutionExport {
     private String uploadPassword;
     private long uploadMaxSize;
     //private OntModel provModel;//TO IMPLEMENT AT THE END. Can it be done with constructs?
-
+    private String domain;
     /**
      * Default constructor for exporting executions
      *
@@ -59,7 +59,7 @@ public class WorkflowExecutionExport {
      * @param exportName
      * @param endpointURI
      */
-    public WorkflowExecutionExport(String executionFile, Catalog catalog, String exportName, String endpointURI) {
+    public WorkflowExecutionExport(String executionFile, Catalog catalog, String exportName, String endpointURI, String domain) {
         this.wingsExecutionModel = ModelUtils.loadModel(executionFile);
         this.opmwModel = ModelUtils.initializeModel(opmwModel);
         this.componentCatalog = catalog;
@@ -72,6 +72,7 @@ public class WorkflowExecutionExport {
         this.uploadUsername = uploadUsername;
         this.uploadPassword = uploadPassword;
         isExecPublished = false;
+        this.domain = domain;
     }
 
     /**
@@ -170,7 +171,7 @@ public class WorkflowExecutionExport {
             expandedTemplateURI = rs.next().getResource("?expTemplate").getNameSpace();//the namespace is better for later.
             System.out.println("Execution expanded template " + expandedTemplateURI + " loaded successfully");
             //publish expanded template. The expanded template will publish the template if necessary.
-            concreteTemplateExport = new WorkflowTemplateExport(expandedTemplateURI, this.componentCatalog, this.exportName, this.endpointURI);
+            concreteTemplateExport = new WorkflowTemplateExport(expandedTemplateURI, this.componentCatalog, this.exportName, this.endpointURI, this.domain);
             concreteTemplateExport.transform();
             System.out.println(concreteTemplateExport.getTransformedTemplateIndividual());
         } else {
