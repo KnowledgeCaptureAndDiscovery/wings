@@ -34,7 +34,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
@@ -412,7 +414,10 @@ public class RunController {
         exp.setUploadPassword(uploadPassword);
         exp.setUploadMaxSize(uploadMaxSize);
         exp.exportAsOPMW(run_exportdir.getAbsolutePath(), "RDF/XML");
-        catalog.exportCatalog(null);
+
+        String domainPath = catalog.exportCatalog(null, "RDF/XML");
+        File domainFile = new File(domainPath);
+        this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
 
         //run_exportdir the files to export
         for(File f : run_exportdir.listFiles()) {
@@ -492,7 +497,10 @@ public class RunController {
         input.setContentType("application/rdf+xml");
 
         putRequest.setEntity(input);
-        httpClient.execute(putRequest);
+        HttpResponse response = httpClient.execute(putRequest);
+        if (response.getStatusLine().getStatusCode() != 201) {
+            System.err.println("Unable to upload the domain " + response.getStatusLine().getReasonPhrase());
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();
