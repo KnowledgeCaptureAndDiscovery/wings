@@ -1,6 +1,7 @@
 package edu.isi.wings.opmm;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -169,33 +170,34 @@ public class WorkflowTemplateExport {
         if(rs.hasNext()){
             //variables to extract: ?doc ?contrib ?time ?license
             QuerySolution qs = rs.next();
-            try{
-                Literal docContent = qs.getLiteral("?doc");
+            Literal docContent = qs.getLiteral("?doc");
+            if (docContent != null)
                 wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_DOCUMENTATION), docContent);
-            }catch(Exception e){}
-            try{
-                Literal contrib = qs.getLiteral("?contrib");
+            Literal contrib = qs.getLiteral("?contrib");
+            if (contrib != null){
                 OntClass agentClass = opmwModel.createClass(Constants.OPM_AGENT);
-                Individual contributor = agentClass.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+
-                        Constants.CONCEPT_AGENT+"/"+URLEncoder.encode(""+contrib, "UTF-8"));
-                contributor.addLabel(contrib);
-                wtInstance.addProperty(opmwModel.createProperty(Constants.PROP_HAS_CONTRIBUTOR), contributor);
-            }catch(Exception e){}
-            try{
-                Literal timeLastModified = qs.getLiteral("?time");
-                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_MODIFIED), timeLastModified);
-            }catch(Exception e){}
-            try{
-                Literal userVersion = qs.getLiteral("?version");
-                wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_RELEASE_VERSION), userVersion);
-            }catch(Exception e){}
-            try{
-                Literal license = qs.getLiteral("?license");
-                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_RIGHTS), license);
-            }catch(Exception e){//no license declared, add license by default
-                opmwModel.add(wtInstance,opmwModel.createProperty(Constants.DC_LICENSE),"http://creativecommons.org/licenses/by/3.0/",
-                        XSDDatatype.XSDanyURI);
+                try {
+                    Individual contributor = agentClass.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+
+                            Constants.CONCEPT_AGENT+"/"+ URLEncoder.encode(""+contrib, "UTF-8"));
+                    contributor.addLabel(contrib);
+                    wtInstance.addProperty(opmwModel.createProperty(Constants.PROP_HAS_CONTRIBUTOR), contributor);
+                } catch (UnsupportedEncodingException e) {
+                    System.err.println("Unsupported encoding");
+                    e.printStackTrace();
+                }
             }
+            Literal timeLastModified = qs.getLiteral("?time");
+            if (timeLastModified != null)
+                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_MODIFIED), timeLastModified);
+            Literal userVersion = qs.getLiteral("?version");
+            if (userVersion != null)
+                wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_RELEASE_VERSION), userVersion);
+            Literal license = qs.getLiteral("?license");
+            if (license != null)
+                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_RIGHTS), license);
+            else
+                opmwModel.add(wtInstance, opmwModel.createProperty(Constants.DC_LICENSE), "http://creativecommons.org/licenses/by/3.0/",
+                        XSDDatatype.XSDanyURI);
         }
         //if there is any derivation, this template is a concrete template. Publish the abstract template
         String queryDerivation = QueriesWorkflowTemplateExport.queryWINGSDerivations();
