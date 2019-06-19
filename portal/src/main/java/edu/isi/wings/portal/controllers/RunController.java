@@ -406,7 +406,7 @@ public class RunController {
             publisher.getDomainsDir(), aclibfile.getAbsolutePath());
 
         WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery);
+            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
         exp.setUploadURL(uploadURL);
         exp.setUploadUsername(uploadUsername);
         exp.setUploadPassword(uploadPassword);
