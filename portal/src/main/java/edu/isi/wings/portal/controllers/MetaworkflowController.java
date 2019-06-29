@@ -41,7 +41,7 @@ public class MetaworkflowController {
   
   public String getWorkflowRunsJSON() {
     ArrayList<String> runlist = new ArrayList<String>();
-    ArrayList<HashMap<String, Object>> list = this.rc.getRunList();
+    ArrayList<HashMap<String, Object>> list = this.rc.getRunList(null);
     for(HashMap<String, Object> map : list) {
       String id = (String) map.get("id");
       String tid = (String) map.get("template_id");

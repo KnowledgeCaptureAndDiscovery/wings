@@ -21,6 +21,10 @@ package edu.isi.wings.portal.controllers;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
@@ -34,9 +38,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
@@ -97,14 +99,18 @@ public class RunController {
     tc = TemplateFactory.getCreationAPI(props);
   }
 
-  public String getRunListJSON() {
-    return json.toJson(this.getRunList());
+  public String getRunListJSON(String pattern) {
+    return json.toJson(this.getRunList(pattern));
   }
 
-  public ArrayList<HashMap<String, Object>> getRunList() {
+  public ArrayList<HashMap<String, Object>> getRunList(String pattern) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunList()) {
+      if (pattern != null && !Pattern.compile(Pattern.quote(pattern), Pattern.CASE_INSENSITIVE).matcher(exe.getID()).find()){
+        continue;
+      }
+
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
@@ -305,6 +311,27 @@ public class RunController {
     context.setAttribute("engine_" + rplan.getID(), engine);
   }
 
+  /**
+   * Publish all the executions that match with a pattern
+   * @param pattern: the user give the pattern, string
+   * @return A json
+   */
+  public String publishRunList(String pattern){
+    ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
+    ArrayList<HashMap<String, Object>>  returnJson = new ArrayList<>();
+    Iterator<HashMap<String, Object>> i = runs.iterator();
+    while (i.hasNext()){
+      String runId = (String) i.next().get("id");
+      String publishOut = publishRun(runId);
+      Map<String, String> map = new Gson().fromJson(publishOut,Map.class);
+      HashMap<String, Object> element = new HashMap<>();
+      element.put("id", runId);
+      if (map.containsKey("url"))
+        element.put("url", map.get("url"));
+      returnJson.add(element);
+    }
+    return json.toJson(returnJson);
+  }
 
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
