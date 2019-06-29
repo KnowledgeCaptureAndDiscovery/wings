@@ -12,6 +12,9 @@ import javax.ws.rs.core.Response;
 
 import edu.isi.wings.portal.controllers.RunController;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 @Path("{user}/{domain}/executions")
 public class RunResource extends WingsResource {
   RunController rc;
@@ -44,9 +47,12 @@ public class RunResource extends WingsResource {
   @GET
   @Path("getRunList")
   @Produces(MediaType.APPLICATION_JSON)
-  public String getRunList() {
+  public String getRunList(
+          @QueryParam("pattern") final String pattern,
+          @QueryParam("status") final Boolean status
+  ) {
     if(this.rc != null)
-      return this.rc.getRunListJSON();
+      return this.rc.getRunListJSON(pattern);
     return null;
   }
   
@@ -110,9 +116,20 @@ public class RunResource extends WingsResource {
   @Path("publishRun")
   @Produces(MediaType.TEXT_PLAIN)
   public String publishRun(
-      @FormParam("run_id") String run_id) {
+          @FormParam("run_id") String run_id) {
     if(this.rc != null)
       return this.rc.publishRun(run_id);
+    return null;
+  }
+
+  @POST
+  @Path("publishList")
+  @Produces("application/json")
+  public String publishAll(
+    @FormParam("pattern") String pattern) {
+    if (pattern != null) {
+      return this.rc.publishRunList(pattern);
+    }
     return null;
   }
 

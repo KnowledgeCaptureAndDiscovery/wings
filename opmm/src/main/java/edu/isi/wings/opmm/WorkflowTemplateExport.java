@@ -427,8 +427,6 @@ public class WorkflowTemplateExport {
         Catalog c = new Catalog(domain, "testExport", "domains", taxonomyURL);
         WorkflowTemplateExport w = new WorkflowTemplateExport(templatePath, c, "exportTest", "http://localhost:3030/test/query", domain);
         w.exportAsOPMW(".", "TTL");
-        c.exportCatalog(null);
-        
-        
+        c.exportCatalog(null, "RDF/XML");
     }
 }
