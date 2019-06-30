@@ -14,6 +14,7 @@ import edu.isi.wings.portal.controllers.RunController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 @Path("{user}/{domain}/executions")
 public class RunResource extends WingsResource {
@@ -128,7 +129,8 @@ public class RunResource extends WingsResource {
   public String publishAll(
     @FormParam("pattern") String pattern) {
     if (pattern != null) {
-      return this.rc.publishRunList(pattern);
+        String json = this.rc.publishRunList(pattern);
+        return json;
     }
     return null;
   }

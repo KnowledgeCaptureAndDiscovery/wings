@@ -21,10 +21,7 @@ package edu.isi.wings.portal.controllers;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
@@ -316,19 +313,38 @@ public class RunController {
    * @param pattern: the user give the pattern, string
    * @return A json
    */
-  public String publishRunList(String pattern){
+  public String publishRunList(String pattern) {
     ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
     ArrayList<HashMap<String, Object>>  returnJson = new ArrayList<>();
     Iterator<HashMap<String, Object>> i = runs.iterator();
+
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+    List<Future> futures = new ArrayList<Future>();
+
     while (i.hasNext()){
-      String runId = (String) i.next().get("id");
-      String publishOut = publishRun(runId);
-      Map<String, String> map = new Gson().fromJson(publishOut,Map.class);
+      String id = (String) i.next().get("id");
+      futures.add(executor.submit(new Callable<String>() {
+        public String call() {
+          try {
+            return publishRun(id);
+          } catch (Exception e) {
+            return "";
+          }
+        }
+      }));
+
+    }
+    for(Future f: futures) {
       HashMap<String, Object> element = new HashMap<>();
-      element.put("id", runId);
-      if (map.containsKey("url"))
-        element.put("url", map.get("url"));
-      returnJson.add(element);
+      try {
+        String jsonReturn = (String) f.get();
+        Map<String, String> map = new Gson().fromJson(jsonReturn, Map.class);
+        if (map.containsKey("url"))
+          element.put("url", map.get("url"));
+        returnJson.add(element);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     return json.toJson(returnJson);
   }
