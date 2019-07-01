@@ -30,6 +30,11 @@ public class WorkflowTemplateExport {
     private final String PREFIX_EXPORT_RESOURCE;
     private final String endpointURI;//URI of the endpoint where everything is published.
     private Individual transformedTemplate = null;
+
+    public boolean isTemplatePublished() {
+        return isTemplatePublished;
+    }
+
     private boolean isTemplatePublished;//boolean value to know if the template has already been published on the repository
     private final String exportName;//needed to pass it on to template exports
     private WorkflowTemplateExport abstractTemplateExport;//a template may implement a template, and therefore publish its abstract template (on a separate file)

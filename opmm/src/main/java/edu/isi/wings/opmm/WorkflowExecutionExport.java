@@ -3,11 +3,14 @@ package edu.isi.wings.opmm;
 import java.io.File;
 
 import org.apache.jena.ontology.Individual;
+import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
+
+import static edu.isi.wings.opmm.Constants.*;
 
 /**
  * Class designed to export WINGS workflow execution traces in RDF according to the OPMW-PROV model.
@@ -258,7 +261,14 @@ public class WorkflowExecutionExport {
                 //Link to expanded template variable
                 String concreteTemplateVariableURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_DATA_VARIABLE + "/" +
                         concreteTemplateExport.getTransformedTemplateIndividual().getLocalName() + "_" + variable.getLocalName();
-                Individual concreteTemplateVariable = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateVariableURI);
+                Individual concreteTemplateVariable;
+                //if the template has been published the resources are not loaded. So, we create the individual
+                if(concreteTemplateExport.isTemplatePublished()) {
+                    OntClass aClass = concreteTemplateExport.getOpmwModel().createClass(OPMW_DATA_VARIABLE);
+                    concreteTemplateVariable = concreteTemplateExport.getOpmwModel().createIndividual(concreteTemplateVariableURI, aClass);
+                } else {
+                    concreteTemplateVariable = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateVariableURI);
+                }
                 executionArtifact.addProperty(opmwModel.createAnnotationProperty(Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT),
                         concreteTemplateVariable);
             }
@@ -280,7 +290,17 @@ public class WorkflowExecutionExport {
                 //link parameter to the concrete template
                 String concreteTemplateParameterURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_PARAMETER_VARIABLE + "/" +
                         concreteTemplateExport.getTransformedTemplateIndividual().getLocalName() + "_" + param.getLocalName();
-                Individual concreteTemplateParameter = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateParameterURI);
+
+                //if the template has been published the resources are not loaded. So, we create the individual
+                Individual concreteTemplateParameter;
+                if(concreteTemplateExport.isTemplatePublished()) {
+                    OntClass aClass = concreteTemplateExport.getOpmwModel().createClass(OPMW_PARAMETER_VARIABLE);
+                    concreteTemplateParameter = concreteTemplateExport.getOpmwModel().createIndividual(concreteTemplateParameterURI, aClass);
+                }
+                else {
+                    concreteTemplateParameter = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateParameterURI);
+                }
+
                 parameter.addProperty(opmwModel.createAnnotationProperty(Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_ARTIFACT),
                         concreteTemplateParameter);
 
@@ -290,7 +310,16 @@ public class WorkflowExecutionExport {
             //link step to concrete template individual
             String concreteTemplateProcessURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS + "/" +
                     concreteTemplateExport.getTransformedTemplateIndividual().getLocalName() + "_" + wingsStep.getLocalName();
-            Individual concreteTemplateProcess = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateProcessURI);
+
+            //if the template has been published the resources are not loaded. So, we create the individual
+            Individual concreteTemplateProcess;
+            if(concreteTemplateExport.isTemplatePublished()) {
+                OntClass ontClass = concreteTemplateExport.getOpmwModel().createClass(OPMW_WORKFLOW_TEMPLATE_PROCESS);
+                concreteTemplateProcess = concreteTemplateExport.getOpmwModel().createIndividual(concreteTemplateProcessURI, ontClass);
+            }
+            else {
+                concreteTemplateProcess = concreteTemplateExport.getOpmwModel().getIndividual(concreteTemplateProcessURI);
+            }
             executionStep.addProperty(opmwModel.createAnnotationProperty(Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE_PROCESS),
                     concreteTemplateProcess);
         }
