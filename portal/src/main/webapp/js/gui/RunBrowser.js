@@ -855,15 +855,6 @@ RunBrowser.prototype.getRunList = function() {
 					}
 				},
 				{
-					text : 'Publish all',
-					iconCls : 'icon-reload fa fa-green',
-					disabled : false,
-					id : 'publishButton',
-					handler : function() {
-							This.prePublishList();
-					}
-				},
-				{
 					text : 'Stop',
 					iconCls : 'icon-cancel fa fa-red',
 					id : 'stopButton',
