@@ -53,7 +53,7 @@ public class RunResource extends WingsResource {
           @QueryParam("status") final Boolean status
   ) {
     if(this.rc != null)
-      return this.rc.getRunListJSON(pattern);
+      return this.rc.getRunListJSON(pattern, status);
     return null;
   }
   
@@ -122,17 +122,6 @@ public class RunResource extends WingsResource {
       return this.rc.publishRun(run_id);
     return null;
   }
-
-  @POST
-  @Path("publishList")
-  @Produces("application/json")
-  public String publishAll(
-    @FormParam("pattern") String pattern) {
-    if (pattern != null) {
-        String json = this.rc.publishRunList(pattern);
-        return json;
-    }
-    return null;
-  }
+  
 
 }

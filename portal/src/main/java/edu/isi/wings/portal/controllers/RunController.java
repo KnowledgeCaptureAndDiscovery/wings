@@ -96,11 +96,19 @@ public class RunController {
     tc = TemplateFactory.getCreationAPI(props);
   }
 
-  public String getRunListJSON(String pattern) {
-    return json.toJson(this.getRunList(pattern));
+  /**
+   * Get the run list json.
+   * @param pattern optional, a pattern to filter
+   * @param completed optional, a pattern to fillter complete runs
+   * @return
+   */
+  public String getRunListJSON(String pattern, Boolean completed) {
+    if (completed == null)
+      completed = false;
+    return json.toJson(this.getRunList(pattern, completed));
   }
 
-  public ArrayList<HashMap<String, Object>> getRunList(String pattern) {
+  public ArrayList<HashMap<String, Object>> getRunList(String pattern, Boolean completed) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunList()) {
@@ -112,7 +120,7 @@ public class RunController {
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
       map.put("id", exe.getID());
-      if (exe.getQueue() != null) {
+      if (!completed && exe.getQueue() != null) {
         int numtotal = exe.getQueue().getAllSteps().size();
         int numdone = exe.getQueue().getFinishedSteps().size();
         ArrayList<RuntimeStep> running_steps = exe.getQueue().getRunningSteps();
@@ -313,41 +321,41 @@ public class RunController {
    * @param pattern: the user give the pattern, string
    * @return A json
    */
-  public String publishRunList(String pattern) {
-    ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
-    ArrayList<HashMap<String, Object>>  returnJson = new ArrayList<>();
-    Iterator<HashMap<String, Object>> i = runs.iterator();
-
-    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
-    List<Future> futures = new ArrayList<Future>();
-
-    while (i.hasNext()){
-      String id = (String) i.next().get("id");
-      futures.add(executor.submit(new Callable<String>() {
-        public String call() {
-          try {
-            return publishRun(id);
-          } catch (Exception e) {
-            return "";
-          }
-        }
-      }));
-
-    }
-    for(Future f: futures) {
-      HashMap<String, Object> element = new HashMap<>();
-      try {
-        String jsonReturn = (String) f.get();
-        Map<String, String> map = new Gson().fromJson(jsonReturn, Map.class);
-        if (map.containsKey("url"))
-          element.put("url", map.get("url"));
-        returnJson.add(element);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-    return json.toJson(returnJson);
-  }
+//  public String publishRunList(String pattern) {
+//    ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
+//    ArrayList<HashMap<String, Object>>  returnJson = new ArrayList<>();
+//    Iterator<HashMap<String, Object>> i = runs.iterator();
+//
+//    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+//    List<Future> futures = new ArrayList<Future>();
+//
+//    while (i.hasNext()){
+//      String id = (String) i.next().get("id");
+//      futures.add(executor.submit(new Callable<String>() {
+//        public String call() {
+//          try {
+//            return publishRun(id);
+//          } catch (Exception e) {
+//            return "";
+//          }
+//        }
+//      }));
+//
+//    }
+//    for(Future f: futures) {
+//      HashMap<String, Object> element = new HashMap<>();
+//      try {
+//        String jsonReturn = (String) f.get();
+//        Map<String, String> map = new Gson().fromJson(jsonReturn, Map.class);
+//        if (map.containsKey("url"))
+//          element.put("url", map.get("url"));
+//        returnJson.add(element);
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
+//    return json.toJson(returnJson);
+//  }
 
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
