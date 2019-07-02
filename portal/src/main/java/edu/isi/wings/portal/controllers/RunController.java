@@ -112,15 +112,21 @@ public class RunController {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunList()) {
+      //check the pattern
       if (pattern != null && !Pattern.compile(Pattern.quote(pattern), Pattern.CASE_INSENSITIVE).matcher(exe.getID()).find()){
         continue;
       }
 
-      HashMap<String, Object> map = new HashMap<String, Object>();
+      //check if completed
+      if (completed && exe.getRuntimeInfo().getStatus().toString() != "SUCCESS" ) {
+        continue;
+      }
+
+        HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
       map.put("id", exe.getID());
-      if (!completed && exe.getQueue() != null) {
+      if (exe.getQueue() != null) {
         int numtotal = exe.getQueue().getAllSteps().size();
         int numdone = exe.getQueue().getFinishedSteps().size();
         ArrayList<RuntimeStep> running_steps = exe.getQueue().getRunningSteps();
