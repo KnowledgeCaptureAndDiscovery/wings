@@ -180,7 +180,7 @@ public class WorkflowTemplateExport {
                 wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_DOCUMENTATION), docContent);
             Literal contrib = qs.getLiteral("?contrib");
             if (contrib != null){
-                OntClass agentClass = opmwModel.createClass(Constants.OPM_AGENT);
+                OntClass agentClass = opmwModel.createClass(Constants.PROV_AGENT);
                 try {
                     Individual contributor = agentClass.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+
                             Constants.CONCEPT_AGENT+"/"+ URLEncoder.encode(""+contrib, "UTF-8"));

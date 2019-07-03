@@ -178,9 +178,11 @@ public class Constants {
     //new
     public static final String OPMW_PROP_HAD_SOFTWARE_CONFIGURATION = PREFIX_OPMW+"hadSoftwareConfiguration";
     public static final String OPMW_PROP_HAS_MAIN_SCRIPT = PREFIX_OPMW+"hasMainScript";
-    
-    
-    
+    public static final String OPMW_PROP_IS_PROCESS_OF_EXECUTION = PREFIX_OPMW+"isProcessOfExecution";
+    public static final String OPMW_PROP_IS_ARTIFACT_OF_EXECUTION = PREFIX_OPMW+"isArtifactOfExecution";
+
+
+
     public static final String OPMW_PROP_IMPLEMENTS_TEMPLATE = PREFIX_OPMW +"implementsTemplate";
     public static final String OPMW_PROP_IMPLEMENTS_TEMPLATE_PROCESS = PREFIX_OPMW+"implementsTemplateProcess";
     public static final String OPMW_PROP_IMPLEMENTS_TEMPLATE_ARTIFACT = PREFIX_OPMW+"implementsTemplateArtifact";

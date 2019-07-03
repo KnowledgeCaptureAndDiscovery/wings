@@ -155,14 +155,14 @@ public class WorkflowExecutionExport {
         String user = wingsExecution.getURI().split("/users/")[1];
         user = user.substring(0, user.indexOf("/"));
         String userURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_AGENT + "/" + user;
-        Individual userInstance = opmwModel.createClass(Constants.OPM_AGENT).createIndividual(userURI);
+        Individual userInstance = opmwModel.createClass(Constants.PROV_AGENT).createIndividual(userURI);
         userInstance.addLabel(user, null);
         weInstance.addProperty(opmwModel.createProperty(Constants.PROP_HAS_CONTRIBUTOR), userInstance);
 
         //metadata of the execution system (WINGS)
         //TODO: Ask Varun to include extra metadata on whether the exec was on Pegasus/OODT, etc.
         String wfSystemURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_AGENT + "/" + "WINGS";
-        Individual wingsInstance = opmwModel.createClass(Constants.OPM_AGENT).createIndividual(wfSystemURI);
+        Individual wingsInstance = opmwModel.createClass(Constants.PROV_AGENT).createIndividual(wfSystemURI);
         weInstance.addProperty(opmwModel.createProperty(Constants.PROP_HAS_CREATOR), wingsInstance);
         wingsInstance.addProperty(opmwModel.createProperty(Constants.PROV_ACTED_ON_BEHALF_OF), userInstance);
         wingsInstance.addLabel("WINGS", null);
@@ -236,7 +236,8 @@ public class WorkflowExecutionExport {
                     Constants.OPMW_SOFTWARE_SCRIPT, mainScriptURI);
             stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT), mainScript);
             executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAD_SOFTWARE_CONFIGURATION), stepConfig);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPM_PROP_WCB), wingsInstance);
+            executionStep.addProperty(opmwModel.createProperty(Constants.PROV_WAS_ASSOCIATED_WITH), wingsInstance);
+
             //for each step get its i/o (plan)
             String stepVariables = QueriesWorkflowExecutionExport.getWINGSExecutionStepI_O(wingsStep.getURI());
             System.out.println("Queries step variables");
@@ -255,12 +256,13 @@ public class WorkflowExecutionExport {
 
 
                 //add as part of the account
-                executionArtifact.addProperty(opmwModel.createProperty(Constants.OPM_PROP_ACCOUNT), weInstance);
+                executionArtifact.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_IS_ARTIFACT_OF_EXECUTION), weInstance);
                 if (varType.equals(Constants.P_PLAN_PROP_HAS_INPUT)) {
                     //add step used artifact
-                    executionStep.addProperty(opmwModel.createProperty(Constants.OPM_PROP_USED), executionArtifact);
+                    executionStep.addProperty(opmwModel.createProperty(Constants.PROV_USED), executionArtifact);
+
                 } else if (varType.equals(Constants.P_PLAN_PROP_HAS_OUTPUT)) {
-                    executionArtifact.addProperty(opmwModel.createProperty(Constants.OPM_PROP_WGB), executionStep);
+                    executionArtifact.addProperty(opmwModel.createProperty(Constants.PROV_WGB), executionStep);
                 }
                 //Link to expanded template variable
                 String concreteTemplateVariableURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_DATA_VARIABLE + "/" +
@@ -290,8 +292,8 @@ public class WorkflowExecutionExport {
                 Individual parameter = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT).createIndividual(parameterURI);
                 parameter.addLabel(param.getLocalName(), null);
                 parameter.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_VALUE), paramValue);
-                parameter.addProperty(opmwModel.createProperty(Constants.OPM_PROP_ACCOUNT), weInstance);
-                executionStep.addProperty(opmwModel.createProperty(Constants.OPM_PROP_USED), parameter);
+                parameter.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_IS_ARTIFACT_OF_EXECUTION), weInstance);
+                executionStep.addProperty(opmwModel.createProperty(Constants.PROV_USED), parameter);
                 //link parameter to the concrete template
                 String concreteTemplateParameterURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_PARAMETER_VARIABLE + "/" +
                         concreteTemplateExport.getTransformedTemplateIndividual().getLocalName() + "_" + param.getLocalName();
@@ -311,7 +313,7 @@ public class WorkflowExecutionExport {
 
             }
             //link step to execution
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPM_PROP_ACCOUNT), weInstance);
+            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_IS_PROCESS_OF_EXECUTION), weInstance);
             //link step to concrete template individual
             String concreteTemplateProcessURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_TEMPLATE_PROCESS + "/" +
                     concreteTemplateExport.getTransformedTemplateIndividual().getLocalName() + "_" + wingsStep.getLocalName();
