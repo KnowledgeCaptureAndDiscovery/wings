@@ -322,11 +322,6 @@ public class RunController {
     context.setAttribute("engine_" + rplan.getID(), engine);
   }
 
-  /**
-   * Publish all the executions that match with a pattern
-   * @param pattern: the user give the pattern, string
-   * @return A json
-   */
 //  public String publishRunList(String pattern) {
 //    ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
 //    ArrayList<HashMap<String, Object>>  returnJson = new ArrayList<>();
@@ -470,28 +465,30 @@ public class RunController {
         exp.setUploadUsername(uploadUsername);
         exp.setUploadPassword(uploadPassword);
         exp.setUploadMaxSize(uploadMaxSize);
-        exp.exportAsOPMW(run_exportdir.getAbsolutePath(), "RDF/XML");
+        String serialization = "TURTLE";
+        exp.exportAsOPMW(run_exportdir.getAbsolutePath(), serialization);
 
-        String domainPath = catalog.exportCatalog(null, "RDF/XML");
+        //publish the catalog
+        String domainPath = catalog.exportCatalog(null, serialization);
         File domainFile = new File(domainPath);
         this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
 
         //run_exportdir the files to export
         for(File f : run_exportdir.listFiles()) {
-          this.publishFile(tstoreurl, exp.getTransformedExecutionURI(), f.getAbsolutePath());
-        }
-        WorkflowTemplateExport texp = exp.getConcreteTemplateExport();
-        if(texp != null) {
-          texp.exportAsOPMW(tpl_exportdir.getAbsolutePath(), "RDF/XML");
-          for(File f : tpl_exportdir.listFiles()) {
-            this.publishFile(tstoreurl,
-                texp.getTransformedTemplateIndividual().getURI(),
-                f.getAbsolutePath());
-          }
+          String transformedExecutionURI = exp.getTransformedExecutionURI();
+          this.publishFile(tstoreurl, transformedExecutionURI, f.getAbsolutePath());
         }
 
-        FileUtils.deleteQuietly(tempdir);
 
+//        WorkflowTemplateExport texp = exp.getConcreteTemplateExport();
+//        if(texp != null) {
+//          texp.exportAsOPMW(tpl_exportdir.getAbsolutePath(), serialization);
+//          for(File f : tpl_exportdir.listFiles()) {
+//            this.publishFile(tstoreurl, texp.getTransformedTemplateIndividual().getURI(),f.getAbsolutePath());
+//          }
+//        }
+
+        //FileUtils.deleteQuietly(tempdir);
         retmap.put("url", exp.getTransformedExecutionURI());
 
       } catch (Exception e) {
@@ -548,16 +545,18 @@ public class RunController {
       putRequest.setConfig(requestConfig);
 
       File file = new File(filepath);
-      String rdfxml = FileUtils.readFileToString(file);
-      if (rdfxml != null) {
-        StringEntity input = new StringEntity(rdfxml);
-        input.setContentType("application/rdf+xml");
+      String content = FileUtils.readFileToString(file);
+      if (content != null) {
+        StringEntity input = new StringEntity(content);
+        input.setContentType("text/turtle");
 
         putRequest.setEntity(input);
         HttpResponse response = httpClient.execute(putRequest);
-        if (response.getStatusLine().getStatusCode() != 201) {
-            System.err.println("Unable to upload the domain " + response.getStatusLine().getReasonPhrase());
-        }
+        int statusCode = response.getStatusLine().getStatusCode();
+          System.err.println(statusCode);
+          System.err.println(filepath);
+          System.err.println(graphurl);
+          System.err.println("----------------");
       }
     } catch (IOException e) {
       e.printStackTrace();

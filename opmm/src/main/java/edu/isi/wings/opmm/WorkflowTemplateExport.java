@@ -39,6 +39,8 @@ public class WorkflowTemplateExport {
     private final String exportName;//needed to pass it on to template exports
     private WorkflowTemplateExport abstractTemplateExport;//a template may implement a template, and therefore publish its abstract template (on a separate file)
     private String domain;
+    private boolean isConcreteTemplate;
+    private String filepath;
     //private OntModel PplanModel;//TO IMPLEMENT AT THE END. Can it be done with constructs?
     
     
@@ -49,7 +51,7 @@ public class WorkflowTemplateExport {
      * @param exportName name of the dataset to export (will be part of the URI)
      * @param endpointURI
      */
-    public WorkflowTemplateExport(String templateFile, Catalog catalog, String exportName, String endpointURI, String domain) {
+    public WorkflowTemplateExport(String templateFile, Catalog catalog, String exportName, String endpointURI, String domain, boolean isConcrete) {
         this.wingsTemplateModel = ModelUtils.loadModel(templateFile);
         this.opmwModel = ModelUtils.initializeModel(opmwModel);
         this.componentCatalog = catalog;
@@ -58,6 +60,7 @@ public class WorkflowTemplateExport {
         isTemplatePublished = false;
         this.exportName = exportName;
         this.domain = domain;
+        this.isConcreteTemplate = isConcrete;
     }
 
     /**
@@ -210,7 +213,7 @@ public class WorkflowTemplateExport {
         if(rsD.hasNext()){
             //publish abstract template with the URI taken from derivation
             QuerySolution qs = rsD.next();
-            this.abstractTemplateExport = new WorkflowTemplateExport(qs.getResource("?dest").getURI(), componentCatalog, exportName, endpointURI, domain);
+            this.abstractTemplateExport = new WorkflowTemplateExport(qs.getResource("?dest").getURI(), componentCatalog, exportName, endpointURI, domain,false);
             abstractTemplateExport.transform();
             abstractTemplateInstance = abstractTemplateExport.getTransformedTemplateIndividual();
             System.out.println("Abstract template: "+abstractTemplateInstance.getURI());
@@ -375,7 +378,16 @@ public class WorkflowTemplateExport {
         }
         if(!isTemplatePublished){
             //opmwModel.write(System.out, "TTL");
-            ModelUtils.exportRDFFile(outFileDirectory+File.separator+transformedTemplate.getLocalName()+"_opmw", opmwModel, serialization);
+            String filename = transformedTemplate.getLocalName()+"_opmw";
+            if(this.abstractTemplateExport!=null){
+                abstractTemplateExport.exportAsOPMW(outFileDirectory,serialization);
+            }
+            if(isConcreteTemplate){
+                ModelUtils.exportRDFFile(outFileDirectory + File.separator + filename + "_concrete", opmwModel, serialization);
+            }else {
+                ModelUtils.exportRDFFile(outFileDirectory + File.separator + filename + "_abstract", opmwModel, serialization);
+            }
+
         }
         return transformedTemplate.getURI();
     }
@@ -430,7 +442,7 @@ public class WorkflowTemplateExport {
         String templatePath = "http://datascience4all.org/wings-portal/export/users/admin/mint/workflows/storyboard_isi_cag_64kpzcza7.owl";
         String domain = "mint";
         Catalog c = new Catalog(domain, "testExport", "domains", taxonomyURL);
-        WorkflowTemplateExport w = new WorkflowTemplateExport(templatePath, c, "exportTest", "http://localhost:3030/test/query", domain);
+        WorkflowTemplateExport w = new WorkflowTemplateExport(templatePath, c, "exportTest", "http://localhost:3030/test/query", domain,true);
         w.exportAsOPMW(".", "TTL");
         c.exportCatalog(null, "RDF/XML");
     }

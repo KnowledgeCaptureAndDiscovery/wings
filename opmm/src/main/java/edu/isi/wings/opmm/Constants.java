@@ -228,7 +228,7 @@ public class Constants {
     //new props
     public static final String OPMW_DATA_PROP_HAS_RUN_ID = PREFIX_OPMW + "hasRunID";
     public static final String OPMW_DATA_PROP_HAD_INVOCATION_COMMAND =  PREFIX_OPMW + "hadInvocationCommand";
-    public static final String OPMW_DATA_PROP_HAD_START_TIME =  PREFIX_OPMW + "hadStarTime";
+    public static final String OPMW_DATA_PROP_HAD_START_TIME =  PREFIX_OPMW + "hadStartTime";
     public static final String OPMW_DATA_PROP_HAD_END_TIME =  PREFIX_OPMW + "hadEndTime";
     public static final String OPMW_DATA_PROP_RELEASE_VERSION=  PREFIX_OPMW + "releaseVersion";
     
