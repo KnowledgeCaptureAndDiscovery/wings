@@ -37,6 +37,11 @@ public class WorkflowTemplateExport {
 
     private boolean isTemplatePublished;//boolean value to know if the template has already been published on the repository
     private final String exportName;//needed to pass it on to template exports
+
+    public WorkflowTemplateExport getAbstractTemplateExport() {
+        return abstractTemplateExport;
+    }
+
     private WorkflowTemplateExport abstractTemplateExport;//a template may implement a template, and therefore publish its abstract template (on a separate file)
     private String domain;
     private boolean isConcreteTemplate;
@@ -368,26 +373,20 @@ public class WorkflowTemplateExport {
     /**
      * Function that exports the transformed template in OPMW. This function should be called after
      * "transform". If not, it will call transform() automatically.
-     * @param outFileDirectory path where to write the serialized model
+     * @param filepath path of the file where to write the template
      * @param serialization serialization of choice: RDF/XML, TTL, etc.
      * @return 
      */
-    public String exportAsOPMW(String outFileDirectory, String serialization){
+    public String exportAsOPMW(String filepath, String serialization){
         if(transformedTemplate == null){
             this.transform();
         }
         if(!isTemplatePublished){
             //opmwModel.write(System.out, "TTL");
-            String filename = transformedTemplate.getLocalName()+"_opmw";
             if(this.abstractTemplateExport!=null){
-                abstractTemplateExport.exportAsOPMW(outFileDirectory,serialization);
+                abstractTemplateExport.exportAsOPMW(filepath,serialization);
             }
-            if(isConcreteTemplate){
-                ModelUtils.exportRDFFile(outFileDirectory + File.separator + filename + "_concrete", opmwModel, serialization);
-            }else {
-                ModelUtils.exportRDFFile(outFileDirectory + File.separator + filename + "_abstract", opmwModel, serialization);
-            }
-
+            ModelUtils.exportRDFFile(filepath, opmwModel, serialization);
         }
         return transformedTemplate.getURI();
     }

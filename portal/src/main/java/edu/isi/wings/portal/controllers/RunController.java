@@ -466,29 +466,30 @@ public class RunController {
         exp.setUploadPassword(uploadPassword);
         exp.setUploadMaxSize(uploadMaxSize);
         String serialization = "TURTLE";
-        exp.exportAsOPMW(run_exportdir.getAbsolutePath(), serialization);
 
         //publish the catalog
         String domainPath = catalog.exportCatalog(null, serialization);
         File domainFile = new File(domainPath);
         this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
 
-        //run_exportdir the files to export
-        for(File f : run_exportdir.listFiles()) {
-          String transformedExecutionURI = exp.getTransformedExecutionURI();
-          this.publishFile(tstoreurl, transformedExecutionURI, f.getAbsolutePath());
+        //execution
+        String executionFilePath = run_exportdir + File.separator + "execution";
+        String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
+        this.publishFile(tstoreurl, graphUri , executionFilePath);
+
+        //expandedTemplate
+        String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+        String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath, serialization);
+        this.publishFile(tstoreurl, expandedTemplateGraphUri , expandedTemplateFilePath);
+
+        //abstract
+        WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
+        if (abstractTemplateExport != null) {
+          String abstractFilePath = run_exportdir + File.separator + "abstract";
+          String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
+          this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
         }
 
-
-//        WorkflowTemplateExport texp = exp.getConcreteTemplateExport();
-//        if(texp != null) {
-//          texp.exportAsOPMW(tpl_exportdir.getAbsolutePath(), serialization);
-//          for(File f : tpl_exportdir.listFiles()) {
-//            this.publishFile(tstoreurl, texp.getTransformedTemplateIndividual().getURI(),f.getAbsolutePath());
-//          }
-//        }
-
-        //FileUtils.deleteQuietly(tempdir);
         retmap.put("url", exp.getTransformedExecutionURI());
 
       } catch (Exception e) {
@@ -553,10 +554,9 @@ public class RunController {
         putRequest.setEntity(input);
         HttpResponse response = httpClient.execute(putRequest);
         int statusCode = response.getStatusLine().getStatusCode();
-          System.err.println(statusCode);
-          System.err.println(filepath);
-          System.err.println(graphurl);
-          System.err.println("----------------");
+        if (statusCode != 201) {
+          System.err.println("Unable to upload the domain " + statusCode);
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();

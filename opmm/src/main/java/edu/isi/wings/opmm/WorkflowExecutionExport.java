@@ -359,20 +359,18 @@ public class WorkflowExecutionExport {
      * Function that exports the transformed template in OPMW. This function should be called after
      * "transform". If not, it will call transform() automatically.
      *
-     * @param outFilePath   path where to write the serialized model
+     * @param filepath   path where to write the serialized model
      * @param serialization serialization of choice: RDF/XML, TTL, etc.
      */
-    public void exportAsOPMW(String outFilePath, String serialization) {
+    public String exportAsOPMW(String filepath, String serialization) {
         if (transformedExecutionURI == null) {
             this.transform();
         }
         if (!isExecPublished) {
             //opmwModel.write(System.out, "TTL");
-            ModelUtils.exportRDFFile(outFilePath + File.separator + opmwModel.getResource(transformedExecutionURI).getLocalName(), opmwModel, serialization);
-            if(this.concreteTemplateExport!=null){
-                concreteTemplateExport.exportAsOPMW(outFilePath,serialization);
-            }
+            ModelUtils.exportRDFFile(filepath, opmwModel, serialization);
         }
+        return transformedExecutionURI;
     }
 
     /**
