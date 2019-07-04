@@ -30,6 +30,11 @@ public class WorkflowExecutionExport {
     private final String exportName;//needed to pass it on to template exports
     private String transformedExecutionURI;
     private WorkflowTemplateExport concreteTemplateExport;
+
+    public boolean isExecPublished() {
+        return isExecPublished;
+    }
+
     private boolean isExecPublished;
 
     public void setUploadURL(String uploadURL) {

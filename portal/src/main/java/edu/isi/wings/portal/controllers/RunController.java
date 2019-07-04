@@ -475,20 +475,26 @@ public class RunController {
         //execution
         String executionFilePath = run_exportdir + File.separator + "execution";
         String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
-        this.publishFile(tstoreurl, graphUri , executionFilePath);
+        if (!exp.isExecPublished()) {
+          this.publishFile(tstoreurl, graphUri, executionFilePath);
 
-        //expandedTemplate
-        String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
-        String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath, serialization);
-        this.publishFile(tstoreurl, expandedTemplateGraphUri , expandedTemplateFilePath);
+          //expandedTemplate
+          String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+          String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath, serialization);
+          if(! exp.getConcreteTemplateExport().isTemplatePublished())
+            this.publishFile(tstoreurl, expandedTemplateGraphUri , expandedTemplateFilePath);
 
-        //abstract
-        WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
-        if (abstractTemplateExport != null) {
-          String abstractFilePath = run_exportdir + File.separator + "abstract";
-          String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
-          this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
+          //abstract
+          WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
+          if (abstractTemplateExport != null) {
+            String abstractFilePath = run_exportdir + File.separator + "abstract";
+            String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
+            if ( !abstractTemplateExport.isTemplatePublished() )
+              this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
+          }
         }
+
+
 
         retmap.put("url", exp.getTransformedExecutionURI());
 
