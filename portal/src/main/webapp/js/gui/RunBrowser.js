@@ -940,6 +940,9 @@ RunBrowser.prototype.getRunList = function() {
 			wRunStore.load({
 		        start: 0,
 		        limit: PAGESIZE,
+		        params: {
+		        	pattern: grid.down('#searchText').value
+		        }
 			});
 		},
 		interval : 60000
