@@ -766,6 +766,7 @@ RunBrowser.prototype.getRunList = function() {
 			type : 'ajax',
 			simpleSortMode : true,
 			batchActions : false,
+			timeout : 60000, // Timeout of 60 seconds
 			api : {
 				read : this.op_url + "/getRunList",
 				destroy : this.op_url + "/deleteRun"
@@ -945,8 +946,8 @@ RunBrowser.prototype.getRunList = function() {
 		        }
 			});
 		},
-		interval : 60000
-		// 60 seconds
+		interval : 120000
+		// 120 seconds
 	};
 	Ext.TaskManager.start(gridListRefresh);
 
