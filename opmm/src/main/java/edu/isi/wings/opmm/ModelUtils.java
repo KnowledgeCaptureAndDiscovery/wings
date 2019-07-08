@@ -76,6 +76,7 @@ public class ModelUtils {
         // Execute the query and obtain results
         QueryExecution qe = QueryExecutionFactory.create(query, repository);
         ResultSet rs =  qe.execSelect();
+        System.out.println(queryIn);
         return rs;
     }
     /**

@@ -8,8 +8,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import edu.isi.wings.portal.controllers.RunController;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 @Path("{user}/{domain}/executions")
 public class RunResource extends WingsResource {
@@ -44,9 +49,13 @@ public class RunResource extends WingsResource {
   @Path("getRunList")
   @Produces(MediaType.APPLICATION_JSON)
   public String getRunList(
-      @QueryParam("start") int start, @QueryParam("limit") int limit) {
+          @QueryParam("pattern") final String pattern,
+          @QueryParam("status") final Boolean status,
+          @QueryParam("start") int start, 
+          @QueryParam("limit") int limit
+  ) {
     if(this.rc != null)
-      return this.rc.getRunListJSON(start, limit);
+      return this.rc.getRunListJSON(pattern, status, start, limit);
     return null;
   }
   
@@ -74,6 +83,18 @@ public class RunResource extends WingsResource {
           seed_json, seed_constraints_json, this.context);
     return null;
   }
+
+
+  @POST
+  @Path("reRunWorkflow")
+  @Produces("application/json")
+  public Response reRunWorkflow(
+          @FormParam("run_id") String run_id) {
+    if(this.rc != null){
+        return rc.reRunPlan(run_id, this.context);
+    }
+    return null;
+  }
   
   @POST
   @Path("deleteRun")
@@ -98,10 +119,12 @@ public class RunResource extends WingsResource {
   @Path("publishRun")
   @Produces(MediaType.TEXT_PLAIN)
   public String publishRun(
-      @FormParam("run_id") String run_id) {
+          @FormParam("run_id") String run_id) {
     if(this.rc != null)
       return this.rc.publishRun(run_id);
     return null;
   }
+
+
 
 }

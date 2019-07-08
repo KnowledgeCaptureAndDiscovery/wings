@@ -1,6 +1,7 @@
 package edu.isi.wings.opmm;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
@@ -14,7 +15,7 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  * Class designed to export WINGS workflow templates in RDF according to the OPMW-PROV model.
- * See: http://www.opmw.org/ontology/
+ * See: https://www.opmw.org/ontology/
  * 
  * This class also has methods for retrieving data in PROV and P-Plan.
  * See https://www.w3.org/TR/prov-o/ and http://purl.org/net/p-plan#
@@ -29,10 +30,22 @@ public class WorkflowTemplateExport {
     private final String PREFIX_EXPORT_RESOURCE;
     private final String endpointURI;//URI of the endpoint where everything is published.
     private Individual transformedTemplate = null;
+
+    public boolean isTemplatePublished() {
+        return isTemplatePublished;
+    }
+
     private boolean isTemplatePublished;//boolean value to know if the template has already been published on the repository
     private final String exportName;//needed to pass it on to template exports
+
+    public WorkflowTemplateExport getAbstractTemplateExport() {
+        return abstractTemplateExport;
+    }
+
     private WorkflowTemplateExport abstractTemplateExport;//a template may implement a template, and therefore publish its abstract template (on a separate file)
-    
+    private String domain;
+    private boolean isConcreteTemplate;
+    private String filepath;
     //private OntModel PplanModel;//TO IMPLEMENT AT THE END. Can it be done with constructs?
     
     
@@ -43,7 +56,7 @@ public class WorkflowTemplateExport {
      * @param exportName name of the dataset to export (will be part of the URI)
      * @param endpointURI
      */
-    public WorkflowTemplateExport(String templateFile, Catalog catalog, String exportName, String endpointURI) {
+    public WorkflowTemplateExport(String templateFile, Catalog catalog, String exportName, String endpointURI, String domain, boolean isConcrete) {
         this.wingsTemplateModel = ModelUtils.loadModel(templateFile);
         this.opmwModel = ModelUtils.initializeModel(opmwModel);
         this.componentCatalog = catalog;
@@ -51,6 +64,8 @@ public class WorkflowTemplateExport {
         this.endpointURI = endpointURI;
         isTemplatePublished = false;
         this.exportName = exportName;
+        this.domain = domain;
+        this.isConcreteTemplate = isConcrete;
     }
 
     /**
@@ -133,8 +148,7 @@ public class WorkflowTemplateExport {
             }
             this.transformedTemplate = opmwModel.getIndividual(exportedTemplateURI);
         }catch(Exception e){
-          e.printStackTrace();
-          System.err.println("Error: "+e.getMessage()+"\n The template was not exported");
+            System.err.println("Error: "+e.getMessage()+"\n The template was not exported");
         }
     }
     
@@ -155,10 +169,7 @@ public class WorkflowTemplateExport {
         wtInstance.addLiteral(opmwModel.createProperty(Constants.OWL_VERSION_INFO), versionNumber);
         //template MD5
         wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_MD5), HashUtils.createMD5ForTemplate(wingsTemplate,this.wingsTemplateModel, this.componentCatalog.getWINGSDomainTaxonomy()));
-        //domain to which this template belongs. It can bee xtracted from the template path.
-        String domain = wingsTemplate.getNameSpace().split("/workflows/")[0];
-        domain = domain.substring(domain.lastIndexOf("/")+1);
-        wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_DOMAIN),domain);
+        wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_DOMAIN),this.domain);
         //add the native system template as a reference.
         opmwModel.add(wtInstance,opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_NATIVE_SYSTEM_TEMPLATE),wingsTemplate.getURI(),XSDDatatype.XSDanyURI);
         //state that the template was created in WINGS
@@ -172,33 +183,34 @@ public class WorkflowTemplateExport {
         if(rs.hasNext()){
             //variables to extract: ?doc ?contrib ?time ?license
             QuerySolution qs = rs.next();
-            try{
-                Literal docContent = qs.getLiteral("?doc");
+            Literal docContent = qs.getLiteral("?doc");
+            if (docContent != null)
                 wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_DOCUMENTATION), docContent);
-            }catch(Exception e){}
-            try{
-                Literal contrib = qs.getLiteral("?contrib");
-                OntClass agentClass = opmwModel.createClass(Constants.OPM_AGENT);
-                Individual contributor = agentClass.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+
-                        Constants.CONCEPT_AGENT+"/"+URLEncoder.encode(""+contrib, "UTF-8"));
-                contributor.addLabel(contrib);
-                wtInstance.addProperty(opmwModel.createProperty(Constants.PROP_HAS_CONTRIBUTOR), contributor);
-            }catch(Exception e){}
-            try{
-                Literal timeLastModified = qs.getLiteral("?time");
-                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_MODIFIED), timeLastModified);
-            }catch(Exception e){}
-            try{
-                Literal userVersion = qs.getLiteral("?version");
-                wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_RELEASE_VERSION), userVersion);
-            }catch(Exception e){}
-            try{
-                Literal license = qs.getLiteral("?license");
-                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_RIGHTS), license);
-            }catch(Exception e){//no license declared, add license by default
-                opmwModel.add(wtInstance,opmwModel.createProperty(Constants.DC_LICENSE),"http://creativecommons.org/licenses/by/3.0/",
-                        XSDDatatype.XSDanyURI);
+            Literal contrib = qs.getLiteral("?contrib");
+            if (contrib != null){
+                OntClass agentClass = opmwModel.createClass(Constants.PROV_AGENT);
+                try {
+                    Individual contributor = agentClass.createIndividual(Constants.PREFIX_EXPORT_RESOURCE+
+                            Constants.CONCEPT_AGENT+"/"+ URLEncoder.encode(""+contrib, "UTF-8"));
+                    contributor.addLabel(contrib);
+                    wtInstance.addProperty(opmwModel.createProperty(Constants.PROP_HAS_CONTRIBUTOR), contributor);
+                } catch (UnsupportedEncodingException e) {
+                    System.err.println("Unsupported encoding");
+                    e.printStackTrace();
+                }
             }
+            Literal timeLastModified = qs.getLiteral("?time");
+            if (timeLastModified != null)
+                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_MODIFIED), timeLastModified);
+            Literal userVersion = qs.getLiteral("?version");
+            if (userVersion != null)
+                wtInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_RELEASE_VERSION), userVersion);
+            Literal license = qs.getLiteral("?license");
+            if (license != null)
+                wtInstance.addLiteral(opmwModel.createProperty(Constants.DATA_PROP_RIGHTS), license);
+            else
+                opmwModel.add(wtInstance, opmwModel.createProperty(Constants.DC_LICENSE), "http://creativecommons.org/licenses/by/3.0/",
+                        XSDDatatype.XSDanyURI);
         }
         //if there is any derivation, this template is a concrete template. Publish the abstract template
         String queryDerivation = QueriesWorkflowTemplateExport.queryWINGSDerivations();
@@ -206,7 +218,7 @@ public class WorkflowTemplateExport {
         if(rsD.hasNext()){
             //publish abstract template with the URI taken from derivation
             QuerySolution qs = rsD.next();
-            this.abstractTemplateExport = new WorkflowTemplateExport(qs.getResource("?dest").getURI(), componentCatalog, exportName, endpointURI);
+            this.abstractTemplateExport = new WorkflowTemplateExport(qs.getResource("?dest").getURI(), componentCatalog, exportName, endpointURI, domain,false);
             abstractTemplateExport.transform();
             abstractTemplateInstance = abstractTemplateExport.getTransformedTemplateIndividual();
             System.out.println("Abstract template: "+abstractTemplateInstance.getURI());
@@ -292,12 +304,14 @@ public class WorkflowTemplateExport {
             Individual templateProcessInstance = opmwModel.createClass(Constants.OPMW_WORKFLOW_TEMPLATE_PROCESS).createIndividual(templateProcessURI);
             templateProcessInstance.addLabel(nodeID.getLocalName(), null);
             //retrieve the right type from the component catalog, and add it as the type as well
-            opmwModel.createClass(componentCatalog.getCatalogTypeForComponentInstanceURI(componentBinding.getURI())).
+            String componentBindingURI = componentBinding.getURI();
+            opmwModel.createClass(componentCatalog.getCatalogTypeForComponentInstanceURI(componentBindingURI)).
                     createIndividual(templateProcessURI);
             //add that that step belongs to the template above.
             templateProcessInstance.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_IS_STEP_OF_TEMPLATE), wtInstance);
             //add the binding to the component of the catalog. We use the WINGS property for this.
-            templateProcessInstance.addProperty(opmwModel.createProperty(Constants.WINGS_PROP_HAS_COMPONENT_BINDING), componentCatalog.getCatalogResourceForComponentInstanceURI(componentBinding.getURI()));
+            Resource catalogResourceForComponentInstanceURI = componentCatalog.getCatalogResourceForComponentInstanceURI(componentBindingURI);
+            templateProcessInstance.addProperty(opmwModel.createProperty(Constants.WINGS_PROP_HAS_COMPONENT_BINDING), catalogResourceForComponentInstanceURI);
             if(isConcrete!=null){
                 templateProcessInstance.addLiteral(opmwModel.createProperty(Constants.OPMW_DATA_PROP_IS_CONCRETE), isConcrete);
             }
@@ -359,17 +373,20 @@ public class WorkflowTemplateExport {
     /**
      * Function that exports the transformed template in OPMW. This function should be called after
      * "transform". If not, it will call transform() automatically.
-     * @param outFileDirectory path where to write the serialized model
+     * @param filepath path of the file where to write the template
      * @param serialization serialization of choice: RDF/XML, TTL, etc.
      * @return 
      */
-    public String exportAsOPMW(String outFileDirectory, String serialization){
+    public String exportAsOPMW(String filepath, String serialization){
         if(transformedTemplate == null){
             this.transform();
         }
         if(!isTemplatePublished){
             //opmwModel.write(System.out, "TTL");
-            ModelUtils.exportRDFFile(outFileDirectory+File.separator+transformedTemplate.getLocalName()+"_opmw", opmwModel, serialization);
+            if(this.abstractTemplateExport!=null){
+                abstractTemplateExport.exportAsOPMW(filepath,serialization);
+            }
+            ModelUtils.exportRDFFile(filepath, opmwModel, serialization);
         }
         return transformedTemplate.getURI();
     }
@@ -422,11 +439,10 @@ public class WorkflowTemplateExport {
         //set up on datascience4all
         String taxonomyURL = "http://datascience4all.org/wings-portal/export/users/admin/mint/components/library.owl";
         String templatePath = "http://datascience4all.org/wings-portal/export/users/admin/mint/workflows/storyboard_isi_cag_64kpzcza7.owl";
-        Catalog c = new Catalog("mint", "testExport", "domains", taxonomyURL);
-        WorkflowTemplateExport w = new WorkflowTemplateExport(templatePath, c, "exportTest", "http://localhost:3030/test/query");
+        String domain = "mint";
+        Catalog c = new Catalog(domain, "testExport", "domains", taxonomyURL);
+        WorkflowTemplateExport w = new WorkflowTemplateExport(templatePath, c, "exportTest", "http://localhost:3030/test/query", domain,true);
         w.exportAsOPMW(".", "TTL");
-        c.exportCatalog(null);
-        
-        
+        c.exportCatalog(null, "RDF/XML");
     }
 }

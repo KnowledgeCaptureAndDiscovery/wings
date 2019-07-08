@@ -18,9 +18,23 @@
 package edu.isi.wings.opmm;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Base64;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.Dsl;
 import org.asynchttpclient.request.body.multipart.InputStreamPart;
@@ -32,120 +46,44 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.asynchttpclient.Dsl.basicAuthRealm;
 
 public class StorageHandler {
+    public File zipFolder(File directory) throws Exception {
+        //Create zip file
+        File _tmpZip = File.createTempFile(directory.getAbsolutePath(), ".zip");
+        String zipName = _tmpZip.getPath();
+        Path zipPath = Paths.get(zipName);
 
-    public static void zipAndStream(File dir, ZipOutputStream zos, String prefix)
-            throws Exception {
-        byte bytes[] = new byte[2048];
-        for (File file : dir.listFiles()) {
-            if(file.isDirectory())
-                StorageHandler.zipAndStream(file, zos, prefix + file.getName() + "/" );
-            else {
-                FileInputStream fis = new FileInputStream(file.getAbsolutePath());
-                BufferedInputStream bis = new BufferedInputStream(fis);
-                zos.putNextEntry(new ZipEntry(prefix + file.getName()));
-                int bytesRead;
-                while ((bytesRead = bis.read(bytes)) != -1) {
-                    zos.write(bytes, 0, bytesRead);
-                }
+        //Obtain path source dir
+        Path sourceFolderPath = directory.toPath();
+
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath.toFile()));
+        Files.walkFileTree(sourceFolderPath, new SimpleFileVisitor<Path>() {
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                zos.putNextEntry(new ZipEntry(sourceFolderPath.relativize(file).toString()));
+                Files.copy(file, zos);
                 zos.closeEntry();
-                bis.close();
-                fis.close();
+                return FileVisitResult.CONTINUE;
             }
-        }
+        });
+        zos.close();
+        return _tmpZip;
     }
 
-    public static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
-        if (fileToZip.isHidden()) {
-            return;
-        }
-        if (fileToZip.isDirectory()) {
-            if (fileName.endsWith("/")) {
-                zipOut.putNextEntry(new ZipEntry(fileName));
-                zipOut.closeEntry();
-            } else {
-                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-                zipOut.closeEntry();
-            }
-            File[] children = fileToZip.listFiles();
-            for (File childFile : children) {
-                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
-            }
-            return;
-        }
-        FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileName);
-        zipOut.putNextEntry(zipEntry);
-        byte[] bytes = new byte[1024];
-        int length;
-        while ((length = fis.read(bytes)) >= 0) {
-            zipOut.write(bytes, 0, length);
+    public void zipFile(File sourceFile, Path zipPath) throws Exception {
+        FileOutputStream fos = new FileOutputStream(zipPath.toFile());
+        ZipOutputStream zos = new ZipOutputStream(fos);
+        ZipEntry ze = new ZipEntry(sourceFile.getName());
+        zos.putNextEntry(ze);
+        FileInputStream fis = new FileInputStream(sourceFile);
+        byte[] bytesRead = new byte[512];
+        int bytesNum;
+        while ((bytesNum = fis.read(bytesRead)) > 0) {
+            zos.write(bytesRead, 0, bytesNum);
         }
         fis.close();
-    }
-
-    public static String zipStreamUpload(File dir, String server, String username, String password)
-            throws Exception {
-
-        File _tmpZip = File.createTempFile(dir.getName(), "");
-        FileOutputStream fos = new FileOutputStream(_tmpZip);
-        ZipOutputStream zipOut = new ZipOutputStream(fos);
-        zipFile(dir, _tmpZip.getName(), zipOut);
-
-        String remoteURL = uploadFile(_tmpZip, server, username, password);
-        zipOut.close();
+        zos.closeEntry();
+        zos.close();
         fos.close();
-
-        FileUtils.deleteQuietly(_tmpZip);
-
-        return remoteURL;
     }
 
-    public static String uploadFile(File datafile, String upUrl, String username, String password) throws Exception {
-        if (username == null || password == null){
-            return "missing username or password " + upUrl + " " + username + " " + password;
-        }
-        if(datafile.exists()) {
-            AsyncHttpClient client = Dsl.asyncHttpClient();
-            InputStream inputStream;
-            inputStream = new BufferedInputStream(new FileInputStream(datafile));
-            try {
-                org.asynchttpclient.Response response = client.preparePost(upUrl)
-                        .setRealm(basicAuthRealm(username, password).setUsePreemptiveAuth(true))
-                        .addBodyPart(new
-                                InputStreamPart(
-                                datafile.getName(), inputStream, datafile.getName(), -1,
-                                "application/octet-stream", UTF_8)
-                        ).execute().get();
-                String returnURL = response.getResponseBody().replace("\n", "");
-                return returnURL;
-            } catch (Exception e) {
-                return null;
-            }
-            finally {
-                inputStream.close();
-            }
 
-            }
-        return null;
-    }
 }
-
-class ZipStreamer extends Thread {
-    public PipedInputStream pis;
-    public OutputStream os;
-
-    public ZipStreamer(PipedInputStream pis, OutputStream os) {
-        super();
-        this.pis = pis;
-        this.os = os;
-    }
-
-    public void run() {
-        try {
-            IOUtils.copyLarge(pis, os);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-

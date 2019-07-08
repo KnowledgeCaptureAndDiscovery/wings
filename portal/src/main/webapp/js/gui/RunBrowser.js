@@ -288,24 +288,44 @@ RunBrowser.prototype.getVariableBindingData = function(data) {
 };
 
 RunBrowser.prototype.stopRun = function(rec) {
-	var This = this;
-	var url = this.op_url + '/stopRun';
-	var msgTarget = this.runList.getEl();
-	msgTarget.mask('Stopping...', 'x-mask-loading');
-	Ext.Ajax.request({
-		url : url,
-		params : {
-			run_id : rec.data.id,
-		},
-		success : function(response) {
-			msgTarget.unmask();
-			This.runList.getStore().load();
-			
-		},
-		failure : function(response) {
-			_console(response.responseText);
-		}
-	});
+    var This = this;
+    var url = this.op_url + '/stopRun';
+    var msgTarget = this.runList.getEl();
+    msgTarget.mask('Stopping...', 'x-mask-loading');
+    Ext.Ajax.request({
+        url: url,
+        params: {
+            run_id: rec.data.id,
+        },
+        success: function (response) {
+            msgTarget.unmask();
+            This.runList.getStore().load();
+
+        },
+        failure: function (response) {
+            _console(response.responseText);
+        }
+    });
+}
+
+RunBrowser.prototype.reRun = function(rec) {
+    var This = this;
+    var url = this.op_url + '/reRunWorkflow';
+    var msgTarget = this.runList.getEl();
+    msgTarget.mask('Creating the new workflow...', 'x-mask-loading');
+    Ext.Ajax.request({
+        url : url,
+        params : {
+            run_id : rec.data.id,
+        },
+        success : function(response) {
+            msgTarget.unmask();
+            This.runList.getStore().load();
+        },
+        failure : function(response) {
+            _console(response.responseText);
+        }
+    });
 };
 
 RunBrowser.prototype.registerData = function(b, runid) {
@@ -380,6 +400,43 @@ RunBrowser.prototype.publishRun = function(runid, tabPanel) {
 		}
 	});
 };
+
+
+RunBrowser.prototype.prePublishList = function() {
+	var This = this;
+	Ext.Msg.prompt("Publishing executions" , "Please, enter a pattern", function(btn, text) {
+		if (btn == 'ok' && text)
+			This.publishList(text);
+		else{
+			showError('Please enter a pattern');
+			return;
+		}
+	});
+};
+
+RunBrowser.prototype.publishList = function(pattern) {
+	var msgTarget = this.tabPanel.getEl();
+	msgTarget.mask('Publishing RDF ...', 'x-mask-loading');
+	var url = this.op_url + '/publishList';
+	Ext.Ajax.request({
+		url: url,
+		params: {
+			pattern: pattern
+		},
+		success: function (response) {
+			msgTarget.unmask();
+			var resp = Ext.decode(response.responseText);
+			if (resp.error)
+				showError(resp.error);
+		},
+		failure: function (response) {
+			msgTarget.unmask();
+			_console(response.responseText);
+		}
+	});
+}
+
+
 
 RunBrowser.prototype.getRunDetailsPanel = function(data, runid) {
 	var This = this;
@@ -787,6 +844,18 @@ RunBrowser.prototype.getRunList = function() {
 						if (recs && recs.length) {
 							wRunStore.remove(recs);
 							This.tabPanel.remove(This.tabPanel.getActiveTab());
+						}
+					}
+				},
+				{
+					text : 'Re-run',
+					iconCls : 'icon-reload fa fa-green',
+					disabled : false,
+					id : 'rerunButton',
+					handler : function() {
+						var recs = grid.getSelectionModel().getSelection();
+						if (recs && recs.length) {
+							This.reRun(recs[0]);
 						}
 					}
 				},

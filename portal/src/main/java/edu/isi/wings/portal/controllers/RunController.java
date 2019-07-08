@@ -21,9 +21,11 @@ package edu.isi.wings.portal.controllers;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
+import javax.ws.rs.core.Response;
 
 import edu.isi.wings.opmm.Catalog;
 import edu.isi.wings.portal.classes.config.Publisher;
@@ -81,26 +83,51 @@ public class RunController {
 
   private Properties props;
 
+  public TemplateCreationAPI tc;
+
+
   public RunController(Config config) {
     this.config = config;
     this.json = JsonHandler.createRunGson();
     this.props = config.getProperties();
     this.dataUrl = config.getUserDomainUrl() + "/data";
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
+
+    tc = TemplateFactory.getCreationAPI(props);
   }
 
-  public String getRunListJSON(int start, int limit) {
+  /**
+   * Get the run list json.
+   * @param pattern optional, a pattern to filter
+   * @param completed optional, a pattern to filter complete runs
+   * @param start optional, start offset (for paging) (set to -1 to ignore)
+   * @param limit optional, number of runs to return (for paging) (set to -1 to ignore)
+   * @return
+   */
+  public String getRunListJSON(String pattern, Boolean completed, int start, int limit) {
     HashMap<String, Object> result = new HashMap<String, Object>();
+    if (completed == null) {
+      completed = false;
+    }
     result.put("success", true);
     result.put("results", this.getNumberOfRuns());
-    result.put("rows", this.getRunList(start, limit));
+    result.put("rows", this.getRunList(pattern, completed, start, limit));    
     return json.toJson(result);
   }
 
-  public ArrayList<HashMap<String, Object>> getRunList(int start, int limit) {
+
+  public ArrayList<HashMap<String, Object>> getRunList(String pattern, Boolean completed, int start, int limit) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunList(start, limit)) {
+      //check the pattern
+      if (pattern != null && !Pattern.compile(Pattern.quote(pattern), Pattern.CASE_INSENSITIVE).matcher(exe.getID()).find()){
+        continue;
+      }
+      //check if completed
+      if (completed && exe.getRuntimeInfo().getStatus().toString() != "SUCCESS" ) {
+        continue;
+      }
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
@@ -250,6 +277,10 @@ public class RunController {
     xtpl.autoLayout();
     Template seedtpl = JsonHandler.getTemplateFromJSON(json, seedjson, seedconsjson);
 
+    return createPlan(origtplid, context, xtpl, seedtpl);
+  }
+
+  private String createPlan(String origtplid, ServletContext context, Template xtpl, Template seedtpl) {
     String requestid = UuidGen.generateAUuid("");
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
@@ -278,6 +309,19 @@ public class RunController {
     return "";
   }
 
+
+  public Response reRunPlan(String run_id, ServletContext context){
+    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    RuntimePlan plan = monitor.getRunDetails(run_id);
+    TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+    String orig_tp_id = plan.getOriginalTemplateID();
+    Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
+    Template seedtpl = tc.getTemplate(plan.getSeededTemplateID());
+    if (createPlan(orig_tp_id, context, xtpl, seedtpl) == "")
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal error").build();
+    return Response.status(Response.Status.CREATED).entity("CREATED").build();
+  }
+
   // Run the Runtime Plan
   public void runExecutionPlan(RuntimePlan rplan, ServletContext context) {
     PlanExecutionEngine engine = config.getDomainExecutionEngine();
@@ -289,6 +333,41 @@ public class RunController {
     context.setAttribute("engine_" + rplan.getID(), engine);
   }
 
+//  public String publishRunList(String pattern) {
+//    ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
+//    ArrayList<HashMap<String, Object>>  returnJson = new ArrayList<>();
+//    Iterator<HashMap<String, Object>> i = runs.iterator();
+//
+//    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+//    List<Future> futures = new ArrayList<Future>();
+//
+//    while (i.hasNext()){
+//      String id = (String) i.next().get("id");
+//      futures.add(executor.submit(new Callable<String>() {
+//        public String call() {
+//          try {
+//            return publishRun(id);
+//          } catch (Exception e) {
+//            return "";
+//          }
+//        }
+//      }));
+//
+//    }
+//    for(Future f: futures) {
+//      HashMap<String, Object> element = new HashMap<>();
+//      try {
+//        String jsonReturn = (String) f.get();
+//        Map<String, String> map = new Gson().fromJson(jsonReturn, Map.class);
+//        if (map.containsKey("url"))
+//          element.put("url", map.get("url"));
+//        returnJson.add(element);
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
+//    return json.toJson(returnJson);
+//  }
 
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
@@ -307,7 +386,10 @@ public class RunController {
         String tstorequery = publisher.getTstoreQueryUrl();
         String exportName = publisher.getExportName();
         String upurl = publisher.getUploadServer().getUrl();
-
+        String uploadURL = publishUrl.getUrl();
+        String uploadUsername = publishUrl.getUsername();
+        String uploadPassword = publishUrl.getPassword();
+        long uploadMaxSize = publishUrl.getMaxUploadSize();
         //opmm.setPublishExportPrefix(puburl);
 
         String rname = runid.substring(runid.indexOf('#') + 1);
@@ -387,27 +469,43 @@ public class RunController {
 
         Catalog catalog = new Catalog(config.getDomainId(), exportName,
             publisher.getDomainsDir(), aclibfile.getAbsolutePath());
-        WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery,
-                publishUrl.getUrl(), publishUrl.getUsername(), publishUrl.getPassword());
-        exp.exportAsOPMW(run_exportdir.getAbsolutePath(), "RDF/XML");
-        catalog.exportCatalog(null);
 
-        //run_exportdir the files to export
-        for(File f : run_exportdir.listFiles()) {
-          this.publishFile(tstoreurl, exp.getTransformedExecutionURI(), f.getAbsolutePath());
-        }
-        WorkflowTemplateExport texp = exp.getConcreteTemplateExport();
-        if(texp != null) {
-          texp.exportAsOPMW(tpl_exportdir.getAbsolutePath(), "RDF/XML");
-          for(File f : tpl_exportdir.listFiles()) {
-            this.publishFile(tstoreurl,
-                texp.getTransformedTemplateIndividual().getURI(),
-                f.getAbsolutePath());
+        WorkflowExecutionExport exp = new WorkflowExecutionExport(
+            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
+        exp.setUploadURL(uploadURL);
+        exp.setUploadUsername(uploadUsername);
+        exp.setUploadPassword(uploadPassword);
+        exp.setUploadMaxSize(uploadMaxSize);
+        String serialization = "TURTLE";
+
+        //publish the catalog
+        String domainPath = catalog.exportCatalog(null, serialization);
+        File domainFile = new File(domainPath);
+        this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
+
+        //execution
+        String executionFilePath = run_exportdir + File.separator + "execution";
+        String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
+        if (!exp.isExecPublished()) {
+          this.publishFile(tstoreurl, graphUri, executionFilePath);
+
+          //expandedTemplate
+          String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+          String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath, serialization);
+          if(! exp.getConcreteTemplateExport().isTemplatePublished())
+            this.publishFile(tstoreurl, expandedTemplateGraphUri , expandedTemplateFilePath);
+
+          //abstract
+          WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
+          if (abstractTemplateExport != null) {
+            String abstractFilePath = run_exportdir + File.separator + "abstract";
+            String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
+            if ( !abstractTemplateExport.isTemplatePublished() )
+              this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
           }
         }
 
-        FileUtils.deleteQuietly(tempdir);
+
 
         retmap.put("url", exp.getTransformedExecutionURI());
 
@@ -465,13 +563,17 @@ public class RunController {
       putRequest.setConfig(requestConfig);
 
       File file = new File(filepath);
-      String rdfxml = FileUtils.readFileToString(file);
-      if (rdfxml != null) {
-        StringEntity input = new StringEntity(rdfxml);
-        input.setContentType("application/rdf+xml");
+      String content = FileUtils.readFileToString(file);
+      if (content != null) {
+        StringEntity input = new StringEntity(content);
+        input.setContentType("text/turtle");
 
         putRequest.setEntity(input);
-        httpClient.execute(putRequest);
+        HttpResponse response = httpClient.execute(putRequest);
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode != 201) {
+          System.err.println("Unable to upload the domain " + statusCode);
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();
