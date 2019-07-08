@@ -104,34 +104,25 @@ public class RunController {
    * @param limit optional, number of runs to return (for paging) (set to -1 to ignore)
    * @return
    */
-  public String getRunListJSON(String pattern, Boolean completed, int start, int limit) {
+  public String getRunListJSON(String pattern, String status, int start, int limit) {
     HashMap<String, Object> result = new HashMap<String, Object>();
-    if (completed == null) {
-      completed = false;
-    }
     result.put("success", true);
-    result.put("results", this.getNumberOfRuns());
-    result.put("rows", this.getRunList(pattern, completed, start, limit));    
+    result.put("results", this.getNumberOfRuns(pattern, status));
+    result.put("rows", this.getRunList(pattern, status, start, limit));    
     return json.toJson(result);
   }
 
 
-  public ArrayList<HashMap<String, Object>> getRunList(String pattern, Boolean completed, int start, int limit) {
+  public ArrayList<HashMap<String, Object>> getRunList(String pattern, String status, int start, int limit) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-    for (RuntimePlan exe : monitor.getRunList(start, limit)) {
-      //check the pattern
-      if (pattern != null && !Pattern.compile(Pattern.quote(pattern), Pattern.CASE_INSENSITIVE).matcher(exe.getID()).find()){
-        continue;
-      }
-      //check if completed
-      if (completed && exe.getRuntimeInfo().getStatus().toString() != "SUCCESS" ) {
-        continue;
-      }
+    for (RuntimePlan exe : monitor.getRunList(pattern, status, start, limit)) {
       HashMap<String, Object> map = new HashMap<String, Object>();
+      
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
       map.put("id", exe.getID());
+      
       if (exe.getQueue() != null) {
         int numtotal = exe.getQueue().getAllSteps().size();
         int numdone = exe.getQueue().getFinishedSteps().size();
@@ -150,9 +141,9 @@ public class RunController {
     return list;
   }
   
-  public int getNumberOfRuns() {
+  public int getNumberOfRuns(String pattern, String status) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    return monitor.getNumberOfRuns();
+    return monitor.getNumberOfRuns(pattern, status);
   }
 
   private String getStepIds(ArrayList<RuntimeStep> steps) {

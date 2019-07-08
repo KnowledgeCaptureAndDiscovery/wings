@@ -24,9 +24,9 @@ import edu.isi.wings.execution.engine.classes.RuntimePlan;
 
 public interface ExecutionMonitorAPI extends TransactionsAPI {
 	// The RuntimePlan here is expected to not contain detail about all steps here
-	ArrayList<RuntimePlan> getRunList(int start, int limit);
+	ArrayList<RuntimePlan> getRunList(String pattern, String status, int start, int limit);
 	
-  int getNumberOfRuns();
+  int getNumberOfRuns(String pattern, String status);
   
 	RuntimePlan getRunDetails(String runid);
 	

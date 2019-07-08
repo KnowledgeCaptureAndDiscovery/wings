@@ -870,7 +870,25 @@ RunBrowser.prototype.getRunList = function() {
 							This.stopRun(recs[0]);
 						}
 					}
-				}, '-', {
+				}, '-', 
+				{
+					xtype: 'textfield',
+					id: 'searchText',
+				},
+				{
+					text: 'Search',
+					handler : function() {
+						wRunStore.load({
+					        start: 0,
+					        limit: PAGESIZE,
+					        params: {
+					        	pattern: grid.down('#searchText').value
+					        }
+						});
+					}
+				},
+				'-', 
+				{
 					xtype : 'tbfill'
 				}, '-', {
 					text : 'Reload',
@@ -879,6 +897,9 @@ RunBrowser.prototype.getRunList = function() {
 						wRunStore.load({
 					        start: 0,
 					        limit: PAGESIZE,
+					        params: {
+					        	pattern: grid.down('#searchText').value
+					        }
 						});
 					}
 				}

@@ -50,7 +50,7 @@ public class RunResource extends WingsResource {
   @Produces(MediaType.APPLICATION_JSON)
   public String getRunList(
           @QueryParam("pattern") final String pattern,
-          @QueryParam("status") final Boolean status,
+          @QueryParam("status") final String status,
           @QueryParam("start") int start, 
           @QueryParam("limit") int limit
   ) {

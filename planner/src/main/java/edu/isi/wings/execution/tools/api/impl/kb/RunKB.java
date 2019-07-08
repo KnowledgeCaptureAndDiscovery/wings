@@ -65,6 +65,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	String onturl;
 	String liburl;
 	String newrunurl;
+	String newtplurl;
 	String tdbRepository;
 
 	protected HashMap<String, KBObject> objPropMap;
@@ -75,7 +76,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.props = props;
 		this.onturl = props.getProperty("ont.execution.url");
 		this.liburl = props.getProperty("lib.domain.execution.url");
-		this.newrunurl = props.getProperty("domain.executions.dir.url");
+		this.newtplurl = props.getProperty("domain.workflows.dir.url") + "/";
+		this.newrunurl = props.getProperty("domain.executions.dir.url") + "/";
 		this.tdbRepository = props.getProperty("tdb.repository.dir");
 
 		if (tdbRepository == null) {
@@ -172,23 +174,32 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-  public int getNumberOfRuns() {
+  public int getNumberOfRuns(String pattern, String status) {
 	    String query = 
 	        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
-	        "SELECT (COUNT(*) as ?count)" + 
+	        "SELECT (COUNT(*) as ?count)\n" + 
 	        "WHERE { " +
 	        "?run a exec:Execution .\n" +
+	        "?run exec:hasTemplate ?template .\n" +
+	        "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
+	        (pattern != null ? "FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n" : "") +
+	        (status != null ? "?run exec:hasExecutionStatus '"+status+"' .\n" : "") + 
 	        "}";
+	    //System.out.println(query);
 	    this.start_read();
-	    ArrayList<ArrayList<SparqlQuerySolution>> result = kb.sparqlQuery(query);
+	    ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
 	    int size = (Integer) result.get(0).get(0).getObject().getValue();
 	    this.end();
 	    return size;
 	 }
 	    
 	@Override
-	public ArrayList<RuntimePlan> getRunList(int start, int limit) {
+	public ArrayList<RuntimePlan> getRunList(String pattern, String status, int start, int limit) {
 	  ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
+	  
+	  if(pattern == null) {
+	    pattern = "";
+	  }
 	  
 	  String query = 
 	      "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
@@ -200,30 +211,46 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	      "?run exec:hasExecutionStatus ?status .\n" + 
 	      "?run exec:hasTemplate ?template .\n" + 
 	      "?run exec:hasStartTime ?start .\n" + 
-        "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
-        // Query for Successful runs
-        "{\n" +
-        " ?run exec:hasExecutionStatus 'SUCCESS' .\n" +        
-        " ?run exec:hasEndTime ?end .\n" +
-        "}\n" +
-        "UNION\n" +
-        // Query for Failures        
-	      "{\n" +
-        " ?run exec:hasExecutionStatus 'FAILURE' .\n" + 	      
-        " ?run exec:hasEndTime ?end .\n" +
-	      " ?run exec:hasStep ?step .\n" +
-        " ?step exec:hasExecutionStatus ?stepstatus .\n" +
-        "}\n" +
-        "UNION\n" +
-        // Query for Running Runs
-        "{\n" +
-        " ?run exec:hasExecutionStatus 'RUNNING' .\n" + 
-        " ?run exec:hasStep ?step .\n" +
-        " ?step exec:hasExecutionStatus ?stepstatus .\n" +
-        "}\n" +
-	      "}\n" + 
-	      "GROUP BY ?run ?status ?template ?start ?end \n" +
+	      "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
+	      "FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n";
+	  
+	  if(status == null || status.equals("SUCCESS")) {
+  	  query += 
+          // Query for Successful runs
+          "{\n" +
+          " ?run exec:hasExecutionStatus 'SUCCESS' .\n" +        
+          " ?run exec:hasEndTime ?end .\n" +
+          "}\n";
+	  }
+    if(status == null || status.equals("FAILURE")) {
+      if(status == null) 
+        query += "UNION\n";
+      query += 
+          // Query for Failures        
+          "{\n" +
+          " ?run exec:hasExecutionStatus 'FAILURE' .\n" +         
+          " ?run exec:hasEndTime ?end .\n" +
+          " ?run exec:hasStep ?step .\n" +
+          " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+          "}\n";
+    }
+    if(status == null || status.equals("RUNNING")) {
+      if(status == null) 
+        query += "UNION\n";
+      query += 
+          // Query for Failures        
+          "{\n" +
+          " ?run exec:hasExecutionStatus 'RUNNING' .\n" +         
+          " ?run exec:hasEndTime ?end .\n" +
+          " ?run exec:hasStep ?step .\n" +
+          " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+          "}\n";
+    }
+    query += "}\n";
+    
+    query += "GROUP BY ?run ?status ?template ?start ?end \n" +
 	      "ORDER BY DESC(?start)";
+    
 	  if(limit >= 0 && start >=0) {
 	    query += " LIMIT " + limit + " OFFSET " + start;
 	  }
@@ -246,9 +273,9 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    KBObject endtime = vals.get("end");
 	    if (endtime != null && endtime.getValue() != null)
 	      info.setEndTime((Date) endtime.getValue());
-	    KBObject status = vals.get("status");
-	    if (status != null && status.getValue() != null)
-	      info.setStatus(RuntimeInfo.Status.valueOf((String) status.getValue()));
+	    KBObject statusObj = vals.get("status");
+	    if (statusObj != null && statusObj.getValue() != null)
+	      info.setStatus(RuntimeInfo.Status.valueOf((String) statusObj.getValue()));
 	    rplan.setRuntimeInfo(info);
 	    
 	    KBObject steps = vals.get("steps");
@@ -316,7 +343,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	@Override
 	public boolean delete() {
 	  boolean ok = true;
-		for(RuntimePlan rplan : this.getRunList(-1, -1)) {
+		for(RuntimePlan rplan : this.getRunList(null, null, -1, -1)) {
 			ok = this.deleteRun(rplan.getID());
 			if(!ok)
 			  return false;
