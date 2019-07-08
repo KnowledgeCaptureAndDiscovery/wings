@@ -200,19 +200,35 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	      "?run exec:hasExecutionStatus ?status .\n" + 
 	      "?run exec:hasTemplate ?template .\n" + 
 	      "?run exec:hasStartTime ?start .\n" + 
-	      "OPTIONAL { ?run exec:hasEndTime ?end . } .\n" + 
-	      "OPTIONAL {\n" + 
-	      "FILTER REGEX(?status, 'FAILURE|RUNNING') .\n" + 
-	      "?run exec:hasStep ?step .\n" + 
-	      "?step exec:hasExecutionStatus ?stepstatus .\n" + 
+        "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
+        // Query for Successful runs
+        "{\n" +
+        " ?run exec:hasExecutionStatus 'SUCCESS' .\n" +        
+        " ?run exec:hasEndTime ?end .\n" +
+        "}\n" +
+        "UNION\n" +
+        // Query for Failures        
+	      "{\n" +
+        " ?run exec:hasExecutionStatus 'FAILURE' .\n" + 	      
+        " ?run exec:hasEndTime ?end .\n" +
+	      " ?run exec:hasStep ?step .\n" +
+        " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+        "}\n" +
+        "UNION\n" +
+        // Query for Running Runs
+        "{\n" +
+        " ?run exec:hasExecutionStatus 'RUNNING' .\n" + 
+        " ?run exec:hasStep ?step .\n" +
+        " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+        "}\n" +
 	      "}\n" + 
-	      "FILTER REGEX(str(?run), '" + newrunurl + "')\n" + 
-	      "}\n" + 
-	      "GROUP BY ?run ?status ?template ?start ?end";
+	      "GROUP BY ?run ?status ?template ?start ?end \n" +
+	      "ORDER BY DESC(?start)";
 	  if(limit >= 0 && start >=0) {
 	    query += " LIMIT " + limit + " OFFSET " + start;
 	  }
 	  
+	  //System.out.println(query);
 	  this.start_read();
 	  ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
 	  for(ArrayList<SparqlQuerySolution> row : result) {
