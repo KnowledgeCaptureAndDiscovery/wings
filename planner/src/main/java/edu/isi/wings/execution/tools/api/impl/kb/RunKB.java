@@ -175,14 +175,15 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
   public int getNumberOfRuns() {
 	    String query = 
 	        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
-	        "SELECT ?run" + 
+	        "SELECT (COUNT(*) as ?count)" + 
 	        "WHERE { " +
 	        "?run a exec:Execution .\n" +
 	        "}";
 	    this.start_read();
 	    ArrayList<ArrayList<SparqlQuerySolution>> result = kb.sparqlQuery(query);
+	    int size = (Integer) result.get(0).get(0).getObject().getValue();
 	    this.end();
-	    return result.size();
+	    return size;
 	 }
 	    
 	@Override
