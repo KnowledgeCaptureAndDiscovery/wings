@@ -89,14 +89,18 @@ public class RunController {
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
   }
 
-  public String getRunListJSON() {
-    return json.toJson(this.getRunList());
+  public String getRunListJSON(int start, int limit) {
+    HashMap<String, Object> result = new HashMap<String, Object>();
+    result.put("success", true);
+    result.put("results", this.getNumberOfRuns());
+    result.put("rows", this.getRunList(start, limit));
+    return json.toJson(result);
   }
 
-  public ArrayList<HashMap<String, Object>> getRunList() {
+  public ArrayList<HashMap<String, Object>> getRunList(int start, int limit) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-    for (RuntimePlan exe : monitor.getRunList()) {
+    for (RuntimePlan exe : monitor.getRunList(start, limit)) {
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
@@ -117,6 +121,11 @@ public class RunController {
       list.add(map);
     }
     return list;
+  }
+  
+  public int getNumberOfRuns() {
+    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    return monitor.getNumberOfRuns();
   }
 
   private String getStepIds(ArrayList<RuntimeStep> steps) {

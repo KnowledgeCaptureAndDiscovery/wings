@@ -28,6 +28,8 @@ function RunBrowser(guid, runid, op_url, data_url, template_url, can_publish) {
 	this.tBrowser = this.setupTemplateBrowser();
 }
 
+PAGESIZE = 100;
+
 RunBrowser.prototype.setupTemplateBrowser = function() {
 	return new TemplateBrowser(this.guid, 
 			{ 
@@ -713,6 +715,8 @@ RunBrowser.prototype.getRunList = function() {
 			},
 			reader : {
 				type : 'json',
+	            root: 'rows',
+	            totalProperty: 'results',
 				idProperty : 'id'
 			},
 			writer : {
@@ -722,6 +726,7 @@ RunBrowser.prototype.getRunList = function() {
 				writeAllFields : false
 			},
 		},
+		pageSize: PAGESIZE,
 		sorters : [
 			{
 				property : 'startTime',
@@ -802,11 +807,20 @@ RunBrowser.prototype.getRunList = function() {
 					text : 'Reload',
 					iconCls : 'icon-reload fa fa-green',
 					handler : function() {
-						wRunStore.load();
+						wRunStore.load({
+					        start: 0,
+					        limit: PAGESIZE,
+						});
 					}
 				}
 		],
-		store : wRunStore
+		store : wRunStore,
+	    dockedItems: [{
+	        xtype: 'pagingtoolbar',
+	        store: wRunStore,   // same store GridPanel is using
+	        dock: 'bottom',
+	        displayInfo: true
+	    }],
 	});
 
 	grid.getSelectionModel().on("select", function(sm, rec, ind) {
@@ -833,7 +847,10 @@ RunBrowser.prototype.getRunList = function() {
 
 	var gridListRefresh = {
 		run : function() {
-			wRunStore.load();
+			wRunStore.load({
+		        start: 0,
+		        limit: PAGESIZE,
+			});
 		},
 		interval : 60000
 		// 60 seconds

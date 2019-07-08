@@ -172,7 +172,21 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public ArrayList<RuntimePlan> getRunList() {
+  public int getNumberOfRuns() {
+	    String query = 
+	        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
+	        "SELECT ?run" + 
+	        "WHERE { " +
+	        "?run a exec:Execution .\n" +
+	        "}";
+	    this.start_read();
+	    ArrayList<ArrayList<SparqlQuerySolution>> result = kb.sparqlQuery(query);
+	    this.end();
+	    return result.size();
+	 }
+	    
+	@Override
+	public ArrayList<RuntimePlan> getRunList(int start, int limit) {
 	  ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
 	  
 	  String query = 
@@ -194,6 +208,9 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	      "FILTER REGEX(str(?run), '" + newrunurl + "')\n" + 
 	      "}\n" + 
 	      "GROUP BY ?run ?status ?template ?start ?end";
+	  if(limit >= 0 && start >=0) {
+	    query += " LIMIT " + limit + " OFFSET " + start;
+	  }
 	  
 	  this.start_read();
 	  ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
@@ -282,7 +299,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	@Override
 	public boolean delete() {
 	  boolean ok = true;
-		for(RuntimePlan rplan : this.getRunList()) {
+		for(RuntimePlan rplan : this.getRunList(-1, -1)) {
 			ok = this.deleteRun(rplan.getID());
 			if(!ok)
 			  return false;
