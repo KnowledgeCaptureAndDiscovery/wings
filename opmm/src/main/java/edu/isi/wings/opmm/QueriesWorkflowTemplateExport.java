@@ -61,7 +61,7 @@ public class QueriesWorkflowTemplateExport {
                 "from <urn:x-arq:UnionGraph>" +
                 "WHERE" +
                 "{ " +
-                "  ?a ?b <https://www.opmw.org/export/resource/WorkflowTemplate/Caesar_Cypher_v1>." +
+                "  ?a ?b <" + queryTemplate +  ">." +
                 "  ?a ?c ?d" +
                 "  filter not exists {?a a <https://www.opmw.org/ontology/WorkflowTemplate>}" +
                 "}";
