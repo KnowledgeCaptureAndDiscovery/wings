@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Iterator;
+
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.ontology.Individual;
 import org.apache.jena.ontology.OntClass;
@@ -114,6 +115,10 @@ public class WorkflowTemplateExport {
                 System.out.println("Template " +wingsTemplateName+" has already been published as "+foundTemplateURI.getURI());
                 //no export is necessary
                 transformedTemplate = opmwModel.createClass(Constants.OPMW_WORKFLOW_TEMPLATE).createIndividual(foundTemplateURI.getURI());
+                //            String queryExec = QueriesWorkflowExecutionExport.getOPMWExecutionsWithRunID(wingsExecution.getLocalName());
+                //            QuerySolution solution = ModelUtils.queryOnlineRepository(queryExec, endpointURI);
+                String queryTemplate = QueriesWorkflowTemplateExport.queryRetrieveAbstractTemplateElements(foundTemplateURI.getURI());
+                opmwModel.add(ModelUtils.constructOnlineRepository(queryTemplate, endpointURI));
                 isTemplatePublished = true;
                 return;
             }else{

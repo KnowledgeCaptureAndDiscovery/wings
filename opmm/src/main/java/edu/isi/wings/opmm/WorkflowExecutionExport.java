@@ -143,7 +143,6 @@ public class WorkflowExecutionExport {
         weInstance.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_ORIGINAL_EXECUTION_FILE), wingsExecution.getURI());
         //hasTime, endTime and execution status.
         String queryExecutionMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionMetadata(wingsExecution.getURI());
-        System.out.println("Queries queryExecutionMetadata");
         ResultSet rs = ModelUtils.queryLocalRepository(queryExecutionMetadata, wingsExecutionModel);
         //there is only 1 execution per file
         if (rs.hasNext()) {
@@ -174,7 +173,6 @@ public class WorkflowExecutionExport {
 
         //get expanded template loaded in local model (for parameter linking)
         String queryExpandedTemplate = QueriesWorkflowExecutionExport.getWINGSExpandedTemplate();
-        System.out.println("Queries queryExpandedTemplate");
         rs = ModelUtils.queryLocalRepository(queryExpandedTemplate, wingsExecutionModel);
         String expandedTemplateURI = null;
         if (rs.hasNext()) {
@@ -190,7 +188,6 @@ public class WorkflowExecutionExport {
 
         //transform all steps and data dependencies (params are in expanded template)
         String queryExecutionStepMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionStepsAndMetadata();
-        System.out.println("Queries queryExecutionStepMedata");
         rs = ModelUtils.queryLocalRepository(queryExecutionStepMetadata, wingsExecutionModel);
         while (rs.hasNext()) {
             QuerySolution qs = rs.next();
@@ -245,7 +242,6 @@ public class WorkflowExecutionExport {
 
             //for each step get its i/o (plan)
             String stepVariables = QueriesWorkflowExecutionExport.getWINGSExecutionStepI_O(wingsStep.getURI());
-            System.out.println("Queries step variables");
             ResultSet rsVar = ModelUtils.queryLocalRepository(stepVariables, wingsExecutionModel);
             while (rsVar.hasNext()) {
                 QuerySolution qsVar = rsVar.next();
@@ -286,7 +282,6 @@ public class WorkflowExecutionExport {
             //Parameters are specified in the expanded template. The current step is specified with the expanded template URI, same process id.
             String wingsExpandedTempProcessURI = expandedTemplateURI + wingsStep.getLocalName();
             String queryParams = QueriesWorkflowExecutionExport.getWINGSParametersForStep(wingsExpandedTempProcessURI);
-            System.out.println("Queries params variables");
             ResultSet params = ModelUtils.queryLocalRepository(queryParams, concreteTemplateExport.getWingsTemplateModel());
             while (params.hasNext()) {
                 QuerySolution nextP = params.next();

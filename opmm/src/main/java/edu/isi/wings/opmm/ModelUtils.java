@@ -10,6 +10,7 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.FileManager;
@@ -76,14 +77,13 @@ public class ModelUtils {
         // Execute the query and obtain results
         QueryExecution qe = QueryExecutionFactory.create(query, repository);
         ResultSet rs =  qe.execSelect();
-        System.out.println(queryIn);
         return rs;
     }
     /**
      * Query an online repository
      * @param queryIn query to specify
      * @param endpointURI URI of the repository
-     * @return 
+     * @return
      */
     public static QuerySolution queryOnlineRepository(String queryIn, String endpointURI){
         Query query = QueryFactory.create(queryIn);
@@ -92,11 +92,21 @@ public class ModelUtils {
         ResultSet rs =  qe.execSelect();
         QuerySolution solution = null;
         if(rs.hasNext())
-          solution = rs.next();
+            solution = rs.next();
         qe.close();
         return solution;
     }
-    
+
+    public static Model constructOnlineRepository(String queryIn, String endpointURI){
+        Query query = QueryFactory.create(queryIn);
+        // Execute the query and obtain results
+        QueryExecution qe = QueryExecutionFactory.sparqlService(endpointURI, query);
+        Model rs = qe.execConstruct();
+        qe.close();
+        return rs;
+    }
+
+
     /**
      * Function that initializes a model. If the model exists, it empties it.
      * If it doesn't exist (null) it returns a new instance of a model
