@@ -106,9 +106,11 @@ public class RunController {
    */
   public String getRunListJSON(String pattern, String status, int start, int limit) {
     HashMap<String, Object> result = new HashMap<String, Object>();
+    int numberOfRuns = this.getNumberOfRuns(pattern, status);
+    boolean fasterQuery = numberOfRuns > 1000;
     result.put("success", true);
-    result.put("results", this.getNumberOfRuns(pattern, status));
-    result.put("rows", this.getRunList(pattern, status, start, limit));    
+    result.put("results", numberOfRuns);
+    result.put("rows", this.getRunList(pattern, status, start, limit, fasterQuery));    
     return json.toJson(result);
   }
 
@@ -135,10 +137,11 @@ public class RunController {
   }
 
 
-  public ArrayList<HashMap<String, Object>> getRunList(String pattern, String status, int start, int limit) {
+  public ArrayList<HashMap<String, Object>> getRunList(String pattern, String status, int start, int limit, 
+      boolean fasterQuery) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-    for (RuntimePlan exe : monitor.getRunList(pattern, status, start, limit)) {
+    for (RuntimePlan exe : monitor.getRunList(pattern, status, start, limit, fasterQuery)) {
       HashMap<String, Object> map = new HashMap<String, Object>();
       
       map.put("runtimeInfo", exe.getRuntimeInfo());
