@@ -146,6 +146,44 @@ public class 	DataController {
 			dtree = json.toJson(tree.getRoot());
 		return dtree;
 	}
+	
+	private HashMap<String, Object> convertNodeToUINode(DataTreeNode node) {
+	  if(node == null)
+	    return null;
+	    
+	  DataItem item = node.getItem();
+	  HashMap<String, Object> treeNode = new HashMap<String, Object>();
+	  
+	  treeNode.put("text", item.getName());
+	  treeNode.put("id", item.getID());
+	  treeNode.put("isClass", (item.getType() == 1 ? true : false));
+    treeNode.put("iconCls", (item.getType() == 1 ? "icon-folder fa fa-yellow": 
+      "icon-file-alt fa fa-blue"));
+    treeNode.put("expIconCls", (item.getType() == 1 ? "icon-folder-open fa fa-yellow": 
+    "icon-file-alt fa fa-blue"));
+    treeNode.put("expanded",  false);
+    treeNode.put("leaf", (item.getType() == 1 ? false : true));
+    treeNode.put("draggable", (item.getType() == 1));
+    return treeNode;
+	}
+	
+	public String getNodeDataHierarchyJSON(String nodeid) {
+    DataTree tree = dc.getNodeDataHierarchy(nodeid);
+    String dtree = null;
+    if(tree != null) {
+      HashMap<String, Object> treeNode = new HashMap<String, Object>();
+      ArrayList<DataTreeNode> children = tree.getRoot().getChildren();
+      if (children != null && children.size() > 0) {
+        ArrayList<HashMap<String, Object>> uichildren = new ArrayList<HashMap<String, Object>>(); 
+        for(DataTreeNode childnode : children) {
+          uichildren.add(this.convertNodeToUINode(childnode));
+        }
+        treeNode.put("children", uichildren);
+      }
+      dtree = json.toJson(treeNode);
+    }
+    return dtree;
+	}
 
 	public String getDataListJSON() {
     HashMap<String, ArrayList<String>> typeInstances = dc.getAllDatatypeDatasets();

@@ -78,6 +78,16 @@ public class DataResource extends WingsResource {
   }
   
   @GET
+  @Path("getNodeDataHierarchyJSON")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getNodeDataHierarchyJSON(
+      @QueryParam("node") String nodeid) {
+    if(this.dc != null)
+      return this.dc.getNodeDataHierarchyJSON(nodeid);
+    return null;
+  }
+  
+  @GET
   @Path("getDataListJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataListJSON() {

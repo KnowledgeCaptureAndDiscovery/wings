@@ -34,6 +34,8 @@ public interface DataCreationAPI extends TransactionsAPI {
 	// Query
 	DataTree getDataHierarchy(); // Tree List of Data and Datatypes
 	
+	DataTree getNodeDataHierarchy(String nodeid); // Tree List of Data and Datatypes under a particular node
+	
 	DataTree getDatatypeHierarchy(); // Tree List of Datatypes
 
 	DataTree getMetricsHierarchy(); // Tree List of Metrics and Metric types
