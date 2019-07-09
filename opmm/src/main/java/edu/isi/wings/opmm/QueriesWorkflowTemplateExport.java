@@ -49,7 +49,24 @@ public class QueriesWorkflowTemplateExport {
                 + "OPTIONAL{?m <"+Constants.WINGS_DATA_PROP_LAST_UPDATED_TIME+"> ?time.}}";
         return query;
     }
-    
+
+    /**
+     * Query for retrieving the elements of an abstract template from the remote repository
+     */
+    public static String queryRetrieveAbstractTemplateElements(String queryTemplate){
+        String query = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>" +
+                "CONSTRUCT  {" +
+                "?a ?c ?d" +
+                "}" +
+                "from <urn:x-arq:UnionGraph>" +
+                "WHERE" +
+                "{ " +
+                "  ?a ?b <https://www.opmw.org/export/resource/WorkflowTemplate/Caesar_Cypher_v1>." +
+                "  ?a ?c ?d" +
+                "  filter not exists {?a a <https://www.opmw.org/ontology/WorkflowTemplate>}" +
+                "}";
+        return query;
+    }
     /**
      * Query to retrieve workflow template steps of a WINGS template
      * @return
