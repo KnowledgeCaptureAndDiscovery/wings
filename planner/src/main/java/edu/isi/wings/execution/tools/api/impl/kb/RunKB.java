@@ -241,7 +241,6 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           // Query for Failures        
           "{\n" +
           " ?run exec:hasExecutionStatus 'RUNNING' .\n" +         
-          " ?run exec:hasEndTime ?end .\n" +
           " ?run exec:hasStep ?step .\n" +
           " ?step exec:hasExecutionStatus ?stepstatus .\n" +
           "}\n";
