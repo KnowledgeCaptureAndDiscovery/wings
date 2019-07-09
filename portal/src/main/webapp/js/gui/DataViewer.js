@@ -1138,7 +1138,14 @@ DataViewer.prototype.createDataTreePanel = function(dataHierarchy) {
     this.dataTreeStore = Ext.create('Ext.data.TreeStore', {
         model: 'dataTreeRecord',
         root: This.getTree(dataHierarchy),
-        sorters: ['text']
+        sorters: ['text'],
+        proxy: {
+            type: 'ajax',
+            url: this.op_url + "/getNodeDataHierarchyJSON",
+			reader : {
+				type : 'json'
+			},
+        }
         });
 
     this.dataTreePanel = new Ext.tree.TreePanel({
@@ -1297,11 +1304,12 @@ DataViewer.prototype.getTree = function(data) {
     		'icon-file-alt fa fa-blue'),
         expIconCls: (item.type == 1 ? 'icon-folder-open fa fa-yellow': 
     		'icon-file-alt fa fa-blue'),
-        expanded: true,
+        expanded: (data.children && data.children.length) ? true : false,
         draggable: (item.type == 1),
-        children: []
+        //children: []
         };
-    if (data.children) {
+    if (data.children && data.children.length) {
+    	treenode.children = [];
         for (var i = 0; i < data.children.length; i++)
             treenode.children.push(this.getTree(data.children[i]));
     }

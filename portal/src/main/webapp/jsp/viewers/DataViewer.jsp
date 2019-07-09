@@ -20,7 +20,8 @@ String thisApi = dc.config.getScriptPath();
 
 int guid = 1;
 
-String tree = dc.getDataHierarchyJSON();
+String tree = "{\"item\":{\"type\":1,\"id\":\"http://www.wings-workflows.org/ontology/data.owl#DataObject\"}}";
+
 String metrics = dc.getMetricsHierarchyJSON();
 boolean hasExternalCatalog = (dc.dc != null && dc.dc.getExternalCatalog() != null);
 %>

@@ -86,10 +86,15 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	}
 	
 	@Override
+  public DataTree getNodeDataHierarchy(String nodeid) {
+    return this.createHierarchy(nodeid, false);
+  }
+	 
+	@Override
 	public DataTree getDatatypeHierarchy() {
 		return this.createHierarchy(this.topclass, true);
 	}
-
+	 
 	@Override
 	public DataTree getMetricsHierarchy() {
 		return this.createHierarchy(this.topmetric, false);
