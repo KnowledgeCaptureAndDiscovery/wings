@@ -576,9 +576,11 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
           for (ExecutionFile file : step.getOutputFiles()) {
             file.removeMetadataFile();
+            /*
             File f = new File(file.getLocation());
             if(f.exists() && !this.fileIsOutputofAnotherRun(file))
               f.delete();
+            */
           }
         }
 			}
