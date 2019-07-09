@@ -259,11 +259,15 @@ public class RunController {
 
     String runid = el.getAsJsonObject().get("id").getAsString();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    if(!monitor.deleteRun(runid))
+      return json.toJson(ret);
+    /*
     if (monitor.runExists(runid)) {
       this.stopRun(runid, context);
       if (!monitor.deleteRun(runid))
         return json.toJson(ret);
     }
+    */
 
     ret.put("success", true);
     return json.toJson(ret);
