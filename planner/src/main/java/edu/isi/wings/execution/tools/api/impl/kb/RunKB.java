@@ -192,7 +192,58 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    this.end();
 	    return size;
 	 }
-	    
+
+	public ArrayList<RuntimePlan> getRunListSimple(String pattern, String status, int start, int limit) {
+		ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
+
+		if(pattern == null) {
+			pattern = "";
+		}
+
+		String query =
+						"PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" +
+										"SELECT ?run ?status ?template ?start ?end \n" +
+										"WHERE {\n" +
+										"?run a exec:Execution .\n" +
+										"?run exec:hasExecutionStatus ?status .\n" +
+										"?run exec:hasTemplate ?template .\n" +
+										"?run exec:hasStartTime ?start .\n" +
+										"FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
+										"FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n";
+		query += "}\n";
+
+		if(limit >= 0 && start >=0) {
+			query += " LIMIT " + limit + " OFFSET " + start;
+		}
+
+		this.start_read();
+		ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+		for(ArrayList<SparqlQuerySolution> row : result) {
+			HashMap<String, KBObject> vals = new HashMap<String, KBObject>();
+			for(SparqlQuerySolution col : row)
+				vals.put(col.getVariable(), col.getObject());
+			if(vals.get("run") == null)
+				continue;
+			RuntimePlan rplan = new RuntimePlan(vals.get("run").getID());
+			rplan.setOriginalTemplateID(vals.get("template").getID());
+			RuntimeInfo info = new RuntimeInfo();
+			KBObject sttime = vals.get("start");
+			if (sttime != null && sttime.getValue() != null)
+				info.setStartTime((Date) sttime.getValue());
+			KBObject endtime = vals.get("end");
+			if (endtime != null && endtime.getValue() != null)
+				info.setEndTime((Date) endtime.getValue());
+			KBObject statusObj = vals.get("status");
+			if (statusObj != null && statusObj.getValue() != null)
+				info.setStatus(RuntimeInfo.Status.valueOf((String) statusObj.getValue()));
+			rplan.setRuntimeInfo(info);
+			rplans.add(rplan);
+		}
+		this.end();
+		return rplans;
+	}
+
+
 	@Override
 	public ArrayList<RuntimePlan> getRunList(String pattern, String status, int start, int limit) {
 	  ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();

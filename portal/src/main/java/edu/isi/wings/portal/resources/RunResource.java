@@ -58,6 +58,22 @@ public class RunResource extends WingsResource {
       return this.rc.getRunListJSON(pattern, status, start, limit);
     return null;
   }
+
+
+  @GET
+  @Path("getRunListSimple")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getRunListSimple(
+          @QueryParam("pattern") final String pattern,
+          @QueryParam("status") final String status,
+          @QueryParam("start") int start,
+          @QueryParam("limit") int limit
+  ) {
+    if(this.rc != null)
+      return this.rc.getRunListSimpleJSON(pattern, status, start, limit);
+    return null;
+  }
+
   
   @POST
   @Path("getRunDetails")

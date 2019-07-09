@@ -99,7 +99,7 @@ public class RunController {
   /**
    * Get the run list json.
    * @param pattern optional, a pattern to filter
-   * @param completed optional, a pattern to filter complete runs
+   * @param status optional, a pattern to filter complete runs
    * @param start optional, start offset (for paging) (set to -1 to ignore)
    * @param limit optional, number of runs to return (for paging) (set to -1 to ignore)
    * @return
@@ -110,6 +110,28 @@ public class RunController {
     result.put("results", this.getNumberOfRuns(pattern, status));
     result.put("rows", this.getRunList(pattern, status, start, limit));    
     return json.toJson(result);
+  }
+
+
+  public String getRunListSimpleJSON(String pattern, String status,  int start, int limit) {
+    HashMap<String, Object> result = new HashMap<String, Object>();
+    result.put("success", true);
+    result.put("results", this.getNumberOfRuns(pattern, status));
+    result.put("rows", this.getRunListSimple(pattern, status, start, limit));
+    return json.toJson(result);
+  }
+
+  public ArrayList<HashMap<String, Object>> getRunListSimple(String pattern, String status, int start, int limit) {
+    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
+    for (RuntimePlan exe : monitor.getRunListSimple(pattern, status, start, limit)) {
+      HashMap<String, Object> map = new HashMap<String, Object>();
+      map.put("runtimeInfo", exe.getRuntimeInfo());
+      map.put("template_id", exe.getOriginalTemplateID());
+      map.put("id", exe.getID());
+      list.add(map);
+    }
+    return list;
   }
 
 
