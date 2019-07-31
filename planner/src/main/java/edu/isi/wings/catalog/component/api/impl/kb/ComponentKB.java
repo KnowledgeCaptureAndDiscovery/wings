@@ -572,7 +572,14 @@ public class ComponentKB extends TransactionsJena {
         comp.setLocation(this.getComponentLocation(cid));
   
       if (details) {
-        comp.setDocumentation(this.getComponentDocumentation(compobj));
+				comp.setDocumentation(this.getComponentDocumentation(compobj));
+				//obtain component type
+				KBObject classComponent = this.kb.getClassOfInstance(this.kb.getIndividual(cid));
+				ArrayList<KBObject> clss = this.kb.getSuperClasses(classComponent, true);
+				if (clss != null && clss.size() > 0){
+					KBObject cls = clss.get(0);
+					comp.setComponentType(cls.getName().replace("Class", ""));
+				}
         comp.setComponentRequirement(
             this.getComponentRequirements(compobj, this.kb));
         

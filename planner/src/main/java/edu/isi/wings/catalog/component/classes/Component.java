@@ -41,6 +41,7 @@ public class Component extends URIEntity {
   String location;
   String documentation;
   ComponentRequirement requirement;
+  String componentType;
 
   public Component(String id, int type) {
     super(id);
@@ -126,5 +127,13 @@ public class Component extends URIEntity {
 
   public void setComponentRequirement(ComponentRequirement componentRequirement) {
     this.requirement = componentRequirement;
+  }
+
+  public String getComponentType() {
+    return componentType;
+  }
+
+  public void setComponentType(String componentType) {
+    this.componentType = componentType;
   }
 }
