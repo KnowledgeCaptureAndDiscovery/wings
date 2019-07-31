@@ -245,7 +245,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 
 	@Override
-	public ArrayList<RuntimePlan> getRunList(String pattern, String status, int start, int limit) {
+	public ArrayList<RuntimePlan> getRunList(String pattern, String status, int start, int limit, boolean fasterQuery) {
 	  ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
 	  
 	  if(pattern == null) {
@@ -282,6 +282,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           " ?run exec:hasExecutionStatus 'FAILURE' .\n" +         
           " ?run exec:hasEndTime ?end .\n" +
           " ?run exec:hasStep ?step .\n" +
+          (fasterQuery ? " ?step exec:hasExecutionStatus 'FAILURE' .\n": "") + 
           " ?step exec:hasExecutionStatus ?stepstatus .\n" +
           "}\n";
     }
@@ -293,6 +294,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           "{\n" +
           " ?run exec:hasExecutionStatus 'RUNNING' .\n" +         
           " ?run exec:hasStep ?step .\n" +
+          (fasterQuery ? " ?step exec:hasExecutionStatus 'RUNNING' .\n": "") +           
           " ?step exec:hasExecutionStatus ?stepstatus .\n" +
           "}\n";
     }
@@ -393,7 +395,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	@Override
 	public boolean delete() {
 	  boolean ok = true;
-		for(RuntimePlan rplan : this.getRunList(null, null, -1, -1)) {
+		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1)) {
 			ok = this.deleteRun(rplan.getID());
 			if(!ok)
 			  return false;
@@ -574,9 +576,11 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
           for (ExecutionFile file : step.getOutputFiles()) {
             file.removeMetadataFile();
+            /*
             File f = new File(file.getLocation());
             if(f.exists() && !this.fileIsOutputofAnotherRun(file))
               f.delete();
+            */
           }
         }
 			}
