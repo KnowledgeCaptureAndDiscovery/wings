@@ -102,7 +102,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
         "SELECT ?type\n" + 
         "WHERE {\n" + 
         "?type a <"+KBUtils.OWL+"Class> .\n" + 
-        "FILTER ( STRSTARTS(STR(?type), \"" + this.dcdomns + "\"))\n" + 
+        //"FILTER ( STRSTARTS(STR(?type), \"" + this.dcdomns + "\"))\n" + 
         "}";
     
     this.start_read();
@@ -114,7 +114,8 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
       if(vals.get("type") == null)
         continue;
       String typeid = vals.get("type").getID();
-      list.add(typeid);
+      if(!typeid.equals(this.dcns + "Metrics"))
+        list.add(typeid);
     }
     this.end();
     return list;		
@@ -719,9 +720,11 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 				}
 				ArrayList<KBObject> subclasses = this.getSubClasses(cls);
 				for (KBObject subcls : subclasses) {
+				  /*
 					if (!subcls.getNamespace().equals(this.dcdomns)
-							&& !subcls.getNamespace().equals(this.dcdomns))
+							&& !subcls.getNamespace().equals(this.dcns))
 						continue;
+					*/
 					DataItem institem = new DataItem(subcls.getID(), DataItem.DATATYPE);
 					DataTreeNode childnode = new DataTreeNode(institem);
 					node.addChild(childnode);
@@ -775,8 +778,10 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		ArrayList<MetadataProperty> list = new ArrayList<MetadataProperty>();
 		for (KBObject property : properties) {
 			// Ignore properties not declared in this domain
+		  /*
 			if (!property.getNamespace().equals(this.dcdomns))
 				continue;
+			*/
 			MetadataProperty prop = this.createMetadataProperty(property);
 			if (prop != null)
 				list.add(prop);

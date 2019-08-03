@@ -648,8 +648,8 @@ public class ComponentKB extends TransactionsJena {
         arg.setParam(true);
       else if (type.getID().equals(this.pcns + "DataArgument"))
         arg.setParam(false);
-      else if (type.getNamespace().equals(this.dcdomns)
-          || type.getNamespace().equals(this.dcns))
+      else /*if (type.getNamespace().equals(this.dcdomns)
+          || type.getNamespace().equals(this.dcns))*/
         arg.setType(type.getID());
     }
     KBObject role = kb.getPropertyValue(argobj, argidProp);

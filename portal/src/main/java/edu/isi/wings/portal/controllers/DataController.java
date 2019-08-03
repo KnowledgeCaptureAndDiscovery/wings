@@ -42,10 +42,7 @@ import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
-import edu.isi.wings.catalog.resource.classes.GridkitCloud;
-import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.opmm.HashUtils;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.JsonHandler;
@@ -57,13 +54,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
 import org.asynchttpclient.*;
 import org.asynchttpclient.request.body.multipart.InputStreamPart;
-import org.tukaani.xz.check.None;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.asynchttpclient.Dsl.basicAuthRealm;
@@ -171,7 +165,7 @@ public class 	DataController {
 				return null;
 			}
 		}
-        return null;
+    return null;
 	}
 
 	private String uploadFile(ServerDetails server, File datafile) {
