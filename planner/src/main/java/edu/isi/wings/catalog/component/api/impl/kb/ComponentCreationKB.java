@@ -127,7 +127,20 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       this.externalCatalog.setComponentLocation(cid, location);
 		return this.save() && this.end();
 	}
-	
+
+
+	public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
+		this.start_write();
+		KBObject modelIdProp = this.kb.getProperty(this.pcns + "modelCatalogIdentifier");
+		KBObject cobj = this.writerkb.getResource(cid);
+		KBObject locobj = writerkb.createLiteral(modelIdentifier);
+		this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
+		if(this.externalCatalog != null)
+			this.externalCatalog.setComponentLocation(cid, modelIdentifier);
+		return this.save() && this.end();
+	}
+
+
 	@Override
 	public boolean updateComponent(Component comp) {
 		if(comp == null) return false;
@@ -201,6 +214,10 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 			if(roleobj == null)
 				return false;
 			this.writerkb.addTriple(cobj, outProp, roleobj);
+		}
+
+		if(comp.getModelCatalog() != null){
+			this.setModelCatalogIdentifier(cid, comp.getModelCatalog());
 		}
 		if(comp.getDocumentation() != null)
 			this.setComponentDocumentation(cobj, comp.getDocumentation());
