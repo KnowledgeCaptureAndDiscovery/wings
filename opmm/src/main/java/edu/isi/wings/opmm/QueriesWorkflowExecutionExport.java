@@ -1,5 +1,8 @@
 package edu.isi.wings.opmm;
 
+import static edu.isi.wings.opmm.Constants.DATA_TYPE_PROPERTY;
+import static edu.isi.wings.opmm.Constants.WINGS_PROP_DATA_HAS_DATA_METRICS;
+
 /**
  * Class made to hold all queries contained in the workflow execution export.
  * @author dgarijo
@@ -92,5 +95,21 @@ public class QueriesWorkflowExecutionExport {
                 + "?inLink <"+Constants.WINGS_PROP_HAS_DESTINATION_NODE+"> <"+expandedTemplateStep+">."
                 + "}";
     }
-    
+
+
+    /**
+     * Given an datasetURI, return the metadata key and value
+     * and bindings
+     * @param datasetURI the run ID for the execution
+     * @return query type of variable, id and binding
+     */
+    public static String getMetadataDataSet(String datasetURI){
+        return "select distinct ?metadata ?value where {"
+                + "<" + datasetURI + "> ?metadata ?value ."
+                + "?metadata <"+Constants.RDF_TYPE+"> " + " <" + DATA_TYPE_PROPERTY + "> ."
+                + "?metadata <"+Constants.SUB_PROPERTY_OF + "> " + " <" + WINGS_PROP_DATA_HAS_DATA_METRICS + ">"
+                + "}";
+    }
+
+
 }

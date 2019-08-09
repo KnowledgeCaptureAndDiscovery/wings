@@ -11,6 +11,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 
 import static edu.isi.wings.opmm.Constants.*;
+import static edu.isi.wings.opmm.QueriesWorkflowExecutionExport.getMetadataDataSet;
 
 /**
  * Class designed to export WINGS workflow execution traces in RDF according to the OPMW-PROV model.
@@ -265,6 +266,20 @@ public class WorkflowExecutionExport {
                 } else if (varType.equals(Constants.P_PLAN_PROP_HAS_OUTPUT)) {
                     executionArtifact.addProperty(opmwModel.createProperty(Constants.PROV_WGB), executionStep);
                 }
+                //TODO: Export metadata
+                String metadataQuery = QueriesWorkflowExecutionExport.getMetadataDataSet(variable.getURI());
+                ResultSet metadataQueryVar = ModelUtils.queryLocalRepository(metadataQuery, wingsExecutionModel);
+                while (metadataQueryVar.hasNext()) {
+                    QuerySolution metadataResultQuery = rsVar.next();
+                    String metadataResource = metadataResultQuery.getResource("?metadata").getURI();
+                    String metadataValue = metadataResultQuery.getLiteral("?value").toString();
+                    if (metadataResource.contains("dataCatalogIdentifier")){
+                        opmwModel.createProperty((Constants.OPMW_DATA_PROP_HAS_DATACATALOG_IDENTIFIER), metadataValue);
+                    }
+                }
+                //TODO: Add query dataset
+
+
                 //Link to expanded template variable
                 String concreteTemplateVariableURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_DATA_VARIABLE + "/" +
                         concreteTemplateExport.getTransformedTemplateIndividual().getLocalName() + "_" + variable.getLocalName();

@@ -67,6 +67,7 @@ public class Constants {
     public static final String HARDWARE_DEPENDENCY = "http://purl.org/net/wicus-hwspecs#HardwareComponent";
     public static final String WINGS_PROP_HAS_HARDWARE_DEPENDENCY = "http://www.wings-workflows.org/ontology/resource.owl#hasHardwareDependency";
     public static final String WINGS_PROP_HAS_SOFTWARE_DEPENDENCY = "http://www.wings-workflows.org/ontology/resource.owl#hasSoftwareDependency";
+
     public static final String REQUIRES_VERSION ="http://purl.org/net/wicus-stack#requiresVersion";
     public static final String SOFTWARE_DEPENDENCY = "http://purl.org/net/wicus-stack#SoftwareComponent";
     
@@ -74,17 +75,9 @@ public class Constants {
     public static final String WINGS_PROP_COMP_HAS_INPUT = "http://www.wings-workflows.org/ontology/component.owl#hasInput";
     public static final String WINGS_PROP_COMP_HAS_OUTPUT = "http://www.wings-workflows.org/ontology/component.owl#hasOutput";
     public static final String WINGS_PROP_COMP_HAS_LOCATION = "http://www.wings-workflows.org/ontology/component.owl#hasLocation";
-    
-    
-    
+    public static final String WINGS_PROP_DATA_HAS_DATA_METRICS = "http://www.wings-workflows.org/ontology/data.owl#hasDataMetrics";
 
-
-    
-    
-    
-    
-    
-    /*****
+  /*****
     OPM AND OPMW CONCEPTS
     *****/
     public static final String CONCEPT_ARTIFACT = "Artifact";
@@ -231,9 +224,9 @@ public class Constants {
     public static final String OPMW_DATA_PROP_HAD_START_TIME =  PREFIX_OPMW + "hadStartTime";
     public static final String OPMW_DATA_PROP_HAD_END_TIME =  PREFIX_OPMW + "hadEndTime";
     public static final String OPMW_DATA_PROP_RELEASE_VERSION=  PREFIX_OPMW + "releaseVersion";
-    
-    
-    
+    public static final String OPMW_DATA_PROP_HAS_DATACATALOG_IDENTIFIER =  PREFIX_OPMW + "hasDataCatalogIdentifier";
+
+
     public static final String  OPMW_PROP_IS_DATA_BINDING_OF_EXPANDED_TEMPLATE_DATA_VARIABLE = PREFIX_OPMW + "isDataBindingofExpandedTemplateDataVariable";
     
     public static final String OPMW_PROP_IS_PARVALUE_OF_EXPANDED_TEMPLATE_PARAMETER_VARIABLE = PREFIX_OPMW + "isParValueofExpandedTemplateParameterVariable";
@@ -393,9 +386,10 @@ public class Constants {
     //this does not exist in PPlan but it's used in WINGS
     public static final String P_PLAN_PROP_HAS_INVOCATION_LINE =  PREFIX_P_PLAN+ "hasInvocationLine";
     
-    
-    
-    //---------
+    public static final String DATA_TYPE_PROPERTY = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+    public static final String SUB_PROPERTY_OF = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+
+  //---------
     public static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     
     
