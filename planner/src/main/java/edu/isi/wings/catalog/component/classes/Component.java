@@ -42,7 +42,7 @@ public class Component extends URIEntity {
   String documentation;
   ComponentRequirement requirement;
   String componentType;
-  String modelCatalog;
+  String source;
 
   public Component(String id, int type) {
     super(id);
@@ -138,11 +138,11 @@ public class Component extends URIEntity {
     this.componentType = componentType;
   }
 
-  public void setModelCatalog(String modelCatalog) {
-    this.modelCatalog = modelCatalog;
+  public void setSource(String source) {
+    this.source = source;
   }
 
-  public String getModelCatalog() {
-    return modelCatalog;
+  public String getSource() {
+    return source;
   }
 }

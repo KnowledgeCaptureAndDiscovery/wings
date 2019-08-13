@@ -216,8 +216,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 			this.writerkb.addTriple(cobj, outProp, roleobj);
 		}
 
-		if(comp.getModelCatalog() != null){
-			this.setModelCatalogIdentifier(cid, comp.getModelCatalog());
+		if(comp.getSource() != null){
+			this.setModelCatalogIdentifier(cid, comp.getSource());
 		}
 		if(comp.getDocumentation() != null)
 			this.setComponentDocumentation(cobj, comp.getDocumentation());

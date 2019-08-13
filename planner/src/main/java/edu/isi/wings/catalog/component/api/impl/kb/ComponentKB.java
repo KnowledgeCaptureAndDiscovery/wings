@@ -593,7 +593,7 @@ public class ComponentKB extends TransactionsJena {
         }
         comp.setRules(this.getDirectComponentRules(cid));
         comp.setInheritedRules(this.getInheritedComponentRules(cid));
-        comp.setModelCatalog(this.getComponentModelCatalog(compobj));
+        comp.setSource(this.getComponentModelCatalog(compobj));
       }
       return comp;
     }
