@@ -593,6 +593,7 @@ public class ComponentKB extends TransactionsJena {
         }
         comp.setRules(this.getDirectComponentRules(cid));
         comp.setInheritedRules(this.getInheritedComponentRules(cid));
+        comp.setSource(this.getComponentModelCatalog(compobj));
       }
       return comp;
     }
@@ -638,6 +639,20 @@ public class ComponentKB extends TransactionsJena {
       this.end();
     }
   }
+
+	protected String getComponentModelCatalog(KBObject compobj) {
+		try {
+			this.start_read();
+			KBObject docProp = kb.getProperty(this.pcns + "modelCatalogIdentifier");
+			KBObject doc = kb.getPropertyValue(compobj, docProp);
+			if(doc != null && doc.getValue() != null)
+				return doc.getValueAsString();
+			return null;
+		}
+		finally {
+			this.end();
+		}
+	}
   
   protected ComponentRole getRole(KBObject argobj) {
     this.start_read();
