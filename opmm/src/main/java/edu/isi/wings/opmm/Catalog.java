@@ -431,7 +431,11 @@ public class Catalog {
         //return a generic component/poiter to the catalog
         return Constants.CATALOG_URI+this.exportName+"/"+this.domain+"/"+name;   
     }
-    
+
+    public String getDataCatalogURI() {
+        return dataCatalogURI;
+    }
+
     /**
      * Probably I will need a getEntry for those files and softwares with a hash.
      */

@@ -103,11 +103,10 @@ public class QueriesWorkflowExecutionExport {
      * @param datasetURI the run ID for the execution
      * @return query type of variable, id and binding
      */
-    public static String getMetadataDataSet(String datasetURI){
-        return "select distinct ?metadata ?value where {"
-                + "<" + datasetURI + "> ?metadata ?value ."
-                + "?metadata <"+Constants.RDF_TYPE+"> " + " <" + DATA_TYPE_PROPERTY + "> ."
-                + "?metadata <"+Constants.SUB_PROPERTY_OF + "> " + " <" + WINGS_PROP_DATA_HAS_DATA_METRICS + ">"
+    public static String getDataCatalogIdentifier(String datasetURI){
+        return "select distinct ?value where {"
+                + "<" + datasetURI + "> ?p  ?value "
+                + "FILTER REGEX(str(?p), 'data/ontology.owl#dataCatalogIdentifier', 'i')"
                 + "}";
     }
 

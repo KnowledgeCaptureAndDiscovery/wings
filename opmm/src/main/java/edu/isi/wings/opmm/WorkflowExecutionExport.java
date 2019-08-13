@@ -8,10 +8,11 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 import static edu.isi.wings.opmm.Constants.*;
-import static edu.isi.wings.opmm.QueriesWorkflowExecutionExport.getMetadataDataSet;
 
 /**
  * Class designed to export WINGS workflow execution traces in RDF according to the OPMW-PROV model.
@@ -266,19 +267,15 @@ public class WorkflowExecutionExport {
                 } else if (varType.equals(Constants.P_PLAN_PROP_HAS_OUTPUT)) {
                     executionArtifact.addProperty(opmwModel.createProperty(Constants.PROV_WGB), executionStep);
                 }
-                //TODO: Export metadata
-                String metadataQuery = QueriesWorkflowExecutionExport.getMetadataDataSet(variable.getURI());
-                ResultSet metadataQueryVar = ModelUtils.queryLocalRepository(metadataQuery, wingsExecutionModel);
-                while (metadataQueryVar.hasNext()) {
-                    QuerySolution metadataResultQuery = rsVar.next();
-                    String metadataResource = metadataResultQuery.getResource("?metadata").getURI();
-                    String metadataValue = metadataResultQuery.getLiteral("?value").toString();
-                    if (metadataResource.contains("dataCatalogIdentifier")){
-                        opmwModel.createProperty((Constants.OPMW_DATA_PROP_HAS_DATACATALOG_IDENTIFIER), metadataValue);
-                    }
-                }
-                //TODO: Add query dataset
 
+                //Get expanded template and query dataCatalog metadata
+                String metadataQuery = QueriesWorkflowExecutionExport.getDataCatalogIdentifier(variable.getURI());
+                ResultSet metadataQueryVar = ModelUtils.queryLocalRepository(metadataQuery, getConcreteTemplateExport().getWingsTemplateModel());
+                while (metadataQueryVar.hasNext()) {
+                    QuerySolution metadataResultQuery = metadataQueryVar.next();
+                    String metadataValue = metadataResultQuery.getLiteral("?value").toString();
+                    executionArtifact.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_DATACATALOG_IDENTIFIER), metadataValue);
+                }
 
                 //Link to expanded template variable
                 String concreteTemplateVariableURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_DATA_VARIABLE + "/" +
