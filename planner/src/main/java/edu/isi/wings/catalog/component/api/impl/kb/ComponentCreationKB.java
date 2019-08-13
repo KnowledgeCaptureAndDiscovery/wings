@@ -131,7 +131,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
 		this.start_write();
-		KBObject modelIdProp = this.kb.getProperty(this.pcns + "modelCatalogIdentifier");
+		KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
 		KBObject cobj = this.writerkb.getResource(cid);
 		KBObject locobj = writerkb.createLiteral(modelIdentifier);
 		this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
