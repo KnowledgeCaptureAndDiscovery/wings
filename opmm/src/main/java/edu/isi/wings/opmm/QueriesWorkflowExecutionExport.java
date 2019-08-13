@@ -96,6 +96,31 @@ public class QueriesWorkflowExecutionExport {
                 + "}";
     }
 
+    /**
+     * Given an workflowURI, return the component that derived it.
+     * and bindings
+     * @param workflowURI the run ID for the execution
+     * @return query the componentURI
+     */
+    public static String getWorkflowByStep(String workflowURI){
+        return "select distinct ?component where { " +
+                "<" + workflowURI + "> <http://www.wings-workflows.org/ontology/workflow.owl#derivedFrom> ?component" +
+                "}";
+    }
+
+
+    /**
+     * Given an componentURI, return the source of the component. Normally, https://w3id.org/okn/i/mint/economic-v6
+     * and bindings
+     * @param componentURI the run ID for the ComponentURI
+     * @return query source
+     */
+    public static String getComponentSource(String componentURI){
+        return "select distinct ?source where { " +
+                "<" + componentURI + "> <" + Constants.COMPONENT_PROP_HAS_SOURCE + "> ?source" +
+                "}";
+    }
+
 
     /**
      * Given an datasetURI, return the metadata key and value

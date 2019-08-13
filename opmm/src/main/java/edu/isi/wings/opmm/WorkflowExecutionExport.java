@@ -199,14 +199,23 @@ public class WorkflowExecutionExport {
             Literal status = qs.getLiteral("?status");
             Literal executionScript = qs.getLiteral("?code");
             Literal invLine = qs.getLiteral("?invLine");
+
             String executionStepURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS + "/" + runID + "_" + wingsStep.getLocalName();
             Individual executionStep = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_PROCESS).createIndividual(executionStepURI);
+
+            //Add metadata information
             executionStep.addLabel(wingsStep.getLocalName(), null);
             executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_INVOCATION_COMMAND), invLine);
             executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_START_TIME), start);
             executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_STATUS), status);
             if (end != null) {
                 executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_END_TIME), end);
+            }
+
+            //Extract source property and save it
+            Literal source = getComponentSource(wingsStep);
+            if (source != null){
+                executionStep.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
             }
             //Creation of the software config. This may be moved to another class for simplicity and because it
             //can be used in the catalog too.http://localhost:8080/wings_portal/users/admin/CaesarCypher/data/fetch?data_id=http%3A//localhost%3A8080/wings_portal/export/users/admin/CaesarCypher/data/library.owl%23USconstitution.txt
@@ -345,6 +354,25 @@ public class WorkflowExecutionExport {
         //link execution account to expanded template.
         weInstance.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_CORRESPONDS_TO_TEMPLATE), concreteTemplateExport.getTransformedTemplateIndividual());
         return we;
+    }
+
+    private Literal getComponentSource(Resource wingsStep) {
+        Literal source = null;
+        String queryComponent = QueriesWorkflowExecutionExport.getWorkflowByStep(wingsStep.getURI());
+        ResultSet rsWorkflow = ModelUtils.queryLocalRepository(queryComponent, getConcreteTemplateExport().getWingsTemplateModel());
+        while (rsWorkflow.hasNext()) {
+            QuerySolution qsWorkflow = rsWorkflow.next();
+            Resource component = qsWorkflow.getResource("?component");
+
+            //Obtain the source by the workflow
+            String queryDataCatalog = QueriesWorkflowExecutionExport.getComponentSource(component.getURI());
+            ResultSet rsComponent = ModelUtils.queryLocalRepository(queryDataCatalog, componentCatalog.getWINGSDomainTaxonomy());
+            while(rsComponent.hasNext()){
+                QuerySolution qsComponent = rsComponent.next();
+                source = qsComponent.getLiteral("?source");
+            }
+        }
+        return source;
     }
 
     /**
