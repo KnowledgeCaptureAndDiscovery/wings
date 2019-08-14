@@ -99,12 +99,24 @@ public class QueriesWorkflowExecutionExport {
     /**
      * Given an workflowURI, return the component that derived it.
      * and bindings
-     * @param workflowURI the run ID for the execution
-     * @return query the componentURI
+     * @param stepURI the run ID for the execution
+     * @return query the workflow
      */
-    public static String getWorkflowByStep(String workflowURI){
+    public static String getWorkflowByStep(String stepURI){
+        return "select distinct ?workflow where { " +
+                "<" + stepURI + "> <http://www.wings-workflows.org/ontology/workflow.owl#derivedFrom> ?workflow" +
+                "}";
+    }
+
+    /**
+     * Given an componentURI, return the source of the component. Normally, https://w3id.org/okn/i/mint/economic-v6
+     * and bindings
+     * @param workflowURI the run ID for the ComponentURI
+     * @return query source
+     */
+    public static String getComponentByWorkflow(String workflowURI){
         return "select distinct ?component where { " +
-                "<" + workflowURI + "> <http://www.wings-workflows.org/ontology/workflow.owl#derivedFrom> ?component" +
+                "<" + workflowURI + "_component> <" + Constants.WINGS_PROP_HAS_COMPONENT_BINDING + "> ?component" +
                 "}";
     }
 

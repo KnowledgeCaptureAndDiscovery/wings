@@ -25,6 +25,7 @@ import static edu.isi.wings.opmm.Constants.*;
  */
 public class WorkflowExecutionExport {
     private final OntModel wingsExecutionModel;
+    private final OntModel workflowModel;
     private OntModel opmwModel;
     private final Catalog componentCatalog;//needed to publish expanded templates and the extensions of opmw.
     private final String PREFIX_EXPORT_RESOURCE;
@@ -65,12 +66,14 @@ public class WorkflowExecutionExport {
      * Default constructor for exporting executions
      *
      * @param executionFile
+     * @param workflowFile
      * @param catalog
      * @param exportName
      * @param endpointURI
      */
-    public WorkflowExecutionExport(String executionFile, Catalog catalog, String exportName, String endpointURI, String domain) {
+    public WorkflowExecutionExport(String executionFile, String workflowFile, Catalog catalog, String exportName, String endpointURI, String domain) {
         this.wingsExecutionModel = ModelUtils.loadModel(executionFile);
+        this.workflowModel = ModelUtils.loadModel(workflowFile);
         this.opmwModel = ModelUtils.initializeModel(opmwModel);
         this.componentCatalog = catalog;
 
@@ -213,10 +216,7 @@ public class WorkflowExecutionExport {
             }
 
             //Extract source property and save it
-            Literal source = getComponentSource(wingsStep);
-            if (source != null){
-                executionStep.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
-            }
+
             //Creation of the software config. This may be moved to another class for simplicity and because it
             //can be used in the catalog too.http://localhost:8080/wings_portal/users/admin/CaesarCypher/data/fetch?data_id=http%3A//localhost%3A8080/wings_portal/export/users/admin/CaesarCypher/data/library.owl%23USconstitution.txt
             //TODO: if there are errors, then create a config URI based on the node and URI (i.e., unique)
@@ -241,6 +241,10 @@ public class WorkflowExecutionExport {
             }
             stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
 
+            Resource source = getComponentSource(wingsStep);
+            if (source != null){
+                stepConfig.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
+            }
 
             /*Export the mainscript and upload */
             String mainScriptLocation = uploadFile(executionScript.getString());
@@ -362,15 +366,22 @@ public class WorkflowExecutionExport {
         ResultSet rsWorkflow = ModelUtils.queryLocalRepository(queryComponent, getConcreteTemplateExport().getWingsTemplateModel());
         while (rsWorkflow.hasNext()) {
             QuerySolution qsWorkflow = rsWorkflow.next();
-            Resource component = qsWorkflow.getResource("?component");
+            Resource workflow = qsWorkflow.getResource("?workflow");
+            String componentQuery = QueriesWorkflowExecutionExport.getComponentByWorkflow(workflow.getURI());
+            ResultSet componentRs =  ModelUtils.queryLocalRepository(componentQuery, workflowModel);
+            while(componentRs.hasNext()){
+                QuerySolution qsComponent = componentRs.next();
+                Resource component = qsComponent.getResource("?component");
 
-            //Obtain the source by the workflow
-            String queryDataCatalog = QueriesWorkflowExecutionExport.getComponentSource(component.getURI());
-            ResultSet rsComponent = ModelUtils.queryLocalRepository(queryDataCatalog, componentCatalog.getWINGSDomainTaxonomy());
-            while(rsComponent.hasNext()){
-                QuerySolution qsComponent = rsComponent.next();
-                source = qsComponent.getLiteral("?source");
+                //Obtain the source by the workflow
+                String queryCatalog = QueriesWorkflowExecutionExport.getComponentSource(component.getURI());
+                ResultSet rsComponent = ModelUtils.queryLocalRepository(queryCatalog, componentCatalog.getWINGSDomainTaxonomy());
+                while(rsComponent.hasNext()){
+                    qsComponent = rsComponent.next();
+                    source = qsComponent.getLiteral("?source");
+                }
             }
+
         }
         return source;
     }

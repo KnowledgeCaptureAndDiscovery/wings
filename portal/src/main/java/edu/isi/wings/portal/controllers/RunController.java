@@ -395,144 +395,145 @@ public class RunController {
     RuntimePlan plan = monitor.getRunDetails(runid);
     if (plan.getRuntimeInfo().getStatus() != Status.SUCCESS) {
       retmap.put("error", "Can only publish successfully completed runs");
-    } else {
-      try {
-        //Mapper opmm = new Mapper();
+    } else try {
+      //Mapper opmm = new Mapper();
 
-        Publisher publisher = config.getPublisher();
+      Publisher publisher = config.getPublisher();
 
-        ServerDetails publishUrl = publisher.getUploadServer();
-        String tstoreurl = publisher.getTstorePublishUrl();
-        String tstorequery = publisher.getTstoreQueryUrl();
-        String exportName = publisher.getExportName();
-        String upurl = publisher.getUploadServer().getUrl();
-        String uploadURL = publishUrl.getUrl();
-        String uploadUsername = publishUrl.getUsername();
-        String uploadPassword = publishUrl.getPassword();
-        long uploadMaxSize = publishUrl.getMaxUploadSize();
-        //opmm.setPublishExportPrefix(puburl);
+      ServerDetails publishUrl = publisher.getUploadServer();
+      String tstoreurl = publisher.getTstorePublishUrl();
+      String tstorequery = publisher.getTstoreQueryUrl();
+      String exportName = publisher.getExportName();
+      String upurl = publisher.getUploadServer().getUrl();
+      String uploadURL = publishUrl.getUrl();
+      String uploadUsername = publishUrl.getUsername();
+      String uploadPassword = publishUrl.getPassword();
+      long uploadMaxSize = publishUrl.getMaxUploadSize();
+      //opmm.setPublishExportPrefix(puburl);
 
-        String rname = runid.substring(runid.indexOf('#') + 1);
-        //String runurl = opmm.getRunUrl(rname);
+      String rname = runid.substring(runid.indexOf('#') + 1);
+      //String runurl = opmm.getRunUrl(rname);
 
-        // Fetch expanded template (to get data binding ids)
-        TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
-        Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
-        HashMap<String, String> varBindings = new HashMap<String, String>();
-        for(Variable var: xtpl.getVariables()) {
-          varBindings.put(var.getID(), var.getBinding().getID());
-        }
-
-        // Create a temporary directory to upload/move
-        File _tmpdir = File.createTempFile("temp", "");
-        File tempdir = new File(_tmpdir.getParent() + "/" + rname);
-        FileUtils.deleteQuietly(tempdir);
-        if(!_tmpdir.delete() || !tempdir.mkdirs())
-          throw new Exception("Cannot create temp directory");
-
-
-        File datadir = new File(tempdir.getAbsolutePath() + "/data");
-        File codedir = new File(tempdir.getAbsolutePath() + "/code");
-        datadir.mkdirs();
-        codedir.mkdirs();
-
-        String tupurl = upurl + "/" + tempdir.getName();
-        String dataurl  = tupurl + "/data";
-        String codeurl  = tupurl + "/code";
-        String cdir = props.getProperty("lib.domain.code.storage");
-        String ddir = props.getProperty("lib.domain.data.storage");
-
-        FileUtils.deleteQuietly(tempdir);
-
-        //Create the temporal directory to store data, components, workflow and exection
-        tempdir.mkdirs();
-        File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
-        File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
-        File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
-        File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
-
-        File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
-        File tpl_exportdir = new File(tempdir.getAbsolutePath() + "/export/template");
-        dcontdir.mkdirs();
-        acontdir.mkdirs();
-        wflowdir.mkdirs();
-        execsdir.mkdirs();
-        run_exportdir.mkdirs();
-        tpl_exportdir.mkdirs();
-
-        // Merge both concrete and abstract component libraries from WINGS
-        String aclib = props.getProperty("lib.concrete.url");
-        String abslib = props.getProperty("lib.abstract.url");
-        String aclibdata = IOUtils.toString(new URL(aclib));
-        String abslibdata = IOUtils.toString(new URL(abslib));
-        abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
-        abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
-        abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
-        aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
-
-        String rplandata = IOUtils.toString(new URL(runid));
-
-        //write aclibfie and rplanfile
-        aclibdata += abslibdata + "</rdf:RDF>\n";
-        File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
-        File rplanfile = new File(execsdir.getAbsolutePath() + "/" +
-                plan.getName() + ".owl");
-        FileUtils.write(aclibfile, aclibdata);
-        FileUtils.write(rplanfile, rplandata);
-
-        //workflow file?
-        URL otplurl = new URL(plan.getOriginalTemplateID());
-        File otplfile = new File(wflowdir.getAbsolutePath() + "/" +
-            otplurl.getRef() + ".owl");
-        String otpldata = IOUtils.toString(otplurl);
-        FileUtils.write(otplfile, otpldata);
-
-        Catalog catalog = new Catalog(config.getDomainId(), exportName,
-            publisher.getDomainsDir(), aclibfile.getAbsolutePath());
-
-        WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
-        exp.setUploadURL(uploadURL);
-        exp.setUploadUsername(uploadUsername);
-        exp.setUploadPassword(uploadPassword);
-        exp.setUploadMaxSize(uploadMaxSize);
-        String serialization = "TURTLE";
-
-        //publish the catalog
-        String domainPath = catalog.exportCatalog(null, serialization);
-        File domainFile = new File(domainPath);
-        this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
-
-        //execution
-        String executionFilePath = run_exportdir + File.separator + "execution";
-        String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
-        if (!exp.isExecPublished()) {
-          this.publishFile(tstoreurl, graphUri, executionFilePath);
-
-          //expandedTemplate
-          String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
-          String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath, serialization);
-          if(! exp.getConcreteTemplateExport().isTemplatePublished())
-            this.publishFile(tstoreurl, expandedTemplateGraphUri , expandedTemplateFilePath);
-
-          //abstract
-          WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
-          if (abstractTemplateExport != null) {
-            String abstractFilePath = run_exportdir + File.separator + "abstract";
-            String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
-            if ( !abstractTemplateExport.isTemplatePublished() )
-              this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
-          }
-        }
-
-
-
-        retmap.put("url", exp.getTransformedExecutionURI());
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        retmap.put("error", e.getMessage());
+      // Fetch expanded template (to get data binding ids)
+      TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+      Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
+      HashMap<String, String> varBindings = new HashMap<String, String>();
+      for (Variable var : xtpl.getVariables()) {
+        varBindings.put(var.getID(), var.getBinding().getID());
       }
+
+      // Create a temporary directory to upload/move
+      File _tmpdir = File.createTempFile("temp", "");
+      File tempdir = new File(_tmpdir.getParent() + "/" + rname);
+      FileUtils.deleteQuietly(tempdir);
+      if (!_tmpdir.delete() || !tempdir.mkdirs())
+        throw new Exception("Cannot create temp directory");
+
+
+      File datadir = new File(tempdir.getAbsolutePath() + "/data");
+      File codedir = new File(tempdir.getAbsolutePath() + "/code");
+      datadir.mkdirs();
+      codedir.mkdirs();
+
+      String tupurl = upurl + "/" + tempdir.getName();
+      String dataurl = tupurl + "/data";
+      String codeurl = tupurl + "/code";
+      String cdir = props.getProperty("lib.domain.code.storage");
+      String ddir = props.getProperty("lib.domain.data.storage");
+
+      FileUtils.deleteQuietly(tempdir);
+
+      //Create the temporal directory to store data, components, workflow and exection
+      tempdir.mkdirs();
+      File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
+      File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
+      File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
+      File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
+
+      File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
+      File tpl_exportdir = new File(tempdir.getAbsolutePath() + "/export/template");
+      dcontdir.mkdirs();
+      acontdir.mkdirs();
+      wflowdir.mkdirs();
+      execsdir.mkdirs();
+      run_exportdir.mkdirs();
+      tpl_exportdir.mkdirs();
+
+      // Merge both concrete and abstract component libraries from WINGS
+      String aclib = props.getProperty("lib.concrete.url");
+      String abslib = props.getProperty("lib.abstract.url");
+      String workflow_lib = props.getProperty("lib.domain.workflow.url");
+
+      String aclibdata = IOUtils.toString(new URL(aclib));
+      String abslibdata = IOUtils.toString(new URL(abslib));
+      String workflow_lib_data = IOUtils.toString(new URL(workflow_lib));
+
+      abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
+      abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
+      abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
+      aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
+
+      String rplandata = IOUtils.toString(new URL(runid));
+
+      //write aclibfie and rplanfile
+      aclibdata += abslibdata + "</rdf:RDF>\n";
+      File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
+      File rplanfile = new File(execsdir.getAbsolutePath() + "/" +
+              plan.getName() + ".owl");
+      FileUtils.write(aclibfile, aclibdata);
+      FileUtils.write(rplanfile, rplandata);
+
+      //workflow file?
+      URL otplurl = new URL(plan.getOriginalTemplateID());
+      File otplfile = new File(wflowdir.getAbsolutePath() + "/" +
+              otplurl.getRef() + ".owl");
+      String otpldata = IOUtils.toString(otplurl);
+      FileUtils.write(otplfile, otpldata);
+
+      Catalog catalog = new Catalog(config.getDomainId(), exportName,
+              publisher.getDomainsDir(), aclibfile.getAbsolutePath());
+
+      WorkflowExecutionExport exp = new WorkflowExecutionExport(
+              rplanfile.getAbsolutePath(), otplfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
+      exp.setUploadURL(uploadURL);
+      exp.setUploadUsername(uploadUsername);
+      exp.setUploadPassword(uploadPassword);
+      exp.setUploadMaxSize(uploadMaxSize);
+      String serialization = "TURTLE";
+
+      //publish the catalog
+      String domainPath = catalog.exportCatalog(null, serialization);
+      File domainFile = new File(domainPath);
+      this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
+
+      //execution
+      String executionFilePath = run_exportdir + File.separator + "execution";
+      String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
+      if (!exp.isExecPublished()) {
+        this.publishFile(tstoreurl, graphUri, executionFilePath);
+
+        //expandedTemplate
+        String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+        String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath, serialization);
+        if (!exp.getConcreteTemplateExport().isTemplatePublished())
+          this.publishFile(tstoreurl, expandedTemplateGraphUri, expandedTemplateFilePath);
+
+        //abstract
+        WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
+        if (abstractTemplateExport != null) {
+          String abstractFilePath = run_exportdir + File.separator + "abstract";
+          String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
+          if (!abstractTemplateExport.isTemplatePublished())
+            this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
+        }
+      }
+
+
+      retmap.put("url", exp.getTransformedExecutionURI());
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      retmap.put("error", e.getMessage());
     }
     return json.toJson(retmap);
   }
