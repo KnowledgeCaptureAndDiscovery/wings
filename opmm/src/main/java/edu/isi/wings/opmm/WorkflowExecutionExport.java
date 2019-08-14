@@ -241,7 +241,7 @@ public class WorkflowExecutionExport {
             }
             stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
 
-            Resource source = getComponentSource(wingsStep);
+            Literal source = getComponentSource(wingsStep);
             if (source != null){
                 stepConfig.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
             }
