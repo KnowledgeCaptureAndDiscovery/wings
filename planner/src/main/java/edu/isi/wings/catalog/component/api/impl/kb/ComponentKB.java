@@ -643,7 +643,7 @@ public class ComponentKB extends TransactionsJena {
 	protected String getComponentModelCatalog(KBObject compobj) {
 		try {
 			this.start_read();
-			KBObject docProp = kb.getProperty(this.pcns + "modelCatalogIdentifier");
+			KBObject docProp = kb.getProperty(this.pcns + "source");
 			KBObject doc = kb.getPropertyValue(compobj, docProp);
 			if(doc != null && doc.getValue() != null)
 				return doc.getValueAsString();
