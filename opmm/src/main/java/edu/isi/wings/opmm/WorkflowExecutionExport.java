@@ -242,6 +242,7 @@ public class WorkflowExecutionExport {
             stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
 
             Literal source = getComponentSource(wingsStep);
+            System.out.println("Source:" + source);
             if (source != null){
                 stepConfig.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
             }
@@ -365,9 +366,14 @@ public class WorkflowExecutionExport {
         String queryComponent = QueriesWorkflowExecutionExport.getWorkflowByStep(wingsStep.getURI());
         ResultSet rsWorkflow = ModelUtils.queryLocalRepository(queryComponent, getConcreteTemplateExport().getWingsTemplateModel());
         while (rsWorkflow.hasNext()) {
+            System.out.println("Step:" + wingsStep.getURI());
+
             QuerySolution qsWorkflow = rsWorkflow.next();
             Resource workflow = qsWorkflow.getResource("?workflow");
             String componentQuery = QueriesWorkflowExecutionExport.getComponentByWorkflow(workflow.getURI());
+            System.out.println("Workflow:" + workflow.getURI());
+            System.out.println("Workflow:" + componentQuery);
+
             ResultSet componentRs =  ModelUtils.queryLocalRepository(componentQuery, workflowModel);
             while(componentRs.hasNext()){
                 QuerySolution qsComponent = componentRs.next();
@@ -376,9 +382,13 @@ public class WorkflowExecutionExport {
                 //Obtain the source by the workflow
                 String queryCatalog = QueriesWorkflowExecutionExport.getComponentSource(component.getURI());
                 ResultSet rsComponent = ModelUtils.queryLocalRepository(queryCatalog, componentCatalog.getWINGSDomainTaxonomy());
+                System.out.println("Component:" + component.getURI());
+                System.out.println("Workflow:" + queryCatalog);
+                
                 while(rsComponent.hasNext()){
                     qsComponent = rsComponent.next();
                     source = qsComponent.getLiteral("?source");
+
                 }
             }
 
