@@ -384,7 +384,7 @@ public class WorkflowExecutionExport {
                 ResultSet rsComponent = ModelUtils.queryLocalRepository(queryCatalog, componentCatalog.getWINGSDomainTaxonomy());
                 System.out.println("Component:" + component.getURI());
                 System.out.println("Workflow:" + queryCatalog);
-                
+
                 while(rsComponent.hasNext()){
                     qsComponent = rsComponent.next();
                     source = qsComponent.getLiteral("?source");
