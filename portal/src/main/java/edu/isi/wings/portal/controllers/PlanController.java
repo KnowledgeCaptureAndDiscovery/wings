@@ -104,6 +104,21 @@ public class PlanController {
     this.setMachineWhitelist();
 	}
 	
+	public void end() {
+	  if(dc != null) {
+	    dc.end();
+	  }
+	  if(cc != null) {
+	    cc.end();
+	  }
+	  if(rc != null) {
+	    rc.end();
+	  }
+	  if(tc != null) {
+	    tc.end();
+	  }
+	}
+	
 	private void setMachineWhitelist() {
     if(config.getDomainExecutionEngine().getClass().
         equals(LocalExecutionEngine.class)) {

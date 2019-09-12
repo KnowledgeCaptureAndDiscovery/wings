@@ -73,6 +73,21 @@ public class TemplateController {
         dc = DataFactory.getCreationAPI(props);
         prov = ProvenanceFactory.getAPI(props);
     }
+    
+    public void end() {
+      if(dc != null) {
+        dc.end();
+      }
+      if(cc != null) {
+        cc.end();
+      }
+      if(tc != null) {
+        tc.end();
+      }
+      if(prov != null) {
+        prov.end();
+      }
+    }
 
     public String getViewerJSON(String tplid) {
         Template tpl = this.tc.getTemplate(tplid);

@@ -50,6 +50,12 @@ public class ResourceController {
     this.rns = (String) props.get("ont.resource.url") + "#";
     this.libns = (String) props.get("lib.resource.url") + "#";
   }
+  
+  public void end() {
+    if(api != null) {
+      api.end();
+    }
+  }
 
   // Query
   public String getAllSoftwareVersions() {

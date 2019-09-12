@@ -1,6 +1,7 @@
 package edu.isi.wings.portal.resources;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -12,10 +13,6 @@ import javax.ws.rs.core.Response;
 
 import edu.isi.wings.portal.controllers.RunController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
-
 @Path("{user}/{domain}/executions")
 public class RunResource extends WingsResource {
   RunController rc;
@@ -25,6 +22,13 @@ public class RunResource extends WingsResource {
     super.init();
     if(this.hasPermissions() && !this.isPage("intro"))
       this.rc = new RunController(config);
+  }
+  
+  @PreDestroy
+  public void destroy() {
+    if(this.rc != null) {
+      this.rc.end();
+    }
   }
   
   @GET

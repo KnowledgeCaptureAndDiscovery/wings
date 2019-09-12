@@ -830,6 +830,8 @@ RunBrowser.prototype.getRunList = function() {
 				}
 		],
 		title : 'My Runs',
+	    multiSelect: true, 
+	    allowDeselect: true,
 		// autoExpandColumn: 'title',
 		bodyCls : 'multi-line-grid',
 		border : false,
@@ -914,14 +916,16 @@ RunBrowser.prototype.getRunList = function() {
 	    }],
 	});
 
-	grid.getSelectionModel().on("select", function(sm, rec, ind) {
-		This.openRunDetails(rec.data.id, rec.data.status);
-		grid.down('#delButton').setDisabled(false);
-		if(rec.data.status == 'RUNNING')
-			grid.down('#stopButton').setDisabled(false);
-		else 
-			grid.down('#stopButton').setDisabled(true);
-		// Ext.EventManager.stopEvent(event);
+	grid.getSelectionModel().on("focuschange", function(item, oldrec, rec, opts) {
+		if(rec) {
+			This.openRunDetails(rec.data.id, rec.data.status);
+			grid.down('#delButton').setDisabled(false);
+			if(rec.data.status == 'RUNNING')
+				grid.down('#stopButton').setDisabled(false);
+			else 
+				grid.down('#stopButton').setDisabled(true);
+			// Ext.EventManager.stopEvent(event);
+		}
 	}, this);
 
 	if (this.runid) {
@@ -960,9 +964,11 @@ RunBrowser.prototype.selectRunInList = function(runid) {
 		this.runList.getSelectionModel().deselectAll();
 	this.runList.getStore().each(function(rec) {
 		if (rec.data.id == runid)
+			This.runList.getSelectionModel().setLastFocused(rec);
+			/*
 			This.runList.getSelectionModel().select([
 				rec
-			]);
+			]);*/
 	});
 };
 

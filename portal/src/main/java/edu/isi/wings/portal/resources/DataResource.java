@@ -1,6 +1,7 @@
 package edu.isi.wings.portal.resources;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -29,6 +30,13 @@ public class DataResource extends WingsResource {
     this.loadExternal = ("/external".equals(external));
     if(this.hasPermissions() && !this.isPage("intro"))
       this.dc = new DataController(config, this.loadExternal);
+  }
+  
+  @PreDestroy
+  public void destroy() {
+    if(this.dc != null) {
+      this.dc.end();
+    }
   }
   
   @GET

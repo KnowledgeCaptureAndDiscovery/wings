@@ -42,10 +42,7 @@ import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
-import edu.isi.wings.catalog.resource.classes.GridkitCloud;
-import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.common.kb.KBUtils;
-import edu.isi.wings.opmm.HashUtils;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.JsonHandler;
@@ -57,13 +54,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
 import org.asynchttpclient.*;
 import org.asynchttpclient.request.body.multipart.InputStreamPart;
-import org.tukaani.xz.check.None;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.asynchttpclient.Dsl.basicAuthRealm;
@@ -276,44 +270,50 @@ public class 	DataController {
 		if (dc == null)
 			return false;
 
-		JsonParser parser = new JsonParser();
-		JsonElement propvals = parser.parse(propvals_json);
-
-		DataItem dtype = dc.getDatatypeForData(dataid);
-		ArrayList<MetadataProperty> props = dc.getMetadataProperties(dtype.getID(), false);
-
-		ArrayList<String> propids = new ArrayList<String>();
-		HashMap<String, MetadataProperty> pinfos = new HashMap<String, MetadataProperty>();
-		for (MetadataProperty prop : props) {
-			propids.add(prop.getID());
-			pinfos.put(prop.getID(), prop);
+		try {
+  		JsonParser parser = new JsonParser();
+  		JsonElement propvals = parser.parse(propvals_json);
+  
+  		DataItem dtype = dc.getDatatypeForData(dataid);
+  		ArrayList<MetadataProperty> props = dc.getMetadataProperties(dtype.getID(), false);
+  
+  		ArrayList<String> propids = new ArrayList<String>();
+  		HashMap<String, MetadataProperty> pinfos = new HashMap<String, MetadataProperty>();
+  		for (MetadataProperty prop : props) {
+  			propids.add(prop.getID());
+  			pinfos.put(prop.getID(), prop);
+  		}
+  
+  		dc.start_write();
+  		dc.start_batch_operation();
+  		
+  		dc.removeAllPropertyValues(dataid, propids);
+  		for (JsonElement propval : propvals.getAsJsonArray()) {
+  			JsonObject pval = propval.getAsJsonObject();
+  			String propid = pval.get("name").getAsString();
+  			String value = pval.get("value").getAsString();
+  			MetadataProperty pinfo = pinfos.get(propid);
+  			if (pinfo.isDatatypeProperty()) {
+  				if (value.equals("") && !pinfo.getRange().contains("string"))
+  					continue;
+  				dc.addDatatypePropertyValue(dataid, propid, value, pinfo.getRange());
+  			} else {
+  				dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
+  			}
+  		}
+  		dc.stop_batch_operation();
+  		
+  		String provlog = "Updating metadata";
+  		Provenance p = new Provenance(dataid);
+  		p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+  		return 
+  		    dc.save() && dc.end() &&
+  		    prov.addProvenance(p);
 		}
-
-		dc.start_write();
-		dc.start_batch_operation();
-		
-		dc.removeAllPropertyValues(dataid, propids);
-		for (JsonElement propval : propvals.getAsJsonArray()) {
-			JsonObject pval = propval.getAsJsonObject();
-			String propid = pval.get("name").getAsString();
-			String value = pval.get("value").getAsString();
-			MetadataProperty pinfo = pinfos.get(propid);
-			if (pinfo.isDatatypeProperty()) {
-				if (value.equals("") && !pinfo.getRange().contains("string"))
-					continue;
-				dc.addDatatypePropertyValue(dataid, propid, value, pinfo.getRange());
-			} else {
-				dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
-			}
+		catch (Exception e) {
+		  dc.end();
+		  return false;
 		}
-		dc.stop_batch_operation();
-		
-		String provlog = "Updating metadata";
-		Provenance p = new Provenance(dataid);
-		p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
-		return 
-		    dc.save() && dc.end() &&
-		    prov.addProvenance(p);
 	}
 	
 	public synchronized String registerData(String dataid, String newname, String metadata_json) {
@@ -646,6 +646,15 @@ public class 	DataController {
         dc.renameDatatype(newid, dtypeid) &&
         dc.renameDatatypeInLibrary(newid, dtypeid) &&
         prov.addProvenance(p);
+	}
+	
+	public void end() {
+	  if(dc != null) {
+	    dc.end();
+	  }
+	  if(prov != null) {
+	    prov.end();
+	  }
 	}
 	
 	public synchronized boolean importFromExternalCatalog(String dataid, String dtypeid, 

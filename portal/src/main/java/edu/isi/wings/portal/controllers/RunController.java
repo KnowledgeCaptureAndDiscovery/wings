@@ -21,7 +21,6 @@ package edu.isi.wings.portal.controllers;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
@@ -34,9 +33,7 @@ import edu.isi.wings.portal.classes.config.ServerDetails;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -48,8 +45,6 @@ import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.resource.ResourceFactory;
-import edu.isi.wings.catalog.resource.classes.GridkitCloud;
-import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
@@ -94,6 +89,13 @@ public class RunController {
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
 
     tc = TemplateFactory.getCreationAPI(props);
+  }
+  
+  
+  public void end() {
+    if(tc != null) {
+      tc.end();
+    }
   }
 
   /**
@@ -404,7 +406,7 @@ public class RunController {
       String tstoreurl = publisher.getTstorePublishUrl();
       String tstorequery = publisher.getTstoreQueryUrl();
       String exportName = publisher.getExportName();
-      String upurl = publisher.getUploadServer().getUrl();
+      //String upurl = publisher.getUploadServer().getUrl();
       String uploadURL = publishUrl.getUrl();
       String uploadUsername = publishUrl.getUsername();
       String uploadPassword = publishUrl.getPassword();
@@ -435,11 +437,13 @@ public class RunController {
       datadir.mkdirs();
       codedir.mkdirs();
 
+      /*
       String tupurl = upurl + "/" + tempdir.getName();
       String dataurl = tupurl + "/data";
       String codeurl = tupurl + "/code";
       String cdir = props.getProperty("lib.domain.code.storage");
       String ddir = props.getProperty("lib.domain.data.storage");
+      */
 
       FileUtils.deleteQuietly(tempdir);
 
@@ -462,11 +466,11 @@ public class RunController {
       // Merge both concrete and abstract component libraries from WINGS
       String aclib = props.getProperty("lib.concrete.url");
       String abslib = props.getProperty("lib.abstract.url");
-      String workflow_lib = props.getProperty("lib.domain.workflow.url");
+      //String workflow_lib = props.getProperty("lib.domain.workflow.url");
 
       String aclibdata = IOUtils.toString(new URL(aclib));
       String abslibdata = IOUtils.toString(new URL(abslib));
-      String workflow_lib_data = IOUtils.toString(new URL(workflow_lib));
+      //String workflow_lib_data = IOUtils.toString(new URL(workflow_lib));
 
       abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
       abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
@@ -539,6 +543,7 @@ public class RunController {
   }
 
 
+  /*
   private void uploadDirectory(ServerDetails server, File tempdir) {
     if(server.getHost() != null) {
       Machine m = new Machine(server.getHost());
@@ -562,6 +567,7 @@ public class RunController {
       }
     }
   }
+  */
 
   /**
    * Upload triples to a rdf store
@@ -601,6 +607,7 @@ public class RunController {
     }
   }
 
+  /*
   private boolean graphExists(String tstoreurl, String graphurl) {
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -624,4 +631,5 @@ public class RunController {
       return false;
     }
   }
+  */
 }

@@ -189,6 +189,15 @@ public class ComponentController {
 	public synchronized boolean delCategory(String ctype) {
 		return cc.removeComponentHolder(ctype);
 	}
+	
+	public void end() {
+	  if(cc != null) {
+	    cc.end();
+	  }
+	  if(prov != null) {
+	    prov.end();
+	  }
+	}
   
 	/*
 	 * Component browser functions

@@ -1,6 +1,7 @@
 package edu.isi.wings.portal.resources;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -20,6 +21,13 @@ public class SoftwareResource extends WingsResource {
     super.init();
     if(this.hasPermissions() && !this.isPage("intro"))
       this.rc = new ResourceController(config);
+  }
+  
+  @PreDestroy
+  public void destroy() {
+    if(this.rc != null) {
+      this.rc.end();
+    }
   }
   
   @GET

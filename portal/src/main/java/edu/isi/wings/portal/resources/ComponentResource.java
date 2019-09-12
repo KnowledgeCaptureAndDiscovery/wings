@@ -1,6 +1,7 @@
 package edu.isi.wings.portal.resources;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -31,6 +32,13 @@ public class ComponentResource extends WingsResource {
     
     if(this.hasPermissions() && !this.isPage("intro"))
       this.cc = new ComponentController(config, loadConcrete, loadExternal);
+  }
+  
+  @PreDestroy
+  public void destroy() {
+    if(this.cc != null) {
+      this.cc.end();
+    }
   }
   
   @GET

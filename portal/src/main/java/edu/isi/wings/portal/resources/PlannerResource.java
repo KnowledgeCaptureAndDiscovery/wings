@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -29,6 +30,13 @@ public class PlannerResource extends WingsResource {
     if(this.hasPermissions())
       this.wp = new PlanController(config);
   }
+  
+  @PreDestroy
+  public void destroy() {
+    if(this.wp != null) {
+      this.wp.end();
+    }
+  }  
   
   @POST
   @Path("getExpansions")

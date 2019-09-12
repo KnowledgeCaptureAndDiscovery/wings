@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -48,6 +49,14 @@ public class TemplateResource extends WingsResource {
         this.options.put(pname, Boolean.parseBoolean(request.getParameter(pname)));
     }
   }
+  
+  @PreDestroy
+  public void destroy() {
+    System.out.println("Template Resource Destroyed");
+    if(this.tc != null) {
+      this.tc.end();
+    }
+  }  
   
   @GET
   @Path("intro")
