@@ -116,7 +116,8 @@ public class QueriesWorkflowExecutionExport {
      */
     public static String getComponentByWorkflow(String workflowURI){
         return "select distinct ?component where { " +
-                "<" + workflowURI + "_component> <" + Constants.WINGS_PROP_HAS_COMPONENT_BINDING + "> ?component" +
+                "<" + workflowURI + "> <" + Constants.WINGS_PROP_HAS_COMPONENT + "> ?component_node ." +
+                "?component_node <" + Constants.WINGS_PROP_HAS_COMPONENT_BINDING + "> ?component" +
                 "}";
     }
 
