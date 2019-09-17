@@ -193,6 +193,35 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     });
                 }
             });
+        tbar.push('-');
+        tbar.push ({
+            text: 'Plan & Run Workflow',
+            iconCls: 'icon-run fa fa-brown',
+            cls: 'highlightIcon',
+            handler: function() {
+                var op = 'expandAndRunWorkflow';
+                if (!me.checkValidity(op))
+                    return false;
+                
+            	var msgTarget = me.getEl();
+            	msgTarget.mask('Planning & Running Workflow...', 'x-mask-loading');           	
+                Ext.Ajax.requestGZ({
+                    url: me.run_url + "/" + op,
+                    jsonData: me.getTemplateBindings(),
+                    timeout: Ext.Ajax.timeout,
+                    success: function(response) {
+                    	msgTarget.unmask();
+                        var runid = response.responseText;
+                        showWingsRanMessage(me.template_id, runid, me.results_url);
+                    },
+                    failure: function(response) {
+                    	msgTarget.unmask();
+                    	var result = Ext.decode(response.responseText);
+                        showWingsError("Server error. Look in logs", 'No workflows created', result);
+                    }
+                });
+            }
+        });
         tbar.push({ xtype: 'tbfill'});
         tbar.push({
                 text: 'Clear',

@@ -11,6 +11,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.portal.controllers.RunController;
 
 @Path("{user}/{domain}/executions")
@@ -90,6 +93,18 @@ public class RunResource extends WingsResource {
   }
   
   @POST
+  @Path("expandAndRunWorkflow")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String expandAndRunWorkflow(
+      @JsonProperty("template_bindings") final TemplateBindings tbindings) {
+    if(this.rc != null) {
+      return rc.expandAndRunTemplate(tbindings, this.context);
+    }
+    return null;
+  }
+
+
+  @POST
   @Path("runWorkflow")
   @Produces(MediaType.TEXT_PLAIN)
   public String runWorkflow(
@@ -103,8 +118,7 @@ public class RunResource extends WingsResource {
           seed_json, seed_constraints_json, this.context);
     return null;
   }
-
-
+  
   @POST
   @Path("reRunWorkflow")
   @Produces("application/json")

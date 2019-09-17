@@ -21,6 +21,8 @@ package edu.isi.wings.portal.controllers;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
@@ -29,6 +31,8 @@ import javax.ws.rs.core.Response;
 import edu.isi.wings.opmm.Catalog;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
+import edu.isi.wings.portal.classes.util.TemplateBindings;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -80,6 +84,7 @@ public class RunController {
 
   public TemplateCreationAPI tc;
 
+  public static ExecutorService executor = Executors.newFixedThreadPool(4);
 
   public RunController(Config config) {
     this.config = config;
@@ -290,6 +295,24 @@ public class RunController {
   }
 
 
+  /* Utility function to expand and run the first expanded template 
+     - Immediately returns a run id
+     - Puts the rest of the processing in a Queue to be processed sequentially
+  */
+  public String expandAndRunTemplate(TemplateBindings template_bindings, ServletContext context) {
+    // Create a runid
+    URIEntity tpluri = new URIEntity(template_bindings.getTemplateId());
+    tpluri.setID(UuidGen.generateURIUuid(tpluri));
+    String exPrefix = props.getProperty("domain.executions.dir.url");
+    String runid = exPrefix + "/" + tpluri.getName() + ".owl#" + tpluri.getName();
+    
+    // Submit the planning and execution thread
+    executor.submit(new PlanningAndExecutingThread(
+        runid, template_bindings, context, this.config));
+    
+    // Return the runid
+    return runid;
+  }
 
   public String runExpandedTemplate(String origtplid, String templatejson,
       String consjson, String seedjson, String seedconsjson, ServletContext context) {
