@@ -28,7 +28,7 @@ function RunBrowser(guid, runid, op_url, data_url, template_url, can_publish) {
 	this.tBrowser = this.setupTemplateBrowser();
 }
 
-PAGESIZE = 100;
+PAGESIZE = 200;
 
 RunBrowser.prototype.setupTemplateBrowser = function() {
 	return new TemplateBrowser(this.guid, 
@@ -650,6 +650,11 @@ RunBrowser.prototype.refreshOpenRunTabs = function(grid, wRunStore) {
 		var tab = items[i];
 		if (tab && tab.runid) {
 			var rec = wRunStore.getById(tab.runid);
+			if(!rec) {
+				// Item removed from store, remove tab
+				this.tabPanel.remove(tab);
+				continue;
+			}
 			if (rec.data.status != tab.status || rec.data.status == 'RUNNING') {
 				tab.getLoader().load();
 				tab.status = rec.data.status;
