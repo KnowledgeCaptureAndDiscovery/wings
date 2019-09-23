@@ -28,7 +28,7 @@ function RunBrowser(guid, runid, op_url, data_url, template_url, can_publish) {
 	this.tBrowser = this.setupTemplateBrowser();
 }
 
-PAGESIZE = 200;
+PAGESIZE = 1000;
 
 RunBrowser.prototype.setupTemplateBrowser = function() {
 	return new TemplateBrowser(this.guid, 
@@ -770,11 +770,11 @@ RunBrowser.prototype.getRunList = function() {
 		proxy : {
 			type : 'ajax',
 			simpleSortMode : true,
-			batchActions : false,
+			batchActions : true,
 			timeout : 60000, // Timeout of 60 seconds
 			api : {
 				read : this.op_url + "/getRunList",
-				destroy : this.op_url + "/deleteRun"
+				destroy : this.op_url + "/deleteRuns"
 			},
 			reader : {
 				type : 'json',

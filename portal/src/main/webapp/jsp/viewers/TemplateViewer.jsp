@@ -14,7 +14,7 @@ boolean editor = (Boolean) request.getAttribute("editor");
 boolean tellme = (Boolean) request.getAttribute("tellme");
 String template_name = (String) request.getAttribute("template_name");
 
-boolean lightReasoner = tc.config.isLightReasoner();
+boolean lightReasoner = !tc.config.getPlannerConfig().useDataValidation();
 
 String optstr = tc.json.toJson(request.getAttribute("options"));
 String title = "Template " + (editor ? "Editor" : "Browser");

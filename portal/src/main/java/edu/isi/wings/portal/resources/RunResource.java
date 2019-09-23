@@ -1,5 +1,7 @@
 package edu.isi.wings.portal.resources;
 
+import java.util.Date;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
@@ -74,10 +76,15 @@ public class RunResource extends WingsResource {
           @QueryParam("pattern") final String pattern,
           @QueryParam("status") final String status,
           @QueryParam("start") int start,
-          @QueryParam("limit") int limit
+          @QueryParam("limit") int limit,
+          @QueryParam("started_after") final long started_after
   ) {
-    if(this.rc != null)
-      return this.rc.getRunListSimpleJSON(pattern, status, start, limit);
+    if(this.rc != null) {
+      Date startdate = null;
+      if(started_after != 0)
+        startdate = new Date(started_after*1000);
+      return this.rc.getRunListSimpleJSON(pattern, status, start, limit, startdate);
+    }
     return null;
   }
 
@@ -89,6 +96,16 @@ public class RunResource extends WingsResource {
       @FormParam("run_id") String run_id) {
     if(this.rc != null)
       return this.rc.getRunJSON(run_id);
+    return null;
+  }
+  
+  @POST
+  @Path("getRunPlan")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getRunPlan(
+      @FormParam("run_id") String run_id) {
+    if(this.rc != null)
+      return this.rc.getRunPlanJSON(run_id);
     return null;
   }
   
@@ -136,6 +153,15 @@ public class RunResource extends WingsResource {
   public String deleteRun(@FormParam("json") String json) {
     if(this.rc != null)
       return rc.deleteRun(json, context);
+    return null;
+  }
+  
+  @POST
+  @Path("deleteRuns")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String deleteRuns(@FormParam("json") String json) {
+    if(this.rc != null)
+      return rc.deleteRuns(json, context);
     return null;
   }
   

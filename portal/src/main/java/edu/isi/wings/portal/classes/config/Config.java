@@ -84,7 +84,7 @@ public class Config {
     private String exportServletPath = "/export";
     private boolean isSandboxed = false;
 
-    private boolean isLightReasoner = false;
+    private PlannerConfig plannerConfig = new PlannerConfig();
     
     // Comma separated list of spellbook client hosts
     private String clients;
@@ -340,7 +340,14 @@ public class Config {
           this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
         
         if(serverConfig.containsKey("light-reasoner"))
-          this.isLightReasoner = serverConfig.getBoolean("light-reasoner");
+          plannerConfig.dataValidation = !serverConfig.getBoolean("light-reasoner");
+        
+        if(serverConfig.containsKey("planner.data-validation")) 
+          plannerConfig.dataValidation = serverConfig.getBoolean("planner.data-validation");
+        if(serverConfig.containsKey("planner.specialization")) 
+          plannerConfig.dataValidation = serverConfig.getBoolean("planner.specialization");
+        if(serverConfig.containsKey("planner.use-rules")) 
+          plannerConfig.dataValidation = serverConfig.getBoolean("planner.use-rules");
         
         this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
             + communityRelativeDir;
@@ -597,6 +604,7 @@ public class Config {
         if (this.userId != null)
             props.setProperty("user.id", this.userId);
 
+        props.setProperty("use_rules", this.getPlannerConfig().useRules() ? "true" : "false");
         return props;
     }
 
@@ -838,14 +846,6 @@ public class Config {
         this.isSandboxed = isSandboxed;
     }
 
-    public boolean isLightReasoner() {
-      return isLightReasoner;
-    }
-
-    public void setLightReasoner(boolean isLightReasoner) {
-      this.isLightReasoner = isLightReasoner;
-    }
-
     public String getDotFile() {
         return dotFile;
     }
@@ -868,6 +868,14 @@ public class Config {
 
     public void setStorageDirectory(String storageDirectory) {
         this.storageDirectory = storageDirectory;
+    }
+
+    public PlannerConfig getPlannerConfig() {
+      return plannerConfig;
+    }
+
+    public void setPlannerConfig(PlannerConfig plannerConfig) {
+      this.plannerConfig = plannerConfig;
     }
 
     public Set<String> getEnginesList() {

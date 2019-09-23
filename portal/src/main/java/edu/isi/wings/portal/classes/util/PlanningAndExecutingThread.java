@@ -1,30 +1,16 @@
 package edu.isi.wings.portal.classes.util;
 
 import java.util.ArrayList;
-import java.util.Properties;
-
-import javax.servlet.ServletContext;
-
-import edu.isi.wings.catalog.component.ComponentFactory;
-import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
-import edu.isi.wings.catalog.data.DataFactory;
-import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
-import edu.isi.wings.catalog.resource.ResourceFactory;
-import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.CollectionsHelper;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
-import edu.isi.wings.planner.api.WorkflowGenerationAPI;
-import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
-import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
-import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
@@ -32,27 +18,19 @@ import edu.isi.wings.workflow.template.classes.variables.Variable;
 
 public class PlanningAndExecutingThread implements Runnable {
   String runid;
-  TemplateBindings template_bindings;
   Config config;
-  Properties props;
-  TemplateCreationAPI tc;
-  WorkflowGenerationAPI wg;
-  ServletContext context;
+  TemplateBindings template_bindings;
+  PlanningAPIBindings api_bindings;
   
-  public PlanningAndExecutingThread(String runid, 
+  public PlanningAndExecutingThread(
+      String runid,
+      Config config,
       TemplateBindings template_bindings, 
-      ServletContext context,
-      Config config) {
+      PlanningAPIBindings api_bindings) {
     this.runid = runid;
-    this.template_bindings = template_bindings;
     this.config = config;
-    this.props = config.getProperties();
-
-    this.tc = TemplateFactory.getCreationAPI(props);
-    ComponentReasoningAPI cc = ComponentFactory.getReasoningAPI(props);
-    DataReasoningAPI dc = DataFactory.getReasoningAPI(props);
-    ResourceAPI rc = ResourceFactory.getAPI(props);
-    this.wg = new WorkflowGenerationKB(props, dc, cc, rc, UuidGen.generateAUuid(""));
+    this.template_bindings = template_bindings;
+    this.api_bindings = api_bindings;
   }
   
   private void addTemplateBindings(Template tpl, TemplateBindings tb) {
@@ -97,13 +75,19 @@ public class PlanningAndExecutingThread implements Runnable {
   }
   
   private ArrayList<Template> getExpandedTemplates(Template seedtpl) {
-    Template itpl = wg.getInferredTemplate(seedtpl);
     
-    ArrayList<Template> candidates = wg.specializeTemplates(itpl);
+    ArrayList<Template> candidates = new ArrayList<Template>();
+    if(!config.getPlannerConfig().useSpecialization()) {
+      candidates.add(seedtpl);
+    }
+    else {
+      Template itpl = api_bindings.wg.getInferredTemplate(seedtpl);
+      candidates = api_bindings.wg.specializeTemplates(itpl); 
+    }
     
     ArrayList<Template> bts = new ArrayList<Template>();
     
-    if(config.isLightReasoner())
+    if(!config.getPlannerConfig().useDataValidation())
       bts = candidates;
     else {
       for(Template t : candidates) {
@@ -113,29 +97,29 @@ public class PlanningAndExecutingThread implements Runnable {
           continue;
         }
         
-        VariableBindingsListSet bindingset = wg.selectInputDataObjects(t);
+        VariableBindingsListSet bindingset = api_bindings.wg.selectInputDataObjects(t);
         if(bindingset == null)
           continue;
 
         ArrayList<VariableBindingsList> bindings = 
             CollectionsHelper.combineVariableDataObjectMappings(bindingset);
         for(VariableBindingsList binding : bindings) {
-          Template bt = wg.bindTemplate(t, binding);
+          Template bt = api_bindings.wg.bindTemplate(t, binding);
           if(bt != null)
             bts.add(bt);
         }
       }
     }
         
-    wg.setDataMetricsForInputDataObjects(bts);
+    api_bindings.wg.setDataMetricsForInputDataObjects(bts);
 
     ArrayList<Template> cts = new ArrayList<Template>();
     for(Template bt : bts)
-      cts.addAll(wg.configureTemplates(bt));
+      cts.addAll(api_bindings.wg.configureTemplates(bt));
     
     ArrayList<Template> ets = new ArrayList<Template>();
     for(Template ct : cts)
-      ets.add(wg.getExpandedTemplate(ct));
+      ets.add(api_bindings.wg.getExpandedTemplate(ct));
     
     return ets;
   }
@@ -146,20 +130,20 @@ public class PlanningAndExecutingThread implements Runnable {
     engine.execute(rplan);
 
     // Save the engine for an abort if needed
-    this.context.setAttribute("plan_" + rplan.getID(), rplan);
-    this.context.setAttribute("engine_" + rplan.getID(), engine);
+    //this.context.setAttribute("plan_" + rplan.getID(), rplan);
+    //this.context.setAttribute("engine_" + rplan.getID(), engine);
   }
   
   @Override
   public void run() {
     String tplid = this.template_bindings.templateId;
-    Template seedtpl = tc.getTemplate(tplid);
+    Template seedtpl = api_bindings.tc.getTemplate(tplid);
     this.addTemplateBindings(seedtpl, template_bindings);
     
     ArrayList<Template> ets = this.getExpandedTemplates(seedtpl);
     if(ets != null && ets.size() > 0) {
       Template xtpl = ets.get(0); // Choose first expanded template
-      ExecutionPlan plan = wg.getExecutionPlan(xtpl);
+      ExecutionPlan plan = api_bindings.wg.getExecutionPlan(xtpl);
   
       String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
       if (plan != null) {

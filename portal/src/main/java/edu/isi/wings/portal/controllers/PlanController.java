@@ -174,7 +174,7 @@ public class PlanController {
     VariableBindingsListSet allbindingsets = 
         new VariableBindingsListSet();
     
-    if(config.isLightReasoner())
+    if(!config.getPlannerConfig().useDataValidation())
       bts = candidates;
     else {
   		for(Template t : candidates) {
@@ -216,7 +216,7 @@ public class PlanController {
     System.out.println(bts);*/
     
     if(op.equals("getData")) {
-      if(config.isLightReasoner())
+      if(!config.getPlannerConfig().useDataValidation())
         printError(out);
       else
         printDataBindingsJSON(allbindingsets, noexplain, out);

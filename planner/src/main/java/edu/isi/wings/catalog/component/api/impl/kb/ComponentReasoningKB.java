@@ -49,6 +49,7 @@ import java.util.*;
 
 public class ComponentReasoningKB extends ComponentKB implements ComponentReasoningAPI {
 	private Logger logger = Logger.getLogger(this.getClass());
+	private boolean useRules = true;
 
 	private HashMap<String, Component> ccache =
 	    new HashMap<String, Component>();
@@ -66,6 +67,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	
 	public ComponentReasoningKB(Properties props) {
 		super(props, true, false, true, false);
+		this.useRules = Boolean.getBoolean(props.getProperty("use_rules", "true"));
 		this.initializeMetrics();
 	}
 	
@@ -240,7 +242,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	 */
 
 	public ArrayList<ComponentPacket> specializeAndFindDataDetails(ComponentPacket details) {
-		return findDataDetails(details, true, true);
+		return findDataDetails(details, true, this.useRules);
 	}
 
 	/**
@@ -259,7 +261,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	 * @return ComponentDetails Object
 	 */
 	public ComponentPacket findDataDetails(ComponentPacket details) {
-		ArrayList<ComponentPacket> list = findDataDetails(details, false, true);
+		ArrayList<ComponentPacket> list = findDataDetails(details, false, this.useRules);
 		if (list.size() > 0)
 			return list.get(0);
 

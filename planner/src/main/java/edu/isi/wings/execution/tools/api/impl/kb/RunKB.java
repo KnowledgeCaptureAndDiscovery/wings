@@ -18,6 +18,7 @@
 package edu.isi.wings.execution.tools.api.impl.kb;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -174,14 +175,24 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-  public int getNumberOfRuns(String pattern, String status) {
+  public int getNumberOfRuns(String pattern, String status, Date started_after) {
+	    String starttime = null;
+	    if(started_after != null) {
+	      SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss Z");
+	      starttime = formatter.format(started_after).replaceFirst("\\s", "T").replace(" ", "");
+	      starttime = starttime.substring(0,22) + ":" + starttime.substring(22);
+	    }
+	    
 	    String query = 
 	        "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 
+          "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 	        "SELECT (COUNT(*) as ?count)\n" + 
 	        "WHERE { " +
 	        "?run a exec:Execution .\n" +
 	        "?run exec:hasTemplate ?template .\n" +
 	        "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
+          (starttime != null ?
+              "FILTER(?start > '"+starttime+"'^^xsd:dateTime) .\n" : "") +      
 	        (pattern != null ? "FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n" : "") +
 	        (status != null ? "?run exec:hasExecutionStatus '"+status+"' .\n" : "") + 
 	        "}";
@@ -193,21 +204,32 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    return size;
 	 }
 
-	public ArrayList<RuntimePlan> getRunListSimple(String pattern, String status, int start, int limit) {
+	public ArrayList<RuntimePlan> getRunListSimple(String pattern, String status, 
+	    int start, int limit, Date started_after) {
 		ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
 
 		if(pattern == null) {
 			pattern = "";
 		}
+		
+		String starttime = null;
+		if(started_after != null) {
+		  SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss Z");
+		  starttime = formatter.format(started_after).replaceFirst("\\s", "T").replace(" ", "");
+		  starttime = starttime.substring(0,22) + ":" + starttime.substring(22);
+		}
 
 		String query =
 						"PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" +
+		        "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 										"SELECT ?run ?status ?template ?start ?end \n" +
 										"WHERE {\n" +
 										"?run a exec:Execution .\n" +
 										"?run exec:hasExecutionStatus ?status .\n" +
 										"?run exec:hasTemplate ?template .\n" +
 										"?run exec:hasStartTime ?start .\n" +
+                    (starttime != null ?
+                        "FILTER(?start > '"+starttime+"'^^xsd:dateTime) .\n" : "") +										
 										"FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
 										"FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n";
 		query += "}\n";
@@ -395,7 +417,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	@Override
 	public boolean delete() {
 	  boolean ok = true;
-		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1)) {
+		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1, null)) {
 			ok = this.deleteRun(rplan.getID());
 			if(!ok)
 			  return false;
@@ -507,7 +529,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     }
 	}
 	
-	private boolean fileIsOutputofAnotherRun(ExecutionFile file) {
+	@SuppressWarnings("unused")
+  private boolean fileIsOutputofAnotherRun(ExecutionFile file) {
     String query = 
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" + 
         "PREFIX exec: <http://www.wings-workflows.org/ontology/execution.owl#>\n" + 

@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import edu.isi.wings.opmm.Catalog;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
 import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 
@@ -70,6 +71,7 @@ import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
@@ -82,9 +84,8 @@ public class RunController {
 
   private Properties props;
 
-  public TemplateCreationAPI tc;
-
-  public static ExecutorService executor = Executors.newFixedThreadPool(4);
+  public static ExecutorService executor = Executors.newSingleThreadExecutor();
+  public static HashMap<String, PlanningAPIBindings> apiBindings = new HashMap<String, PlanningAPIBindings>();
 
   public RunController(Config config) {
     this.config = config;
@@ -92,15 +93,10 @@ public class RunController {
     this.props = config.getProperties();
     this.dataUrl = config.getUserDomainUrl() + "/data";
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
-
-    tc = TemplateFactory.getCreationAPI(props);
   }
   
-  
   public void end() {
-    if(tc != null) {
-      tc.end();
-    }
+
   }
 
   /**
@@ -113,7 +109,7 @@ public class RunController {
    */
   public String getRunListJSON(String pattern, String status, int start, int limit) {
     HashMap<String, Object> result = new HashMap<String, Object>();
-    int numberOfRuns = this.getNumberOfRuns(pattern, status);
+    int numberOfRuns = this.getNumberOfRuns(pattern, status, null);
     boolean fasterQuery = numberOfRuns > 1000;
     result.put("success", true);
     result.put("results", numberOfRuns);
@@ -122,18 +118,19 @@ public class RunController {
   }
 
 
-  public String getRunListSimpleJSON(String pattern, String status,  int start, int limit) {
+  public String getRunListSimpleJSON(String pattern, String status,  int start, int limit, Date started_after) {
     HashMap<String, Object> result = new HashMap<String, Object>();
     result.put("success", true);
-    result.put("results", this.getNumberOfRuns(pattern, status));
-    result.put("rows", this.getRunListSimple(pattern, status, start, limit));
+    result.put("results", this.getNumberOfRuns(pattern, status, started_after));
+    result.put("rows", this.getRunListSimple(pattern, status, start, limit, started_after));
     return json.toJson(result);
   }
 
-  public ArrayList<HashMap<String, Object>> getRunListSimple(String pattern, String status, int start, int limit) {
+  public ArrayList<HashMap<String, Object>> getRunListSimple(String pattern, String status, 
+      int start, int limit, Date started_after) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
-    for (RuntimePlan exe : monitor.getRunListSimple(pattern, status, start, limit)) {
+    for (RuntimePlan exe : monitor.getRunListSimple(pattern, status, start, limit, started_after)) {
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
@@ -173,9 +170,9 @@ public class RunController {
     return list;
   }
   
-  public int getNumberOfRuns(String pattern, String status) {
+  public int getNumberOfRuns(String pattern, String status, Date started_after) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    return monitor.getNumberOfRuns(pattern, status);
+    return monitor.getNumberOfRuns(pattern, status, started_after);
   }
 
   private String getStepIds(ArrayList<RuntimeStep> steps) {
@@ -202,6 +199,7 @@ public class RunController {
 
       TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
       Template tpl = tc.getTemplate(planexe.getExpandedTemplateID());
+      tc.end();
 
       Map<String, Object> variables = new HashMap<String, Object>();
       variables.put("input", tpl.getInputVariables());
@@ -214,6 +212,12 @@ public class RunController {
     returnmap.put("published_url", this.getPublishedURL(runid));
 
     return json.toJson(returnmap);
+  }
+  
+  public String getRunPlanJSON(String runid) {
+    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    RuntimePlan planexe = monitor.getRunDetails(runid);
+    return json.toJson(planexe);
   }
 
   private String getPublishedURL(String runid) {
@@ -255,6 +259,30 @@ public class RunController {
       varbindings.put(v.getID(), constraints);
     }
     return varbindings;
+  }
+  
+  public String deleteRuns(String rjson, ServletContext context) {
+    HashMap<String, Object> ret = new HashMap<String, Object>();
+    ret.put("success", false);
+    JsonElement listel = new JsonParser().parse(rjson);
+    if (listel == null)
+      return json.toJson(ret);
+    
+    if(listel.isJsonObject()) {
+      return this.deleteRun(rjson, context);
+    }
+    
+    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
+    
+    JsonArray list = listel.getAsJsonArray();
+    for(int i=0; i<list.size(); i++) {
+      JsonElement el = list.get(i);
+      String runid = el.getAsJsonObject().get("id").getAsString();
+      monitor.deleteRun(runid);
+    }
+    
+    ret.put("success", true);
+    return json.toJson(ret);
   }
 
   public String deleteRun(String rjson, ServletContext context) {
@@ -306,9 +334,17 @@ public class RunController {
     String exPrefix = props.getProperty("domain.executions.dir.url");
     String runid = exPrefix + "/" + tpluri.getName() + ".owl#" + tpluri.getName();
     
+    PlanningAPIBindings apis = null;
+    if(apiBindings.containsKey(exPrefix)) {
+      apis = apiBindings.get(exPrefix);
+    }
+    else {
+      apis = new PlanningAPIBindings(props);
+      apiBindings.put(exPrefix, apis);
+    }
+    
     // Submit the planning and execution thread
-    executor.submit(new PlanningAndExecutingThread(
-        runid, template_bindings, context, this.config));
+    executor.submit(new PlanningAndExecutingThread(runid, this.config, template_bindings, apis));
     
     // Return the runid
     return runid;
@@ -358,10 +394,13 @@ public class RunController {
   public Response reRunPlan(String run_id, ServletContext context){
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     RuntimePlan plan = monitor.getRunDetails(run_id);
+    
     TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
     String orig_tp_id = plan.getOriginalTemplateID();
     Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
     Template seedtpl = tc.getTemplate(plan.getSeededTemplateID());
+    tc.end();
+    
     if (createPlan(orig_tp_id, context, xtpl, seedtpl) == "")
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal error").build();
     return Response.status(Response.Status.CREATED).entity("CREATED").build();
@@ -442,6 +481,8 @@ public class RunController {
       // Fetch expanded template (to get data binding ids)
       TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
       Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
+      tc.end();
+      
       HashMap<String, String> varBindings = new HashMap<String, String>();
       for (Variable var : xtpl.getVariables()) {
         varBindings.put(var.getID(), var.getBinding().getID());

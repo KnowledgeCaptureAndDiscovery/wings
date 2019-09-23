@@ -45,6 +45,7 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
 
   public String onturl, liburl;
   private String tdbRepository;
+  private static boolean initializeLibrary = false;
 
   private KBAPI ontkb, libkb;
   
@@ -79,7 +80,8 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
       this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
       
       this.initializeMaps();
-      this.initializeLibrary();
+      if(!initializeLibrary)
+        this.initializeLibrary();
     } 
     catch (Exception e) {
       e.printStackTrace();
@@ -126,6 +128,7 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
     if(ok)
       this.save();
     this.end();
+    initializeLibrary = true;
   }
   
   private ArrayList<KBObject> getInstancesOfClass(KBObject cls, KBAPI kb) {
