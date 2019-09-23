@@ -19,6 +19,10 @@ package edu.isi.wings.execution.tools.api.impl.kb;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -178,9 +182,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
   public int getNumberOfRuns(String pattern, String status, Date started_after) {
 	    String starttime = null;
 	    if(started_after != null) {
-	      SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss Z");
-	      starttime = formatter.format(started_after).replaceFirst("\\s", "T").replace(" ", "");
-	      starttime = starttime.substring(0,22) + ":" + starttime.substring(22);
+	      LocalDateTime time = started_after.toInstant()
+	          .atZone(ZoneId.systemDefault()).toLocalDateTime();
+	      ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(time);
+	      starttime = time.format(DateTimeFormatter.ISO_DATE_TIME) + offset.getId();
 	    }
 	    
 	    String query = 
@@ -214,9 +219,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		
 		String starttime = null;
 		if(started_after != null) {
-		  SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss Z");
-		  starttime = formatter.format(started_after).replaceFirst("\\s", "T").replace(" ", "");
-		  starttime = starttime.substring(0,22) + ":" + starttime.substring(22);
+		  LocalDateTime time = started_after.toInstant()
+		      .atZone(ZoneId.systemDefault()).toLocalDateTime();
+		  ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(time);
+		  starttime = time.format(DateTimeFormatter.ISO_DATE_TIME) + offset.getId();
 		}
 
 		String query =
