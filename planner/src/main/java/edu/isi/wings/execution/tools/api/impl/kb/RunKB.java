@@ -18,7 +18,6 @@
 package edu.isi.wings.execution.tools.api.impl.kb;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -193,15 +192,19 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 	        "SELECT (COUNT(*) as ?count)\n" + 
 	        "WHERE { " +
-	        "?run a exec:Execution .\n" +
-	        "?run exec:hasTemplate ?template .\n" +
-	        "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
+          "?run a exec:Execution .\n" +
+          "?run exec:hasExecutionStatus ?status .\n" +
+          "?run exec:hasTemplate ?template .\n" +
+          "?run exec:hasStartTime ?start .\n" +
+          (status != null ? 
+              "?run exec:hasExecutionStatus '" + status + "') .\n" : "") +
           (starttime != null ?
               "FILTER(?start > '"+starttime+"'^^xsd:dateTime) .\n" : "") +      
-	        (pattern != null ? "FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n" : "") +
-	        (status != null ? "?run exec:hasExecutionStatus '"+status+"' .\n" : "") + 
+          (pattern != null ? 
+              "FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n" : "") +
+          "FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
 	        "}";
-	    //System.out.println(query);
+
 	    this.start_read();
 	    ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
 	    int size = (Integer) result.get(0).get(0).getObject().getValue();
@@ -212,10 +215,6 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	public ArrayList<RuntimePlan> getRunListSimple(String pattern, String status, 
 	    int start, int limit, Date started_after) {
 		ArrayList<RuntimePlan> rplans = new ArrayList<RuntimePlan>();
-
-		if(pattern == null) {
-			pattern = "";
-		}
 		
 		String starttime = null;
 		if(started_after != null) {
@@ -234,16 +233,19 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 										"?run exec:hasExecutionStatus ?status .\n" +
 										"?run exec:hasTemplate ?template .\n" +
 										"?run exec:hasStartTime ?start .\n" +
+										(status != null ? 
+										    "?run exec:hasExecutionStatus '" + status + "') .\n" : "") +
                     (starttime != null ?
-                        "FILTER(?start > '"+starttime+"'^^xsd:dateTime) .\n" : "") +										
-										"FILTER REGEX(str(?run), '" + newrunurl + "') .\n" +
-										"FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n";
+                        "FILTER(?start > '"+starttime+"'^^xsd:dateTime) .\n" : "") +			
+                    (pattern != null ? 
+                        "FILTER REGEX(str(?template), '" + newtplurl + ".*" + pattern + ".*') .\n" : "") +
+										"FILTER REGEX(str(?run), '" + newrunurl + "') .\n";
 		query += "}\n";
 
 		if(limit >= 0 && start >=0) {
 			query += " LIMIT " + limit + " OFFSET " + start;
 		}
-
+		
 		this.start_read();
 		ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
 		for(ArrayList<SparqlQuerySolution> row : result) {
