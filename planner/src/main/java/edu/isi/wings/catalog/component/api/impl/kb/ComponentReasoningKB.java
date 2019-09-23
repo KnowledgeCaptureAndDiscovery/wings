@@ -67,7 +67,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	
 	public ComponentReasoningKB(Properties props) {
 		super(props, true, false, true, false);
-		this.useRules = Boolean.getBoolean(props.getProperty("use_rules", "true"));
+		this.useRules = Boolean.parseBoolean(props.getProperty("use_rules", "true"));
 		this.initializeMetrics();
 	}
 	
