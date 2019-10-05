@@ -260,6 +260,7 @@ public class WorkflowExecutionExport {
             String stepVariables = QueriesWorkflowExecutionExport.getWINGSExecutionStepI_O(wingsStep.getURI());
             ResultSet rsVar = ModelUtils.queryLocalRepository(stepVariables, wingsExecutionModel);
             while (rsVar.hasNext()) {
+                System.out.println("Detected input: ");
                 QuerySolution qsVar = rsVar.next();
                 String varType = qsVar.getResource("?varType").getURI();
                 Resource variable = qsVar.getResource("?variable");
@@ -267,6 +268,9 @@ public class WorkflowExecutionExport {
                 String executionArtifactURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT + "/" + runID + "_" + variable.getLocalName();
                 Individual executionArtifact = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT).createIndividual(executionArtifactURI);
                 executionArtifact.addLabel(variable.getLocalName(), null);
+
+                System.out.println("Detected input: " + variable.getURI());
+
                 String pathFile = binding.toString();
                 String dataLocation = uploadFile(pathFile);
                 executionArtifact.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), dataLocation);
@@ -403,9 +407,11 @@ public class WorkflowExecutionExport {
      */
     private String uploadFile(String filePath) {
         try {
+            System.out.println("uploading the file " + filePath);
             Uploader upload = new Uploader(this.uploadURL, this.uploadUsername, this.uploadPassword);
             File mainScriptFile = new File(filePath);
             if (this.uploadMaxSize != 0 && mainScriptFile.length() > this.uploadMaxSize ){
+                System.out.println("File size exceeds the max upload size.");
                 return mainScriptFile.getAbsolutePath();
             }
             upload.addFilePart("file_param_1", mainScriptFile);
