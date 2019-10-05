@@ -259,6 +259,7 @@ public class WorkflowExecutionExport {
             //for each step get its i/o (plan)
             String stepVariables = QueriesWorkflowExecutionExport.getWINGSExecutionStepI_O(wingsStep.getURI());
             ResultSet rsVar = ModelUtils.queryLocalRepository(stepVariables, wingsExecutionModel);
+
             while (rsVar.hasNext()) {
                 System.out.println("Detected input: ");
                 QuerySolution qsVar = rsVar.next();

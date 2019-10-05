@@ -640,7 +640,7 @@ public class RunController {
    * @param filepath
    */
   private void publishFile(String tstoreurl, String graphurl, String filepath) {
-    System.out.println("Publishing the filepath" + filepath + "on graph" + graphurl);
+    System.out.println("Publishing the filepath " + filepath + " on graph " + graphurl);
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
       HttpPut putRequest = new HttpPut(tstoreurl + "?graph=" + graphurl);

@@ -72,10 +72,13 @@ public class QueriesWorkflowExecutionExport {
      * @return query type of variable, id and binding
      */
     public static String getWINGSExecutionStepI_O(String execStepURI){
-        return "select distinct ?varType ?variable ?binding  where {"
+        String query = "select distinct ?varType ?variable ?binding  where {"
                 + "<"+execStepURI+"> ?varType ?variable."
                 + "?variable <"+Constants.WF_INVOC_DATA_PROP_HAS_DATA_BINDING+"> ?binding."
                 + "}";
+        System.out.println("getWINGSExecutionStepI_O query: " + query);
+
+        return query;
     }
     
     /**
