@@ -195,6 +195,10 @@ public class WorkflowExecutionExport {
         String queryExecutionStepMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionStepsAndMetadata();
         rs = ModelUtils.queryLocalRepository(queryExecutionStepMetadata, wingsExecutionModel);
         System.out.println("Browsing steps: ");
+        if (!rs.hasNext()){
+            System.out.println("WARNING: no steps");
+            System.out.println(queryExecutionStepMetadata);
+        }
         while (rs.hasNext()) {
             QuerySolution qs = rs.next();
             Resource wingsStep = qs.getResource("?step");
