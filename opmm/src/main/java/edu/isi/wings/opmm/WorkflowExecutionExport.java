@@ -194,6 +194,7 @@ public class WorkflowExecutionExport {
         //transform all steps and data dependencies (params are in expanded template)
         String queryExecutionStepMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionStepsAndMetadata();
         rs = ModelUtils.queryLocalRepository(queryExecutionStepMetadata, wingsExecutionModel);
+        System.out.println("Browsing steps: ");
         while (rs.hasNext()) {
             QuerySolution qs = rs.next();
             Resource wingsStep = qs.getResource("?step");
@@ -202,6 +203,8 @@ public class WorkflowExecutionExport {
             Literal status = qs.getLiteral("?status");
             Literal executionScript = qs.getLiteral("?code");
             Literal invLine = qs.getLiteral("?invLine");
+
+            System.out.println("- browsing step: " + wingsStep.getLocalName());
 
             String executionStepURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS + "/" + runID + "_" + wingsStep.getLocalName();
             Individual executionStep = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_PROCESS).createIndividual(executionStepURI);
@@ -216,10 +219,6 @@ public class WorkflowExecutionExport {
             }
 
             //Extract source property and save it
-
-            //Creation of the software config. This may be moved to another class for simplicity and because it
-            //can be used in the catalog too.http://localhost:8080/wings_portal/users/admin/CaesarCypher/data/fetch?data_id=http%3A//localhost%3A8080/wings_portal/export/users/admin/CaesarCypher/data/library.owl%23USconstitution.txt
-            //TODO: if there are errors, then create a config URI based on the node and URI (i.e., unique)
 
             /*
             Export the component code
@@ -259,9 +258,10 @@ public class WorkflowExecutionExport {
             //for each step get its i/o (plan)
             String stepVariables = QueriesWorkflowExecutionExport.getWINGSExecutionStepI_O(wingsStep.getURI());
             ResultSet rsVar = ModelUtils.queryLocalRepository(stepVariables, wingsExecutionModel);
+            System.out.println("Browsing input and output of step: " + wingsStep.getLocalName());
 
             while (rsVar.hasNext()) {
-                System.out.println("Detected input: ");
+                System.out.println("- browsing input: ");
                 QuerySolution qsVar = rsVar.next();
                 String varType = qsVar.getResource("?varType").getURI();
                 Resource variable = qsVar.getResource("?variable");
@@ -290,6 +290,8 @@ public class WorkflowExecutionExport {
                 //Get expanded template and query dataCatalog metadata
                 String metadataQuery = QueriesWorkflowExecutionExport.getDataCatalogIdentifier(variable.getURI());
                 ResultSet metadataQueryVar = ModelUtils.queryLocalRepository(metadataQuery, getConcreteTemplateExport().getWingsTemplateModel());
+                System.out.println("Browsing metadata of variable: " + variable.getURI());
+
                 while (metadataQueryVar.hasNext()) {
                     QuerySolution metadataResultQuery = metadataQueryVar.next();
                     String metadataValue = metadataResultQuery.getLiteral("?value").toString();
@@ -314,6 +316,9 @@ public class WorkflowExecutionExport {
             String wingsExpandedTempProcessURI = expandedTemplateURI + wingsStep.getLocalName();
             String queryParams = QueriesWorkflowExecutionExport.getWINGSParametersForStep(wingsExpandedTempProcessURI);
             ResultSet params = ModelUtils.queryLocalRepository(queryParams, concreteTemplateExport.getWingsTemplateModel());
+
+            System.out.println("Browsing parameter of the step: " + wingsStep.getLocalName());
+
             while (params.hasNext()) {
                 QuerySolution nextP = params.next();
                 Resource param = nextP.getResource("?param");
