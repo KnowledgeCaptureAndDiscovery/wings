@@ -52,6 +52,7 @@ public class QueriesWorkflowExecutionExport {
                     + "<"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?start ;\n"
                     + "<"+Constants.P_PLAN_PROP_HAS_INVOCATION_LINE+"> ?invLine ;\n"
                     + "<"+Constants.WF_INVOC_DATA_PROP_HAS_CODE_BINDING+"> ?code\n"
+                    + "}"
                 + "}";
     }
     
