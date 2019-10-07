@@ -45,12 +45,12 @@ public class QueriesWorkflowExecutionExport {
      */
     public static String getWINGSExecutionStepsAndMetadata(){
         return "select distinct ?step ?start ?end ?status ?code ?invLine where {"
-                + "?step a <"+Constants.WINGS_EXECUTION_STEP+">."
-                + "?step <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status .\n"
+                + "?step a <"+Constants.WINGS_EXECUTION_STEP+"> ."
+                + "?step <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status \n"
                 + "OPTIONAL {"
-                    + "?step <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?end;}\n"
-                    + "<"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?start;\n"
-                    + "<"+Constants.P_PLAN_PROP_HAS_INVOCATION_LINE+"> ?invLine;\n"
+                    + "?step <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?end ;\n"
+                    + "<"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?start ;\n"
+                    + "<"+Constants.P_PLAN_PROP_HAS_INVOCATION_LINE+"> ?invLine ;\n"
                     + "<"+Constants.WF_INVOC_DATA_PROP_HAS_CODE_BINDING+"> ?code\n"
                 + "}";
     }
