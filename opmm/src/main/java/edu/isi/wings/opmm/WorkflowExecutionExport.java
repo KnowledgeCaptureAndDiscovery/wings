@@ -193,6 +193,7 @@ public class WorkflowExecutionExport {
 
         //transform all steps and data dependencies (params are in expanded template)
         String queryExecutionStepMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionStepsAndMetadata();
+        System.out.println(queryExecutionStepMetadata);
         rs = ModelUtils.queryLocalRepository(queryExecutionStepMetadata, wingsExecutionModel);
         System.out.println("Browsing steps: ");
         if (!rs.hasNext()){
