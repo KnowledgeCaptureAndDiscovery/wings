@@ -216,12 +216,10 @@ public class WorkflowExecutionExport {
 
             //Add metadata information
             executionStep.addLabel(wingsStep.getLocalName(), null);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_INVOCATION_COMMAND), invLine);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_START_TIME), start);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_STATUS), status);
-            if (end != null) {
-                executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_END_TIME), end);
-            }
+            add_property(invLine, executionStep, Constants.OPMW_DATA_PROP_HAD_INVOCATION_COMMAND);
+            add_property(start, executionStep, Constants.OPMW_DATA_PROP_HAD_START_TIME);
+            add_property(status, executionStep, Constants.OPMW_DATA_PROP_STATUS);
+            add_property(end, executionStep, Constants.OPMW_DATA_PROP_HAD_END_TIME);
 
             //Extract source property and save it
 
@@ -376,7 +374,15 @@ public class WorkflowExecutionExport {
         return we;
     }
 
-    private Literal getComponentSource(Resource wingsStep) {
+  private void add_property(Literal literal, Individual individual, String property) {
+      if (literal != null)
+        individual.addProperty(opmwModel.createProperty(property), literal);
+      else {
+        System.err.println("Warning: " + property + " null ");
+      }
+  }
+
+  private Literal getComponentSource(Resource wingsStep) {
         Literal source = null;
         String queryComponent = QueriesWorkflowExecutionExport.getWorkflowByStep(wingsStep.getURI());
         ResultSet rsWorkflow = ModelUtils.queryLocalRepository(queryComponent, getConcreteTemplateExport().getWingsTemplateModel());
