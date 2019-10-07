@@ -221,40 +221,43 @@ public class WorkflowExecutionExport {
             add_property(status, executionStep, Constants.OPMW_DATA_PROP_STATUS);
             add_property(end, executionStep, Constants.OPMW_DATA_PROP_HAD_END_TIME);
 
-            //Extract source property and save it
-
-            /*
-            Export the component code
-            Zip the directory and upload
-            */
 
             String configURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_config";
             Individual stepConfig = opmwModel.createClass(Constants.OPMW_SOFTWARE_CONFIGURATION).createIndividual(configURI);
             stepConfig.addLabel(stepConfig.getLocalName(), null);
 
-            String configLocation = executionScript.getString().replace("/run", "");
-            File directory = new File(configLocation);
-            StorageHandler storage = new StorageHandler();
-            try {
+            //Extract source property and save it
+            if  (executionScript != null ) {
+              // Export the component code, zip the directory and upload
+              String configLocation = executionScript.getString().replace("/run", "");
+              File directory = new File(configLocation);
+              StorageHandler storage = new StorageHandler();
+              try {
                 File tempFile = storage.zipFolder(directory);
                 configLocation = uploadFile(tempFile.getAbsolutePath());
-            } catch (Exception e) {
+              } catch (Exception e) {
                 e.printStackTrace();
+              }
+              stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
+
+              //Export the main script and upload
+              String mainScriptLocation = uploadFile(executionScript.getString());
+              String mainScriptURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_mainscript";
+              Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
+                      Constants.OPMW_SOFTWARE_SCRIPT, mainScriptURI);
+              stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT), mainScript);
+            } else {
+              System.err.println("Warning: executionScript null");
             }
-            stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
 
             Literal source = getComponentSource(wingsStep);
             System.out.println("Source:" + source);
             if (source != null){
                 stepConfig.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
+            } else {
+              System.err.println("Warning: source null");
             }
 
-            /*Export the mainscript and upload */
-            String mainScriptLocation = uploadFile(executionScript.getString());
-            String mainScriptURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_mainscript";
-            Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
-                    Constants.OPMW_SOFTWARE_SCRIPT, mainScriptURI);
-            stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT), mainScript);
             executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAD_SOFTWARE_CONFIGURATION), stepConfig);
             executionStep.addProperty(opmwModel.createProperty(Constants.PROV_WAS_ASSOCIATED_WITH), wingsInstance);
 
