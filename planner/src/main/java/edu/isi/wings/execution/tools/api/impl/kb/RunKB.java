@@ -670,9 +670,13 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	private void updateRuntimeInfo(KBAPI tkb, KBObject exobj, RuntimeInfo rinfo) {
-	  if(rinfo.getLog() != null)
+	  if(rinfo.getLog() != null) {
+	    /*
 	    tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
 	        tkb.createLiteral(rinfo.getLog()));
+	    */
+	    // FIXME: Store in a log file 
+	  }
 		if(rinfo.getStartTime() != null)
 		  tkb.setPropertyValue(exobj, dataPropMap.get("hasStartTime"),
 		      tkb.createLiteral(rinfo.getStartTime()));

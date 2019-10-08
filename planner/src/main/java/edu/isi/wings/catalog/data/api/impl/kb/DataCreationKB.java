@@ -49,7 +49,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		super(props, true, true);
 		// FIXME: Hack to get unionOf domains
 		try {
-		  this.tmpkb = this.ontologyFactory.getKB(onturl, OntSpec.PLAIN);
+		  this.tmpkb = this.ontologyFactory.getKB(onturl, OntSpec.MICRO);
 		}
 		catch (Exception e) {
 		  e.printStackTrace();
@@ -167,8 +167,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	@Override
 	public ArrayList<MetadataProperty> getMetadataProperties(String dtypeid, boolean direct) {
 	  this.start_read();
-		KBObject dtypeobj = this.tmpkb.getResource(dtypeid);
-		KBObject datatype = this.conceptMap.get(dtypeobj.getName());
+		KBObject datatype = this.tmpkb.getConcept(dtypeid);
 		ArrayList<KBObject> properties = this.tmpkb.getPropertiesOfClass(datatype, direct);
 		ArrayList<MetadataProperty> mprops = createMetadataProperties(properties);
 		this.end();
