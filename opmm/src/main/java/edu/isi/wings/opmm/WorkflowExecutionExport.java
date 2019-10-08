@@ -193,7 +193,13 @@ public class WorkflowExecutionExport {
 
         //transform all steps and data dependencies (params are in expanded template)
         String queryExecutionStepMetadata = QueriesWorkflowExecutionExport.getWINGSExecutionStepsAndMetadata();
+        System.out.println(queryExecutionStepMetadata);
         rs = ModelUtils.queryLocalRepository(queryExecutionStepMetadata, wingsExecutionModel);
+        System.out.println("Browsing steps: ");
+        if (!rs.hasNext()){
+            System.out.println("WARNING: no steps");
+            System.out.println(queryExecutionStepMetadata);
+        }
         while (rs.hasNext()) {
             QuerySolution qs = rs.next();
             Resource wingsStep = qs.getResource("?step");
@@ -203,63 +209,65 @@ public class WorkflowExecutionExport {
             Literal executionScript = qs.getLiteral("?code");
             Literal invLine = qs.getLiteral("?invLine");
 
+            System.out.println("- browsing step: " + wingsStep.getLocalName());
+
             String executionStepURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_PROCESS + "/" + runID + "_" + wingsStep.getLocalName();
             Individual executionStep = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_PROCESS).createIndividual(executionStepURI);
 
             //Add metadata information
             executionStep.addLabel(wingsStep.getLocalName(), null);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_INVOCATION_COMMAND), invLine);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_START_TIME), start);
-            executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_STATUS), status);
-            if (end != null) {
-                executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAD_END_TIME), end);
-            }
+            add_property(invLine, executionStep, Constants.OPMW_DATA_PROP_HAD_INVOCATION_COMMAND);
+            add_property(start, executionStep, Constants.OPMW_DATA_PROP_HAD_START_TIME);
+            add_property(status, executionStep, Constants.OPMW_DATA_PROP_STATUS);
+            add_property(end, executionStep, Constants.OPMW_DATA_PROP_HAD_END_TIME);
 
-            //Extract source property and save it
-
-            //Creation of the software config. This may be moved to another class for simplicity and because it
-            //can be used in the catalog too.http://localhost:8080/wings_portal/users/admin/CaesarCypher/data/fetch?data_id=http%3A//localhost%3A8080/wings_portal/export/users/admin/CaesarCypher/data/library.owl%23USconstitution.txt
-            //TODO: if there are errors, then create a config URI based on the node and URI (i.e., unique)
-
-            /*
-            Export the component code
-            Zip the directory and upload
-            */
 
             String configURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_config";
             Individual stepConfig = opmwModel.createClass(Constants.OPMW_SOFTWARE_CONFIGURATION).createIndividual(configURI);
             stepConfig.addLabel(stepConfig.getLocalName(), null);
 
-            String configLocation = executionScript.getString().replace("/run", "");
-            File directory = new File(configLocation);
-            StorageHandler storage = new StorageHandler();
-            try {
+            //Extract source property and save it
+            if  (executionScript != null ) {
+              // Export the component code, zip the directory and upload
+              String configLocation = executionScript.getString().replace("/run", "");
+              File directory = new File(configLocation);
+              StorageHandler storage = new StorageHandler();
+              try {
                 File tempFile = storage.zipFolder(directory);
                 configLocation = uploadFile(tempFile.getAbsolutePath());
-            } catch (Exception e) {
+              } catch (Exception e) {
                 e.printStackTrace();
+              }
+              stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
+
+              //Export the main script and upload
+              String mainScriptLocation = uploadFile(executionScript.getString());
+              String mainScriptURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_mainscript";
+              Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
+                      Constants.OPMW_SOFTWARE_SCRIPT, mainScriptURI);
+              stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT), mainScript);
+            } else {
+              System.err.println("Warning: executionScript null");
             }
-            stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), configLocation);
 
             Literal source = getComponentSource(wingsStep);
             System.out.println("Source:" + source);
             if (source != null){
                 stepConfig.addProperty(opmwModel.createProperty(Constants.PROV_HAD_PRIMARY_SOURCE), source);
+            } else {
+              System.err.println("Warning: source null");
             }
 
-            /*Export the mainscript and upload */
-            String mainScriptLocation = uploadFile(executionScript.getString());
-            String mainScriptURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_SOFTWARE_CONFIGURATION + "/" + runID + "_" + wingsStep.getLocalName() + "_mainscript";
-            Resource mainScript = ModelUtils.getIndividualFromFile(mainScriptLocation, opmwModel,
-                    Constants.OPMW_SOFTWARE_SCRIPT, mainScriptURI);
-            stepConfig.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAS_MAIN_SCRIPT), mainScript);
             executionStep.addProperty(opmwModel.createProperty(Constants.OPMW_PROP_HAD_SOFTWARE_CONFIGURATION), stepConfig);
             executionStep.addProperty(opmwModel.createProperty(Constants.PROV_WAS_ASSOCIATED_WITH), wingsInstance);
 
             //for each step get its i/o (plan)
             String stepVariables = QueriesWorkflowExecutionExport.getWINGSExecutionStepI_O(wingsStep.getURI());
             ResultSet rsVar = ModelUtils.queryLocalRepository(stepVariables, wingsExecutionModel);
+            System.out.println("Browsing input and output of step: " + wingsStep.getLocalName());
+
             while (rsVar.hasNext()) {
+                System.out.println("- browsing input: ");
                 QuerySolution qsVar = rsVar.next();
                 String varType = qsVar.getResource("?varType").getURI();
                 Resource variable = qsVar.getResource("?variable");
@@ -267,6 +275,9 @@ public class WorkflowExecutionExport {
                 String executionArtifactURI = PREFIX_EXPORT_RESOURCE + Constants.CONCEPT_WORKFLOW_EXECUTION_ARTIFACT + "/" + runID + "_" + variable.getLocalName();
                 Individual executionArtifact = opmwModel.createClass(Constants.OPMW_WORKFLOW_EXECUTION_ARTIFACT).createIndividual(executionArtifactURI);
                 executionArtifact.addLabel(variable.getLocalName(), null);
+
+                System.out.println("Detected input: " + variable.getURI());
+
                 String pathFile = binding.toString();
                 String dataLocation = uploadFile(pathFile);
                 executionArtifact.addProperty(opmwModel.createProperty(Constants.OPMW_DATA_PROP_HAS_LOCATION), dataLocation);
@@ -285,6 +296,8 @@ public class WorkflowExecutionExport {
                 //Get expanded template and query dataCatalog metadata
                 String metadataQuery = QueriesWorkflowExecutionExport.getDataCatalogIdentifier(variable.getURI());
                 ResultSet metadataQueryVar = ModelUtils.queryLocalRepository(metadataQuery, getConcreteTemplateExport().getWingsTemplateModel());
+                System.out.println("Browsing metadata of variable: " + variable.getURI());
+
                 while (metadataQueryVar.hasNext()) {
                     QuerySolution metadataResultQuery = metadataQueryVar.next();
                     String metadataValue = metadataResultQuery.getLiteral("?value").toString();
@@ -309,6 +322,9 @@ public class WorkflowExecutionExport {
             String wingsExpandedTempProcessURI = expandedTemplateURI + wingsStep.getLocalName();
             String queryParams = QueriesWorkflowExecutionExport.getWINGSParametersForStep(wingsExpandedTempProcessURI);
             ResultSet params = ModelUtils.queryLocalRepository(queryParams, concreteTemplateExport.getWingsTemplateModel());
+
+            System.out.println("Browsing parameter of the step: " + wingsStep.getLocalName());
+
             while (params.hasNext()) {
                 QuerySolution nextP = params.next();
                 Resource param = nextP.getResource("?param");
@@ -361,7 +377,15 @@ public class WorkflowExecutionExport {
         return we;
     }
 
-    private Literal getComponentSource(Resource wingsStep) {
+  private void add_property(Literal literal, Individual individual, String property) {
+      if (literal != null)
+        individual.addProperty(opmwModel.createProperty(property), literal);
+      else {
+        System.err.println("Warning: " + property + " null ");
+      }
+  }
+
+  private Literal getComponentSource(Resource wingsStep) {
         Literal source = null;
         String queryComponent = QueriesWorkflowExecutionExport.getWorkflowByStep(wingsStep.getURI());
         ResultSet rsWorkflow = ModelUtils.queryLocalRepository(queryComponent, getConcreteTemplateExport().getWingsTemplateModel());
@@ -403,9 +427,11 @@ public class WorkflowExecutionExport {
      */
     private String uploadFile(String filePath) {
         try {
+            System.out.println("uploading the file " + filePath);
             Uploader upload = new Uploader(this.uploadURL, this.uploadUsername, this.uploadPassword);
             File mainScriptFile = new File(filePath);
             if (this.uploadMaxSize != 0 && mainScriptFile.length() > this.uploadMaxSize ){
+                System.out.println("File size exceeds the max upload size.");
                 return mainScriptFile.getAbsolutePath();
             }
             upload.addFilePart("file_param_1", mainScriptFile);

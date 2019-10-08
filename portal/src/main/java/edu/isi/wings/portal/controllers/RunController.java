@@ -640,11 +640,13 @@ public class RunController {
    * @param filepath
    */
   private void publishFile(String tstoreurl, String graphurl, String filepath) {
+    System.out.println("Publishing the filepath " + filepath + " on graph " + graphurl);
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
       HttpPut putRequest = new HttpPut(tstoreurl + "?graph=" + graphurl);
 
-      int timeoutSeconds = 5;
+      //Todo: move it to configuration
+      int timeoutSeconds = 10;
       int CONNECTION_TIMEOUT_MS = timeoutSeconds * 1000;
       RequestConfig requestConfig = RequestConfig.custom()
           .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
@@ -658,13 +660,19 @@ public class RunController {
       if (content != null) {
         StringEntity input = new StringEntity(content);
         input.setContentType("text/turtle");
-
         putRequest.setEntity(input);
         HttpResponse response = httpClient.execute(putRequest);
         int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode != 201) {
+        if (statusCode > 299) {
           System.err.println("Unable to upload the domain " + statusCode);
+          System.err.println(response.getStatusLine().getReasonPhrase());
+        } else {
+          System.err.println("Success uploading the domain " + statusCode);
+          System.err.println(response.getStatusLine().getReasonPhrase());
         }
+      }
+      else {
+        System.err.println("File content is null " + filepath);
       }
     } catch (IOException e) {
       e.printStackTrace();

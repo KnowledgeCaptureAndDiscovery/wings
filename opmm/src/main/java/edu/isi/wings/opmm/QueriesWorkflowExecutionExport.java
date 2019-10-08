@@ -45,13 +45,14 @@ public class QueriesWorkflowExecutionExport {
      */
     public static String getWINGSExecutionStepsAndMetadata(){
         return "select distinct ?step ?start ?end ?status ?code ?invLine where {"
-                + "?step a <"+Constants.WINGS_EXECUTION_STEP+">."
-                + "?step <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status;\n"
-                    + "<"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?start;\n"
-                    + "<"+Constants.P_PLAN_PROP_HAS_INVOCATION_LINE+"> ?invLine;\n"
-                    + "<"+Constants.WF_INVOC_DATA_PROP_HAS_CODE_BINDING+"> ?code.\n"
+                + "?step a <"+Constants.WINGS_EXECUTION_STEP+"> ."
+                + "?step <"+Constants.WINGS_DATA_PROP_HAS_STATUS+"> ?status \n"
                 + "OPTIONAL {"
-                    + "?step <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?end.}\n"
+                    + "?step <"+Constants.WINGS_DATA_PROP_HAS_END_TIME+"> ?end ;\n"
+                    + "<"+Constants.WINGS_DATA_PROP_HAS_START_TIME+"> ?start ;\n"
+                    + "<"+Constants.P_PLAN_PROP_HAS_INVOCATION_LINE+"> ?invLine ;\n"
+                    + "<"+Constants.WF_INVOC_DATA_PROP_HAS_CODE_BINDING+"> ?code\n"
+                    + "}"
                 + "}";
     }
     
@@ -72,10 +73,13 @@ public class QueriesWorkflowExecutionExport {
      * @return query type of variable, id and binding
      */
     public static String getWINGSExecutionStepI_O(String execStepURI){
-        return "select distinct ?varType ?variable ?binding  where {"
+        String query = "select distinct ?varType ?variable ?binding  where {"
                 + "<"+execStepURI+"> ?varType ?variable."
                 + "?variable <"+Constants.WF_INVOC_DATA_PROP_HAS_DATA_BINDING+"> ?binding."
                 + "}";
+        System.out.println("getWINGSExecutionStepI_O query: " + query);
+
+        return query;
     }
     
     /**
