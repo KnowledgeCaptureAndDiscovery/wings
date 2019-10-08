@@ -345,9 +345,9 @@ public class Config {
         if(serverConfig.containsKey("planner.data-validation")) 
           plannerConfig.dataValidation = serverConfig.getBoolean("planner.data-validation");
         if(serverConfig.containsKey("planner.specialization")) 
-          plannerConfig.dataValidation = serverConfig.getBoolean("planner.specialization");
+          plannerConfig.specialization = serverConfig.getBoolean("planner.specialization");
         if(serverConfig.containsKey("planner.use-rules")) 
-          plannerConfig.dataValidation = serverConfig.getBoolean("planner.use-rules");
+          plannerConfig.useRules = serverConfig.getBoolean("planner.use-rules");
         
         this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
             + communityRelativeDir;
