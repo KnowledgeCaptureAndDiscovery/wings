@@ -50,7 +50,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
     String baseDir;
     Properties props;
     Thread monitoringThread;
-    protected final ExecutorService executor;
+    protected static ExecutorService executor = Executors.newFixedThreadPool(4);
 
     PlanExecutionEngine planEngine;
     StepExecutionEngine stepEngine;
@@ -67,7 +67,6 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
         this.stepEngine = this;
         this.planEngine = this;
         this.log = Logger.getLogger(this.getClass());
-        this.executor = Executors.newFixedThreadPool(4);
     }
 
     @Override
