@@ -43,11 +43,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutionEngine {
     String baseDir;
     Properties props;
     Thread monitoringThread;
+    protected final ExecutorService executor;
+
     PlanExecutionEngine planEngine;
     StepExecutionEngine stepEngine;
     PegasusWorkflowAdapter adapter;
@@ -63,6 +67,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
         this.stepEngine = this;
         this.planEngine = this;
         this.log = Logger.getLogger(this.getClass());
+        this.executor = Executors.newFixedThreadPool(4);
     }
 
     @Override
@@ -86,9 +91,13 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             this.adapter.runWorkflow(exe, siteCatalog, site, this.baseDir);
 
             // Start Monitoring thread
+            executor.submit(new ExecutionMonitoringThread(this, exe, logger, monitor,
+                submitDir, pegasusHome));
+            /*
             this.monitoringThread = new Thread(new ExecutionMonitoringThread(this, exe, logger, monitor,
                     submitDir, pegasusHome));
             this.monitoringThread.start();
+            */
 
         } catch (Exception e) {
             exe.onStart(this.logger);
