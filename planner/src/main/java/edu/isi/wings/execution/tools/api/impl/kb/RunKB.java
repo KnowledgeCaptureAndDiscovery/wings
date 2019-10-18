@@ -146,7 +146,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void updateRuntimeInfo(RuntimePlan exe) {
+	public synchronized void updateRuntimeInfo(RuntimePlan exe) {
 	  try {
 	    KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
 	    this.start_write();
@@ -164,7 +164,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void updateRuntimeInfo(RuntimeStep stepexe) {
+	public synchronized void updateRuntimeInfo(RuntimeStep stepexe) {
     try {
       KBAPI tkb = this.ontologyFactory.getKB(stepexe.getRuntimePlan().getURL(),
           OntSpec.PLAIN);
@@ -398,7 +398,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public boolean deleteRun(String runid) {
+	public synchronized boolean deleteRun(String runid) {
 		return this.deleteExecutionRun(runid);
 	}
 
@@ -671,10 +671,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void updateRuntimeInfo(KBAPI tkb, KBObject exobj, RuntimeInfo rinfo) {
 	  if(rinfo.getLog() != null) {
-	    /*
 	    tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
 	        tkb.createLiteral(rinfo.getLog()));
-	    */
 	    // FIXME: Store in a log file 
 	  }
 		if(rinfo.getStartTime() != null)
