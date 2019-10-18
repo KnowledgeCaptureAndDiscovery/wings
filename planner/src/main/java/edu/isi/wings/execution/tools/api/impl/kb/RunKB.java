@@ -129,7 +129,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void startLogging(RuntimePlan exe) {
+	public synchronized void startLogging(RuntimePlan exe) {
 		try {
 		  KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
 		  
@@ -423,7 +423,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	
 
 	@Override
-	public boolean delete() {
+	public synchronized boolean delete() {
 	  boolean ok = true;
 		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1, null)) {
 			ok = this.deleteRun(rplan.getID());
@@ -596,7 +596,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     return false;
   } 
 	
-	private boolean deleteExecutionRun(String runid) {
+	private synchronized boolean deleteExecutionRun(String runid) {
 		RuntimePlan rplan = this.getExecutionRun(runid, true);
 		
 		try {
