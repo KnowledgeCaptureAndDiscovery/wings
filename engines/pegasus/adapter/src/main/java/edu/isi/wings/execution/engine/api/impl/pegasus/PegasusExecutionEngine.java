@@ -50,7 +50,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
     String baseDir;
     Properties props;
     Thread monitoringThread;
-    protected static ExecutorService executor = Executors.newFixedThreadPool(4);
+    //protected static ExecutorService executor = Executors.newWorkStealingPool(16);
 
     PlanExecutionEngine planEngine;
     StepExecutionEngine stepEngine;
@@ -90,13 +90,13 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             this.adapter.runWorkflow(exe, siteCatalog, site, this.baseDir);
 
             // Start Monitoring thread
+            /*
             executor.submit(new ExecutionMonitoringThread(this, exe, logger, monitor,
                 submitDir, pegasusHome));
-            /*
+            */
             this.monitoringThread = new Thread(new ExecutionMonitoringThread(this, exe, logger, monitor,
                     submitDir, pegasusHome));
             this.monitoringThread.start();
-            */
 
         } catch (Exception e) {
             exe.onStart(this.logger);
