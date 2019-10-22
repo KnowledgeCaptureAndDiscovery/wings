@@ -602,7 +602,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     return false;
   } 
 	
-	private synchronized boolean deleteExecutionRun(String runid) {
+	private boolean deleteExecutionRun(String runid) {
 		RuntimePlan rplan = this.getExecutionRun(runid, true);
 		
 		try {
