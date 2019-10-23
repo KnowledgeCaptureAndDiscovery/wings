@@ -94,9 +94,9 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             executor.submit(new ExecutionMonitoringThread(this, exe, logger, monitor,
                 submitDir, pegasusHome));
             */
-            this.monitoringThread = new Thread(new ExecutionMonitoringThread(this, exe, logger, monitor,
+            Thread monitoringThread = new Thread(new ExecutionMonitoringThread(this, exe, logger, monitor,
                     submitDir, pegasusHome));
-            this.monitoringThread.start();
+            monitoringThread.start();
 
         } catch (Exception e) {
             exe.onStart(this.logger);
