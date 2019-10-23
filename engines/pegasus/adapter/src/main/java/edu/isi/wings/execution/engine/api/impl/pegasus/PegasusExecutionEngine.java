@@ -277,7 +277,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
 
     class ExecutionMonitoringThread implements Runnable {
-        int sleepTime = 5000;
+        int sleepTime = 10000;
         int jobstateLogMark = 0;
         String submitDir = null;
         RuntimePlan plan = null;
@@ -447,24 +447,18 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
                             } else if (jobState.equals("EXECUTE")) {
                                 newStatus = RuntimeInfo.Status.RUNNING;
 
-                            } else if (jobState.equals("JOB_SUCCESS") || jobState.equals("POST_SCRIPT_SUCCESS")) {
+                            } else if (jobState.equals("POST_SCRIPT_SUCCESS")) {
                                 newStatus = RuntimeInfo.Status.SUCCESS;
                                 if (oldStatus != newStatus) {
-                                    step.onEnd(logger, newStatus, "Success");
+                                  step.getRuntimeInfo().addLog(showStdOutErr(jobLoc, jobName));
+                                  step.onEnd(logger, newStatus, "Success");
                                 }
-                                if (jobState.equals("POST_SCRIPT_SUCCESS")) {
-                                    step.onEnd(logger, newStatus, showStdOutErr(jobLoc, jobName));
-                                    step.onEnd(logger, newStatus, "Success");
-                                }
-                            } else if (jobState.equals("JOB_FAILURE") || jobState.equals("POST_SCRIPT_FAILURE")) {
+                            } else if (jobState.equals("POST_SCRIPT_FAILURE")) {
                                 isFailed = true;
                                 newStatus = RuntimeInfo.Status.FAILURE;
                                 if (oldStatus != newStatus) {
-                                    step.onEnd(logger, newStatus, "Failure");
-                                }
-                                if (jobState.equals("POST_SCRIPT_FAILURE")) {
-                                    step.onEnd(logger, newStatus, showStdOutErr(jobLoc, jobName));
-                                    step.onEnd(logger, newStatus, "Failure");
+                                  step.getRuntimeInfo().addLog(showStdOutErr(jobLoc, jobName));
+                                  step.onEnd(logger, newStatus, "Failure");
                                 }
                             } else {
                                 newStatus = oldStatus;
