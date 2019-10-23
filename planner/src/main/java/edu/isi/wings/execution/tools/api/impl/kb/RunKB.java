@@ -144,10 +144,11 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		  KBObject exobj = kb.createObjectOfClass(exe.getID(), conceptMap.get("Execution"));
 		  this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
 		  this.save();
-		  this.end();
 		  
 		} catch (Exception e) {
 		  e.printStackTrace();
+		} finally {
+		  this.end();
 		}
 	}
 
@@ -163,9 +164,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    
 	    this.save(tkb);
 	    this.save();
-	    this.end();
 	  } catch (Exception e) {
 	    e.printStackTrace();
+	  } finally {
+	    this.end();
 	  }
 	}
 
@@ -177,9 +179,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
       this.start_write();
       this.updateExecutionStep(tkb, stepexe);
       tkb.save();
-      this.end();
     } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      this.end();
     }
 	}
 
@@ -404,7 +407,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public synchronized boolean deleteRun(String runid) {
+	public boolean deleteRun(String runid) {
 		return this.deleteExecutionRun(runid);
 	}
 
@@ -429,7 +432,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	
 
 	@Override
-	public synchronized boolean delete() {
+	public boolean delete() {
 	  boolean ok = true;
 		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1, null)) {
 			ok = this.deleteRun(rplan.getID());
