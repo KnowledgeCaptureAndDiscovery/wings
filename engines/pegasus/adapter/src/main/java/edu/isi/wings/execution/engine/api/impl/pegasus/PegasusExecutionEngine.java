@@ -441,9 +441,10 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
                             if (jobState.equals("SUBMIT")) {
                                 newStatus = RuntimeInfo.Status.QUEUED;
-                                step.setRuntimePlan(plan);
-                                step.onStart(logger);
-
+                                if(oldStatus != newStatus) {
+                                  step.setRuntimePlan(plan);
+                                  step.onStart(logger);
+                                }
                             } else if (jobState.equals("EXECUTE")) {
                                 newStatus = RuntimeInfo.Status.RUNNING;
 
