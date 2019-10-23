@@ -28,7 +28,7 @@ function RunBrowser(guid, runid, op_url, data_url, template_url, can_publish) {
 	this.tBrowser = this.setupTemplateBrowser();
 }
 
-PAGESIZE = 1000;
+PAGESIZE = 500;
 
 RunBrowser.prototype.setupTemplateBrowser = function() {
 	return new TemplateBrowser(this.guid, 
@@ -945,6 +945,8 @@ RunBrowser.prototype.getRunList = function() {
 		This.refreshOpenRunTabs(grid, wRunStore);
 	});
 
+	/*
+	// Disabling automatic refresh
 	var gridListRefresh = {
 		run : function() {
 			wRunStore.load({
@@ -959,6 +961,7 @@ RunBrowser.prototype.getRunList = function() {
 		// 120 seconds
 	};
 	Ext.TaskManager.start(gridListRefresh);
+	*/
 
 	return grid;
 };
