@@ -945,8 +945,6 @@ RunBrowser.prototype.getRunList = function() {
 		This.refreshOpenRunTabs(grid, wRunStore);
 	});
 
-	/*
-	// Disabling automatic refresh
 	var gridListRefresh = {
 		run : function() {
 			wRunStore.load({
@@ -960,8 +958,10 @@ RunBrowser.prototype.getRunList = function() {
 		interval : 120000
 		// 120 seconds
 	};
-	Ext.TaskManager.start(gridListRefresh);
-	*/
+	
+	// Disabling automatic refresh	
+	// Ext.TaskManager.start(gridListRefresh);
+	gridListRefresh.run();
 
 	return grid;
 };
