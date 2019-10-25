@@ -125,6 +125,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		for (KBObject con : this.kb.getAllClasses()) {
 			this.conceptMap.put(con.getName(), con);
 		}
+		this.end();
+		this.start_write();
 		if (!dataPropMap.containsKey("hasLog"))
 			dataPropMap.put("hasLog", this.kb.createDatatypeProperty(this.onturl + "#hasLog"));
     if(!objPropMap.containsKey("hasSeededTemplate"))
