@@ -118,26 +118,36 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	@Override
 	public boolean setComponentLocation(String cid, String location) {
-	  this.start_write();
-		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
-		KBObject cobj = this.writerkb.getResource(cid);
-		KBObject locobj = writerkb.createLiteral(location);
-		this.writerkb.setPropertyValue(cobj, locprop, locobj);
-    if(this.externalCatalog != null)
-      this.externalCatalog.setComponentLocation(cid, location);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
+  		KBObject cobj = this.writerkb.getResource(cid);
+  		KBObject locobj = writerkb.createLiteral(location);
+  		this.writerkb.setPropertyValue(cobj, locprop, locobj);
+      if(this.externalCatalog != null)
+        this.externalCatalog.setComponentLocation(cid, location);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 
 	public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
-		this.start_write();
-		KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
-		KBObject cobj = this.writerkb.getResource(cid);
-		KBObject locobj = writerkb.createLiteral(modelIdentifier);
-		this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.setComponentLocation(cid, modelIdentifier);
-		return this.save() && this.end();
+	  try {
+  		this.start_write();
+  		KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
+  		KBObject cobj = this.writerkb.getResource(cid);
+  		KBObject locobj = writerkb.createLiteral(modelIdentifier);
+  		this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.setComponentLocation(cid, modelIdentifier);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 
@@ -184,81 +194,96 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		String cid = comp.getID();
 		String cholderid = this.getComponentHolderId(cid);
 		
-		this.start_write();
-		this.start_batch_operation();
-		
-		// If parent holder passed in, create a holder as subclass of parent holder
-		// Else assume that current holder already exists and fetch that
-		KBObject cls;
-		if(pholderid != null)
-			cls = writerkb.createClass(cholderid, pholderid);
-		else
-			cls = kb.getConcept(cholderid);
-
-		KBObject cobj = this.writerkb.createObjectOfClass(cid, cls);
-
-		KBObject inProp = kb.getProperty(this.pcns + "hasInput");
-		KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
-		KBObject isConcreteProp = kb.getProperty(this.pcns + "isConcrete");
-
-		for (ComponentRole role : comp.getInputs()) {
-			role.setID(cid + "_" + role.getRoleName()); // HACK: role id is <compid>_<rolename/argid>
-			KBObject roleobj = this.createRole(role);
-			if(roleobj == null)
-				return false;
-			this.writerkb.addTriple(cobj, inProp, roleobj);
+		try {
+  		this.start_write();
+  		this.start_batch_operation();
+  		
+  		// If parent holder passed in, create a holder as subclass of parent holder
+  		// Else assume that current holder already exists and fetch that
+  		KBObject cls;
+  		if(pholderid != null)
+  			cls = writerkb.createClass(cholderid, pholderid);
+  		else
+  			cls = kb.getConcept(cholderid);
+  
+  		KBObject cobj = this.writerkb.createObjectOfClass(cid, cls);
+  
+  		KBObject inProp = kb.getProperty(this.pcns + "hasInput");
+  		KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
+  		KBObject isConcreteProp = kb.getProperty(this.pcns + "isConcrete");
+  
+  		for (ComponentRole role : comp.getInputs()) {
+  			role.setID(cid + "_" + role.getRoleName()); // HACK: role id is <compid>_<rolename/argid>
+  			KBObject roleobj = this.createRole(role);
+  			if(roleobj == null)
+  				return false;
+  			this.writerkb.addTriple(cobj, inProp, roleobj);
+  		}
+  		for (ComponentRole role : comp.getOutputs()) {
+  			role.setID(cid + "_" + role.getRoleName());
+  			KBObject roleobj = this.createRole(role);
+  			if(roleobj == null)
+  				return false;
+  			this.writerkb.addTriple(cobj, outProp, roleobj);
+  		}
+  
+  		if(comp.getSource() != null){
+  			this.setModelCatalogIdentifier(cid, comp.getSource());
+  		}
+  		if(comp.getDocumentation() != null)
+  			this.setComponentDocumentation(cobj, comp.getDocumentation());
+  		
+      if(comp.getComponentRequirement() != null)
+        this.setComponentRequirements(cobj, comp.getComponentRequirement(),
+            this.kb, this.writerkb);
+      
+  		if(comp.getLocation() != null)
+  			this.setComponentLocation(cid, comp.getLocation());
+  		
+  		if(comp.getRulesText() != null) {
+  			this.setComponentRules(cid, comp.getRulesText());
+  		}
+  		
+  		KBObject isConcreteVal = this.writerkb.createLiteral(comp.getType() == Component.CONCRETE);
+  		this.writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);
+  		
+      if(this.externalCatalog != null)
+        this.externalCatalog.addComponent(comp, pholderid);
+  
+      this.stop_batch_operation();
+  		return this.save();
 		}
-		for (ComponentRole role : comp.getOutputs()) {
-			role.setID(cid + "_" + role.getRoleName());
-			KBObject roleobj = this.createRole(role);
-			if(roleobj == null)
-				return false;
-			this.writerkb.addTriple(cobj, outProp, roleobj);
-		}
-
-		if(comp.getSource() != null){
-			this.setModelCatalogIdentifier(cid, comp.getSource());
-		}
-		if(comp.getDocumentation() != null)
-			this.setComponentDocumentation(cobj, comp.getDocumentation());
-		
-    if(comp.getComponentRequirement() != null)
-      this.setComponentRequirements(cobj, comp.getComponentRequirement(),
-          this.kb, this.writerkb);
-    
-		if(comp.getLocation() != null)
-			this.setComponentLocation(cid, comp.getLocation());
-		
-		if(comp.getRulesText() != null) {
-			this.setComponentRules(cid, comp.getRulesText());
-		}
-		
-		KBObject isConcreteVal = this.writerkb.createLiteral(comp.getType() == Component.CONCRETE);
-		this.writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);
-		
-    if(this.externalCatalog != null)
-      this.externalCatalog.addComponent(comp, pholderid);
-
-    this.stop_batch_operation();
-		return this.save() && this.end();
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean addComponentHolder(String holderid, String pholderid) {
-	  this.start_write();
-		writerkb.createClass(holderid, pholderid);
-    if(this.externalCatalog != null)
-      this.externalCatalog.addComponentHolder(holderid, pholderid);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		writerkb.createClass(holderid, pholderid);
+      if(this.externalCatalog != null)
+        this.externalCatalog.addComponentHolder(holderid, pholderid);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 	
 	@Override
 	public boolean removeComponentHolder(String ctype) {
-	  this.start_write();
-		KBUtils.removeAllTriplesWith(writerkb, ctype, false);
-    if(this.externalCatalog != null)
-      this.externalCatalog.removeComponentHolder(ctype);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBUtils.removeAllTriplesWith(writerkb, ctype, false);
+      if(this.externalCatalog != null)
+        this.externalCatalog.removeComponentHolder(ctype);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
@@ -332,15 +357,20 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	@Override
 	public boolean renameComponent(String oldid, String newid) {
-	  this.start_write();
-		KBUtils.renameAllTriplesWith(writerkb, this.getComponentHolderId(oldid), 
-				this.getComponentHolderId(newid), false);
-		KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
-    
-		if(this.externalCatalog != null)
-      this.externalCatalog.renameComponent(oldid, newid);
-		
-    return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBUtils.renameAllTriplesWith(writerkb, this.getComponentHolderId(oldid), 
+  				this.getComponentHolderId(newid), false);
+  		KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
+      
+  		if(this.externalCatalog != null)
+        this.externalCatalog.renameComponent(oldid, newid);
+  		
+      return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 	
 	@Override
@@ -354,49 +384,53 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	public void copyFrom(ComponentCreationAPI dc) {
 		ComponentCreationKB dckb = (ComponentCreationKB)dc;
 		
-		this.start_write();
-		dckb.start_read();
-		this.writerkb.copyFrom(dckb.writerkb);
-		
-    // Namespace rename maps
-    HashMap<String, String> nsmap = new HashMap<String, String>();
-    nsmap.put(dckb.dcns, this.dcns);
-    nsmap.put(dckb.pcns, this.pcns);
-    nsmap.put(dckb.dcdomns, this.dcdomns);
-    nsmap.put(dckb.pcdomns, this.pcdomns);
-		KBUtils.renameTripleNamespaces(this.writerkb, nsmap);
-		
-		KBUtils.renameAllTriplesWith(this.writerkb, dckb.pcurl, this.pcurl, false);
-		KBUtils.renameAllTriplesWith(this.writerkb, dckb.absurl, this.absurl, false);
-		KBUtils.renameAllTriplesWith(this.writerkb, dckb.liburl, this.liburl, false);
-		KBUtils.renameAllTriplesWith(this.writerkb, dckb.dconturl, this.dconturl, false);
-    
-    // Change any specified locations of data
-    KBObject locProp = this.writerkb.getProperty(this.pcns+"hasLocation");
-    ArrayList<KBTriple> triples = 
-        this.writerkb.genericTripleQuery(null, locProp, null);
-    for(KBTriple t : triples) {
-      this.writerkb.removeTriple(t);
-      if(t.getObject() == null || t.getObject().getValue() == null)
-        continue;
-      KBObject comp = t.getSubject();
-      String loc = (String) t.getObject().getValue();
-      File f = new File(loc);
-      loc = this.codedir + File.separator + f.getName();
-      this.writerkb.setPropertyValue(comp, locProp, this.writerkb.createLiteral(loc));
+		try {
+  		this.start_write();
+  		dckb.start_read();
+  		this.writerkb.copyFrom(dckb.writerkb);
+  		
+      // Namespace rename maps
+      HashMap<String, String> nsmap = new HashMap<String, String>();
+      nsmap.put(dckb.dcns, this.dcns);
+      nsmap.put(dckb.pcns, this.pcns);
+      nsmap.put(dckb.dcdomns, this.dcdomns);
+      nsmap.put(dckb.pcdomns, this.pcdomns);
+  		KBUtils.renameTripleNamespaces(this.writerkb, nsmap);
+  		
+  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.pcurl, this.pcurl, false);
+  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.absurl, this.absurl, false);
+  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.liburl, this.liburl, false);
+  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.dconturl, this.dconturl, false);
+      
+      // Change any specified locations of data
+      KBObject locProp = this.writerkb.getProperty(this.pcns+"hasLocation");
+      ArrayList<KBTriple> triples = 
+          this.writerkb.genericTripleQuery(null, locProp, null);
+      for(KBTriple t : triples) {
+        this.writerkb.removeTriple(t);
+        if(t.getObject() == null || t.getObject().getValue() == null)
+          continue;
+        KBObject comp = t.getSubject();
+        String loc = (String) t.getObject().getValue();
+        File f = new File(loc);
+        loc = this.codedir + File.separator + f.getName();
+        this.writerkb.setPropertyValue(comp, locProp, this.writerkb.createLiteral(loc));
+      }
+      
+  		//FIXME: A hack to get the imported domain's resource namespace. Should be explicit
+  		String dcreslibns = dckb.liburl.replaceAll("\\/export\\/users\\/.+$", 
+  		    "/export/common/resource/library.owl#");
+  		KBUtils.renameTripleNamespace(this.writerkb, dcreslibns, this.resliburl+"#");
+  		this.save();
+  		dc.end();
+  		this.end();
+  
+  		this.start_read();
+  		this.initializeAPI(true, true, true);
+		}
+    finally {
+      this.end();
     }
-    
-		//FIXME: A hack to get the imported domain's resource namespace. Should be explicit
-		String dcreslibns = dckb.liburl.replaceAll("\\/export\\/users\\/.+$", 
-		    "/export/common/resource/library.owl#");
-		KBUtils.renameTripleNamespace(this.writerkb, dcreslibns, this.resliburl+"#");
-		this.save();
-		dc.end();
-		this.end();
-
-		this.start_read();
-		this.initializeAPI(true, true, true);
-		this.end();
 	}
 
 	@Override
