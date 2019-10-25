@@ -103,9 +103,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			this.unionkb = 
 			    this.ontologyFactory.getKB("urn:x-arq:UnionGraph", OntSpec.PLAIN);
 			
-			this.start_write();
 			this.initializeMaps();
-			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -117,7 +115,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.dataPropMap = new HashMap<String, KBObject>();
 		this.conceptMap = new HashMap<String, KBObject>();
 
-		this.start_write();
+		this.start_read();
 		for (KBObject prop : this.kb.getAllObjectProperties()) {
 			this.objPropMap.put(prop.getName(), prop);
 		}
