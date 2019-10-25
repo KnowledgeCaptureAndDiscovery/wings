@@ -211,6 +211,17 @@ public class DataResource extends WingsResource {
   }
   
   @POST
+  @Path("addRemoteDataForType")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String addRemoteDataForType(
+      @FormParam("data_url") String data_url,
+      @FormParam("data_type") String data_type) {
+    if(this.dc != null && this.isOwner() && !config.isSandboxed())
+        return this.dc.addRemoteDataForType(data_url, data_type);
+    return null;
+  }
+  
+  @POST
   @Path("delData")
   @Produces(MediaType.TEXT_PLAIN)
   public String delData(

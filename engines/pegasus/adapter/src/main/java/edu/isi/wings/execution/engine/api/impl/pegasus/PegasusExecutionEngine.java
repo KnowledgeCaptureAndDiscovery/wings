@@ -77,6 +77,8 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
         String storageDir = props.getProperty("pegasus.storage-dir", FileUtils.getTempDirectoryPath()) + File.separator;
 
         try {
+            exe.onStart(logger);
+            
             // Create base directory
             File baseDir = new File(storageDir + exe.getName());
             FileUtils.forceMkdir(baseDir);
@@ -99,7 +101,6 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             monitoringThread.start();
 
         } catch (Exception e) {
-            exe.onStart(this.logger);
             exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
             log.error(e.getMessage(), e);
         }
@@ -534,8 +535,6 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
         @Override
         public void run() {
-            plan.onStart(logger);
-
             // Workflow is successful by default
             workflowStatus = RuntimeInfo.Status.SUCCESS;
 

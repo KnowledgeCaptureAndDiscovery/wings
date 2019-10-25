@@ -57,6 +57,8 @@ public interface DataCreationAPI extends TransactionsAPI {
 	String getTypeNameFormat(String dtypeid);
 
 	String getDataLocation(String dataid);
+	
+	String getDefaultDataLocation(String dataid);
 
 	ArrayList<MetadataValue> getMetadataValues(String dataid, ArrayList<String> propids);
 
