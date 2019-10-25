@@ -293,12 +293,14 @@ public class 	DataController {
   			String propid = pval.get("name").getAsString();
   			String value = pval.get("value").getAsString();
   			MetadataProperty pinfo = pinfos.get(propid);
-  			if (pinfo.isDatatypeProperty()) {
-  				if (value.equals("") && !pinfo.getRange().contains("string"))
-  					continue;
-  				dc.addDatatypePropertyValue(dataid, propid, value, pinfo.getRange());
-  			} else {
-  				dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
+  			if(pinfo != null) {
+    			if (pinfo.isDatatypeProperty()) {
+    				if (value.equals("") && !pinfo.getRange().contains("string"))
+    					continue;
+    				dc.addDatatypePropertyValue(dataid, propid, value, pinfo.getRange());
+    			} else {
+    				dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
+    			}
   			}
   		}
   		dc.stop_batch_operation();
@@ -311,6 +313,8 @@ public class 	DataController {
   		    prov.addProvenance(p);
 		}
 		catch (Exception e) {
+		  e.printStackTrace();
+		  dc.stop_batch_operation();
 		  dc.end();
 		  return false;
 		}

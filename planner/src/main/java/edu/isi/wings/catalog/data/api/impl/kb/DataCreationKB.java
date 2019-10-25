@@ -267,11 +267,16 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 
 	@Override
 	public boolean addDatatype(String dtypeid, String parentid) {
-	  this.start_write();
-		KBObject dtype = this.ontkb.createClass(dtypeid, parentid);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addDatatype(dtypeid, parentid);
-		return this.save() && this.end() && (dtype != null);
+	  try {
+  	  this.start_write();
+  		KBObject dtype = this.ontkb.createClass(dtypeid, parentid);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addDatatype(dtypeid, parentid);
+  		return this.save() && (dtype != null);
+	  }
+	  finally {
+      this.end();
+    }
 	}
 
 	@Override
