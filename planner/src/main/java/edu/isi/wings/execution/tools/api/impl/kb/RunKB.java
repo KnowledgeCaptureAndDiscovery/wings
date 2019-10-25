@@ -320,9 +320,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           "{\n" +
           " ?run exec:hasExecutionStatus 'FAILURE' .\n" +         
           " ?run exec:hasEndTime ?end .\n" +
-          " ?run exec:hasStep ?step .\n" +
+          // FIXME: Removing this as we could have failures without any steps
+          /*" ?run exec:hasStep ?step .\n" + 
           (fasterQuery ? " ?step exec:hasExecutionStatus 'FAILURE' .\n": "") + 
-          " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+          " ?step exec:hasExecutionStatus ?stepstatus .\n" +*/
           "}\n";
     }
     if(status == null || status.equals("RUNNING")) {
