@@ -160,7 +160,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    
 	    this.updateExecutionRun(tkb, exe);
 	    KBObject exobj = kb.getIndividual(exe.getID());
-	    this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
+	    if(exobj != null)
+	      this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
 	    
 	    this.save(tkb);
 	    this.save();
@@ -675,7 +676,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void updateExecutionRun(KBAPI tkb, RuntimePlan exe) {
 		KBObject exobj = tkb.getIndividual(exe.getID());
-		this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
+		if(exobj != null)
+		  this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
 	}
 
 	private void updateExecutionStep(KBAPI tkb, RuntimeStep exe) {
