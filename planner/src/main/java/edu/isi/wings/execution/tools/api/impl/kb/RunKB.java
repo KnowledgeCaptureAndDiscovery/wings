@@ -135,7 +135,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void startLogging(RuntimePlan exe) {
+	public synchronized void startLogging(RuntimePlan exe) {
 		try {
 		  KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
 		  
@@ -153,7 +153,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void updateRuntimeInfo(RuntimePlan exe) {
+	public synchronized void updateRuntimeInfo(RuntimePlan exe) {
 	  try {
 	    KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
 	    this.start_write();
@@ -173,7 +173,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void updateRuntimeInfo(RuntimeStep stepexe) {
+	public synchronized void updateRuntimeInfo(RuntimeStep stepexe) {
     try {
       KBAPI tkb = this.ontologyFactory.getKB(stepexe.getRuntimePlan().getURL(),
           OntSpec.PLAIN);
