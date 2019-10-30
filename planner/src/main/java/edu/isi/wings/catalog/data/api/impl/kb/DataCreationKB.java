@@ -420,6 +420,10 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
   			this.externalCatalog.addData(dataid, dtypeid);
   		return this.save();
 	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	    return false;
+	  }
 	  finally {
 	    this.end();
 	  }

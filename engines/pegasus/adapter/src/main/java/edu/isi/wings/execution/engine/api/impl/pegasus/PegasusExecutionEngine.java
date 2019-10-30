@@ -492,8 +492,11 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
         private String getJobName(RuntimeStep step) {
             ExecutionStep eStep = step.getStep();
-            String componentName = FilenameUtils.getBaseName(eStep.getCodeBinding().getCodeDirectory());
-            return componentName + "_" + step.getName();
+            String componentName = eStep.getCodeBinding().getCodeDirectory().replaceAll(".*/", "");
+            String stepname = componentName + "_" + step.getName();
+            stepname = stepname.replaceAll("[^a-zA-Z0-9_\\-]", "_");
+            System.out.println(stepname);
+            return stepname;
         }
 
         /**

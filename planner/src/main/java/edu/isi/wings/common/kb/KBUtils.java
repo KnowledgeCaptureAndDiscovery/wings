@@ -54,7 +54,7 @@ public class KBUtils {
 	public static String sanitizeID(String name) {
 		name = name.replaceAll("[^a-zA-Z0-9_\\-\\.]", "_");
 		if (name.matches("([0-9]|\\.|\\-).*"))
-			name = "a" + name;
+			name = "_" + name;
 		return name;
 	}
 	

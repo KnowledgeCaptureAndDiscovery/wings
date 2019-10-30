@@ -616,6 +616,7 @@ public class 	DataController {
       URL url = new URL(dataLocationUrl);
       String filename = KBUtils.sanitizeID(new File(url.getFile()).getName());
       String dataid = this.libns + filename;
+      System.out.println("Check if data exists");
       if(dc.getDataLocation(dataid) != null) {
         // Dataset already exists, so do not overwrite (FIXME : Make it configurable)
         return dataid;
@@ -623,9 +624,14 @@ public class 	DataController {
       
       Provenance p = new Provenance(dataid);
       p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+      //System.out.println("Adding new data");
       
       String location = dc.getDefaultDataLocation(dataid);
+      //System.out.println("Copying "+ url + " to " + location);
       FileUtils.copyURLToFile(url, new File(location));
+      //System.out.println("Add data id: " + dataid);
+      dc.addData(dataid, dtypeid);
+      //System.out.println("Set data location of " + dataid);
       if(dc.setDataLocation(dataid, location) && prov.addProvenance(p)) {
         return dataid;
       }
