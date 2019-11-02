@@ -522,8 +522,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
                 if (!jobMap.containsKey(sub)) {
                     log.debug("Adding new runtime step for " + sub);
-                    // ID is #sub as Wings expects it to be a URI and does uri.getFragment to get job name.
-                    step = new RuntimeStep("#" + sub);
+                    step = new RuntimeStep(plan.getNamespace() + sub);
 
                     step.setRuntimeInfo(new RuntimeInfo());
                     step.getRuntimeInfo().setStatus(null);

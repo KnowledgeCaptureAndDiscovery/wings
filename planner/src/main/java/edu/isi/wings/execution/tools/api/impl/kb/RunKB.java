@@ -618,10 +618,9 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           // Delete output files
           for (ExecutionFile file : step.getOutputFiles()) {
             file.removeMetadataFile();
-            File f = new File(file.getLocation());
-            f.delete();
+            //File f = new File(file.getLocation());
+            //f.delete();
             /*
-            File f = new File(file.getLocation());
             if(f.exists() && !this.fileIsOutputofAnotherRun(file))
               f.delete();
             */

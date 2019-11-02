@@ -616,7 +616,7 @@ public class 	DataController {
       URL url = new URL(dataLocationUrl);
       String filename = KBUtils.sanitizeID(new File(url.getFile()).getName());
       String dataid = this.libns + filename;
-      System.out.println("Check if data exists");
+      //System.out.println("Check if data exists");
       if(dc.getDataLocation(dataid) != null) {
         // Dataset already exists, so do not overwrite (FIXME : Make it configurable)
         return dataid;
