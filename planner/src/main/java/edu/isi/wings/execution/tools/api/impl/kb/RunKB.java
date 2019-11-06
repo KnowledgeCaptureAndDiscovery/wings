@@ -103,9 +103,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			this.unionkb = 
 			    this.ontologyFactory.getKB("urn:x-arq:UnionGraph", OntSpec.PLAIN);
 			
-			this.start_write();
 			this.initializeMaps();
-			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -117,7 +115,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.dataPropMap = new HashMap<String, KBObject>();
 		this.conceptMap = new HashMap<String, KBObject>();
 
-		this.start_write();
+		this.start_read();
 		for (KBObject prop : this.kb.getAllObjectProperties()) {
 			this.objPropMap.put(prop.getName(), prop);
 		}
@@ -127,6 +125,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		for (KBObject con : this.kb.getAllClasses()) {
 			this.conceptMap.put(con.getName(), con);
 		}
+		this.end();
+		this.start_write();
 		if (!dataPropMap.containsKey("hasLog"))
 			dataPropMap.put("hasLog", this.kb.createDatatypeProperty(this.onturl + "#hasLog"));
     if(!objPropMap.containsKey("hasSeededTemplate"))
@@ -144,10 +144,11 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		  KBObject exobj = kb.createObjectOfClass(exe.getID(), conceptMap.get("Execution"));
 		  this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
 		  this.save();
-		  this.end();
 		  
 		} catch (Exception e) {
 		  e.printStackTrace();
+		} finally {
+		  this.end();
 		}
 	}
 
@@ -159,13 +160,15 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    
 	    this.updateExecutionRun(tkb, exe);
 	    KBObject exobj = kb.getIndividual(exe.getID());
-	    this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
+	    if(exobj != null)
+	      this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
 	    
 	    this.save(tkb);
 	    this.save();
-	    this.end();
 	  } catch (Exception e) {
 	    e.printStackTrace();
+	  } finally {
+	    this.end();
 	  }
 	}
 
@@ -177,9 +180,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
       this.start_write();
       this.updateExecutionStep(tkb, stepexe);
       tkb.save();
-      this.end();
     } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      this.end();
     }
 	}
 
@@ -317,9 +321,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           "{\n" +
           " ?run exec:hasExecutionStatus 'FAILURE' .\n" +         
           " ?run exec:hasEndTime ?end .\n" +
-          " ?run exec:hasStep ?step .\n" +
+          // FIXME: Removing this as we could have failures without any steps
+          /*" ?run exec:hasStep ?step .\n" + 
           (fasterQuery ? " ?step exec:hasExecutionStatus 'FAILURE' .\n": "") + 
-          " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+          " ?step exec:hasExecutionStatus ?stepstatus .\n" +*/
           "}\n";
     }
     if(status == null || status.equals("RUNNING")) {
@@ -404,7 +409,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public synchronized boolean deleteRun(String runid) {
+	public boolean deleteRun(String runid) {
 		return this.deleteExecutionRun(runid);
 	}
 
@@ -429,7 +434,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	
 
 	@Override
-	public synchronized boolean delete() {
+	public boolean delete() {
 	  boolean ok = true;
 		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1, null)) {
 			ok = this.deleteRun(rplan.getID());
@@ -613,10 +618,9 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           // Delete output files
           for (ExecutionFile file : step.getOutputFiles()) {
             file.removeMetadataFile();
-            File f = new File(file.getLocation());
-            f.delete();
+            //File f = new File(file.getLocation());
+            //f.delete();
             /*
-            File f = new File(file.getLocation());
             if(f.exists() && !this.fileIsOutputofAnotherRun(file))
               f.delete();
             */
@@ -671,7 +675,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void updateExecutionRun(KBAPI tkb, RuntimePlan exe) {
 		KBObject exobj = tkb.getIndividual(exe.getID());
-		this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
+		if(exobj != null)
+		  this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
 	}
 
 	private void updateExecutionStep(KBAPI tkb, RuntimeStep exe) {

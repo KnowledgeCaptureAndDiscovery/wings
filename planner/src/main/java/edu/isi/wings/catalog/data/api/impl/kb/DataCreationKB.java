@@ -267,11 +267,16 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 
 	@Override
 	public boolean addDatatype(String dtypeid, String parentid) {
-	  this.start_write();
-		KBObject dtype = this.ontkb.createClass(dtypeid, parentid);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addDatatype(dtypeid, parentid);
-		return this.save() && this.end() && (dtype != null);
+	  try {
+  	  this.start_write();
+  		KBObject dtype = this.ontkb.createClass(dtypeid, parentid);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addDatatype(dtypeid, parentid);
+  		return this.save() && (dtype != null);
+	  }
+	  finally {
+      this.end();
+    }
 	}
 
 	@Override
@@ -407,269 +412,366 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	 
 	@Override
 	public boolean addData(String dataid, String dtypeid) {
-	  this.start_write();
-		KBObject dtypeobj = this.kb.getConcept(dtypeid);
-		this.libkb.createObjectOfClass(dataid, dtypeobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addData(dataid, dtypeid);
-		return this.save() && this.end(); 
+	  try {
+  	  this.start_write();
+  		KBObject dtypeobj = this.kb.getConcept(dtypeid);
+  		this.libkb.createObjectOfClass(dataid, dtypeobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addData(dataid, dtypeid);
+  		return this.save();
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	    return false;
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	@Override
 	public boolean renameData(String newdataid, String olddataid) {
-    this.start_write();	  
-		KBUtils.renameAllTriplesWith(this.libkb, olddataid, newdataid, false);
-		if(this.externalCatalog != null)
-			this.externalCatalog.renameData(newdataid, olddataid);
-		return this.save() && this.end();
+	  try {
+	    this.start_write();	  
+  		KBUtils.renameAllTriplesWith(this.libkb, olddataid, newdataid, false);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.renameData(newdataid, olddataid);
+  		return this.save();
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	@Override
 	public boolean removeData(String dataid) {
 		// Remove data if it is in the catalog's data directory
-		String loc = this.getDataLocation(dataid);
-		if(loc != null) {
-			File f = new File(loc);
-			if(f.getParentFile().getAbsolutePath().equals(this.datadir))
-				f.delete();
-		}
-		this.start_write();		
-		KBUtils.removeAllTriplesWith(this.libkb, dataid, false);
-		if(this.externalCatalog != null)
-			this.externalCatalog.removeData(dataid);
-		return this.save() && this.end();
+	  try {
+  		String loc = this.getDataLocation(dataid);
+  		if(loc != null) {
+  			File f = new File(loc);
+  			if(f.getParentFile().getAbsolutePath().equals(this.datadir))
+  				f.delete();
+  		}
+  		this.start_write();		
+  		KBUtils.removeAllTriplesWith(this.libkb, dataid, false);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.removeData(dataid);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean setDataLocation(String dataid, String locuri) {
 		// What happens to existing file ?
-	  this.start_write();  
-		KBObject locprop = this.kb.getProperty(this.dcns + "hasLocation");
-		KBObject dobj = this.libkb.getIndividual(dataid);
-		KBObject locobj = this.libkb.createLiteral(locuri);
-		this.libkb.setPropertyValue(dobj, locprop, locobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.setDataLocation(dataid, locuri);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();  
+  		KBObject locprop = this.kb.getProperty(this.dcns + "hasLocation");
+  		KBObject dobj = this.libkb.getIndividual(dataid);
+  		KBObject locobj = this.libkb.createLiteral(locuri);
+  		this.libkb.setPropertyValue(dobj, locprop, locobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.setDataLocation(dataid, locuri);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean setTypeNameFormat(String dtypeid, String format) {
-	  this.start_write();
-		KBObject dtypeobj = this.ontkb.getConcept(dtypeid);
-		this.ontkb.setComment(dtypeobj, "NameFormat=" + format);
-		if(this.externalCatalog != null)
-			this.externalCatalog.setTypeNameFormat(dtypeid, format);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject dtypeobj = this.ontkb.getConcept(dtypeid);
+  		this.ontkb.setComment(dtypeobj, "NameFormat=" + format);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.setTypeNameFormat(dtypeid, format);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean addDatatypePropertyValue(String dataid, String propid, Object val) {
-	  this.start_write();
-		KBObject dataobj = this.libkb.getIndividual(dataid);
-		KBObject pobj = this.kb.getProperty(propid);
-		KBObject valobj = this.libkb.createLiteral(val);
-		this.libkb.setPropertyValue(dataobj, pobj, valobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject dataobj = this.libkb.getIndividual(dataid);
+  		KBObject pobj = this.kb.getProperty(propid);
+  		KBObject valobj = this.libkb.createLiteral(val);
+  		this.libkb.setPropertyValue(dataobj, pobj, valobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val);
+  		return this.save();
+  	}
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean addDatatypePropertyValue(String dataid, String propid, String val, String xsdtype) {
-	  this.start_write();
-		KBObject dataobj = this.libkb.getIndividual(dataid);
-		KBObject pobj = this.kb.getProperty(propid);
-		KBObject valobj = this.kb.createXSDLiteral(val, xsdtype);
-		this.libkb.setPropertyValue(dataobj, pobj, valobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val, xsdtype);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject dataobj = this.libkb.getIndividual(dataid);
+  		KBObject pobj = this.kb.getProperty(propid);
+  		KBObject valobj = this.kb.createXSDLiteral(val, xsdtype);
+  		this.libkb.setPropertyValue(dataobj, pobj, valobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addDatatypePropertyValue(dataid, propid, val, xsdtype);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean addObjectPropertyValue(String dataid, String propid, String valid) {
-	  this.start_write();
-		KBObject dataobj = this.libkb.getIndividual(dataid);
-		KBObject pobj = this.kb.getProperty(propid);
-		KBObject valobj = this.kb.getResource(valid);
-		this.libkb.setPropertyValue(dataobj, pobj, valobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addObjectPropertyValue(dataid, propid, valid);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject dataobj = this.libkb.getIndividual(dataid);
+  		KBObject pobj = this.kb.getProperty(propid);
+  		KBObject valobj = this.kb.getResource(valid);
+  		this.libkb.setPropertyValue(dataobj, pobj, valobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addObjectPropertyValue(dataid, propid, valid);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean removePropertyValue(String dataid, String propid, Object val) {
-	  this.start_write();
-		KBObject dataobj = this.libkb.getIndividual(dataid);
-		KBObject pobj = this.kb.getProperty(propid);
-		KBObject valobj = this.libkb.createLiteral(val);
-		this.libkb.removeTriple(dataobj, pobj, valobj);
-		if(this.externalCatalog != null)
-			this.externalCatalog.removePropertyValue(dataid, propid, val);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject dataobj = this.libkb.getIndividual(dataid);
+  		KBObject pobj = this.kb.getProperty(propid);
+  		KBObject valobj = this.libkb.createLiteral(val);
+  		this.libkb.removeTriple(dataobj, pobj, valobj);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.removePropertyValue(dataid, propid, val);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean removeAllPropertyValues(String dataid, ArrayList<String> propids) {
-	  this.start_write();
-		KBObject dataobj = this.libkb.getIndividual(dataid);
-		for (String propid : propids) {
-			KBObject pobj = this.kb.getProperty(propid);
-			ArrayList<KBObject> vals = this.kb.getPropertyValues(dataobj, pobj);
-			for (KBObject val : vals) {
-				this.libkb.removeTriple(dataobj, pobj, val);
-			}
-		}
-		if(this.externalCatalog != null)
-			this.externalCatalog.removeAllPropertyValues(dataid, propids);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		KBObject dataobj = this.libkb.getIndividual(dataid);
+  		for (String propid : propids) {
+  			KBObject pobj = this.kb.getProperty(propid);
+  			ArrayList<KBObject> vals = this.kb.getPropertyValues(dataobj, pobj);
+  			for (KBObject val : vals) {
+  				this.libkb.removeTriple(dataobj, pobj, val);
+  			}
+  		}
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.removeAllPropertyValues(dataid, propids);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean addMetadataProperty(String propid, String domain, String range) {
-	  this.start_write();
-		if (range.contains(KBUtils.XSD)) {
-			this.ontkb.createDatatypeProperty(propid, this.dcns + "hasDataMetrics");
-		} else {
-			this.ontkb.createObjectProperty(propid, this.dcns + "hasMetrics");
-		}		
-		if(this.ontkb.getConcept(domain) == null)
-      this.ontkb.createClass(domain);
-		
-		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
-		this.ontkb.setPropertyRange(propid, range);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addMetadataProperty(propid, domain, range);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		if (range.contains(KBUtils.XSD)) {
+  			this.ontkb.createDatatypeProperty(propid, this.dcns + "hasDataMetrics");
+  		} else {
+  			this.ontkb.createObjectProperty(propid, this.dcns + "hasMetrics");
+  		}		
+  		if(this.ontkb.getConcept(domain) == null)
+        this.ontkb.createClass(domain);
+  		
+  		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
+  		this.ontkb.setPropertyRange(propid, range);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addMetadataProperty(propid, domain, range);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
 	@Override
 	public boolean addMetadataPropertyDomain(String propid, String domain) {
-	  this.start_write();
-	  if(this.ontkb.getConcept(domain) == null)
-	    this.ontkb.createClass(domain);
-		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
-		if(this.externalCatalog != null)
-			this.externalCatalog.addMetadataPropertyDomain(propid, domain);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  	  if(this.ontkb.getConcept(domain) == null)
+  	    this.ontkb.createClass(domain);
+  		this.ontkb.addPropertyDomainDisjunctive(propid, domain);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.addMetadataPropertyDomain(propid, domain);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 	
 	@Override
 	public boolean removeMetadataPropertyDomain(String propid, String domain) {
-	  this.start_write();
-		this.ontkb.removePropertyDomainDisjunctive(propid, domain);
-		if(this.externalCatalog != null)
-			this.externalCatalog.removeMetadataPropertyDomain(propid, domain);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		this.ontkb.removePropertyDomainDisjunctive(propid, domain);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.removeMetadataPropertyDomain(propid, domain);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 	
 	@Override
 	public boolean removeMetadataProperty(String propid) {
 		// Remove all domains manually
 		// - Due to bug in removing triples with union classes
-	  this.start_write();
-		MetadataProperty prop = this.getMetadataProperty(propid);
-		for(String domid : prop.getDomains())
-			this.ontkb.removePropertyDomainDisjunctive(propid, domid);
-		
-		// Remove all triples (this skips removing domain union classes)
-		KBUtils.removeAllTriplesWith(this.ontkb, propid, true);
-		if(this.externalCatalog != null)
-			this.externalCatalog.removeMetadataProperty(propid);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		MetadataProperty prop = this.getMetadataProperty(propid);
+  		for(String domid : prop.getDomains())
+  			this.ontkb.removePropertyDomainDisjunctive(propid, domid);
+  		
+  		// Remove all triples (this skips removing domain union classes)
+  		KBUtils.removeAllTriplesWith(this.ontkb, propid, true);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.removeMetadataProperty(propid);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 
   @Override
   public boolean removeMetadataPropertyInLibrary(String propid) {
-    this.start_write();
-    KBUtils.removeAllTriplesWith(this.libkb, propid, true);
-    if(this.externalCatalog != null)
-      this.externalCatalog.removeMetadataPropertyInLibrary(propid);
-    return this.save() && this.end();
+    try {
+      this.start_write();
+      KBUtils.removeAllTriplesWith(this.libkb, propid, true);
+      if(this.externalCatalog != null)
+        this.externalCatalog.removeMetadataPropertyInLibrary(propid);
+      return this.save();
+    }
+    finally {
+      this.end();
+    }
   }
   
 	@Override
 	public boolean renameMetadataProperty(String oldid, String newid) {
 		// First remove all domains and then readd them later
 		// - Due to bug in renaming triples
-	  this.start_write();
-		MetadataProperty prop = this.getMetadataProperty(oldid);
-		for(String domid : prop.getDomains())
-			this.ontkb.removePropertyDomainDisjunctive(oldid, domid);
-		
-		// Rename all triples (this skips renaming domain union classes)
-		KBUtils.renameAllTriplesWith(this.ontkb, oldid, newid, true);
-		
-		for(String domid : prop.getDomains())
-			this.ontkb.addPropertyDomainDisjunctive(newid, domid);
-		if(this.externalCatalog != null)
-			this.externalCatalog.renameMetadataProperty(oldid, newid);
-		return this.save() && this.end();
+	  try {
+  	  this.start_write();
+  		MetadataProperty prop = this.getMetadataProperty(oldid);
+  		for(String domid : prop.getDomains())
+  			this.ontkb.removePropertyDomainDisjunctive(oldid, domid);
+  		
+  		// Rename all triples (this skips renaming domain union classes)
+  		KBUtils.renameAllTriplesWith(this.ontkb, oldid, newid, true);
+  		
+  		for(String domid : prop.getDomains())
+  			this.ontkb.addPropertyDomainDisjunctive(newid, domid);
+  		if(this.externalCatalog != null)
+  			this.externalCatalog.renameMetadataProperty(oldid, newid);
+  		return this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 	
   @Override
   public boolean renamePropertyInLibrary(String oldid, String newid) {
-    this.start_write();
-    KBUtils.renameAllTriplesWith(this.libkb, oldid, newid, true);
-    if(this.externalCatalog != null)
-      this.externalCatalog.renamePropertyInLibrary(oldid, newid);
-    return this.save() && this.end();
+    try {
+      this.start_write();
+      KBUtils.renameAllTriplesWith(this.libkb, oldid, newid, true);
+      if(this.externalCatalog != null)
+        this.externalCatalog.renamePropertyInLibrary(oldid, newid);
+      return this.save();
+    }
+    finally {
+      this.end();
+    }
   }
 	
 	@Override
 	public void copyFrom(DataCreationAPI dc) {
-		DataCreationKB dckb = (DataCreationKB)dc;
-		
-		this.start_write();
-		dckb.start_read();
-		this.libkb.copyFrom(dckb.libkb);
-		
-		KBUtils.renameTripleNamespace(this.libkb, dckb.dcns, this.dcns);
-		KBUtils.renameTripleNamespace(this.libkb, dckb.dcdomns, this.dcdomns);
-		KBUtils.renameTripleNamespace(this.libkb, dckb.dclibns, this.dclibns);
-		KBUtils.renameAllTriplesWith(this.libkb, dckb.onturl, this.onturl, false);
-		KBUtils.renameAllTriplesWith(this.libkb, dckb.liburl, this.liburl, false);
-		
-    // Change any specified locations of data
-    KBObject locProp = this.libkb.getProperty(this.dcns+"hasLocation");
-    ArrayList<KBTriple> triples = 
-        this.libkb.genericTripleQuery(null, locProp, null);
-    for(KBTriple t : triples) {
-      if(t.getObject() == null || t.getObject().getValue() == null)
-        continue;
-      KBObject data = t.getSubject();
-      String loc = (String) t.getObject().getValue();
-      File f = new File(loc);
-      loc = this.datadir + File.separator + f.getName();
-      this.libkb.setPropertyValue(data, locProp, this.libkb.createLiteral(loc));
+	  try {
+  		DataCreationKB dckb = (DataCreationKB)dc;
+  		
+  		this.start_write();
+  		dckb.start_read();
+  		this.libkb.copyFrom(dckb.libkb);
+  		
+  		KBUtils.renameTripleNamespace(this.libkb, dckb.dcns, this.dcns);
+  		KBUtils.renameTripleNamespace(this.libkb, dckb.dcdomns, this.dcdomns);
+  		KBUtils.renameTripleNamespace(this.libkb, dckb.dclibns, this.dclibns);
+  		KBUtils.renameAllTriplesWith(this.libkb, dckb.onturl, this.onturl, false);
+  		KBUtils.renameAllTriplesWith(this.libkb, dckb.liburl, this.liburl, false);
+  		
+      // Change any specified locations of data
+      KBObject locProp = this.libkb.getProperty(this.dcns+"hasLocation");
+      ArrayList<KBTriple> triples = 
+          this.libkb.genericTripleQuery(null, locProp, null);
+      for(KBTriple t : triples) {
+        if(t.getObject() == null || t.getObject().getValue() == null)
+          continue;
+        KBObject data = t.getSubject();
+        String loc = (String) t.getObject().getValue();
+        File f = new File(loc);
+        loc = this.datadir + File.separator + f.getName();
+        this.libkb.setPropertyValue(data, locProp, this.libkb.createLiteral(loc));
+      }
+  
+  		this.ontkb.copyFrom(dckb.ontkb);
+  		
+  		KBUtils.renameTripleNamespace(this.ontkb, dckb.dcns, this.dcns);
+  		KBUtils.renameTripleNamespace(this.ontkb, dckb.dcdomns, this.dcdomns);
+  		KBUtils.renameAllTriplesWith(this.ontkb, dckb.dcurl, this.dcurl, false);
+  		KBUtils.renameAllTriplesWith(this.ontkb, dckb.onturl, this.onturl, false);
+  		
+  		this.save();
+  		dckb.end();
+  		this.end();
+  		
+  		this.start_read();
+  		this.initializeAPI(true, true, true);
+	  }
+    finally {
+      this.end();
     }
-
-		this.ontkb.copyFrom(dckb.ontkb);
-		
-		KBUtils.renameTripleNamespace(this.ontkb, dckb.dcns, this.dcns);
-		KBUtils.renameTripleNamespace(this.ontkb, dckb.dcdomns, this.dcdomns);
-		KBUtils.renameAllTriplesWith(this.ontkb, dckb.dcurl, this.dcurl, false);
-		KBUtils.renameAllTriplesWith(this.ontkb, dckb.onturl, this.onturl, false);
-		
-		this.save();
-		dckb.end();
-		this.end();
-		
-		this.start_read();
-		this.initializeAPI(true, true, true);
-		this.end();
 	}
 	
 	@Override
 	public boolean delete() {
+	  try {
 	    return 
 	        this.start_write() &&
 	        this.libkb.delete() &&
 	        this.ontkb.delete() && 
-	        this.save() && 
-	        this.end();
+	        this.save();
+	  }
+    finally {
+      this.end();
+    }
 	}
 	
 	@Override

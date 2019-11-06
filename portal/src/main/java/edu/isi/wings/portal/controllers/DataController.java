@@ -26,6 +26,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 
@@ -92,6 +96,8 @@ public class 	DataController {
     this.dcns = (String) props.get("ont.data.url") + "#";
     this.domns = (String) props.get("ont.domain.data.url") + "#";
     this.libns = (String) props.get("lib.domain.data.url") + "#";
+    
+    this.trustAllCertificates();
 	}
 
 	/*
@@ -293,12 +299,14 @@ public class 	DataController {
   			String propid = pval.get("name").getAsString();
   			String value = pval.get("value").getAsString();
   			MetadataProperty pinfo = pinfos.get(propid);
-  			if (pinfo.isDatatypeProperty()) {
-  				if (value.equals("") && !pinfo.getRange().contains("string"))
-  					continue;
-  				dc.addDatatypePropertyValue(dataid, propid, value, pinfo.getRange());
-  			} else {
-  				dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
+  			if(pinfo != null) {
+    			if (pinfo.isDatatypeProperty()) {
+    				if (value.equals("") && !pinfo.getRange().contains("string"))
+    					continue;
+    				dc.addDatatypePropertyValue(dataid, propid, value, pinfo.getRange());
+    			} else {
+    				dc.addObjectPropertyValue(dataid, propid, this.domns + value.toString());
+    			}
   			}
   		}
   		dc.stop_batch_operation();
@@ -311,6 +319,8 @@ public class 	DataController {
   		    prov.addProvenance(p);
 		}
 		catch (Exception e) {
+		  e.printStackTrace();
+		  dc.stop_batch_operation();
 		  dc.end();
 		  return false;
 		}
@@ -598,6 +608,40 @@ public class 	DataController {
         prov.addProvenance(p);
 	}
 	
+  public synchronized String addRemoteDataForType(String dataLocationUrl, String dtypeid) {
+    try {
+      String provlog = "Downloading from " + dataLocationUrl + " and creating data of type "+KBUtils.getLocalName(dtypeid);
+    
+      // Check if it doesn't already exist
+      URL url = new URL(dataLocationUrl);
+      String filename = KBUtils.sanitizeID(new File(url.getFile()).getName());
+      String dataid = this.libns + filename;
+      //System.out.println("Check if data exists");
+      if(dc.getDataLocation(dataid) != null) {
+        // Dataset already exists, so do not overwrite (FIXME : Make it configurable)
+        return dataid;
+      }
+      
+      Provenance p = new Provenance(dataid);
+      p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+      //System.out.println("Adding new data");
+      
+      String location = dc.getDefaultDataLocation(dataid);
+      //System.out.println("Copying "+ url + " to " + location);
+      FileUtils.copyURLToFile(url, new File(location));
+      //System.out.println("Add data id: " + dataid);
+      dc.addData(dataid, dtypeid);
+      //System.out.println("Set data location of " + dataid);
+      if(dc.setDataLocation(dataid, location) && prov.addProvenance(p)) {
+        return dataid;
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }	
+	
 	public synchronized boolean addBatchData(String dtypeid, String[] dids, String[] locations) {
 		for(int i=0; i<dids.length; i++) {
 			if(!dc.addData(dids[i], dtypeid))
@@ -698,5 +742,30 @@ public class 	DataController {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	private void trustAllCertificates() {
+	// Create a new trust manager that trust all certificates
+	  TrustManager[] trustAllCerts = new TrustManager[]{
+	      new X509TrustManager() {
+	          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+	              return null;
+	          }
+	          public void checkClientTrusted(
+	              java.security.cert.X509Certificate[] certs, String authType) {
+	          }
+	          public void checkServerTrusted(
+	              java.security.cert.X509Certificate[] certs, String authType) {
+	          }
+	      }
+	  };
+
+	  // Activate the new trust manager
+	  try {
+	      SSLContext sc = SSLContext.getInstance("SSL");
+	      sc.init(null, trustAllCerts, new java.security.SecureRandom());
+	      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+	  } catch (Exception e) {
+	  }	  
 	}
 }
