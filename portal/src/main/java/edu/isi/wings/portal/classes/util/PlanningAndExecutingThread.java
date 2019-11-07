@@ -136,27 +136,32 @@ public class PlanningAndExecutingThread implements Runnable {
   
   @Override
   public void run() {
-    String tplid = this.template_bindings.templateId;
-    Template seedtpl = api_bindings.tc.getTemplate(tplid);
-    this.addTemplateBindings(seedtpl, template_bindings);
+    try {
+      String tplid = this.template_bindings.templateId;
+      Template seedtpl = api_bindings.tc.getTemplate(tplid);
+      this.addTemplateBindings(seedtpl, template_bindings);
+      
+      ArrayList<Template> ets = this.getExpandedTemplates(seedtpl);
+      if(ets != null && ets.size() > 0) {
+        Template xtpl = ets.get(0); // Choose first expanded template
+        ExecutionPlan plan = api_bindings.wg.getExecutionPlan(xtpl);
     
-    ArrayList<Template> ets = this.getExpandedTemplates(seedtpl);
-    if(ets != null && ets.size() > 0) {
-      Template xtpl = ets.get(0); // Choose first expanded template
-      ExecutionPlan plan = api_bindings.wg.getExecutionPlan(xtpl);
-  
-      String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
-      if (plan != null) {
-        // Save the expanded template, seeded template and plan
-        if (xtpl.save() && seedtpl.saveAs(seedid) && plan.save()) {
-          RuntimePlan rplan = new RuntimePlan(plan);
-          rplan.setID(this.runid);
-          rplan.setExpandedTemplateID(xtpl.getID());
-          rplan.setOriginalTemplateID(tplid);
-          rplan.setSeededTemplateId(seedid);
-          this.runExecutionPlan(rplan);
+        String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
+        if (plan != null) {
+          // Save the expanded template, seeded template and plan
+          if (xtpl.save() && seedtpl.saveAs(seedid) && plan.save()) {
+            RuntimePlan rplan = new RuntimePlan(plan);
+            rplan.setID(this.runid);
+            rplan.setExpandedTemplateID(xtpl.getID());
+            rplan.setOriginalTemplateID(tplid);
+            rplan.setSeededTemplateId(seedid);
+            this.runExecutionPlan(rplan);
+          }
         }
       }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
     }
   }
 }

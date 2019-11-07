@@ -65,6 +65,7 @@ public class Config {
     // The following are loaded from the config file
     private String storageDirectory;
     private String tdbDirectory;
+    private String logsDirectory;
     private String dotFile;
     private String serverUrl;
     private String workflowOntologyUrl;
@@ -345,9 +346,20 @@ public class Config {
         if(serverConfig.containsKey("planner.data-validation")) 
           plannerConfig.dataValidation = serverConfig.getBoolean("planner.data-validation");
         if(serverConfig.containsKey("planner.specialization")) 
-          plannerConfig.dataValidation = serverConfig.getBoolean("planner.specialization");
+          plannerConfig.specialization = serverConfig.getBoolean("planner.specialization");
         if(serverConfig.containsKey("planner.use-rules")) 
-          plannerConfig.dataValidation = serverConfig.getBoolean("planner.use-rules");
+          plannerConfig.useRules = serverConfig.getBoolean("planner.use-rules");
+        
+        if(serverConfig.containsKey("storage.logs")) {
+          this.logsDirectory = serverConfig.getString("storage.logs");
+        }
+        else {
+          this.logsDirectory = this.storageDirectory + File.separator + "logs";
+        }
+        // Create logsDir (if it doesn't exist)
+        File logdir = new File(this.logsDirectory);
+        if (!logdir.exists() && !logdir.mkdirs())
+            System.err.println("Cannot create logs directory : " + logdir.getAbsolutePath());
         
         this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
             + communityRelativeDir;
@@ -582,6 +594,7 @@ public class Config {
         } else {
             props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
         }
+        props.setProperty("logs.dir", this.getLogsDirectory());
         props.setProperty("dot.path", this.getDotFile());
 
         if (this.getResourceOntologyUrl() == null)
@@ -828,6 +841,14 @@ public class Config {
 
     public void setTripleStoreDir(String tripleStoreDir) {
         this.tdbDirectory = tripleStoreDir;
+    }
+
+    public String getLogsDirectory() {
+      return logsDirectory;
+    }
+
+    public void setLogsDirectory(String logsDirectory) {
+      this.logsDirectory = logsDirectory;
     }
 
     public String getSessionId() {

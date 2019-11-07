@@ -280,6 +280,8 @@ implements ExecutionPlan, TransactionsAPI {
       
     } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      this.end();
     }
     return false;
   }

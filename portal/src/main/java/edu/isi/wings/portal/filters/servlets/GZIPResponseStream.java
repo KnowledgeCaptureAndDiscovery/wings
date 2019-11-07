@@ -58,9 +58,14 @@ public class GZIPResponseStream extends ServletOutputStream {
 
     response.addHeader("Content-Length", Integer.toString(bytes.length));
     response.addHeader("Content-Encoding", "gzip");
-    output.write(bytes);
-    output.flush();
-    output.close();
+    try {
+      output.write(bytes);
+      output.flush();
+      output.close();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
     closed = true;
   }
 

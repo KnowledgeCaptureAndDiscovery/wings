@@ -18,6 +18,7 @@
 package edu.isi.wings.execution.tools.api.impl.kb;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -26,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 
 import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBObject;
@@ -71,6 +75,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	String newrunurl;
 	String newtplurl;
 	String tdbRepository;
+	String logsDirectory;
 
 	protected HashMap<String, KBObject> objPropMap;
 	protected HashMap<String, KBObject> dataPropMap;
@@ -83,6 +88,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.newtplurl = props.getProperty("domain.workflows.dir.url") + "/";
 		this.newrunurl = props.getProperty("domain.executions.dir.url") + "/";
 		this.tdbRepository = props.getProperty("tdb.repository.dir");
+		this.logsDirectory = props.getProperty("logs.dir");
 
 		if (tdbRepository == null) {
 			this.ontologyFactory = new OntFactory(OntFactory.JENA);
@@ -97,9 +103,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			this.unionkb = 
 			    this.ontologyFactory.getKB("urn:x-arq:UnionGraph", OntSpec.PLAIN);
 			
-			this.start_write();
 			this.initializeMaps();
-			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -111,7 +115,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		this.dataPropMap = new HashMap<String, KBObject>();
 		this.conceptMap = new HashMap<String, KBObject>();
 
-		this.start_write();
+		this.start_read();
 		for (KBObject prop : this.kb.getAllObjectProperties()) {
 			this.objPropMap.put(prop.getName(), prop);
 		}
@@ -121,6 +125,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		for (KBObject con : this.kb.getAllClasses()) {
 			this.conceptMap.put(con.getName(), con);
 		}
+		this.end();
+		this.start_write();
 		if (!dataPropMap.containsKey("hasLog"))
 			dataPropMap.put("hasLog", this.kb.createDatatypeProperty(this.onturl + "#hasLog"));
     if(!objPropMap.containsKey("hasSeededTemplate"))
@@ -129,7 +135,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public void startLogging(RuntimePlan exe) {
+	public synchronized void startLogging(RuntimePlan exe) {
 		try {
 		  KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
 		  
@@ -138,42 +144,46 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		  KBObject exobj = kb.createObjectOfClass(exe.getID(), conceptMap.get("Execution"));
 		  this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
 		  this.save();
-		  this.end();
 		  
 		} catch (Exception e) {
 		  e.printStackTrace();
+		} finally {
+		  this.end();
 		}
 	}
 
 	@Override
-	public void updateRuntimeInfo(RuntimePlan exe) {
+	public synchronized void updateRuntimeInfo(RuntimePlan exe) {
 	  try {
 	    KBAPI tkb = this.ontologyFactory.getKB(exe.getURL(), OntSpec.PLAIN);
 	    this.start_write();
 	    
 	    this.updateExecutionRun(tkb, exe);
 	    KBObject exobj = kb.getIndividual(exe.getID());
-	    this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
+	    if(exobj != null)
+	      this.updateRuntimeInfo(kb, exobj, exe.getRuntimeInfo());
 	    
 	    this.save(tkb);
 	    this.save();
-	    this.end();
 	  } catch (Exception e) {
 	    e.printStackTrace();
+	  } finally {
+	    this.end();
 	  }
 	}
 
 	@Override
-	public void updateRuntimeInfo(RuntimeStep stepexe) {
+	public synchronized void updateRuntimeInfo(RuntimeStep stepexe) {
     try {
       KBAPI tkb = this.ontologyFactory.getKB(stepexe.getRuntimePlan().getURL(),
           OntSpec.PLAIN);
       this.start_write();
       this.updateExecutionStep(tkb, stepexe);
       tkb.save();
-      this.end();
     } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      this.end();
     }
 	}
 
@@ -311,9 +321,10 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
           "{\n" +
           " ?run exec:hasExecutionStatus 'FAILURE' .\n" +         
           " ?run exec:hasEndTime ?end .\n" +
-          " ?run exec:hasStep ?step .\n" +
+          // FIXME: Removing this as we could have failures without any steps
+          /*" ?run exec:hasStep ?step .\n" + 
           (fasterQuery ? " ?step exec:hasExecutionStatus 'FAILURE' .\n": "") + 
-          " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+          " ?step exec:hasExecutionStatus ?stepstatus .\n" +*/
           "}\n";
     }
     if(status == null || status.equals("RUNNING")) {
@@ -602,19 +613,22 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		try {
 			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 
-			// Delete output files
 			if(rplan.getPlan() != null) {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
+          // Delete output files
           for (ExecutionFile file : step.getOutputFiles()) {
             file.removeMetadataFile();
-            File f = new File(file.getLocation());
-            f.delete();
+            //File f = new File(file.getLocation());
+            //f.delete();
             /*
-            File f = new File(file.getLocation());
             if(f.exists() && !this.fileIsOutputofAnotherRun(file))
               f.delete();
             */
           }
+          // Delete log file
+          File logfile = this.getLogFile(step.getID());
+          if(logfile.exists())
+            logfile.delete();
         }
 			}
 			// Delete expanded template
@@ -628,6 +642,11 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
       // Delete execution plan
       if(rplan.getPlan() != null)
         this.deleteGraph(rplan.getPlan().getID());
+      
+      // Delete plan log file
+      File plan_logfile = this.getLogFile(rplan.getID());
+      if(plan_logfile.exists())
+        plan_logfile.delete();
       
       // Delete execution provenance
       this.start_write();
@@ -656,7 +675,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 
 	private void updateExecutionRun(KBAPI tkb, RuntimePlan exe) {
 		KBObject exobj = tkb.getIndividual(exe.getID());
-		this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
+		if(exobj != null)
+		  this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
 	}
 
 	private void updateExecutionStep(KBAPI tkb, RuntimeStep exe) {
@@ -668,11 +688,27 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		}
 		this.updateRuntimeInfo(tkb, exobj, exe.getRuntimeInfo());
 	}
+	
+	private File getLogFile(String objid) {
+    String fname = DigestUtils.md5Hex(objid);
+    return new File(this.logsDirectory + File.separator + fname + ".log");
+	}
 
 	private void updateRuntimeInfo(KBAPI tkb, KBObject exobj, RuntimeInfo rinfo) {
-	  if(rinfo.getLog() != null)
-	    tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
-	        tkb.createLiteral(rinfo.getLog()));
+	  if(rinfo.getLog() != null) {
+	     /*
+      tkb.setPropertyValue(exobj, dataPropMap.get("hasLog"),
+          tkb.createLiteral(rinfo.getLog()));
+      */
+	    // Storing logs in a log file now
+	    try {
+	      File logfile = this.getLogFile(exobj.getID());
+        FileUtils.writeStringToFile(logfile, rinfo.getLog());
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } 
+	  }
 		if(rinfo.getStartTime() != null)
 		  tkb.setPropertyValue(exobj, dataPropMap.get("hasStartTime"),
 		      tkb.createLiteral(rinfo.getStartTime()));
@@ -692,16 +728,27 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		KBObject sttime = this.kb.getPropertyValue(exobj, dataPropMap.get("hasStartTime"));
 		KBObject endtime = this.kb.getPropertyValue(exobj, dataPropMap.get("hasEndTime"));
 		KBObject status = this.kb.getPropertyValue(exobj, dataPropMap.get("hasExecutionStatus"));
-		KBObject log = this.kb.getPropertyValue(exobj, dataPropMap.get("hasLog"));
 		if (sttime != null && sttime.getValue() != null)
 			info.setStartTime((Date) sttime.getValue());
 		if (endtime != null && endtime.getValue() != null)
 			info.setEndTime((Date) endtime.getValue());
 		if (status != null && status.getValue() != null)
 			info.setStatus(RuntimeInfo.Status.valueOf((String) status.getValue()));
-		if (log != null && log.getValue() != null)
-			info.setLog((String) log.getValue());
 		
+		// Read log from log file
+    File logfile = this.getLogFile(exobj.getID());
+    if(logfile.exists()) {
+      try {
+        info.setLog(FileUtils.readFileToString(logfile));
+      } catch (IOException e) {
+      }
+    }
+    else {
+      KBObject log = this.kb.getPropertyValue(exobj, dataPropMap.get("hasLog"));    
+      if (log != null && log.getValue() != null)
+        info.setLog((String) log.getValue());
+    }
+    
 		if(batchok)
 		  this.stop_batch_operation();
 		this.end();

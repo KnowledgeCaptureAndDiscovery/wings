@@ -43,11 +43,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutionEngine {
     String baseDir;
     Properties props;
     Thread monitoringThread;
+    //protected static ExecutorService executor = Executors.newWorkStealingPool(16);
+
     PlanExecutionEngine planEngine;
     StepExecutionEngine stepEngine;
     PegasusWorkflowAdapter adapter;
@@ -73,6 +77,8 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
         String storageDir = props.getProperty("pegasus.storage-dir", FileUtils.getTempDirectoryPath()) + File.separator;
 
         try {
+            exe.onStart(logger);
+            
             // Create base directory
             File baseDir = new File(storageDir + exe.getName());
             FileUtils.forceMkdir(baseDir);
@@ -86,12 +92,15 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
             this.adapter.runWorkflow(exe, siteCatalog, site, this.baseDir);
 
             // Start Monitoring thread
-            this.monitoringThread = new Thread(new ExecutionMonitoringThread(this, exe, logger, monitor,
+            /*
+            executor.submit(new ExecutionMonitoringThread(this, exe, logger, monitor,
+                submitDir, pegasusHome));
+            */
+            Thread monitoringThread = new Thread(new ExecutionMonitoringThread(this, exe, logger, monitor,
                     submitDir, pegasusHome));
-            this.monitoringThread.start();
+            monitoringThread.start();
 
         } catch (Exception e) {
-            exe.onStart(this.logger);
             exe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
             log.error(e.getMessage(), e);
         }
@@ -269,7 +278,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
 
     class ExecutionMonitoringThread implements Runnable {
-        int sleepTime = 5000;
+        int sleepTime = 10000;
         int jobstateLogMark = 0;
         String submitDir = null;
         RuntimePlan plan = null;
@@ -433,30 +442,25 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
                             if (jobState.equals("SUBMIT")) {
                                 newStatus = RuntimeInfo.Status.QUEUED;
-                                step.setRuntimePlan(plan);
-                                step.onStart(logger);
-
+                                if(oldStatus != newStatus) {
+                                  step.setRuntimePlan(plan);
+                                  step.onStart(logger);
+                                }
                             } else if (jobState.equals("EXECUTE")) {
                                 newStatus = RuntimeInfo.Status.RUNNING;
 
-                            } else if (jobState.equals("JOB_SUCCESS") || jobState.equals("POST_SCRIPT_SUCCESS")) {
+                            } else if (jobState.equals("POST_SCRIPT_SUCCESS")) {
                                 newStatus = RuntimeInfo.Status.SUCCESS;
                                 if (oldStatus != newStatus) {
-                                    step.onEnd(logger, newStatus, "Success");
+                                  step.getRuntimeInfo().addLog(showStdOutErr(jobLoc, jobName));
+                                  step.onEnd(logger, newStatus, "Success");
                                 }
-                                if (jobState.equals("POST_SCRIPT_SUCCESS")) {
-                                    step.onEnd(logger, newStatus, showStdOutErr(jobLoc, jobName));
-                                    step.onEnd(logger, newStatus, "Success");
-                                }
-                            } else if (jobState.equals("JOB_FAILURE") || jobState.equals("POST_SCRIPT_FAILURE")) {
+                            } else if (jobState.equals("POST_SCRIPT_FAILURE")) {
                                 isFailed = true;
                                 newStatus = RuntimeInfo.Status.FAILURE;
                                 if (oldStatus != newStatus) {
-                                    step.onEnd(logger, newStatus, "Failure");
-                                }
-                                if (jobState.equals("POST_SCRIPT_FAILURE")) {
-                                    step.onEnd(logger, newStatus, showStdOutErr(jobLoc, jobName));
-                                    step.onEnd(logger, newStatus, "Failure");
+                                  step.getRuntimeInfo().addLog(showStdOutErr(jobLoc, jobName));
+                                  step.onEnd(logger, newStatus, "Failure");
                                 }
                             } else {
                                 newStatus = oldStatus;
@@ -488,8 +492,11 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
         private String getJobName(RuntimeStep step) {
             ExecutionStep eStep = step.getStep();
-            String componentName = FilenameUtils.getBaseName(eStep.getCodeBinding().getCodeDirectory());
-            return componentName + "_" + step.getName();
+            String componentName = eStep.getCodeBinding().getCodeDirectory().replaceAll(".*/", "");
+            String stepname = componentName + "_" + step.getName();
+            stepname = stepname.replaceAll("[^a-zA-Z0-9_\\-]", "_");
+            System.out.println(stepname);
+            return stepname;
         }
 
         /**
@@ -515,8 +522,7 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
                 if (!jobMap.containsKey(sub)) {
                     log.debug("Adding new runtime step for " + sub);
-                    // ID is #sub as Wings expects it to be a URI and does uri.getFragment to get job name.
-                    step = new RuntimeStep("#" + sub);
+                    step = new RuntimeStep(plan.getNamespace() + sub);
 
                     step.setRuntimeInfo(new RuntimeInfo());
                     step.getRuntimeInfo().setStatus(null);
@@ -531,8 +537,6 @@ public class PegasusExecutionEngine implements PlanExecutionEngine, StepExecutio
 
         @Override
         public void run() {
-            plan.onStart(logger);
-
             // Workflow is successful by default
             workflowStatus = RuntimeInfo.Status.SUCCESS;
 
