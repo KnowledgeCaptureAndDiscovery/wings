@@ -7,7 +7,7 @@ deploy:
     secure: UiXAd8b+Ytt82pINWPADkxlD/NuNKyKg/h+qea8GFxftSyTvzqcvyx0CVxGPsdpf4UH2vuaT6dE+am50NphR6FWPyJejKU786ptIp6MRnOcwYJbzgiBWE9RGQyuclspUJCCAhl1OVJM0IHmayGYeJsZ3p/yitDx5YBbr5b9+J2a5GQpKBxgp/YAs9oxvjYe5sI5aYVLym+uddZ0qXDUtaaZ6nzDPo1X0zFavYpSjPFh+7YE/UayKzwGeajRt7VcKzJCx/e0S0F+7rie/LuM4gddKCIWj/AgD+a3t0mGLjWSg2/TA355SLNGVyCE60l4z/XUC69F6yU4pZwnnvkvifGTEjGzxzMFTL4gBGz6oI5MGclJKk6ELs0dWMbvjAi9MtxTxShpOM7z4TVLnj28Xlp2gaTm+EgSCqhw3d/mqVxFhO+Wd4ynJmIzyZ/D5dTbz8twRXKU8Q2KLW5qzOnKsY1D1Rn6Q9LXEW1GDTWW5OMAoqeHxv8P73VXpJTaLk3JGC4wjpOZprzIzrxztiEt0hK0LVNLhqoicFO9y4qbo2altxdZl8a6rb6vwZSnWPktrGm+9bpCJslVIj9RSkfXvDV1apaoL8m7Y2dTDZwrOAz7pm34TtoySEvCXMyC+YSj1hokvCqQItdFJBFcHvGGBDAIfTQI2yWqc+MBoT+4W8aY=
   name: latest
   file_glob: true
-  prerelease: true
+
   file: portal/target/wings-portal-*-SNAPSHOT.war
   on:
     repo: KnowledgeCaptureAndDiscovery/wings
