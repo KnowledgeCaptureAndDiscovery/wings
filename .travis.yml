@@ -8,7 +8,7 @@ deploy:
   name: latest
   tag_name: latest
   file_glob: true
-  file: portal/target/wings-portal-*-SNAPSHOT.war
+  file: portal/target/*.war
   overwrite: true
   on:
     repo: KnowledgeCaptureAndDiscovery/wings
