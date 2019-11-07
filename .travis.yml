@@ -1,1 +1,13 @@
 language: java
+
+script:
+  - mvn package
+  
+deploy:
+  - provider: releases
+    api_key:
+      secure: qCnCmn6Bybgtn44r/JXKv7p2wVrRUJuKN0DysSQIVBL6Tm1uzHWe47ZI8ZiPXN2Dkt12CagLvPEizUfpR/r1jass8aoETOykgTnSczYn8uIrlw2u74bC1T5H32E6HjrZ9NTfkuudluh5RXzX4ktUnwqZM+RH2ISCjY6GAbGLDyC6jKdqMN55uUhbpxAgJIi5lLDat2OVwDnbaEe///GUkfv2NKFF8bJ1BzpZYZmihuOO3jhhaDwBsw0ipBYGGVY6bwBLp+D622JBPCeuag3Bqo8EY5XwHKgnljrY4a3PZ8dNtgmaV1WUymag/icbpTMGINVbWIlcxztjFjs4DEIeznNh14za2SNA56qam1xwRd5sLcvyfvDG+nv7F66M3ngVHUU9EaRypfjKffg+ScDQk5LjkA8KWyNwORgy4TvS+gCnfYEOtBDhYSrxH9Wq8MfgyLZvrpwZIh2jWNrfbqzqKU4Ch4G5f2JfxIRmBLm0b0UYEdXfTbgqTenqx66L4/xJxPZeI2a+PKy46ZYnhwYr97/sQ8A9OeMkwwR9VHvyKcVA68fiAGJNLFE19jZtsR9xxobUuygZttFMcEn5g5Ak01sHXOmRSi50SjRTnmt73SQAtp6MTsYA14BYJEjeV9KYhDgaqsmoAZQKhxRLSTxuWjnBqkE1xp76iD7Rns83idA=
+    file: 
+      - portal/target/wings-portal-*-SNAPSHOT.war
+      - README.md
+    skip_cleanup: true
