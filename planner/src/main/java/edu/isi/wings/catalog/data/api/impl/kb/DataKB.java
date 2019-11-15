@@ -132,6 +132,7 @@ public class DataKB extends TransactionsJena {
     			return locobj.getValueAsString();
   		}
   		else {
+  		  this.end();
   			String location = this.getDefaultDataLocation(dataid);
   			File f = new File(location);
   			if(f.exists())
