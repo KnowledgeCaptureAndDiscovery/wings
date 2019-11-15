@@ -34,6 +34,17 @@
     <url-pattern>/sparql</url-pattern>
   </servlet-mapping>
   
+  <servlet>
+    <description>Wings Config</description>
+    <display-name>Wings config</display-name>
+    <servlet-name>ViewConfig</servlet-name>
+    <servlet-class>edu.isi.wings.portal.servlets.ViewConfig</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ViewConfig</servlet-name>
+    <url-pattern>/config</url-pattern>
+  </servlet-mapping>  
+  
   <!-- 
   	CORS & Compression filters for Non-REST-API servlets
   	The Jersey REST-APIs have their own filters and interceptors
