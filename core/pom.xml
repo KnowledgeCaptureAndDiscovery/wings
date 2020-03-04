@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.isi.wings</groupId>
   <artifactId>wings-core</artifactId>
-  <version>4.1-SNAPSHOT</version>
+  <version>${revision}</version>
   <name>Wings Core</name>
   <packaging>pom</packaging>
   <description>Wings project for the IKCAP group</description>
@@ -17,6 +17,7 @@
   </organization>
 
   <properties>
+    <revision>4.2.0</revision>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
