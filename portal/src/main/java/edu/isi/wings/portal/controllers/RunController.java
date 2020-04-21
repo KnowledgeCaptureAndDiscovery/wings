@@ -349,6 +349,10 @@ public class RunController {
     // Return the runid
     return runid;
   }
+  
+  public static void invalidateCachedAPIs() {
+    apiBindings.clear();
+  }
 
   public String runExpandedTemplate(String origtplid, String templatejson,
       String consjson, String seedjson, String seedconsjson, ServletContext context) {

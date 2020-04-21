@@ -493,14 +493,18 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			try {
 				KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 				
-				this.start_read();
-				boolean batchok = this.start_batch_operation(); 
+				this.start_read(); 
 				
 				exobj = tkb.getIndividual(rplan.getID());
+				if(exobj == null) {
+				  this.end();
+				  return null;
+				}
+				
+        boolean batchok = this.start_batch_operation();
 				// Get execution queue (list of steps)
 				ExecutionQueue queue = new ExecutionQueue();
-				KBObject exobj_r = tkb.getIndividual(rplan.getID());
-				for (KBObject stepobj : tkb.getPropertyValues(exobj_r, objPropMap.get("hasStep"))) {
+				for (KBObject stepobj : tkb.getPropertyValues(exobj, objPropMap.get("hasStep"))) {
 					RuntimeStep rstep = new RuntimeStep(stepobj.getID());
 					rstep.setRuntimeInfo(this.getRuntimeInfo(tkb, stepobj));
 					queue.addStep(rstep);
