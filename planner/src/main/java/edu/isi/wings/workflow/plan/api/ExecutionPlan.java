@@ -19,8 +19,12 @@ package edu.isi.wings.workflow.plan.api;
 
 import java.util.ArrayList;
 
-import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+import edu.isi.wings.workflow.plan.api.impl.pplan.PPlan;
+
+@JsonDeserialize(as = PPlan.class)
 public interface ExecutionPlan extends TransactionsAPI {
 	
 	// ID functions

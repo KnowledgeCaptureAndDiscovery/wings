@@ -36,10 +36,15 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 	ArrayList<String> machineIds;
 	
 	HashMap<String, ArrayList<Object>> argumentNameValueMap;
+	
 	String invocationLine;
 	String customData;
 	ExecutionCode codeBinding;
 
+	public PPlanStep() {
+	  super();
+	}
+	
 	public PPlanStep(String id, Properties props) {
 		super(id);
 		this.props = props;
@@ -146,5 +151,13 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
   @Override
   public void setMachineIds(ArrayList<String> machineIds) {
     this.machineIds = machineIds;
+  }
+
+  public HashMap<String, ArrayList<Object>> getArgumentNameValueMap() {
+    return argumentNameValueMap;
+  }
+
+  public void setArgumentNameValueMap(HashMap<String, ArrayList<Object>> argumentNameValueMap) {
+    this.argumentNameValueMap = argumentNameValueMap;
   }
 }

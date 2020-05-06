@@ -355,17 +355,19 @@ public class RunController {
   }
 
   public String runExpandedTemplate(String origtplid, String templatejson,
-      String consjson, String seedjson, String seedconsjson, ServletContext context) {
+      String consjson, String seedjson, String seedconsjson, String callbackUrl, 
+      ServletContext context) {
 
     Gson json = JsonHandler.createTemplateGson();
     Template xtpl = JsonHandler.getTemplateFromJSON(json, templatejson, consjson);
     xtpl.autoLayout();
     Template seedtpl = JsonHandler.getTemplateFromJSON(json, seedjson, seedconsjson);
 
-    return createPlan(origtplid, context, xtpl, seedtpl);
+    return createPlan(origtplid, context, xtpl, seedtpl, callbackUrl);
   }
 
-  private String createPlan(String origtplid, ServletContext context, Template xtpl, Template seedtpl) {
+  private String createPlan(String origtplid, 
+      ServletContext context, Template xtpl, Template seedtpl, String callbackUrl) {
     String requestid = UuidGen.generateAUuid("");
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
@@ -387,6 +389,7 @@ public class RunController {
         rplan.setExpandedTemplateID(xtpl.getID());
         rplan.setOriginalTemplateID(origtplid);
         rplan.setSeededTemplateId(seedid);
+        rplan.setCallbackUrl(callbackUrl);
         this.runExecutionPlan(rplan, context);
         return rplan.getID();
       }
@@ -403,9 +406,10 @@ public class RunController {
     String orig_tp_id = plan.getOriginalTemplateID();
     Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
     Template seedtpl = tc.getTemplate(plan.getSeededTemplateID());
+    String callbackUrl = plan.getCallbackUrl();
     tc.end();
     
-    if (createPlan(orig_tp_id, context, xtpl, seedtpl) == "")
+    if (createPlan(orig_tp_id, context, xtpl, seedtpl, callbackUrl) == "")
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Internal error").build();
     return Response.status(Response.Status.CREATED).entity("CREATED").build();
   }

@@ -33,6 +33,10 @@ public class ExecutionFile extends URIEntity {
 	Properties metadata;
 	long size;
 	
+	public ExecutionFile() {
+	  super();
+	}
+	
 	public ExecutionFile(String id) {
 		super(id);
 		metadata = new Properties();
@@ -50,6 +54,17 @@ public class ExecutionFile extends URIEntity {
         } catch (Exception e) {
           e.printStackTrace();
         }
+      }
+    }
+  }
+  
+  public void loadMetadataFromFileContents() {
+    File metaf = new File(location);
+    if(metaf.exists() && metaf.isFile()) {
+      try {
+        metadata.load(new FileInputStream(metaf));
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
   }
@@ -84,5 +99,13 @@ public class ExecutionFile extends URIEntity {
   }
   public void setSize(long size) {
     this.size = size;
+  }
+
+  public String getBindingId() {
+    return bindingId;
+  }
+
+  public void setBindingId(String bindingId) {
+    this.bindingId = bindingId;
   }
 }

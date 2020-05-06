@@ -23,6 +23,7 @@ int guid = 1;
 String tree = "{\"item\":{\"type\":1,\"id\":\"http://www.wings-workflows.org/ontology/data.owl#DataObject\"}}";
 
 String metrics = dc.getMetricsHierarchyJSON();
+String sensors = dc.getSensorWorkflowsListJSON();
 boolean hasExternalCatalog = (dc.dc != null && dc.dc.getExternalCatalog() != null);
 %>
 
@@ -41,6 +42,7 @@ boolean hasExternalCatalog = (dc.dc != null && dc.dc.getExternalCatalog() != nul
 // Viewer data
 var tree = <%=tree%>;
 var metrics = <%=metrics%>;
+var sensors = <%=sensors%>;
 var this_api = "<%=thisApi%>";
 var prov_api = "<%=provApi%>";
 var upload_api = "<%=uploadApi%>";
@@ -56,7 +58,8 @@ Ext.onReady(function() {
 	var dataViewer = new DataViewer('<%=guid%>', 
 		{
 			tree: tree,
-			metrics: metrics
+			metrics: metrics,
+			sensors: sensors
 		},
 		this_api, upload_api, prov_api,
 		dcns, domns, libns,

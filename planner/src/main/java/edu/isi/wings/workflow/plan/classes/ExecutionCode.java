@@ -22,6 +22,10 @@ public class ExecutionCode extends ExecutionFile {
 
 	String codeDirectory;
 	
+	public ExecutionCode() {
+	  super();
+	}
+	
 	public ExecutionCode(String id) {
 		super(id);
 		// TODO Auto-generated constructor stub

@@ -13,10 +13,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 
 import edu.isi.wings.portal.controllers.DataController;
 import edu.isi.wings.portal.controllers.RunController;
+import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 
 @Path("{user}/{domain}/data{external:(/external)?}")
 public class DataResource extends WingsResource {
@@ -68,6 +70,17 @@ public class DataResource extends WingsResource {
   }
   
   @GET
+  @Path("runSensorWorkflow")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String runSensorWorkflow(
+      @QueryParam("data_id") final String dataid) {
+    if(this.dc != null) {
+      return dc.runSensorWorkflow(dataid, this.request.getRequestedSessionId(), this.context);
+    }
+    return null;
+  }
+  
+  @GET
   @Path("getDataTypeJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataTypeJSON(
@@ -115,6 +128,17 @@ public class DataResource extends WingsResource {
     return Response.status(Status.FORBIDDEN).build();    
   }
 
+  @POST
+  @Path("setMetadataFromSensorOutput")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String setMetadataFromSensorOutput(
+      @QueryParam("data_id") String data_id, 
+      @JsonProperty("plan") ExecutionPlan plan) {
+    if(this.dc != null)
+      return this.dc.setMetadataFromSensorOutput(data_id, plan);
+    return null;
+  }
+  
   @POST
   @Path("publish")
   @Produces(MediaType.TEXT_PLAIN)

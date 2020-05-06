@@ -20,6 +20,7 @@ package edu.isi.wings.portal.controllers;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +50,13 @@ import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.util.TemplateBindings;
+import edu.isi.wings.workflow.plan.api.ExecutionPlan;
+import edu.isi.wings.workflow.plan.api.ExecutionStep;
+import edu.isi.wings.workflow.plan.classes.ExecutionFile;
+import edu.isi.wings.workflow.template.TemplateFactory;
+import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
+import edu.isi.wings.workflow.template.classes.variables.Variable;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 
@@ -73,7 +81,9 @@ public class 	DataController {
 	public String libns;
 
 	public DataCreationAPI dc;
+	public TemplateCreationAPI tc;
 	public ProvenanceAPI prov;
+	public RunController rc;
 	
 	public boolean loadExternal;
 	public Config config;
@@ -91,7 +101,12 @@ public class 	DataController {
 		dc = DataFactory.getCreationAPI(props);
 		if(this.loadExternal)
 		  dc = dc.getExternalCatalog();
+		
+		tc = TemplateFactory.getCreationAPI(props);
+		
 		prov = ProvenanceFactory.getAPI(props);
+		
+		this.rc = new RunController(config);
 
     this.dcns = (String) props.get("ont.data.url") + "#";
     this.domns = (String) props.get("ont.domain.data.url") + "#";
@@ -117,10 +132,12 @@ public class 	DataController {
 		for (MetadataProperty prop : props)
 			propids.add(prop.getID());
 		ArrayList<MetadataValue> vals = this.dc.getMetadataValues(dataid, propids);
+		String sensor = this.dc.getTypeSensor(dtype.getID());
 		
 		HashMap<String, Object> details = new HashMap<String, Object>();
 		details.put("dtype", dtype.getID());
 		details.put("location", location);
+		details.put("sensor", sensor);
 		details.put("props", props);
 		details.put("vals", vals);
 		return json.toJson(details);
@@ -132,10 +149,12 @@ public class 	DataController {
 
 		ArrayList<MetadataProperty> props = this.dc.getMetadataProperties(dtype, false);
 		String format = this.dc.getTypeNameFormat(dtype);
+		String sensor = this.dc.getTypeSensor(dtype);
 
 		HashMap<String, Object> details = new HashMap<String, Object>();
 		details.put("properties", props);
 		details.put("name_format", format);
+		details.put("sensor", sensor);
 		return json.toJson(details);
 	}
 
@@ -146,6 +165,16 @@ public class 	DataController {
 			dtree = json.toJson(tree.getRoot());
 		return dtree;
 	}
+	
+  public String getSensorWorkflowsListJSON() {
+    ArrayList<String> list = new ArrayList<String>();
+    for(String tid : this.tc.getTemplateList()) {
+      if(tid.contains("#Sensor")) {
+        list.add(tid);
+      }
+    }
+    return json.toJson(list);
+  }
 	
 	private HashMap<String, Object> convertNodeToUINode(DataTreeNode node) {
 	  if(node == null)
@@ -422,11 +451,17 @@ public class 	DataController {
 			dc.start_write();
 			dc.start_batch_operation();
 			
-			// Same datatype's name format
+			// Save datatype's name format
+			String fmt = null;
+			String sensor = null;
 			if (ops.get("format") != null && !ops.get("format").isJsonNull()) {
-				String fmt = ops.get("format").getAsString();
-				this.dc.setTypeNameFormat(dtypeid, fmt);
+				fmt = ops.get("format").getAsString();
 			}
+	     // Same datatype's sensing component
+      if (ops.get("sensor") != null && !ops.get("sensor").isJsonNull()) {
+        sensor = ops.get("sensor").getAsString();
+      }
+      this.dc.setTypeAnnotations(dtypeid, fmt, sensor);
 			
 			// Check all properties being added
 			JsonObject addops = ops.get("add").getAsJsonObject();
@@ -652,6 +687,56 @@ public class 	DataController {
 		}
 		return true;
 	}
+	
+
+  public String runSensorWorkflow(String dataid, String sessionid, ServletContext context) {
+    try {
+      DataItem dtype = this.dc.getDatatypeForData(dataid);
+      if(dtype == null) {
+        System.err.println("No datatype for data id: " + dataid);
+        return null;
+      }  
+      
+      String tplid = this.dc.getTypeSensor(dtype.getID());
+      Variable[] invars = this.tc.getTemplate(tplid).getInputVariables();
+      if(invars.length != 1) {
+        System.err.println("Template should have exactly 1 input variable. Has " + invars.length);
+        return null;
+      }
+      HashMap<String, ArrayList<String>> dataBindings = new HashMap<String, ArrayList<String>>();
+      ArrayList<String> inputfiles = new ArrayList<String>();
+      inputfiles.add(dataid);
+      dataBindings.put(invars[0].getID(), inputfiles);
+      
+      TemplateBindings tbindings = new TemplateBindings();
+      tbindings.setCallbackUrl(this.config.getServerUrl() +
+          this.config.getUserDomainUrl() +"/data/setMetadataFromSensorOutput?data_id=" + 
+          URLEncoder.encode(dataid, "UTF-8"));   
+      tbindings.setCallbackCookies("JSESSIONID=" + sessionid);
+      tbindings.setDataBindings(dataBindings);
+      tbindings.setParameterBindings(new HashMap<String, Object>());
+      tbindings.setParameterTypes(new HashMap<String, String>());
+      tbindings.setComponentBindings(new HashMap<String, String>());
+      tbindings.setTemplateId(tplid);
+      
+      return this.rc.expandAndRunTemplate(tbindings, context);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  public String setMetadataFromSensorOutput(String data_id, ExecutionPlan plan) {
+    //System.out.println(plan);
+    for(ExecutionStep step : plan.getAllExecutionSteps()) {
+      for(ExecutionFile file : step.getOutputFiles()) {
+        file.loadMetadataFromFileContents();
+        this.dc.setMetadataForDataObject(data_id, file.getMetadata());
+      }
+    }
+    return plan.getID();
+  }
 
 	public synchronized boolean delData(String dataid) {
 		return 
@@ -745,7 +830,7 @@ public class 	DataController {
 	}
 	
 	private void trustAllCertificates() {
-	// Create a new trust manager that trust all certificates
+	  // Create a new trust manager that trust all certificates
 	  TrustManager[] trustAllCerts = new TrustManager[]{
 	      new X509TrustManager() {
 	          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -768,4 +853,5 @@ public class 	DataController {
 	  } catch (Exception e) {
 	  }	  
 	}
+
 }

@@ -23,6 +23,8 @@ import java.net.URI;
 public class URIEntity implements Serializable, Comparable<URIEntity> {
 	private static final long serialVersionUID = 1L;
 	private URI id;
+	
+	public URIEntity() {}
 
 	public URIEntity(String id) {
 		setID(id);

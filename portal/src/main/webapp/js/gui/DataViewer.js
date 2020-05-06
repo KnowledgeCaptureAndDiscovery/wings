@@ -243,6 +243,29 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         //fieldStyle: 'border:1px solid #EEE',
         value: store.name_format
     });
+    
+
+    var sensorWorkflowData = [];
+    for(var i=0; i<this.store.sensors.length; i++) {
+    	var sensorid = this.store.sensors[i];
+    	sensorWorkflowData.push({id: sensorid, name: getLocalName(sensorid)});
+    }
+    var sensorWorkflowStore = Ext.create('Ext.data.Store', {
+    	fields: ['id', 'name'],
+    	data: sensorWorkflowData
+    });
+    
+    var sensorEditor = new Ext.form.ComboBox({
+    	store: sensorWorkflowStore,
+        displayField: 'name',
+        valueField: 'id',
+        value: store.sensor,
+        queryMode: 'local',
+        listStyle: 'font-size:11px',
+        forceSelection: true,
+        typeAhead: true,
+        triggerAction: 'all'
+    });
 
     // Extract inherited properties and own properties
     var myProperties = [];
@@ -306,7 +329,10 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
                     }
                 });
                 var nf = nameFormatField.value;
-                This.saveDatatype(id, propmods, nf, gridPanel, savebtn, tab);
+                if(nf == "")
+                	nf = null;
+                var sw = sensorEditor.value;
+                This.saveDatatype(id, propmods, nf, sw, gridPanel, savebtn, tab);
             }
         });
     }
@@ -327,7 +353,11 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         tab.setTitle("*" + tab.title.replace(/^\*/, ''));
         savebtn.setDisabled(false);
     });
-
+    sensorEditor.on('change', function() {
+        tab.setTitle("*" + tab.title.replace(/^\*/, ''));
+        savebtn.setDisabled(false);
+    });
+    
     var opts = {
         style: 'font-size:11px;padding-top:0px'
     };
@@ -600,6 +630,25 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     		}]
     	});
 
+	typeTabPanel.add({
+		xtype: 'panel',
+		title: 'Metadata Sensor',
+		defaults: {
+    		margin: 5,
+    		border: false
+		},
+        autoScroll: true,
+		items: [sensorEditor, 
+		{
+			html: "Choose a Sensor workflow for files produced of this data type.<br />" +
+				"The Sensor workflow should take in one input file, and produce one output file " +
+				"with each line containing the metadata key value pairs. Example: <ul>" +
+				"<li>hasSize=335</li>" +
+				"<li>hasLanguage=en</li>" +
+				"</ul>"
+		}]
+	});
+    
     typeTabPanel.add(This.provenanceViewer.createItemProvenanceGrid(id));
     typeTabPanel.setActiveTab(0);
     
@@ -889,6 +938,31 @@ DataViewer.prototype.openDataEditor = function(args) {
         tab.setTitle("*" + tab.title.replace(/^\*/, ''));
         savebtn.setDisabled(false);
     });
+    
+    var me = this;
+    var runsensorbtn = {
+    	xtype: 'button',
+    	text: 'Sense Metadata',
+    	iconCls: 'icon-run fa fa-brown',
+    	handler: function() {
+    		var msgTarget = gridPanel.getEl();
+        	msgTarget.mask('Running Sensor Workflow...', 'x-mask-loading');           	
+            Ext.Ajax.request({
+                url: me.op_url + "/runSensorWorkflow?data_id=" + escape(id),
+                timeout: Ext.Ajax.timeout,
+                success: function(response) {
+                	msgTarget.unmask();
+                    var runid = response.responseText;
+                    showWingsRanMessage(me.template_id, runid, me.results_url);
+                },
+                failure: function(response) {
+                	msgTarget.unmask();
+                	var result = Ext.decode(response.responseText);
+                    showWingsError("Server error. Look in logs", 'No workflows created', result);
+                }
+            });
+    	}
+    }
 
     var addfilebtn = {
         xtype: 'button',
@@ -969,6 +1043,8 @@ DataViewer.prototype.openDataEditor = function(args) {
 	    }, 
 	    '-',
 	    { xtype: 'tbfill' },
+	    (store.sensor != null ? runsensorbtn : null),
+	    '-',
 	    addfilebtn, 
 		{
 		    iconCls: 'icon-download fa fa-blue',
@@ -1552,7 +1628,7 @@ DataViewer.prototype.addDatatype = function(parentNode) {
 };
 
 DataViewer.prototype.saveDatatype = function(
-		dtypeid, propmods, nameFormat,
+		dtypeid, propmods, nameFormat, sensorWorkflow,
 		gridPanel, savebtn, tab) {
 	var This = this;
     var url = This.op_url + '/saveDataTypeJSON';
@@ -1562,6 +1638,7 @@ DataViewer.prototype.saveDatatype = function(
         params: {
             props_json: Ext.encode({
                 format: nameFormat,
+                sensor: sensorWorkflow,
                 add: propmods.addedProperties,
                 del: propmods.deletedProperties,
                 mod: propmods.modifiedProperties
