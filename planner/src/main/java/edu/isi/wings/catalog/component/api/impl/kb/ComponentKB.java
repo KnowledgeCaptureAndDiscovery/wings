@@ -150,9 +150,11 @@ public class ComponentKB extends TransactionsJena {
 					this.writerkb = this.ontologyFactory.getKB(absurl, OntSpec.PLAIN);
 			}
 			
-			this.start_read();
-			
+			this.start_write();
 			this.initializeMaps(this.kb);
+			this.end();
+			
+			this.start_read();
 			this.initDomainKnowledge();
 			this.setRuleMappings(this.kb);
 			
@@ -188,6 +190,8 @@ public class ComponentKB extends TransactionsJena {
 			dataPropMap.put("hasRule", kb.createDatatypeProperty(this.pcns+"hasRule"));
 		if(!dataPropMap.containsKey("hasDocumentation"))
 			dataPropMap.put("hasDocumentation", kb.createDatatypeProperty(this.pcns+"hasDocumentation"));
+    if(!dataPropMap.containsKey("isNoOperation"))
+      dataPropMap.put("isNoOperation", kb.createDatatypeProperty(this.pcns+"isNoOperation"));		
 	}
 
 	private void initDomainKnowledge() {
@@ -474,13 +478,15 @@ public class ComponentKB extends TransactionsJena {
 	private void createAbstractFromConcrete() {
 		try {
 		  this.start_read();
-		  
 			KBAPI abskb = this.ontologyFactory.getKB(OntSpec.PLAIN);
 			KBAPI libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
 			KBAPI kb = this.ontologyFactory.getKB(liburl, OntSpec.PELLET);
 			kb.importFrom(this.ontologyFactory.getKB(this.props.getProperty("ont.component.url"), OntSpec.PLAIN));
+			this.end();
 			
+			this.start_write();
 			this.initializeMaps(kb);
+			this.end();
 			
 			HashMap<String, KBObject> cmap = this.conceptMap;
 			HashMap<String, KBObject> dpmap = this.dataPropMap;
@@ -488,6 +494,7 @@ public class ComponentKB extends TransactionsJena {
 			
 			ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
 			
+			this.start_read();
 			ArrayList<KBObject> compobjs = kb.getInstancesOfClass(cmap.get("Component"), false);
 			for(KBObject compobj : compobjs) {
 				KBObject dval = kb.getDatatypePropertyValue(compobj, dpmap.get("isConcrete"));

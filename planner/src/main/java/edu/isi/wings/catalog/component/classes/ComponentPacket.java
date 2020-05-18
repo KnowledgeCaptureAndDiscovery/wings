@@ -50,7 +50,9 @@ public class ComponentPacket {
 	private HashSet<String> explanations;
 	// If the reasoner marked this ComponentDetails packet as invalid
 	public boolean isInvalid;
-	
+  // If the reasoner marked this ComponentDetails packet as a No-operation (i.e. skip processing)
+  public boolean isNoOperation;	
+  
 	private ArrayList<String> inputRoles;
 
 	public ComponentPacket(ComponentVariable component, Map<Role, Variable> roleMap,
@@ -236,7 +238,15 @@ public class ComponentPacket {
 		return this.isInvalid;
 	}
 
-	@Override
+	public boolean getNoOperationFlag() {
+    return isNoOperation;
+  }
+
+  public void setNoOperationFlag(boolean isNoOperation) {
+    this.isNoOperation = isNoOperation;
+  }
+
+  @Override
 	public String toString() {
 		return "ComponentDetails{invalid=" + this.isInvalid 
 		    + ",component=" + component + ", roleMap=" + roleMap

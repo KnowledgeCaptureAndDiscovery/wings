@@ -1307,6 +1307,10 @@ implements WorkflowGenerationAPI {
 			    plan.setIsIncomplete(true);
 			    continue;
 			  }
+			  // TODO: Skip execution step if n.isSkip() is set
+			  if(n.isSkip()) {
+			    continue;
+			  }
 			  
 				ExecutionStep step = PlanFactory.createExecutionStep(n.getID(), props);
 				step.setMachineIds(n.getMachineIds());
@@ -1493,7 +1497,7 @@ implements WorkflowGenerationAPI {
 									r.setType(oldport.getRole().getType());
 									newPort.setRole(r);
 									newNode.addInputPort(newPort);
-								}
+								}							
 								
 								// Get port bindings
 								Binding xb = getPortBinding(pb.getPortBinding(), inputLink.getDestinationPort());
@@ -1583,6 +1587,10 @@ implements WorkflowGenerationAPI {
 								}
 							}
 
+              if(cbinding.getData("skip") != null && (Boolean) cbinding.getData("skip") == true) {
+                newNode.setSkip(true);
+              } 
+              
 							// Get outputs from this node
 							Link[] outputLinks = template.getOutputLinks(destNode);
 							for (Link outputLink : outputLinks) {
@@ -1626,12 +1634,29 @@ implements WorkflowGenerationAPI {
 									varkey += cb.toString();
 									
 									Variable newVariable = newVariables.get(varkey);
+									boolean createNewOutputVariable = false;
 									if (newVariable == null) {
+									  createNewOutputVariable = true;
+									}
+									else {
+									  Link[] curlinks = curt.getLinks(newVariable);
+                    // If this link has destination as the current node 
+									  // (i.e. cyclic link, then create a new variable)
+                    for(Link l : curlinks) {
+                      if(l.getDestinationNode() != null &&
+                          l.getDestinationNode().getID().equals(newNode.getID())) {
+                        createNewOutputVariable = true;
+                      }
+                    }
+									}
+									
+									if(createNewOutputVariable) {
 										// Create a new variable
 										newVariable = curt.addVariable(ns + variable.getName(), 
 										    variable.getVariableType(),
 										    compCollection || dataCollection);
 										newVariable.setBinding(cb);
+										// TODO: Set the output data binding to the compatible input if newNode skip is true
 										newVariable.setDerivedFrom(variable.getID());
 										newVariables.put(varkey, newVariable);
 									}
@@ -2378,7 +2403,7 @@ implements WorkflowGenerationAPI {
 											indices.put(sb.getID(), sfx + "-" +ind);
 											ind++;
 										}
-									} else {
+									} else if(!m.getNoOperationFlag()) {
 										KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
 										Binding ds = createNewBinding(v, db, vtype, r,
 												sortedInputs, event);
@@ -2414,6 +2439,9 @@ implements WorkflowGenerationAPI {
 							cpblist.add(tmp);
 							cb.setData(cbl);
 						}
+            
+						cb.setData("skip", m.getNoOperationFlag());
+            
 						component.getBinding().add(cb);
 					}
 				}

@@ -40,6 +40,7 @@ public class Node extends URIEntity {
 	
 	private ArrayList<String> machineIds;
 	private boolean inactive;
+	private boolean skip;
 	
 	private String derivedFrom;
 
@@ -49,6 +50,7 @@ public class Node extends URIEntity {
 		outputPorts = new HashMap<String, Port>();
 		machineIds = new ArrayList<String>();
 		inactive = false;
+		skip = false;
 	}
 
 	public void setComponentVariable(ComponentVariable componentVariable) {
@@ -141,6 +143,14 @@ public class Node extends URIEntity {
 
   public void setInactive(boolean inactive) {
     this.inactive = inactive;
+  }
+
+  public boolean isSkip() {
+    return skip;
+  }
+
+  public void setSkip(boolean skip) {
+    this.skip = skip;
   }
 
   public String getDerivedFrom() {

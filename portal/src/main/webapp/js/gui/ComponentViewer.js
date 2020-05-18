@@ -1487,8 +1487,8 @@ ComponentViewer.prototype.onAddRule = function(item, comp) {
 		}
 		break;		
 	}
-	effect += `  print(?c ${item.id} rule fired)`;
-	return `[ RenameThisRule:
+	effect += `  print(?c "${item.id} rule fired")`;
+	return `[ ${item.id}Rule:
 ${triples}   ->
 ${effect}
 ]`
