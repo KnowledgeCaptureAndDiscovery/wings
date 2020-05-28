@@ -248,7 +248,7 @@ Ext.define('Wings.fb.TreePanel', {
         	return;
         }
         var curname = record.get('text');
-        var path = this.up('filebrowser').getPath(path);
+        var path = this.up('filebrowser').getPath(record);
         var me = this;
         Ext.Msg.prompt("New name", "Enter new name:", function(btn, text) {
             if (btn == 'ok' && text) {
