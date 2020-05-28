@@ -677,13 +677,15 @@ public class 	DataController {
     return null;
   }	
 	
-	public synchronized boolean addBatchData(String dtypeid, String[] dids, String[] locations) {
+	public synchronized boolean addBatchData(String dtypeid, String[] dids, String[] locations, 
+	    String sessionid, ServletContext context) {
 		for(int i=0; i<dids.length; i++) {
 			if(!dc.addData(dids[i], dtypeid))
 				return false;
 			if(locations.length > i && locations[i] != null)
 				if(!dc.setDataLocation(dids[i], locations[i]))
 					return false;
+			this.runSensorWorkflow(dids[i], sessionid, context);
 		}
 		return true;
 	}
@@ -698,6 +700,10 @@ public class 	DataController {
       }  
       
       String tplid = this.dc.getTypeSensor(dtype.getID());
+      if(tplid == null) {
+        return null;
+      }
+      
       Variable[] invars = this.tc.getTemplate(tplid).getInputVariables();
       if(invars.length != 1) {
         System.err.println("Template should have exactly 1 input variable. Has " + invars.length);

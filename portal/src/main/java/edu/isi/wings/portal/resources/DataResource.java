@@ -328,7 +328,8 @@ public class DataResource extends WingsResource {
     String[] data_ids = gson.fromJson(dids, String[].class);
     String[] data_locations = gson.fromJson(locs, String[].class);
     if(this.dc != null && this.isOwner() && !config.isSandboxed() &&
-        this.dc.addBatchData(data_type, data_ids, data_locations)) {
+        this.dc.addBatchData(data_type, data_ids, data_locations, 
+            this.request.getRequestedSessionId(), this.context)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
