@@ -55,7 +55,8 @@ Ext.define('Wings.fb.FileBrowser',{
         this.cname = this.cid.replace(/.*#/, '');
         this.callParent(arguments);
 
-        this.down('fileTreePanel').on('itemclick',this.onItemclick);
+        this.down('fileTreePanel').on('itemclick', this.onItemclick);
+        this.down('fileTreePanel').on('initialized', this.onInitialized);
     },
 
     languageName: function(filename){
@@ -94,6 +95,10 @@ Ext.define('Wings.fb.FileBrowser',{
     	if(!item || item.isRoot())
     		return "";
         return item.raw.path || item.data.path;    
+    },
+    
+    onInitialized: function() {
+    	this.up('filebrowser').fireEvent('initialized');
     },
 
     onItemclick: function(view, selectedItem){

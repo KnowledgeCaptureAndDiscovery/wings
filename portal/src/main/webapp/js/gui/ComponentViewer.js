@@ -1166,7 +1166,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 
 
     var mainPanelItems = [ tab.ioEditor ];
-    console.log(compStore);
+    //console.log(compStore);
 
     var rulesPanel = This.getRulesTab('Component Rules', 'rules', 
     		compStore.rules, compStore, editable, tab, savebtn);
@@ -1212,6 +1212,13 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     tab.add(mainPanel);
 };
 
+ComponentViewer.prototype.markComponentInitialized = function(cid, tab) {
+	var node = this.treePanel.getStore().getNodeById(cid);
+    tab.down('#downloadComponent').setDisabled(false);
+    tab.setIconCls('icon-component fa-title fa-orange');
+    node.set('iconCls', 'icon-component fa fa-orange');
+};
+
 ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, store, win) {
 	var This = this;
     var url = This.op_url + '/setComponentLocation';
@@ -1226,10 +1233,7 @@ ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, s
             This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
                 store.location = clocation;
-                var node = This.treePanel.getStore().getNodeById(cid);
-                tab.down('#downloadComponent').setDisabled(false);
-                tab.setIconCls('icon-component fa-title fa-orange');
-                node.set('iconCls', 'icon-component fa fa-orange');
+                This.markComponentInitialized(cid, tab);
                 win.close();
             } else {
                 _console(response.responseText);
@@ -1325,7 +1329,7 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
 ComponentViewer.prototype.getCodeTab = function(cid, textareaid, editable, tab, savebtn) {
     var This = this;
     var serverAddress = this.op_url;
-    return new Wings.fb.FileBrowser({    	
+    var fb = new Wings.fb.FileBrowser({    	
     	iconCls: 'icon-runAlt fa-title fa-blue',
     	cid: cid,
     	title: 'Code',
@@ -1340,7 +1344,14 @@ ComponentViewer.prototype.getCodeTab = function(cid, textareaid, editable, tab, 
             urlSave: serverAddress+'/fb/save'
         }    	
     });
+    
+    fb.on('initialized', function() {
+    	This.markComponentInitialized(cid, tab);
+    });
+    
+    return fb;
 };
+
 
 ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, comp, editable, tab, savebtn) {
     var This = this;
@@ -1412,7 +1423,6 @@ ComponentViewer.prototype.initializeMenuItems = function(comp, rulesArea, ruleTy
 	        text: ruleType.name,
 	        handler: function(item) {
 	        	var newRule = me.onAddRule(item, comp);
-	        	console.log(newRule);
 	        	rulesArea.setValue(rulesArea.getValue() + "\n" + newRule);
 	        },
 	        scope: me

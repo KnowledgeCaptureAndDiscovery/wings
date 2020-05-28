@@ -269,7 +269,7 @@ public class ComponentController {
       if(loc != null && path != null) {
           loc = loc + "/" + path;
           File f = new File(loc);
-          File newf = new File(f.getParent() + newname);
+          File newf = new File(f.getParent() + "/" + newname);
           if(!newf.exists()) {
             if(f.isDirectory())
               FileUtils.moveDirectory(f, newf);
