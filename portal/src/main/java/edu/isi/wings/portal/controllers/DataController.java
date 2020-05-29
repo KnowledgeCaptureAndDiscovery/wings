@@ -169,7 +169,7 @@ public class 	DataController {
   public String getSensorWorkflowsListJSON() {
     ArrayList<String> list = new ArrayList<String>();
     for(String tid : this.tc.getTemplateList()) {
-      if(tid.contains("#Sensor")) {
+      if(tid.contains("#Extractor_")) {
         list.add(tid);
       }
     }

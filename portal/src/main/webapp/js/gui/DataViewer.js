@@ -632,7 +632,7 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
 
 	typeTabPanel.add({
 		xtype: 'panel',
-		title: 'Metadata Sensor',
+		title: 'Metadata Extractor',
 		defaults: {
     		margin: 5,
     		border: false
@@ -640,12 +640,14 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
         autoScroll: true,
 		items: [sensorEditor, 
 		{
-			html: "Choose a Sensor workflow for files produced of this data type.<br />" +
-				"The Sensor workflow should take in one input file, and produce one output file " +
-				"with each line containing the metadata key value pairs. Example: <ul>" +
+			html: "Choose a Metadata extractor workflow for files produced of this data type.<ul>" +
+				"<li>The Extractor workflow should have a name starting with 'Extractor_', " +
+				"take in one input file, and produce one output file. <br/>" +
+				"<li>The output file should have each line containing metadata property "+
+				"value pairs relevant to this datatype. Example: <ul>" +
 				"<li>hasSize=335</li>" +
 				"<li>hasLanguage=en</li>" +
-				"</ul>"
+				"</ul></ul>"
 		}]
 	});
     
