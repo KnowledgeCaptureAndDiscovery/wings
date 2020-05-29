@@ -980,11 +980,16 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
         details.setNoOperationFlag(true);
         // Copy over Binding of compatible input to output
         for(ComponentRole outrole : comp.getOutputs()) {
-          Variable outvar = sRoleMap.get(outrole.getRoleName());       
+          Variable outvar = sRoleMap.get(outrole.getRoleName());
+          ArrayList<String> varclasses = new ArrayList<String>();
+          for(KBObject clsobj : this.getAllCachedClassesOfInstance(outrole.getID(), true)) {
+            varclasses.add(clsobj.getID());
+          }
+          
           for(ComponentRole inrole : comp.getInputs()) {
             if(!inrole.isParam()) {
               Variable invar = sRoleMap.get(inrole.getRoleName());
-              if(checkTypeCompatibility(tkb, outvar.getID(), inrole.getID())) {
+              if(checkTypeCompatibility(varclasses, inrole.getID())) {
                 System.out.println("Setting binding of " + outvar.getName() + " to " + invar.getBinding());
                 outvar.setBinding(invar.getBinding());
               }
