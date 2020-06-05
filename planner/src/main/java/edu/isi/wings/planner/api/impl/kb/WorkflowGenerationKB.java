@@ -389,10 +389,12 @@ implements WorkflowGenerationAPI {
 
     Variable[] variables = specializedTemplate.getVariables();
     ArrayList<String> blacklist = new ArrayList<String>(variables.length);
-    String variableNS = null;
+    ArrayList<String> variableNS = new ArrayList<String>();
     for (Variable variable : variables) {
       blacklist.add(variable.getID());
-      variableNS = variable.getNamespace();
+      String ns = variable.getNamespace();
+      if(!variableNS.contains(ns))
+        variableNS.add(ns);
     }
 
     // Data Filtering properties
@@ -1383,10 +1385,13 @@ implements WorkflowGenerationAPI {
 			  if(n.isInactive())
 			    continue;
 				ExecutionStep step = nodeMap.get(n);
-				for(Link l : template.getInputLinks(n)) {
-					ExecutionStep parentStep = nodeMap.get(l.getOriginNode());
-					if(parentStep != null)
-					  step.addParentStep(parentStep);
+				if(step != null) {
+				  ArrayList<Node> parentNodes = this.getParentNodes(n, template);
+  				for(Node originNode : parentNodes) {
+  					ExecutionStep parentStep = nodeMap.get(originNode);
+  					if(parentStep != null)
+  					  step.addParentStep(parentStep);
+  				}
 				}
 			}
 			return plan;
@@ -1394,6 +1399,22 @@ implements WorkflowGenerationAPI {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	private ArrayList<Node> getParentNodes(Node node, Template template) {
+	  ArrayList<Node> list = new ArrayList<Node>();
+	  for(Link l : template.getInputLinks(node)) {
+	    Node originNode = l.getOriginNode();
+	    if(originNode != null) {
+  	    if(originNode.isSkip()) {
+  	      list.addAll(this.getParentNodes(originNode, template));
+  	    }
+  	    else {
+  	      list.add(originNode);
+  	    }
+	    }
+	  }
+	  return list;
 	}
 	
 	/**
