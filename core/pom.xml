@@ -94,12 +94,12 @@
     <repository>
       <id>archiva.internal</id>
       <name>Internal Release Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/internal/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
     </repository>
     <snapshotRepository>
       <id>archiva.snapshots</id>
       <name>Internal Snapshot Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/snapshots/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -107,12 +107,12 @@
     <repository>
       <id>archiva.internal</id>
       <name>Internal Release Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/internal/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
     </repository>
     <repository>
       <id>archiva.snapshots</id>
       <name>Internal Snapshot Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/snapshots/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
     </repository>
   </repositories>
 
