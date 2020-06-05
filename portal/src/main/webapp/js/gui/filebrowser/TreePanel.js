@@ -261,6 +261,7 @@ Ext.define('Wings.fb.TreePanel', {
 	                	me.getEl().unmask();
 	                	record.set('text', text);
 	                	record.set('path', path);
+	                	record.commit();
 	                },
 	                failure: function (response, options) {
 	                	me.getEl().unmask();
@@ -288,7 +289,7 @@ Ext.define('Wings.fb.TreePanel', {
         				me.getEl().unmask();
         				if(record.isRoot()) {
         					me.store.getRootNode().removeAll();
-    	                	me.store.load();
+    	                	me.store.reload();
         				}
         				else
         					record.remove(false);
