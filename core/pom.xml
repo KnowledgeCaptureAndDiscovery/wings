@@ -17,7 +17,7 @@
   </organization>
 
   <properties>
-    <revision>4.2.0</revision>
+    <revision>4.2.1</revision>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
