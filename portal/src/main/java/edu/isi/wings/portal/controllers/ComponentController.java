@@ -175,6 +175,8 @@ public class ComponentController {
             try {
                 FileUtils.copyDirectory(old_file, new_file);
                 temp_component.setLocation(new_location);
+                File runFile = new File(new_location+"/run");
+                runFile.setExecutable(true);
             } catch (IOException e) {
                 return false;
             }
