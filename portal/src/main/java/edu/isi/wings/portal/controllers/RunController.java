@@ -278,7 +278,7 @@ public class RunController {
     for(int i=0; i<list.size(); i++) {
       JsonElement el = list.get(i);
       String runid = el.getAsJsonObject().get("id").getAsString();
-      monitor.deleteRun(runid);
+      monitor.deleteRun(runid, config.isDeleteRunOutputs());
     }
     
     ret.put("success", true);
@@ -294,7 +294,7 @@ public class RunController {
 
     String runid = el.getAsJsonObject().get("id").getAsString();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    if(!monitor.deleteRun(runid))
+    if(!monitor.deleteRun(runid, config.isDeleteRunOutputs()))
       return json.toJson(ret);
     /*
     if (monitor.runExists(runid)) {

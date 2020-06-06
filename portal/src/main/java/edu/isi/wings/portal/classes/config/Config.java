@@ -73,6 +73,7 @@ public class Config {
     private String componentOntologyUrl;
     private String executionOntologyUrl;
     private String resourceOntologyUrl;
+    private boolean deleteRunOutputs;
 
     private String ontdirurl = "http://www.wings-workflows.org/ontology";
 
@@ -355,6 +356,12 @@ public class Config {
         }
         else {
           this.logsDirectory = this.storageDirectory + File.separator + "logs";
+        }
+        if(serverConfig.containsKey("storage.delete-run-outputs")) {
+          this.deleteRunOutputs = serverConfig.getBoolean("storage.delete-run-outputs");
+        }
+        else {
+          this.deleteRunOutputs = false;
         }
         // Create logsDir (if it doesn't exist)
         File logdir = new File(this.logsDirectory);
@@ -873,6 +880,14 @@ public class Config {
 
     public void setDotFile(String dotFile) {
         this.dotFile = dotFile;
+    }
+
+    public boolean isDeleteRunOutputs() {
+      return deleteRunOutputs;
+    }
+
+    public void setDeleteRunOutputs(boolean deleteRunOutputs) {
+      this.deleteRunOutputs = deleteRunOutputs;
     }
 
     public String getClients() {

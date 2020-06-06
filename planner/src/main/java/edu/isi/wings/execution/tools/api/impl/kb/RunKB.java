@@ -409,8 +409,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public boolean deleteRun(String runid) {
-		return this.deleteExecutionRun(runid);
+	public boolean deleteRun(String runid, boolean deleteOutputs) {
+		return this.deleteExecutionRun(runid, deleteOutputs);
 	}
 
 	@Override
@@ -437,7 +437,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	public boolean delete() {
 	  boolean ok = true;
 		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1, null)) {
-			ok = this.deleteRun(rplan.getID());
+			ok = this.deleteRun(rplan.getID(), false);
 			if(!ok)
 			  return false;
 		}
@@ -610,8 +610,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
       return true;
     return false;
   } 
-	
-	private boolean deleteExecutionRun(String runid) {
+  
+	private boolean deleteExecutionRun(String runid, boolean deleteOutputs) {
 		RuntimePlan rplan = this.getExecutionRun(runid, true);
 		
 		try {
@@ -620,14 +620,13 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			if(rplan.getPlan() != null) {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
           // Delete output files
-          for (ExecutionFile file : step.getOutputFiles()) {
-            file.removeMetadataFile();
-            File f = new File(file.getLocation());
-            f.delete();
-            /*
-            if(f.exists() && !this.fileIsOutputofAnotherRun(file))
-              f.delete();
-            */
+          if(deleteOutputs) {
+            for (ExecutionFile file : step.getOutputFiles()) {
+              file.removeMetadataFile();
+              File f = new File(file.getLocation());
+              if(f.exists() && !this.fileIsOutputofAnotherRun(file))
+                f.delete();
+            }
           }
           // Delete log file
           File logfile = this.getLogFile(step.getID());
