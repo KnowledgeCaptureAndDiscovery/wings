@@ -48,6 +48,10 @@ public interface ComponentCreationAPI extends TransactionsAPI {
 	
 	boolean setComponentLocation(String cid, String location);
 	
+	boolean setComponentVersion(String cid, int version);
+	
+	boolean incrementComponentVersion(String id);
+	
 	// Saving
 	boolean save();
 	

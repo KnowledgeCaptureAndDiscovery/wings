@@ -132,6 +132,21 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       this.end();
     }
 	}
+	
+	@Override
+	public boolean setComponentVersion(String cid, int version) {
+	  try {
+	    this.start_write();
+	    KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
+	    KBObject cobj = this.writerkb.getResource(cid);
+	    KBObject versionobj = writerkb.createLiteral(version);
+	    this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
+	    return this.save();
+	  }
+	  finally {
+	    this.end();
+	  }
+	}
 
 
 	public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
@@ -145,9 +160,13 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   			this.externalCatalog.setComponentLocation(cid, modelIdentifier);
   		return this.save();
 	  }
-    finally {
-      this.end();
+    catch(Exception e) {
+      e.printStackTrace();
     }
+	  finally {
+      this.end();
+	  }
+	  return false;
 	}
 
 
@@ -170,6 +189,28 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		  return false;
 		}
 	}
+	
+	@Override
+  public boolean incrementComponentVersion(String cid) {
+	  try {
+      this.start_write();
+      KBObject compobj = kb.getIndividual(cid);      
+      KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
+      KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
+      int currentVersion = (Integer) (versionVal.getValue() != null ? versionVal.getValue() : 0);
+      
+      int newVersion = currentVersion+1;
+      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject newVersionVal = this.writerkb.createLiteral(newVersion);
+      this.writerkb.setPropertyValue(cobj, versionProp, newVersionVal);
+      return this.save();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      this.end();
+    }
+	  return false;
+  }
 
 	@Override
 	public boolean save() {
@@ -243,6 +284,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   		if(comp.getRulesText() != null) {
   			this.setComponentRules(cid, comp.getRulesText());
   		}
+  		
+  		this.setComponentVersion(cid, comp.getVersion());
   		
   		KBObject isConcreteVal = this.writerkb.createLiteral(comp.getType() == Component.CONCRETE);
   		this.writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);

@@ -95,7 +95,8 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("component_json") String json) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.saveComponentJSON(cid, json)) {
+        this.cc.saveComponentJSON(cid, json) && 
+        this.cc.incrementComponentVersion(cid)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -180,7 +181,8 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("location") String location) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.setComponentLocation(cid, location)) {
+        this.cc.setComponentLocation(cid, location) && 
+        this.cc.incrementComponentVersion(cid)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -245,7 +247,8 @@ public class ComponentResource extends WingsResource {
       @FormParam("path") String path,
       @FormParam("filedata") String data) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.saveComponentFile(cid, path, data))
+        this.cc.saveComponentFile(cid, path, data) && 
+        this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
   }
@@ -270,7 +273,8 @@ public class ComponentResource extends WingsResource {
       @FormParam("path") String path,
       @FormParam("newname") String newname) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.renameComponentItem(cid, path, newname))
+        this.cc.renameComponentItem(cid, path, newname) && 
+        this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
   }  
@@ -282,9 +286,9 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("language") String lang) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.initializeComponentFiles(cid, lang))
+        this.cc.initializeComponentFiles(cid, lang) && 
+        this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
-  }   
-
+  }
 }

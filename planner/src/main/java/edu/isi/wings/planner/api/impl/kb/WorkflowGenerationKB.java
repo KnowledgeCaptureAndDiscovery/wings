@@ -1483,7 +1483,7 @@ implements WorkflowGenerationAPI {
 						} else {
 							ComponentVariable c = new ComponentVariable(ns+cbinding.getName());
 							c.setConcrete(true);
-							c.setBinding(new Binding(cbinding.getID()));
+							c.setBinding(new Binding(cbinding.getID(), cbinding.getVersion()));
 							//c.setBinding(new Binding(ns + cbinding.getName()));
 							
 							// Create a new Node
@@ -1798,7 +1798,7 @@ implements WorkflowGenerationAPI {
 			if (!component.isTemplate()) {
 				if (uBinding == null)
 					uBinding = new Binding();
-				uBinding.add(new Binding(component.getBinding().getID()));
+				uBinding.add(new Binding(component.getBinding().getID(), component.getBinding().getVersion()));
 			} else {
 				if (uBinding == null)
 					uBinding = new ValueBinding();
@@ -2282,7 +2282,7 @@ implements WorkflowGenerationAPI {
 
 				Binding cb;
 				if (!component.isTemplate())
-					cb = new Binding(compBinding.getID());
+					cb = new Binding(compBinding.getID(), compBinding.getVersion());
 				else
 					cb = new ValueBinding((Template) compBinding.getValue());
 
@@ -2291,7 +2291,7 @@ implements WorkflowGenerationAPI {
 					c = new ComponentVariable(component.getTemplate());
 				else {
 					c = new ComponentVariable(component.getID());
-					c.setBinding(new Binding(compBinding.getID()));
+					c.setBinding(new Binding(compBinding.getID(), compBinding.getVersion()));
 				}
 				c.setBinding(cb);
 
@@ -2739,7 +2739,8 @@ implements WorkflowGenerationAPI {
 		for (Port p : pb.keySet()) {
 			iRoleVals.put(p.getRole().getName(), pb.get(p).toString());
 		}
-		String sortedInputs = (c.isTemplate() ? c.getID() : c.getBinding().getName()) + ":";
+		String sortedInputs = (c.isTemplate() ? c.getID() : c.getBinding().getName()) 
+		    + ":" + c.getBinding().getVersion() + ":" ;
 		for (String irole : iRoleVals.keySet()) {
 			sortedInputs += irole + ":" + iRoleVals.get(irole) + ",";
 		}

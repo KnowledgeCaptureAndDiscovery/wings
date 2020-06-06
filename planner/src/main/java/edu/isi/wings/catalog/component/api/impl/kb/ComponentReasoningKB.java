@@ -383,7 +383,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   			HashSet<String> explanations = new HashSet<String>();
   			ComponentPacket cmr;
   			ComponentVariable concreteComponent = new ComponentVariable(incompid);
-  			concreteComponent.setBinding(new Binding(ccomp.getID()));
+  			Binding componentBinding = new Binding(ccomp.getID());
+  			componentBinding.setVersion(ccomp.getVersion());
+  			concreteComponent.setBinding(componentBinding);
   			if (specialize)
   				concreteComponent.setConcrete(true);
   			else

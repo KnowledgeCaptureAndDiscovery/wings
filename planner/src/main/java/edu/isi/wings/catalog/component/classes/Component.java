@@ -34,6 +34,7 @@ public class Component extends URIEntity {
                             // from Client
   
   int type;
+  int version;
   ArrayList<ComponentRole> inputs;
   ArrayList<ComponentRole> outputs;
   ArrayList<String> rules;
@@ -47,6 +48,7 @@ public class Component extends URIEntity {
   public Component(String id, int type) {
     super(id);
     this.type = type;
+    this.version = 0;
     inputs = new ArrayList<ComponentRole>();
     outputs = new ArrayList<ComponentRole>();
     rules = new ArrayList<String>();
@@ -62,6 +64,14 @@ public class Component extends URIEntity {
     this.type = type;
   }
   
+  public int getVersion() {
+    return version;
+  }
+
+  public void setVersion(int version) {
+    this.version = version;
+  }
+
   public String getRulesText() {
     return rulesText;
   }

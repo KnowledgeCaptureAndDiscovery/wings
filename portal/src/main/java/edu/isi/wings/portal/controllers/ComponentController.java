@@ -106,90 +106,143 @@ public class ComponentController {
 	public synchronized boolean saveComponentJSON(String cid, String comp_json) {
 		if (this.cc == null)
 			return false;
-
-		String provlog = "Updating component";
-		Component comp = json.fromJson(comp_json, Component.class);
-		Provenance p = new Provenance(comp.getID());
-		p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
-		
-		return 
-		    cc.updateComponent(comp) &&
-		    prov.addProvenance(p);
+		try {
+  		String provlog = "Updating component";
+  		Component comp = json.fromJson(comp_json, Component.class);
+  		Provenance p = new Provenance(comp.getID());
+  		p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
+  		
+  		return 
+  		    cc.updateComponent(comp) &&
+  		    prov.addProvenance(p);
+		}
+		catch(Exception e) {
+		  this.end();
+		}
+		return false;
 	}
 
+	public synchronized boolean incrementComponentVersion(String cid) {
+	  if (this.cc == null)
+	    return false;
+	  try {
+	    RunController.invalidateCachedAPIs();
+	    return cc.incrementComponentVersion(cid);
+	  }
+	  catch(Exception e) {
+	    this.end();
+	  }
+	  return false;
+	}
+	 
 	public synchronized boolean addComponent(String cid, String pid, String ptype) {
-	  int type = this.loadConcrete ? Component.CONCRETE : Component.ABSTRACT;
-		Component comp = this.cc.getComponent(pid, true);
-		String provlog = "New component";
-		if (comp == null) {
-			// No parent component (probably because of it being a category
-			// or top node)
-			comp = new Component(cid, type);
-		} else {
-		  provlog += " from "+comp.getName(); 
-			comp.setID(cid);
-			comp.setType(type);
-		}
-		Provenance p = new Provenance(cid);
-		p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
-		
-		return 
-		    cc.addComponent(comp, ptype) &&
-		    prov.addProvenance(p);
+	  try {
+  	  int type = this.loadConcrete ? Component.CONCRETE : Component.ABSTRACT;
+  		Component comp = this.cc.getComponent(pid, true);
+  		String provlog = "New component";
+  		if (comp == null) {
+  			// No parent component (probably because of it being a category
+  			// or top node)
+  			comp = new Component(cid, type);
+  		} else {
+  		  provlog += " from "+comp.getName(); 
+  			comp.setID(cid);
+  			comp.setType(type);
+  		}
+  		Provenance p = new Provenance(cid);
+  		p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
+  		
+  		return 
+  		    cc.addComponent(comp, ptype) &&
+  		    prov.addProvenance(p);
+	  }
+	  catch(Exception e) {
+	    this.end();
+	  }
+	  return false;
 	}
 
 
 	public synchronized boolean setComponentLocation(String cid, String location) {
-	  String provlog = "Setting location";
-    Provenance p = new Provenance(cid);
-    p.addActivity(new ProvActivity(ProvActivity.UPLOAD, provlog));
-		
-    return 
-		    cc.setComponentLocation(cid, location) && 
-		    prov.addProvenance(p);
+	  try {
+  	  String provlog = "Setting location";
+      Provenance p = new Provenance(cid);
+      p.addActivity(new ProvActivity(ProvActivity.UPLOAD, provlog));
+  		
+      return 
+  		    cc.setComponentLocation(cid, location) && 
+  		    prov.addProvenance(p);
+	  }
+	  catch(Exception e) {
+	    this.end();
+	  }
+	  return false;
 	}
 	
 	public synchronized boolean addCategory(String ctype, String ptype) {
-	  return cc.addComponentHolder(ctype, ptype);
+	  try {
+	    return cc.addComponentHolder(ctype, ptype);
+	  }
+	  catch(Exception e) {
+	    this.end();
+	  }
+	  return false;
 	}
 
 	public synchronized boolean delComponent(String cid) {
-		return cc.removeComponent(cid, true, true) &&
-		    prov.removeAllProvenance(cid);
+	  try {
+	    return cc.removeComponent(cid, true, true) &&
+	        prov.removeAllProvenance(cid);
+	  }
+	  catch (Exception e){
+	    this.end();
+	  }
+	  return false;
 	}
 
-    public synchronized boolean duplicateComponent(String cid, String pid, String ptype, String new_cid){
-	    //create a temporal component using the source component
-        Component temp_component = cc.getComponent(cid, true);
-
-        this.addComponent(new_cid, pid, ptype);
-
-        //edit the id field
-        temp_component.setID(new_cid);
-        //copy the location file
-        String old_location = temp_component.getLocation();
-        String new_location = cc.getDefaultComponentLocation(new_cid);
-        File old_file = new File(old_location);
-        File new_file = new File(new_location);
-        if(old_file.exists() && !new_file.exists()) {
-            try {
-                FileUtils.copyDirectory(old_file, new_file);
-                temp_component.setLocation(new_location);
-                File runFile = new File(new_location+"/run");
-                runFile.setExecutable(true);
-            } catch (IOException e) {
-                return false;
-            }
-        }
-        //generate new json component
-        String new_component_json = json.toJson(temp_component);
-        //add the new component and save it
-        this.saveComponentJSON(new_cid, new_component_json);
-        return true;
-    }
+	public synchronized boolean duplicateComponent(String cid, String pid, String ptype, String new_cid){
+	  //create a temporal component using the source component
+	  try {
+  	  Component temp_component = cc.getComponent(cid, true);
+  
+  	  this.addComponent(new_cid, pid, ptype);
+  
+  	  //edit the id field
+  	  temp_component.setID(new_cid);
+  	  //copy the location file
+  	  String old_location = temp_component.getLocation();
+  	  String new_location = cc.getDefaultComponentLocation(new_cid);
+  	  File old_file = new File(old_location);
+  	  File new_file = new File(new_location);
+  	  if(old_file.exists() && !new_file.exists()) {
+  	    try {
+  	      FileUtils.copyDirectory(old_file, new_file);
+  	      temp_component.setLocation(new_location);
+  	      File runFile = new File(new_location+"/run");
+  	      runFile.setExecutable(true);
+  	    } catch (IOException e) {
+  	      return false;
+  	    }
+  	  }
+  	  //generate new json component
+  	  String new_component_json = json.toJson(temp_component);
+  	  //add the new component and save it
+  	  return this.saveComponentJSON(new_cid, new_component_json);
+	  }
+	  catch (Exception e) {
+	    this.end();
+	  }
+    return false;	  
+	}
 
 	public synchronized boolean delCategory(String ctype) {
-		return cc.removeComponentHolder(ctype);
+	  try {
+	    return cc.removeComponentHolder(ctype);
+	  }
+	  catch (Exception e) {
+	    this.end();
+	  }
+	  return false;
 	}
 	
 	public void end() {

@@ -186,6 +186,8 @@ public class ComponentKB extends TransactionsJena {
 		// Legacy ontologies don't have some properties. Add them in here
 		if(!dataPropMap.containsKey("hasLocation"))
 			dataPropMap.put("hasLocation", kb.createDatatypeProperty(this.pcns+"hasLocation"));
+    if(!dataPropMap.containsKey("hasVersion"))
+      dataPropMap.put("hasVersion", kb.createDatatypeProperty(this.pcns+"hasVersion"));
 		if(!dataPropMap.containsKey("hasRule"))
 			dataPropMap.put("hasRule", kb.createDatatypeProperty(this.pcns+"hasRule"));
 		if(!dataPropMap.containsKey("hasDocumentation"))
@@ -601,6 +603,7 @@ public class ComponentKB extends TransactionsJena {
         comp.setRules(this.getDirectComponentRules(cid));
         comp.setInheritedRules(this.getInheritedComponentRules(cid));
         comp.setSource(this.getComponentModelCatalog(compobj));
+        comp.setVersion(this.getComponentVersion(compobj));
       }
       return comp;
     }
@@ -610,6 +613,18 @@ public class ComponentKB extends TransactionsJena {
       this.end();      
     }
   }	
+  
+  protected int getComponentVersion(KBObject compobj) {
+    try {
+      this.start_read();
+      KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
+      KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
+      return (Integer) ((versionVal != null && versionVal.getValue() != null) ? versionVal.getValue() : 0);  
+    }
+    finally {
+      this.end();
+    }
+  }
   
   protected ArrayList<KBObject> getComponentInputs(KBObject compobj) {
     try {
