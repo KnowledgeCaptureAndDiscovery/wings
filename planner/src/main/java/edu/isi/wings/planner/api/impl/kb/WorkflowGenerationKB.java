@@ -389,10 +389,12 @@ implements WorkflowGenerationAPI {
 
     Variable[] variables = specializedTemplate.getVariables();
     ArrayList<String> blacklist = new ArrayList<String>(variables.length);
-    String variableNS = null;
+    ArrayList<String> variableNS = new ArrayList<String>();
     for (Variable variable : variables) {
       blacklist.add(variable.getID());
-      variableNS = variable.getNamespace();
+      String ns = variable.getNamespace();
+      if(!variableNS.contains(ns))
+        variableNS.add(ns);
     }
 
     // Data Filtering properties
@@ -1307,6 +1309,10 @@ implements WorkflowGenerationAPI {
 			    plan.setIsIncomplete(true);
 			    continue;
 			  }
+			  // TODO: Skip execution step if n.isSkip() is set
+			  if(n.isSkip()) {
+			    continue;
+			  }
 			  
 				ExecutionStep step = PlanFactory.createExecutionStep(n.getID(), props);
 				step.setMachineIds(n.getMachineIds());
@@ -1379,10 +1385,13 @@ implements WorkflowGenerationAPI {
 			  if(n.isInactive())
 			    continue;
 				ExecutionStep step = nodeMap.get(n);
-				for(Link l : template.getInputLinks(n)) {
-					ExecutionStep parentStep = nodeMap.get(l.getOriginNode());
-					if(parentStep != null)
-					  step.addParentStep(parentStep);
+				if(step != null) {
+				  ArrayList<Node> parentNodes = this.getParentNodes(n, template);
+  				for(Node originNode : parentNodes) {
+  					ExecutionStep parentStep = nodeMap.get(originNode);
+  					if(parentStep != null)
+  					  step.addParentStep(parentStep);
+  				}
 				}
 			}
 			return plan;
@@ -1390,6 +1399,22 @@ implements WorkflowGenerationAPI {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	private ArrayList<Node> getParentNodes(Node node, Template template) {
+	  ArrayList<Node> list = new ArrayList<Node>();
+	  for(Link l : template.getInputLinks(node)) {
+	    Node originNode = l.getOriginNode();
+	    if(originNode != null) {
+  	    if(originNode.isSkip()) {
+  	      list.addAll(this.getParentNodes(originNode, template));
+  	    }
+  	    else {
+  	      list.add(originNode);
+  	    }
+	    }
+	  }
+	  return list;
 	}
 	
 	/**
@@ -1458,7 +1483,7 @@ implements WorkflowGenerationAPI {
 						} else {
 							ComponentVariable c = new ComponentVariable(ns+cbinding.getName());
 							c.setConcrete(true);
-							c.setBinding(new Binding(cbinding.getID()));
+							c.setBinding(new Binding(cbinding.getID(), cbinding.getVersion()));
 							//c.setBinding(new Binding(ns + cbinding.getName()));
 							
 							// Create a new Node
@@ -1493,7 +1518,7 @@ implements WorkflowGenerationAPI {
 									r.setType(oldport.getRole().getType());
 									newPort.setRole(r);
 									newNode.addInputPort(newPort);
-								}
+								}							
 								
 								// Get port bindings
 								Binding xb = getPortBinding(pb.getPortBinding(), inputLink.getDestinationPort());
@@ -1583,6 +1608,10 @@ implements WorkflowGenerationAPI {
 								}
 							}
 
+              if(cbinding.getData("skip") != null && (Boolean) cbinding.getData("skip") == true) {
+                newNode.setSkip(true);
+              } 
+              
 							// Get outputs from this node
 							Link[] outputLinks = template.getOutputLinks(destNode);
 							for (Link outputLink : outputLinks) {
@@ -1626,12 +1655,29 @@ implements WorkflowGenerationAPI {
 									varkey += cb.toString();
 									
 									Variable newVariable = newVariables.get(varkey);
+									boolean createNewOutputVariable = false;
 									if (newVariable == null) {
+									  createNewOutputVariable = true;
+									}
+									else {
+									  Link[] curlinks = curt.getLinks(newVariable);
+                    // If this link has destination as the current node 
+									  // (i.e. cyclic link, then create a new variable)
+                    for(Link l : curlinks) {
+                      if(l.getDestinationNode() != null &&
+                          l.getDestinationNode().getID().equals(newNode.getID())) {
+                        createNewOutputVariable = true;
+                      }
+                    }
+									}
+									
+									if(createNewOutputVariable) {
 										// Create a new variable
 										newVariable = curt.addVariable(ns + variable.getName(), 
 										    variable.getVariableType(),
 										    compCollection || dataCollection);
 										newVariable.setBinding(cb);
+										// TODO: Set the output data binding to the compatible input if newNode skip is true
 										newVariable.setDerivedFrom(variable.getID());
 										newVariables.put(varkey, newVariable);
 									}
@@ -1752,7 +1798,7 @@ implements WorkflowGenerationAPI {
 			if (!component.isTemplate()) {
 				if (uBinding == null)
 					uBinding = new Binding();
-				uBinding.add(new Binding(component.getBinding().getID()));
+				uBinding.add(new Binding(component.getBinding().getID(), component.getBinding().getVersion()));
 			} else {
 				if (uBinding == null)
 					uBinding = new ValueBinding();
@@ -2236,7 +2282,7 @@ implements WorkflowGenerationAPI {
 
 				Binding cb;
 				if (!component.isTemplate())
-					cb = new Binding(compBinding.getID());
+					cb = new Binding(compBinding.getID(), compBinding.getVersion());
 				else
 					cb = new ValueBinding((Template) compBinding.getValue());
 
@@ -2245,7 +2291,7 @@ implements WorkflowGenerationAPI {
 					c = new ComponentVariable(component.getTemplate());
 				else {
 					c = new ComponentVariable(component.getID());
-					c.setBinding(new Binding(compBinding.getID()));
+					c.setBinding(new Binding(compBinding.getID(), compBinding.getVersion()));
 				}
 				c.setBinding(cb);
 
@@ -2378,7 +2424,7 @@ implements WorkflowGenerationAPI {
 											indices.put(sb.getID(), sfx + "-" +ind);
 											ind++;
 										}
-									} else {
+									} else if(!m.getNoOperationFlag()) {
 										KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
 										Binding ds = createNewBinding(v, db, vtype, r,
 												sortedInputs, event);
@@ -2414,6 +2460,9 @@ implements WorkflowGenerationAPI {
 							cpblist.add(tmp);
 							cb.setData(cbl);
 						}
+            
+						cb.setData("skip", m.getNoOperationFlag());
+            
 						component.getBinding().add(cb);
 					}
 				}
@@ -2690,7 +2739,8 @@ implements WorkflowGenerationAPI {
 		for (Port p : pb.keySet()) {
 			iRoleVals.put(p.getRole().getName(), pb.get(p).toString());
 		}
-		String sortedInputs = (c.isTemplate() ? c.getID() : c.getBinding().getName()) + ":";
+		String sortedInputs = (c.isTemplate() ? c.getID() : c.getBinding().getName()) 
+		    + ":" + c.getBinding().getVersion() + ":" ;
 		for (String irole : iRoleVals.keySet()) {
 			sortedInputs += irole + ":" + iRoleVals.get(irole) + ",";
 		}

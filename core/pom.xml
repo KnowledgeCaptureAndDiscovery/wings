@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.isi.wings</groupId>
   <artifactId>wings-core</artifactId>
-  <version>4.1-SNAPSHOT</version>
+  <version>${revision}</version>
   <name>Wings Core</name>
   <packaging>pom</packaging>
   <description>Wings project for the IKCAP group</description>
@@ -17,6 +17,7 @@
   </organization>
 
   <properties>
+    <revision>4.2.2</revision>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
@@ -93,12 +94,12 @@
     <repository>
       <id>archiva.internal</id>
       <name>Internal Release Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/internal/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
     </repository>
     <snapshotRepository>
       <id>archiva.snapshots</id>
       <name>Internal Snapshot Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/snapshots/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -106,12 +107,12 @@
     <repository>
       <id>archiva.internal</id>
       <name>Internal Release Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/internal/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
     </repository>
     <repository>
       <id>archiva.snapshots</id>
       <name>Internal Snapshot Repository</name>
-      <url>http://www.wings-workflows.org/archiva/repository/snapshots/</url>
+      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
     </repository>
   </repositories>
 

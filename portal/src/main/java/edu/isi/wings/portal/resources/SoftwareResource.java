@@ -11,6 +11,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import edu.isi.wings.portal.controllers.ResourceController;
+import edu.isi.wings.portal.controllers.RunController;
 
 @Path("common/resources")
 public class SoftwareResource extends WingsResource {
@@ -110,8 +111,10 @@ public class SoftwareResource extends WingsResource {
   public String addMachine(  
       @FormParam("resid") String resid) {
     if(this.rc != null)
-      if(this.rc.addMachine(resid))
+      if(this.rc.addMachine(resid)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -121,8 +124,10 @@ public class SoftwareResource extends WingsResource {
   public String addSoftware(  
       @FormParam("resid") String resid) {
     if(this.rc != null)
-      if(this.rc.addSoftware(resid))
+      if(this.rc.addSoftware(resid)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -133,8 +138,10 @@ public class SoftwareResource extends WingsResource {
       @FormParam("resid") String resid,
       @FormParam("softwareid") String softwareid) {
     if(this.rc != null)
-      if(this.rc.addSoftwareVersion(resid, softwareid))
+      if(this.rc.addSoftwareVersion(resid, softwareid)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -145,8 +152,10 @@ public class SoftwareResource extends WingsResource {
       @FormParam("resid") String resid,
       @FormParam("json") String json) {
     if(this.rc != null)
-      if(this.rc.saveMachineJSON(resid, json))
+      if(this.rc.saveMachineJSON(resid, json)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -157,8 +166,10 @@ public class SoftwareResource extends WingsResource {
       @FormParam("resid") String resid,
       @FormParam("json") String json) {
     if(this.rc != null)
-      if(this.rc.saveSoftwareJSON(resid, json))
+      if(this.rc.saveSoftwareJSON(resid, json)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -169,8 +180,10 @@ public class SoftwareResource extends WingsResource {
       @FormParam("resid") String resid,
       @FormParam("json") String json) {
     if(this.rc != null)
-      if(this.rc.saveSoftwareVersionJSON(resid, json))
+      if(this.rc.saveSoftwareVersionJSON(resid, json)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -180,8 +193,10 @@ public class SoftwareResource extends WingsResource {
   public String removeMachine(  
       @FormParam("resid") String resid) {
     if(this.rc != null)
-      if(this.rc.removeMachine(resid))
+      if(this.rc.removeMachine(resid)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -191,8 +206,10 @@ public class SoftwareResource extends WingsResource {
   public String removeSoftware(  
       @FormParam("resid") String resid) {
     if(this.rc != null)
-      if(this.rc.removeSoftware(resid))
+      if(this.rc.removeSoftware(resid)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
   
@@ -202,8 +219,10 @@ public class SoftwareResource extends WingsResource {
   public String removeSoftwareVersion(  
       @FormParam("resid") String resid) {
     if(this.rc != null)
-      if(this.rc.removeSoftwareVersion(resid))
+      if(this.rc.removeSoftwareVersion(resid)) {
+        RunController.invalidateCachedAPIs();
         return "OK";
+      }
     return null;
   }
 

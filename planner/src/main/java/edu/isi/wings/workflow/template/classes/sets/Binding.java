@@ -30,9 +30,11 @@ import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 public class Binding extends WingsSet implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	protected URI id;
-	protected Object value;
+	protected URI id; // Id of the Binding, for object bindings
+	protected Object value; // Value of the Binding, for Value Bindings
 	protected Metrics metrics = new Metrics();
+	
+	protected int version; // Version of the Binding, especially for component bindings
 
 	protected HashMap<String, Object> data = new HashMap<String, Object>();
 
@@ -42,6 +44,12 @@ public class Binding extends WingsSet implements Serializable {
 	public Binding(String id) {
 		setID(id);
 		this.obj = this.id;
+	}
+	
+	public Binding(String id, int version) {
+	  setID(id);
+	  this.version = version;
+	  this.obj = "" + this.id + this.version;
 	}
 
 	public Binding(Binding b) {
@@ -85,7 +93,15 @@ public class Binding extends WingsSet implements Serializable {
 		}
 	}
 
-	public String getName() {
+	public int getVersion() {
+    return version;
+  }
+
+  public void setVersion(int version) {
+    this.version = version;
+  }
+
+  public String getName() {
 		if (id != null)
 			return id.getFragment();
 		return null;

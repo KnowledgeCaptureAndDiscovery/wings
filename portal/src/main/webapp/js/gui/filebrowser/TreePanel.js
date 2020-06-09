@@ -152,6 +152,7 @@ Ext.define('Wings.fb.TreePanel', {
     	                method: 'POST',
     	                params: {cid: me.cid, language: lang},
     	                success: function (response, options) {
+    	                	me.fireEvent('initialized');
     	                	me.getEl().unmask();
     	                	me.store.getRootNode().removeAll();
     	                	me.store.load();
@@ -183,6 +184,8 @@ Ext.define('Wings.fb.TreePanel', {
 	                params: {cid: me.cid, path: path},
 	                success: function (response, options) {
 	                	me.getEl().unmask();
+	                	if(text == "run")
+	                		me.fireEvent('initialized');
 	                	record.appendChild({
 	                        text: text,
 	                        path: path,
@@ -245,7 +248,7 @@ Ext.define('Wings.fb.TreePanel', {
         	return;
         }
         var curname = record.get('text');
-        var path = this.up('filebrowser').getPath(path);
+        var path = this.up('filebrowser').getPath(record);
         var me = this;
         Ext.Msg.prompt("New name", "Enter new name:", function(btn, text) {
             if (btn == 'ok' && text) {
@@ -258,6 +261,7 @@ Ext.define('Wings.fb.TreePanel', {
 	                	me.getEl().unmask();
 	                	record.set('text', text);
 	                	record.set('path', path);
+	                	record.commit();
 	                },
 	                failure: function (response, options) {
 	                	me.getEl().unmask();
@@ -285,7 +289,7 @@ Ext.define('Wings.fb.TreePanel', {
         				me.getEl().unmask();
         				if(record.isRoot()) {
         					me.store.getRootNode().removeAll();
-    	                	me.store.load();
+    	                	me.store.reload();
         				}
         				else
         					record.remove(false);

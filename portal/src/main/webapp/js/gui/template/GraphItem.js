@@ -57,7 +57,7 @@ GraphItem.prototype.configure = function() {
 		this.outputPorts[portid].configure();
 	}
 	
-	if(this.inactive)
+	if(this.inactive || this.skip)
 		this.item.style("opacity", this.config.inactiveopacity);
 	else
 		this.item.style("opacity", 1);

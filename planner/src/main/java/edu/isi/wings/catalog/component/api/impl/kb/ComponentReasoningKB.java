@@ -383,7 +383,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   			HashSet<String> explanations = new HashSet<String>();
   			ComponentPacket cmr;
   			ComponentVariable concreteComponent = new ComponentVariable(incompid);
-  			concreteComponent.setBinding(new Binding(ccomp.getID()));
+  			Binding componentBinding = new Binding(ccomp.getID());
+  			componentBinding.setVersion(ccomp.getVersion());
+  			concreteComponent.setBinding(componentBinding);
   			if (specialize)
   				concreteComponent.setConcrete(true);
   			else
@@ -562,6 +564,16 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   			cmr = new ComponentPacket(concreteComponent, sRoleMap, constraints);
   			cmr.setInputRoles(inputRoles);
   			cmr.addExplanations(explanations);
+  			
+        // Checking for NoOperation
+        KBObject noOpProp = tkb.getProperty(this.pcns + "isNoOperation");
+        KBObject isNoOperation = tkb.getPropertyValue(tcomp, noOpProp);
+        if (isNoOperation != null && (Boolean) isNoOperation.getValue()) {
+          logger.debug(ccomp + " is going to be skipped");
+          explanations.add("INFO " + ccomp + " is going to be skipped");
+          cmr.setNoOperationFlag(true);
+        }
+        
   			list.add(cmr);
   		}
   		return list;
@@ -960,6 +972,34 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   			list.add(details);
   			return list;
   		}
+  		
+      // Checking for NoOperation
+      KBObject noOpProp = tkb.getProperty(this.pcns + "isNoOperation");
+      KBObject isNoOperation = tkb.getPropertyValue(tcomp, noOpProp);
+      if (isNoOperation != null && (Boolean) isNoOperation.getValue()) {
+        logger.debug(tcomp + " is going to be skipped");
+        details.addExplanations("INFO " + tcomp + " is going to be skipped");
+        details.setNoOperationFlag(true);
+        // Copy over Binding of compatible input to output
+        for(ComponentRole outrole : comp.getOutputs()) {
+          Variable outvar = sRoleMap.get(outrole.getRoleName());
+          ArrayList<String> varclasses = new ArrayList<String>();
+          for(KBObject clsobj : this.getAllCachedClassesOfInstance(outrole.getID(), true)) {
+            varclasses.add(clsobj.getID());
+          }
+          
+          for(ComponentRole inrole : comp.getInputs()) {
+            if(!inrole.isParam()) {
+              Variable invar = sRoleMap.get(inrole.getRoleName());
+              if(checkTypeCompatibility(varclasses, inrole.getID())) {
+                System.out.println("Setting binding of " + outvar.getName() + " to " + invar.getBinding());
+                outvar.setBinding(invar.getBinding());
+              }
+            }
+          }
+        }
+        
+      }
   
   		// Check component dependencies
   		// If set, overwrite the component dependencies with these

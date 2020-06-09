@@ -132,7 +132,7 @@ public class RunResource extends WingsResource {
       @FormParam("seed_constraints_json") String seed_constraints_json) {
     if(this.rc != null)
       return rc.runExpandedTemplate(template_id, json, constraints_json,
-          seed_json, seed_constraints_json, this.context);
+          seed_json, seed_constraints_json, null, this.context);
     return null;
   }
   

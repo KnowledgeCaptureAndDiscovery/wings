@@ -59,6 +59,7 @@ GraphNode.prototype.processData = function(data) {
 		this.prule = data.prule;
 	this.componentid = data.componentVariable.id; 
 	this.inactive = data.inactive;
+	this.skip = data.skip;
 	this.derivedFrom = data.derivedFrom;
 	this.setBinding(data.componentVariable.binding);
 	this.setDefaultColors();
@@ -88,7 +89,7 @@ GraphNode.prototype.getBindingText = function(binding) {
 };
 
 GraphNode.prototype.getMachinesText = function() {
-	if(this.inactive)
+	if(this.inactive || this.skip)
 		return "";
 	if(this.machineIds.length == 1)
 		return getLocalName(this.machineIds[0]);

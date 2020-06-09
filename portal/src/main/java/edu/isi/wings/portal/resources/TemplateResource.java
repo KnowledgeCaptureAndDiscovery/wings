@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import edu.isi.wings.portal.controllers.RunController;
 import edu.isi.wings.portal.controllers.TemplateController;
 
 @Path("{user}/{domain}/workflows{edit:(/edit)?}{tell:(/tellme)?}")
@@ -174,8 +175,10 @@ public class TemplateResource extends WingsResource {
   @Produces(MediaType.TEXT_PLAIN)
   public String newTemplate(
       @FormParam("template_id") String template_id) {
-    if(this.tc != null)
+    if(this.tc != null) {
+      RunController.invalidateCachedAPIs();
       return this.tc.newTemplate(template_id);
+    }
     return null;
   }
   
@@ -184,8 +187,10 @@ public class TemplateResource extends WingsResource {
   @Produces(MediaType.TEXT_PLAIN)
   public String deleteTemplate(
       @FormParam("template_id") String template_id) {
-    if(this.tc != null && this.isOwner() && !config.isSandboxed())
+    if(this.tc != null && this.isOwner() && !config.isSandboxed()) {
+      RunController.invalidateCachedAPIs();
       return this.tc.deleteTemplate(template_id);
+    }
     return null;
   }
 

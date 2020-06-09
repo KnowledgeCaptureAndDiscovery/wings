@@ -17,7 +17,14 @@
 
 package edu.isi.wings.execution.engine.classes;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
+
+import com.google.gson.Gson;
 
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
@@ -35,6 +42,13 @@ public class RuntimePlan extends URIEntity {
 	String originalTemplateId;
 	String expandedTemplateId;
 	String seededTemplateId;
+	
+	String callbackUrl;
+	String callbackCookies;
+	
+	public RuntimePlan() {
+	  super();
+	}
 	
 	public RuntimePlan(String id) {
     super(id);
@@ -83,7 +97,39 @@ public class RuntimePlan extends URIEntity {
 		this.runtimeInfo.setStatus(status);
 		this.runtimeInfo.addLog(log);
 		this.runtimeInfo.setEndTime(new Date());
+		this.postCallback();
 		logger.updateRuntimeInfo(this);
+	}
+	
+	private void postCallback() {
+	  if(this.callbackUrl != null && this.runtimeInfo.status == Status.SUCCESS) {
+	    try {
+        URL url = new URL (this.callbackUrl);
+        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        if(this.callbackCookies != null)
+          con.setRequestProperty("Cookie", this.callbackCookies);
+        con.setDoOutput(true);
+        String inputString = new Gson().toJson(plan);
+        try(OutputStream os = con.getOutputStream()) {
+          byte[] input = inputString.getBytes("utf-8");
+          os.write(input, 0, input.length);           
+        }
+        try(BufferedReader br = new BufferedReader(
+            new InputStreamReader(con.getInputStream()))) {
+          StringBuilder response = new StringBuilder();
+          String responseLine = null;
+          while ((responseLine = br.readLine()) != null) {
+            response.append(responseLine.trim());
+          }
+          System.out.println(response.toString());
+        }
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+	  }
 	}
 	
 	public void waitFor() throws InterruptedException {
@@ -127,5 +173,21 @@ public class RuntimePlan extends URIEntity {
 
   public void setSeededTemplateId(String seededTemplateId) {
     this.seededTemplateId = seededTemplateId;
+  }
+
+  public String getCallbackUrl() {
+    return callbackUrl;
+  }
+
+  public void setCallbackUrl(String callbackUrl) {
+    this.callbackUrl = callbackUrl;
+  }
+
+  public String getCallbackCookies() {
+    return callbackCookies;
+  }
+
+  public void setCallbackCookies(String callbackCookies) {
+    this.callbackCookies = callbackCookies;
   }
 }

@@ -131,6 +131,7 @@ RunBrowser.prototype.formatSize = function(bytes, precision) {
 RunBrowser.prototype.getIODataGrid = function(data, runid) {
 	var This = this;
 	var bindings = this.getVariableBindingData(data);
+	console.log(bindings);
 	
 	if (!Ext.ModelManager.isRegistered('workflowRunDetails'))
 		Ext.define('workflowRunDetails', {
@@ -244,11 +245,25 @@ RunBrowser.prototype.getVariableBindingData = function(data) {
 		}
 	}
 	
-	var vmaps = {};
+	// Map variable bindings to files
+	var bindingmaps = {};
+	var variables = [].concat(data.variables.input)
+		.concat(data.variables.output).concat(data.variables.intermediate);
+	
+	for(var i=0; i<variables.length; i++) {
+		var v = variables[i];
+		var binding = filedata[v.id] ? filedata[v.id] : v.binding;
+		if(v.binding.id)
+			binding.id = v.binding.id;
+		bindingmaps[binding.id] = binding
+	}
+	
+	var vmaps = {}
 	var varmap = function(variables, type) {
 		for(var i=0; i<variables.length; i++) {
 			var v = variables[i];
-			var binding = filedata[v.id] ? filedata[v.id] : v.binding;
+			var binding = v.binding.id ? bindingmaps[v.binding.id]
+				: filedata[v.id] ? filedata[v.id] : v.binding
 			if(v.binding.id)
 				binding.id = v.binding.id;
 			vmaps[v.id] = {v: getLocalName(v.id), b: binding, type: type};

@@ -45,6 +45,10 @@ implements ExecutionPlan, TransactionsAPI {
   transient TransactionsJena transaction;
   
   ArrayList<ExecutionStep> steps;
+  
+  public PPlan() {
+    super();
+  }
 
   public PPlan(String id, Properties props) {
     this(id, props, false);
@@ -319,6 +323,14 @@ implements ExecutionPlan, TransactionsAPI {
   @Override
   public void setIsIncomplete(boolean incomplete) {
     this.incomplete = incomplete;
+  }
+
+  public ArrayList<ExecutionStep> getSteps() {
+    return steps;
+  }
+
+  public void setSteps(ArrayList<ExecutionStep> steps) {
+    this.steps = steps;
   }
 
   // TransactionsAPI functions

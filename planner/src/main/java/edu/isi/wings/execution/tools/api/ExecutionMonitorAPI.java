@@ -37,7 +37,7 @@ public interface ExecutionMonitorAPI extends TransactionsAPI {
 	
 	boolean runExists(String runid);
 	
-	boolean deleteRun(String runid);
+	boolean deleteRun(String runid, boolean deleteOutputs);
 	
 	RuntimePlan rePlan(RuntimePlan planexe);
 	

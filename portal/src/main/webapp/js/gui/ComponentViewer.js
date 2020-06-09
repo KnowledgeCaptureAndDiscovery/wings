@@ -1166,11 +1166,12 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 
 
     var mainPanelItems = [ tab.ioEditor ];
+    //console.log(compStore);
 
-    var rulesPanel = This.getRulesTab('Component Rules', 'rules', compStore.rules, 
-    		editable, tab, savebtn);
+    var rulesPanel = This.getRulesTab('Component Rules', 'rules', 
+    		compStore.rules, compStore, editable, tab, savebtn);
     var inhRulesPanel = This.getRulesTab('Inherited Rules', 'inhrules', 
-    		compStore.inheritedRules, false, tab, savebtn);
+    		compStore.inheritedRules, compStore, false, tab, savebtn);
     
     mainPanelItems.push({
     	xtype: 'tabpanel',
@@ -1211,6 +1212,13 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     tab.add(mainPanel);
 };
 
+ComponentViewer.prototype.markComponentInitialized = function(cid, tab) {
+	var node = this.treePanel.getStore().getNodeById(cid);
+    tab.down('#downloadComponent').setDisabled(false);
+    tab.setIconCls('icon-component fa-title fa-orange');
+    node.set('iconCls', 'icon-component fa fa-orange');
+};
+
 ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, store, win) {
 	var This = this;
     var url = This.op_url + '/setComponentLocation';
@@ -1225,10 +1233,7 @@ ComponentViewer.prototype.setComponentLocation = function(cid, clocation, tab, s
             This.tabPanel.getEl().unmask();
             if (response.responseText == "OK") {
                 store.location = clocation;
-                var node = This.treePanel.getStore().getNodeById(cid);
-                tab.down('#downloadComponent').setDisabled(false);
-                tab.setIconCls('icon-component fa-title fa-orange');
-                node.set('iconCls', 'icon-component fa fa-orange');
+                This.markComponentInitialized(cid, tab);
                 win.close();
             } else {
                 _console(response.responseText);
@@ -1324,7 +1329,7 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
 ComponentViewer.prototype.getCodeTab = function(cid, textareaid, editable, tab, savebtn) {
     var This = this;
     var serverAddress = this.op_url;
-    return new Wings.fb.FileBrowser({    	
+    var fb = new Wings.fb.FileBrowser({    	
     	iconCls: 'icon-runAlt fa-title fa-blue',
     	cid: cid,
     	title: 'Code',
@@ -1339,9 +1344,16 @@ ComponentViewer.prototype.getCodeTab = function(cid, textareaid, editable, tab, 
             urlSave: serverAddress+'/fb/save'
         }    	
     });
+    
+    fb.on('initialized', function() {
+    	This.markComponentInitialized(cid, tab);
+    });
+    
+    return fb;
 };
 
-ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, editable, tab, savebtn) {
+
+ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, comp, editable, tab, savebtn) {
     var This = this;
 
     var rulestr = rules && rules.length ? rules.join("\n\n") : "";
@@ -1370,15 +1382,127 @@ ComponentViewer.prototype.getRulesTab = function(title, textareaid, rules, edita
     		savebtn.setDisabled(true);
     	}
     });
+    
+    var tbar = [
+    	{
+	    	text: 'Add Rule',
+	    	menu: {
+	    		xtype: 'menu',
+	    		items: This.initializeMenuItems(
+	    			comp, rulesArea,
+	    			[
+		    			{ name: "Parameter Setting Rule", id: "parameter"},
+		    			{ name: "Invalidation Rule", id: "invalidation"},
+		    			{ name: "No-Operation Rule", id: "no_op"},
+		    			{ name: "Forward Metadata Propagation Rule", id: "forward_meta"},
+		    			{ name: "Backward Metadata Propagation Rule", id: "backward_meta"},
+		    			{ name: "Collection Size Rule", id: "collection_size"},
+	    			]
+	    		)
+	    	}
+    	}
+    ];
 
     return new Ext.Panel({
     	title: 'Rules',
     	layout: 'fit',
     	//border: false,
+    	tbar: editable ? tbar : null,
     	items: rulesArea,
     	title: title,
     });
 };
+
+ComponentViewer.prototype.initializeMenuItems = function(comp, rulesArea, ruleTypes) {
+	var menu = [];
+	var me = this;
+	for(var i=0; i<ruleTypes.length; i++) {
+		var ruleType = ruleTypes[i];
+		menu.push({
+			id: ruleType.id,
+	        text: ruleType.name,
+	        handler: function(item) {
+	        	var newRule = me.onAddRule(item, comp);
+	        	rulesArea.setValue(rulesArea.getValue() + "\n" + newRule);
+	        },
+	        scope: me
+		})
+	}
+	return menu;
+};
+
+ComponentViewer.prototype.getGenericRuleTriples = function(comp) {
+	var compname = getLocalName(comp.id);
+	var vars = {input: [], output: [], param: []};
+	
+	var triples = `  (?c rdf:type pcdom:${compname}Class)\n`;
+	for(var i=0; i<comp.inputs.length; i++) {
+		var input = comp.inputs[i];
+		var invar = "?"+input.role;
+		triples += `  (?c pc:hasInput ${invar})\n  (${invar} pc:hasArgumentID "${input.role}")\n`;
+		if(input.isParam)
+			vars.param.push(invar);
+		else
+			vars.input.push(invar);		
+	}
+	for(var i=0; i<comp.outputs.length; i++) {
+		var output = comp.outputs[i];
+		var outvar = "?"+output.role;		
+		triples += `  (?c pc:hasOutput ${outvar})\n  (${outvar} pc:hasArgumentID "${output.role}")\n`;
+		vars.output.push(outvar);
+	}
+	return [triples, vars];
+};
+
+ComponentViewer.prototype.onAddRule = function(item, comp) {
+	var me = this;
+	var ruledata = this.getGenericRuleTriples(comp);
+	var triples = ruledata[0];
+	var vars = ruledata[1];
+	var effect = "";
+	if(item.id != "parameter") {
+		for(var i=0; i<vars.param.length; i++) {
+			var v = vars.param[i];
+			triples += `  (${v} pc:hasValue ${v}Value)\n`;
+		}
+	}
+	switch(item.id) {
+	case "parameter":
+		for(var i=0; i<vars.param.length; i++) {
+			effect += `  (${vars.param[i]} pc:hasValue "exampleValue"^^xsd:string)\n`;
+		}
+		break;
+	case "invalidation":
+		effect += `  (?c pc:isInvalid "true"^^xsd:boolean)\n`;
+		break;
+	case "no_op":
+		effect += `  (?c pc:isNoOperation "true"^^xsd:boolean)\n`;
+		break;
+	case "forward_meta":
+		for(var i=0; i<vars.output.length; i++) {
+			var v = vars.output[i];
+			effect += `  (${v} dcdom:changeToRealDataProperty ?exampleVariable)\n`;
+		}
+		break;
+	case "backward_meta":
+		for(var i=0; i<vars.input.length; i++) {
+			var v = vars.input[i];
+			effect += `  (${v} dcdom:changeToRealDataProperty ?exampleVariable)\n`;
+		}
+		break;
+	case "collection_size":
+		for(var i=0; i<vars.output.length; i++) {
+			var v = vars.output[i];
+			effect += `  (${v} pc:hasDimensionSizes ?exampleVariable)\n`;
+		}
+		break;		
+	}
+	effect += `  print(?c "${item.id} rule fired")`;
+	return `[ ${item.id}Rule:
+${triples}   ->
+${effect}
+]`
+},
 
 ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab, savebtn) {
 	var This = this;

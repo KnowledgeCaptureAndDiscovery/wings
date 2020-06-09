@@ -20,9 +20,13 @@ package edu.isi.wings.workflow.plan.api;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import edu.isi.wings.workflow.plan.api.impl.pplan.PPlanStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
+@JsonDeserialize(as = PPlanStep.class)
 public interface ExecutionStep {	
 
 	public void setID(String id);

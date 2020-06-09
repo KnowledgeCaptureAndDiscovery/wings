@@ -155,6 +155,8 @@ public class PlanningAndExecutingThread implements Runnable {
             rplan.setExpandedTemplateID(xtpl.getID());
             rplan.setOriginalTemplateID(tplid);
             rplan.setSeededTemplateId(seedid);
+            rplan.setCallbackUrl(this.template_bindings.getCallbackUrl());
+            rplan.setCallbackCookies(this.template_bindings.getCallbackCookies());
             this.runExecutionPlan(rplan);
           }
         }

@@ -217,12 +217,14 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	  try {
   	  this.start_read();
   		KBObject datatype = this.kb.getConcept(dtypeid);
-  		Pattern pat = Pattern.compile("^NameFormat=(.+)$");
+  		Pattern pat = Pattern.compile("NameFormat=(.+)");
   		for (String comment : this.kb.getAllComments(datatype)) {
-  			Matcher m = pat.matcher(comment);
-  			if (m.find()) {
-  				return m.group(1);
-  			}
+  		  for(String commentLine : comment.split("\\n")) {
+    			Matcher m = pat.matcher(commentLine);
+    			if (m.find()) {
+    				return m.group(1);
+    			}
+  		  }
   		}
   		return null;
 	  }
@@ -230,6 +232,27 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	    this.end();
 	  }
 	}
+	
+  @Override
+  public String getTypeSensor(String dtypeid) {
+    try {
+      this.start_read();
+      KBObject datatype = this.kb.getConcept(dtypeid);
+      Pattern pat = Pattern.compile("Sensor=(.+)");
+      for (String comment : this.kb.getAllComments(datatype)) {
+        for(String commentLine : comment.split("\\n")) {
+          Matcher m = pat.matcher(commentLine);
+          if (m.find()) {
+            return m.group(1);
+          }
+        }
+      }
+      return null;
+    }
+    finally {
+      this.end();
+    }
+  }	
 
 	@Override
 	public ArrayList<MetadataValue> getMetadataValues(String dataid, ArrayList<String> propids) {
@@ -483,20 +506,25 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	}
 
 	@Override
-	public boolean setTypeNameFormat(String dtypeid, String format) {
+	public boolean setTypeAnnotations(String dtypeid, String nameFormat, String sensorWorkflow) {
 	  try {
   	  this.start_write();
   		KBObject dtypeobj = this.ontkb.getConcept(dtypeid);
-  		this.ontkb.setComment(dtypeobj, "NameFormat=" + format);
+  		String annotation = "";
+  		if(nameFormat != null)
+  		  annotation += "NameFormat=" + nameFormat;
+  		if(sensorWorkflow != null)
+  		  annotation += (nameFormat != null ? "\n" : "") + "Sensor=" + sensorWorkflow;
+  		this.ontkb.setComment(dtypeobj, annotation);
   		if(this.externalCatalog != null)
-  			this.externalCatalog.setTypeNameFormat(dtypeid, format);
+  			this.externalCatalog.setTypeAnnotations(dtypeid, nameFormat, sensorWorkflow);
   		return this.save();
 	  }
     finally {
       this.end();
     }
 	}
-
+	 
 	@Override
 	public boolean addDatatypePropertyValue(String dataid, String propid, Object val) {
 	  try {
@@ -513,6 +541,31 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
       this.end();
     }
 	}
+	
+	@Override
+  public void setMetadataForDataObject(String dataid, Properties metadata) {
+	  try {
+      this.start_write();
+      KBObject dataobj = this.libkb.getIndividual(dataid);
+      
+      for (Object key : metadata.keySet()) {
+        KBObject pobj = this.dataPropMap.get(key);
+        if (pobj != null) {
+          String valstr = metadata.get(key).toString();
+          KBObject range = this.kb.getPropertyRange(pobj);
+          KBObject valobj = this.kb.createXSDLiteral(valstr, range.getID());
+          this.libkb.setPropertyValue(dataobj, pobj, valobj);
+        }
+      }
+      this.save();
+	  }
+	  catch (Exception e) {
+	    e.printStackTrace();
+	  }
+	  finally {
+	    this.end();
+	  }
+  }  
 
 	@Override
 	public boolean addDatatypePropertyValue(String dataid, String propid, String val, String xsdtype) {

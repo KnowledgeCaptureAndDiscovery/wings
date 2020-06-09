@@ -409,8 +409,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
 	@Override
-	public boolean deleteRun(String runid) {
-		return this.deleteExecutionRun(runid);
+	public boolean deleteRun(String runid, boolean deleteOutputs) {
+		return this.deleteExecutionRun(runid, deleteOutputs);
 	}
 
 	@Override
@@ -437,7 +437,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	public boolean delete() {
 	  boolean ok = true;
 		for(RuntimePlan rplan : this.getRunListSimple(null, null, -1, -1, null)) {
-			ok = this.deleteRun(rplan.getID());
+			ok = this.deleteRun(rplan.getID(), false);
 			if(!ok)
 			  return false;
 		}
@@ -493,14 +493,18 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			try {
 				KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 				
-				this.start_read();
-				boolean batchok = this.start_batch_operation(); 
+				this.start_read(); 
 				
 				exobj = tkb.getIndividual(rplan.getID());
+				if(exobj == null) {
+				  this.end();
+				  return null;
+				}
+				
+        boolean batchok = this.start_batch_operation();
 				// Get execution queue (list of steps)
 				ExecutionQueue queue = new ExecutionQueue();
-				KBObject exobj_r = tkb.getIndividual(rplan.getID());
-				for (KBObject stepobj : tkb.getPropertyValues(exobj_r, objPropMap.get("hasStep"))) {
+				for (KBObject stepobj : tkb.getPropertyValues(exobj, objPropMap.get("hasStep"))) {
 					RuntimeStep rstep = new RuntimeStep(stepobj.getID());
 					rstep.setRuntimeInfo(this.getRuntimeInfo(tkb, stepobj));
 					queue.addStep(rstep);
@@ -606,8 +610,8 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
       return true;
     return false;
   } 
-	
-	private boolean deleteExecutionRun(String runid) {
+  
+	private boolean deleteExecutionRun(String runid, boolean deleteOutputs) {
 		RuntimePlan rplan = this.getExecutionRun(runid, true);
 		
 		try {
@@ -616,14 +620,13 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 			if(rplan.getPlan() != null) {
         for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
           // Delete output files
-          for (ExecutionFile file : step.getOutputFiles()) {
-            file.removeMetadataFile();
-            //File f = new File(file.getLocation());
-            //f.delete();
-            /*
-            if(f.exists() && !this.fileIsOutputofAnotherRun(file))
-              f.delete();
-            */
+          if(deleteOutputs) {
+            for (ExecutionFile file : step.getOutputFiles()) {
+              file.removeMetadataFile();
+              File f = new File(file.getLocation());
+              if(f.exists() && !this.fileIsOutputofAnotherRun(file))
+                f.delete();
+            }
           }
           // Delete log file
           File logfile = this.getLogFile(step.getID());

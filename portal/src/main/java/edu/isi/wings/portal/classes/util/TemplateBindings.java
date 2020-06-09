@@ -9,6 +9,8 @@ public class TemplateBindings {
   HashMap<String, String> componentBindings;
   HashMap<String, Object> parameterBindings;
   HashMap<String, String> parameterTypes;
+  String callbackUrl;
+  String callbackCookies;
 
   public String getTemplateId() {
     return templateId;
@@ -48,5 +50,21 @@ public class TemplateBindings {
 
   public void setParameterTypes(HashMap<String, String> parameterTypes) {
     this.parameterTypes = parameterTypes;
+  }
+
+  public String getCallbackUrl() {
+    return callbackUrl;
+  }
+
+  public void setCallbackUrl(String callbackUrl) {
+    this.callbackUrl = callbackUrl;
+  }
+
+  public String getCallbackCookies() {
+    return callbackCookies;
+  }
+
+  public void setCallbackCookies(String callbackCookies) {
+    this.callbackCookies = callbackCookies;
   }
 }

@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import edu.isi.wings.portal.controllers.ComponentController;
+import edu.isi.wings.portal.controllers.RunController;
 
 @Path("{user}/{domain}/components{type:(/type)?}{external:(/external)?}")
 public class ComponentResource extends WingsResource {
@@ -94,8 +95,11 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("component_json") String json) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.saveComponentJSON(cid, json))
+        this.cc.saveComponentJSON(cid, json) && 
+        this.cc.incrementComponentVersion(cid)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
   
@@ -107,8 +111,10 @@ public class ComponentResource extends WingsResource {
       @FormParam("parent_cid") String parent_cid,
       @FormParam("parent_type") String parent_type) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() && 
-        this.cc.addComponent(cid, parent_cid, parent_type))
+        this.cc.addComponent(cid, parent_cid, parent_type)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
   
@@ -119,8 +125,10 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("parent_type") String parent_type) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() && 
-        this.cc.addCategory(cid, parent_type))
+        this.cc.addCategory(cid, parent_type)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
   
@@ -130,8 +138,10 @@ public class ComponentResource extends WingsResource {
   public String delComponent(
       @FormParam("cid") String cid) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.delComponent(cid))
+        this.cc.delComponent(cid)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
 
@@ -144,8 +154,10 @@ public class ComponentResource extends WingsResource {
           @FormParam("parent_cid") String parent_cid,
           @FormParam("parent_type") String parent_type) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-            this.cc.duplicateComponent(cid, parent_cid, parent_type, new_cid))
+            this.cc.duplicateComponent(cid, parent_cid, parent_type, new_cid)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
   
@@ -155,8 +167,10 @@ public class ComponentResource extends WingsResource {
   public String delCategory(
       @FormParam("cid") String cid) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.delCategory(cid))
+        this.cc.delCategory(cid)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
   
@@ -167,8 +181,11 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("location") String location) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.setComponentLocation(cid, location))
+        this.cc.setComponentLocation(cid, location) && 
+        this.cc.incrementComponentVersion(cid)) {
+      RunController.invalidateCachedAPIs();
       return "OK";
+    }
     return null;
   }
   
@@ -230,7 +247,8 @@ public class ComponentResource extends WingsResource {
       @FormParam("path") String path,
       @FormParam("filedata") String data) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.saveComponentFile(cid, path, data))
+        this.cc.saveComponentFile(cid, path, data) && 
+        this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
   }
@@ -255,7 +273,8 @@ public class ComponentResource extends WingsResource {
       @FormParam("path") String path,
       @FormParam("newname") String newname) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.renameComponentItem(cid, path, newname))
+        this.cc.renameComponentItem(cid, path, newname) && 
+        this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
   }  
@@ -267,9 +286,9 @@ public class ComponentResource extends WingsResource {
       @FormParam("cid") String cid,
       @FormParam("language") String lang) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
-        this.cc.initializeComponentFiles(cid, lang))
+        this.cc.initializeComponentFiles(cid, lang) && 
+        this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
-  }   
-
+  }
 }

@@ -19,6 +19,7 @@ package edu.isi.wings.catalog.data.api;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
@@ -55,10 +56,14 @@ public interface DataCreationAPI extends TransactionsAPI {
 	ArrayList<DataItem> getDataForDatatype(String dtypeid, boolean direct);
 
 	String getTypeNameFormat(String dtypeid);
+	
+	String getTypeSensor(String dtypeid);
 
 	String getDataLocation(String dataid);
 	
 	String getDefaultDataLocation(String dataid);
+	
+	void setMetadataForDataObject(String dataObjectId, Properties metadata);
 
 	ArrayList<MetadataValue> getMetadataValues(String dataid, ArrayList<String> propids);
 
@@ -81,7 +86,7 @@ public interface DataCreationAPI extends TransactionsAPI {
 
 	boolean setDataLocation(String dataid, String locuri);
 
-	boolean setTypeNameFormat(String dtypeid, String format);
+	boolean setTypeAnnotations(String dtypeid, String nameFormat, String sensorWorkflow);
 
 	boolean addObjectPropertyValue(String dataid, String propid, String valid);
 
