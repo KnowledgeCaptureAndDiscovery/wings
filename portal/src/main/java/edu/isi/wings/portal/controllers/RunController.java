@@ -479,6 +479,7 @@ public class RunController {
       //String upurl = publisher.getUploadServer().getUrl();
       String uploadURL = publishUrl.getUrl();
       String uploadUsername = publishUrl.getUsername();
+      String uploadDirectory = publishUrl.getDirectory();
       String uploadPassword = publishUrl.getPassword();
       long uploadMaxSize = publishUrl.getMaxUploadSize();
       //opmm.setPublishExportPrefix(puburl);
@@ -570,11 +571,12 @@ public class RunController {
               publisher.getDomainsDir(), aclibfile.getAbsolutePath());
 
       WorkflowExecutionExport exp = new WorkflowExecutionExport(
-              rplanfile.getAbsolutePath(), otplfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
+              rplanfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
       exp.setUploadURL(uploadURL);
       exp.setUploadUsername(uploadUsername);
       exp.setUploadPassword(uploadPassword);
       exp.setUploadMaxSize(uploadMaxSize);
+      exp.setUploadDirectory(uploadDirectory);
       String serialization = "TURTLE";
 
       //publish the catalog

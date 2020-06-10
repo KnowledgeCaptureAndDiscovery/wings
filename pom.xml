@@ -23,7 +23,6 @@
     <module>core</module>
     <module>planner</module>
     <module>portal</module>
-    <module>opmm</module>
     <!--module>engines/oodt</module-->
     <!--module>engines/pegasus</module-->
   </modules>
