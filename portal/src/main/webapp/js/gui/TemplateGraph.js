@@ -541,7 +541,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			title = (item.isInput ? 'Input ' : (item.isOutput ? 'Output ' : 'Intermediate '))
 					+ (item.isParam ? 'Parameter' : 'Data') + ' Variable: ' + item.text;
 			source['a_varName'] = item.getName();
-			if (item.isInput && !item.isParam) {
+			if (item.isInput) {
 				source['b_varColl'] = (item.dimensionality != 0);
 			}
 			if (!item.isInput && !item.isParam) {
@@ -577,7 +577,7 @@ Ext.ux.TemplateGraph = Ext.extend(Ext.Component, {
 			border : false,
 			propertyNames : {
 				'a_varName' : 'Variable Name',
-				'b_varColl' : 'Input Data should be a Collection',
+				'b_varColl' : 'Input should be a Collection',
 				'b_breakpoint' : 'Set Breakpoint for fetching metadata',
 				'c_varAutoFill' : 'Automatically Select Value (Don\'t ask user)',
 				'a_pruleS' : 'Use all Input Data in the same workflow',

@@ -194,11 +194,16 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   public boolean incrementComponentVersion(String cid) {
 	  try {
       this.start_write();
-      KBObject compobj = kb.getIndividual(cid);      
       KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
-      KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
-      int currentVersion = (Integer) (versionVal.getValue() != null ? versionVal.getValue() : 0);
       
+      int currentVersion = 0;      
+      if(cid != null) {
+        KBObject compobj = kb.getIndividual(cid);
+        if(compobj != null) {
+          KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
+          currentVersion = (Integer) (versionVal.getValue() != null ? versionVal.getValue() : 0);
+        }
+      }
       int newVersion = currentVersion+1;
       KBObject cobj = this.writerkb.getResource(cid);
       KBObject newVersionVal = this.writerkb.createLiteral(newVersion);

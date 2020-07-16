@@ -720,7 +720,7 @@ public class 	DataController {
           URLEncoder.encode(dataid, "UTF-8"));   
       tbindings.setCallbackCookies("JSESSIONID=" + sessionid);
       tbindings.setDataBindings(dataBindings);
-      tbindings.setParameterBindings(new HashMap<String, Object>());
+      tbindings.setParameterBindings(new HashMap<String, ArrayList<Object>>());
       tbindings.setParameterTypes(new HashMap<String, String>());
       tbindings.setComponentBindings(new HashMap<String, String>());
       tbindings.setTemplateId(tplid);

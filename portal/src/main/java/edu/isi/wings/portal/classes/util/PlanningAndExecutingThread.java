@@ -54,11 +54,21 @@ public class PlanningAndExecutingThread implements Runnable {
     
     // Set parameter bindings
     for(String key : tb.getParameterBindings().keySet()) {
-      Object value = tb.getParameterBindings().get(key);
+      Binding b = new Binding();
+      ArrayList<Object> list = tb.getParameterBindings().get(key);
       String datatype = tb.getParameterTypes().get(key);
       if(datatype == null)
         continue;
-      ValueBinding b = new ValueBinding(value, datatype);
+      if(list.size() == 0)
+        continue;
+      if(list.size() == 1) {
+        b = new ValueBinding(list.get(0), datatype);
+      }
+      else {
+        for(Object value : list) {
+          b.add(new ValueBinding(value, datatype));
+        }
+      }
       Variable var = tpl.getVariable(key);
       if(var != null) 
         var.setBinding(b);

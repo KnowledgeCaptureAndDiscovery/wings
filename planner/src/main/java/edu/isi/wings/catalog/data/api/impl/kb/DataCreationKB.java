@@ -50,6 +50,7 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		// FIXME: Hack to get unionOf domains
 		try {
 		  this.tmpkb = this.ontologyFactory.getKB(onturl, OntSpec.MICRO);
+		  this.tmpkb.importFrom(this.ontologyFactory.getKB(this.dcurl, OntSpec.MICRO));
 		}
 		catch (Exception e) {
 		  e.printStackTrace();

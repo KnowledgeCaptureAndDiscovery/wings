@@ -254,6 +254,9 @@ public class TemplateController {
             HashMap<String, Object> vardata = new HashMap<String, Object>();
             vardata.put("id", var.getID());
             vardata.put("name", var.getName());
+            int dim = varDims.containsKey(var.getID()) ? varDims.get(var.getID()) : roledim;
+            vardata.put("dim", dim);
+            
             if (var.getVariableType() == VariableType.DATA) {
                 vardata.put("type", "data");
                 vardata.put("dtype", roletypeid);
@@ -265,9 +268,6 @@ public class TemplateController {
                     }
                     vardata.put("options", items);
                 }
-                int dim = varDims.containsKey(var.getID()) ? varDims.get(var.getID()) : roledim;
-                vardata.put("dim", dim);
-
                 if (varbinding != null) {
                     vardata.put("binding", varbinding.getID());
                 }
