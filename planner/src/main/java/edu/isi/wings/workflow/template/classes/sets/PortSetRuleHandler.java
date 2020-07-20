@@ -52,7 +52,7 @@ public class PortSetRuleHandler {
 
 		// FIXME: Currently doing a cross product for all parameters by default
 		// !
-		SetExpression expr = crossProductPorts(prule.getSetExpression(), paramPorts);
+		SetExpression expr = prule.getSetExpression(); //crossProductPorts(prule.getSetExpression(), paramPorts);
 
 		// System.out.println("Expression: "+prule.getSetExpression());
 		// System.out.println("Original Bindings:\n"+portBindings);
