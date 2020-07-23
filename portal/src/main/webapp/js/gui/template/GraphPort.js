@@ -6,6 +6,7 @@ function GraphPort(parent, graphItem, id, role, isInput, config) {
 	this.role = role;
 	this.isInput = isInput;
 	this.config = config;
+	this.dimensionality = role.dimensionality;
 	
 	this.coords = {x: 0, y:0};
 
@@ -106,6 +107,14 @@ GraphPort.prototype.equals = function(p) {
 	if (this.role.roleid != p.role.roleid)
 		return false;
 	return true;
+};
+
+GraphPort.prototype.getDimensionality = function() {
+	return this.dimensionality;
+}
+
+GraphPort.prototype.setDimensionality = function(dimensionality) {
+	this.dimensionality = dimensionality;
 };
 
 //Translate variable ports to original node ports from where the variable comes
