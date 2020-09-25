@@ -15,9 +15,12 @@ compatible domains right now)
 
 ### Docker 
 
+1. Install [Docker](https://www.docker.com/):
+2. Install [docker-compose](https://docs.docker.com/compose/install/). On desktop systems like Docker Desktop for Mac and Windows, Docker Compose is included as part of those desktop installs.
+3. Open a console and type `docker-compose up -d`
+4. Open [http://localhost:8080](http://localhost:8080)
 
-Use our Docker image (you need to have Docker installed: https://www.docker.com/):
-See [README Docker](wings-docker/) for additional instructions on running the Docker image.
+Go to [README Docker](wings-docker/) for additional instructions on running the Docker image.
 
 
 ### Maven
