@@ -1,9 +1,8 @@
  [![Build Status](https://travis-ci.org/KnowledgeCaptureAndDiscovery/wings.svg?branch=master)](https://travis-ci.org/KnowledgeCaptureAndDiscovery/wings)
 
-Wings 4.1-SNAPSHOT
-==================
+# Wings
 
-Requirements
+## Requirements
 ------------
 1. Java JDK 1.8+ (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 2. Maven 2/3 (http://maven.apache.org/ -- To install from source)
@@ -12,15 +11,17 @@ Requirements
 5. Unix/OSX environment (The portal will run in Windows, but we don't have windows 
 compatible domains right now)
 
-Installation
--------------
-Alternative A): Use our Docker image (you need to have Docker installed: https://www.docker.com/):
- - `docker pull kcapd/wings-base`
- - Or build it with additional software using our proposed Docker files. 
- 
- See https://github.com/KnowledgeCaptureAndDiscovery/wings-docker for additional instructions on running the Docker image.
+## Installation
 
-Alternative B): Follow the steps below to install WINGS locally:
+### Docker 
+
+
+Use our Docker image (you need to have Docker installed: https://www.docker.com/):
+See [README Docker](README_DOCKER.md) for additional instructions on running the Docker image.
+
+
+### Maven
+
 1. Get war file. Choose from one of the options below:
 a. If installing from source. Download source from https://github.com/IKCAP/wings
  - `mvn install` (Do this if you are installing from source and don't already have a war file). If you find any encoding issues, try "export MAVEN_OPTS= -Dfile.encoding=UTF-8" before the mvn command
