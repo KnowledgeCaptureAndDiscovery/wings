@@ -17,7 +17,7 @@ compatible domains right now)
 
 
 Use our Docker image (you need to have Docker installed: https://www.docker.com/):
-See [README Docker](README_DOCKER.md) for additional instructions on running the Docker image.
+See [README Docker](wings-docker/) for additional instructions on running the Docker image.
 
 
 ### Maven
