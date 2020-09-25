@@ -5,90 +5,26 @@ This repository contains different WINGS docker images with pre-installed softwa
 * kcapd/wings-base: Clean installation of WINGS and Docker. 
 * kcapd/wings-genomics: contains all the software from wings-base plus python-dev, samtools, tophat, cufflinks, RSeQC and R.
 
-## Using Pre-built Images
-In order to use this images, you can simply pull them from dockerhub: 
 
-* ```docker pull kcapd/wings-base``` or 
-* ```docker pull kcapd/wings-genomics```
+### Using docker-compose
 
-## Building the Image
-Alternatively, you may build any of the docker files in the "docker" folder of this repository. **Please build them from the folder which contains this readme**. 
-
-Note that this takes a little bit more time than simply pulling the images from dockerhub. However, this approach is better if you want to install additional software on your WINGS image.
-
-There are two ways to build the image:
-
-### Using docker-compose (recommended)
 If docker-compose is installed, you may use it to build the image. The instructions are defined in the `docker-compose.yml` file. 
 
+
+#### wings base
+
 ```bash
-docker-compose build
+docker-compose -f docker-compose.yml up -d
+```
+
+#### wings genomics
+
+
+```bash
+docker-compose -f docker-compose.genomics.yml up -d
 ```
 
 The parameters to build the image may be changed directly in the compose file (such as the image tag, volume name, ports, etc.).
-
-### Using docker
-
-```bash
-docker build -t [IMAGE_NAME] -f docker/default/Dockerfile . 
-```
-
-## Executing WINGS:
-Once you have pulled or created your images, you can run wings in two ways:
-
-### Using docker-compose (recommended)
-To run the server use
-
-```bash
-docker-compose up
-```
-This command runs the default (dev) configuration in docker-compose.override.yml.
-You may also specify the `-d` flag to run in detached mode.
-
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-This deploys WINGS using the configuration in docker-compose.yml and docker-compose.prod.yml.
-
-
-If the server is running, you can enter the container by running
-
-```bash
-docker-compose exec [IMAGE_NAME] bash
-```
-
-If the server is not running, you can run it inside the container with the following command:
-
-```bash
-docker-compose run [IMAGE_NAME] bash
-```
-
-### Using the startup script
-You should run the file ```start-wings.sh``` that you will find on the "scripts" folder of this repository: 
-
-```bash
-# If [NAME] is not specified, it defaults to wings.
-./start-wings.sh [NAME]
-```
-
-This file will execute the container with the following options (it is assumed that the image you want to execute is kcapd/wings-base):
-
-```bash
-docker run --interactive \
-               --tty \
-               --env WINGS_MODE='dind' \
-               --volume "${NAME}_vol":/opt/wings \
-               --name ${NAME} \
-               --publish 8080:8080 \
-               ${ARGS} kcapd/wings-base
-```
-
-And now you can access WINGS' web interface from the Docker image: ```http://localhost:8080/wings-portal```
-
-## Stoping WINGS
-There are two ways to stop the WINGS container
 
 ### Using docker-compose (recommended)
 If not in detached mode, you can stop the container with `ctrl + c`. If in detached mode, you can stop the container using:
