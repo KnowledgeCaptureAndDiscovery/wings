@@ -1033,6 +1033,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
             Ext.Ajax.request({
                 url: url,
                 params: {
+                	cid: c.id,
                     component_json: Ext.encode(comp),
                     load_concrete: This.load_concrete
                 },
@@ -1144,12 +1145,16 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 			tab.setTitle(tab.title.replace(/^\*/, ''));
 		}
 	});
+	tbar.push('-');
+	tbar.push({
+		xtype : 'tbfill'
+	});
+	tbar.push('-');
+	if(compStore.version != null)
+		tbar.push("v" + compStore.version);
 	
 	if (This.advanced_user && c.concrete) {
 		tbar.push('-');
-		tbar.push({
-			xtype : 'tbfill'
-		});
 		tbar.push(addcompbtn);
 		tbar.push({
 			iconCls : 'icon-download fa fa-blue',
