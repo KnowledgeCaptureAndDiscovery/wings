@@ -19,6 +19,7 @@ package edu.isi.wings.portal.controllers;
 
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +37,6 @@ import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPut;
@@ -461,6 +461,46 @@ public class RunController {
 //    return json.toJson(returnJson);
 //  }
 
+  private String urlToString(URL url) {
+    try {
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      boolean redirect = false;
+  
+      // normally, 3xx is redirect
+      int status = conn.getResponseCode();
+      if (status != HttpURLConnection.HTTP_OK) {
+        if (status == HttpURLConnection.HTTP_MOVED_TEMP
+          || status == HttpURLConnection.HTTP_MOVED_PERM
+            || status == HttpURLConnection.HTTP_SEE_OTHER)
+        redirect = true;
+      }
+  
+      if (redirect) {
+        // get redirect url from "location" header field
+        String newUrl = conn.getHeaderField("Location");
+ 
+        // open the new connnection again
+        conn = (HttpURLConnection) new URL(newUrl).openConnection();
+      }
+  
+      BufferedReader in = new BufferedReader(
+                                  new InputStreamReader(conn.getInputStream()));
+      String inputLine;
+      StringBuffer html = new StringBuffer();
+  
+      while ((inputLine = in.readLine()) != null) {
+        html.append(inputLine);
+      }
+      in.close();
+      return html.toString();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
@@ -541,16 +581,16 @@ public class RunController {
       String abslib = props.getProperty("lib.abstract.url");
       //String workflow_lib = props.getProperty("lib.domain.workflow.url");
 
-      String aclibdata = IOUtils.toString(new URL(aclib));
-      String abslibdata = IOUtils.toString(new URL(abslib));
-      //String workflow_lib_data = IOUtils.toString(new URL(workflow_lib));
+      String aclibdata = urlToString(new URL(aclib));
+      String abslibdata = urlToString(new URL(abslib));
+      //String workflow_lib_data = urlToString(new URL(workflow_lib));
 
       abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
       abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
       abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
       aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
 
-      String rplandata = IOUtils.toString(new URL(runid));
+      String rplandata = urlToString(new URL(runid));
 
       //write aclibfie and rplanfile
       aclibdata += abslibdata + "</rdf:RDF>\n";
@@ -564,7 +604,7 @@ public class RunController {
       URL otplurl = new URL(plan.getOriginalTemplateID());
       File otplfile = new File(wflowdir.getAbsolutePath() + "/" +
               otplurl.getRef() + ".owl");
-      String otpldata = IOUtils.toString(otplurl);
+      String otpldata = urlToString(otplurl);
       FileUtils.write(otplfile, otpldata);
 
       Catalog catalog = new Catalog(config.getDomainId(), exportName,
