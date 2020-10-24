@@ -883,7 +883,9 @@ implements Template, TransactionsAPI {
 	}
 
 	public Link[] getInputLinks(Node n) {
-    return this.nodeInputLinks.get(n.getID()).toArray(new Link[0]);
+	  if(this.nodeInputLinks.containsKey(n.getID()))
+	    return this.nodeInputLinks.get(n.getID()).toArray(new Link[0]);
+	  return new Link[] {};
 	}
 
 	public Variable[] getInputVariables() {
@@ -990,7 +992,10 @@ implements Template, TransactionsAPI {
 	}
 
 	public Link[] getOutputLinks(Node n) {
-	  return this.nodeOutputLinks.get(n.getID()).toArray(new Link[0]);
+	  if(this.nodeOutputLinks.containsKey(n.getID()))
+	    return this.nodeOutputLinks.get(n.getID()).toArray(new Link[0]);
+	  else
+	    return new Link[] {};
 	}
 
 	public Variable[] getOutputVariables() {
