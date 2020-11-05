@@ -516,7 +516,8 @@ public class RunController {
       String tstoreurl = publisher.getTstorePublishUrl();
       String tstorequery = publisher.getTstoreQueryUrl();
       String exportName = publisher.getExportName();
-      //String upurl = publisher.getUploadServer().getUrl();
+      String exportUrl = publisher.getUrl();
+      
       String uploadURL = publishUrl.getUrl();
       String uploadUsername = publishUrl.getUsername();
       String uploadDirectory = publishUrl.getDirectory();
@@ -611,7 +612,7 @@ public class RunController {
               publisher.getDomainsDir(), aclibfile.getAbsolutePath());
 
       WorkflowExecutionExport exp = new WorkflowExecutionExport(
-              rplanfile.getAbsolutePath(), catalog, exportName, tstorequery, config.getDomainId());
+              rplanfile.getAbsolutePath(), catalog, exportUrl, exportName, tstorequery, config.getDomainId());
       exp.setUploadURL(uploadURL);
       exp.setUploadUsername(uploadUsername);
       exp.setUploadPassword(uploadPassword);

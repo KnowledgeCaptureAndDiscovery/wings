@@ -12,7 +12,7 @@ public class Publisher {
     ServerDetails uploadServer;
     String domainsDir;
     String exportName;
-
+    
     public String getExportName() {
         return exportName;
     }
