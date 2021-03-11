@@ -4,7 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.isi.wings</groupId>
   <artifactId>wings-pegasus-adapter</artifactId>
   <name>Wings Pegasus Adapter</name>
   <packaging>jar</packaging>
@@ -13,10 +12,23 @@
   <parent>
     <groupId>edu.isi.wings</groupId>
     <artifactId>wings-pegasus</artifactId>
-    <version>4.1-SNAPSHOT</version>
+    <version>4.2.3</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+  <repositories>
+    <repository>
+      <id>archiva.internal</id>
+      <name>Internal Release Repository</name>
+      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
+    </repository>
+    <repository>
+      <id>archiva.snapshots</id>
+      <name>Internal Snapshot Repository</name>
+      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
+    </repository>
+  </repositories>
+  
   <properties>
     <log4j.version>1.2.14</log4j.version>
     <commons-io.version>2.4</commons-io.version>
