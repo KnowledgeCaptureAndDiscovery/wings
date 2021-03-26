@@ -38,7 +38,11 @@ ENV WINGS_MODE='dind'
 RUN apt-get update && apt-get install -y git default-jdk
 RUN mkdir -p /wings-src/wings/
 WORKDIR /wings-src/wings
-COPY . .
+COPY pom.xml pom.xml 
+COPY core core 
+COPY engines engines 
+COPY planner planner
+COPY portal portal
 
 RUN _JAVA_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true mvn package
 
@@ -48,7 +52,8 @@ RUN mkdir -p /opt/wings/storage/default \
     && mkdir -p /usr/local/tomcat/webapps/wings-portal/META-INF/
 
 # Add Wings build to tomcat (Deploy)
-RUN cp -R /wings-src/wings/portal/target/wings-portal-*.war /usr/local/tomcat/webapps/wings-portal
+WORKDIR /usr/local/tomcat/webapps/wings-portal
+RUN jar -xvf /wings-src/wings/portal/target/wings-portal-*.war
 
 # Add wings context file to the wings portal webapp
 COPY ./wings-docker/config/default/wings-portal.xml /usr/local/tomcat/webapps/wings-portal/META-INF/context.xml
