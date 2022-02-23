@@ -19,6 +19,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>github</id>
+      <name>Github</name>
+      <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/ontapi</url>
+    </repository>
+  </repositories>
+
   <modules>
     <module>core</module>
     <module>planner</module>

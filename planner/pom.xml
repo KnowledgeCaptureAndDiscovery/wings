@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>wings-planner</artifactId>
@@ -11,19 +10,19 @@
 	<parent>
 		<groupId>edu.isi.wings</groupId>
 		<artifactId>wings-core</artifactId>
-    	<version>${revision}</version>
+		<version>${revision}</version>
 		<relativePath>../core/pom.xml</relativePath>
 	</parent>
 
 	<properties>
 		<jsch.version>0.1.53</jsch.version>
-		<ontapi.version>1.2.3</ontapi.version>
+		<ontapi.version>1.2.4</ontapi.version>
 		<nanocloud.version>0.8.11</nanocloud.version>
 		<gson.version>2.2.4</gson.version>
 		<junit.version>4.5</junit.version>
 		<slf4j-log4j.version>1.7.25</slf4j-log4j.version>
 		<jaxb.version>2.3.0</jaxb.version>
-        <derby.version>10.10.1.1</derby.version>
+		<derby.version>10.10.1.1</derby.version>
 		<commons-io.version>2.4</commons-io.version>
 		<java-getopt.version>1.0.9</java-getopt.version>
 		<commons-configuration.version>1.10</commons-configuration.version>
@@ -45,16 +44,18 @@
 		</resources>
 		<plugins>
 			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-surefire-plugin</artifactId>
-			    <version>2.16</version>
-			    <configuration>
-			        <reuseForks>false</reuseForks>
-			        <forkCount>1</forkCount>
-			    </configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.16</version>
+				<configuration>
+					<reuseForks>false</reuseForks>
+					<forkCount>1</forkCount>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+
+
 
 	<!-- Dependencies -->
 	<dependencies>
@@ -75,16 +76,16 @@
 
 		<!-- JAX XML Bind -->
 		<dependency>
-		    <groupId>javax.xml.bind</groupId>
-		    <artifactId>jaxb-api</artifactId>
-		    <version>${jaxb.version}</version>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>${jaxb.version}</version>
 		</dependency>
-		
+
 		<!-- ontapi -->
 		<dependency>
 			<groupId>edu.isi.kcap</groupId>
 			<artifactId>ontapi</artifactId>
-			<version>${ontapi.version}</version>
+			<version>1.2.4</version>
 		</dependency>
 
 		<!-- google gson -->
@@ -100,7 +101,7 @@
 			<artifactId>jsch</artifactId>
 			<version>${jsch.version}</version>
 		</dependency-->
-	
+
 		<!-- gridkit nanocloud -->
 		<dependency>
 			<groupId>org.gridkit.lab</groupId>
@@ -115,19 +116,20 @@
 			<version>${java-getopt.version}</version>
 		</dependency>
 
-        <!-- Apache Commons Configuration -->
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>${commons-configuration.version}</version>
-        </dependency>
-            
-        <!-- Apache Commons IO -->
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
-        </dependency>
+		<!-- Apache Commons Configuration -->
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>${commons-configuration.version}</version>
+		</dependency>
+
+		<!-- Apache Commons IO -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
 
 	</dependencies>
+
 </project>

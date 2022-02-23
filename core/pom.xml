@@ -98,11 +98,4 @@
    </repository>
   </distributionManagement>
 
-  <repositories>
-    <repository>
-      <id>github</id>
-      <name>Github</name>
-      <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/ontapi</url>
-    </repository>
-  </repositories>
 </project>
