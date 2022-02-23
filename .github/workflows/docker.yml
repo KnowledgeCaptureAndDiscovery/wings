@@ -21,9 +21,7 @@ jobs:
 
       - name: Build image
         run: |
-          pushd server
           docker build --tag $IMAGE_NAME  -f wings-docker/docker/default/Dockerfile .
-          popd
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
@@ -40,7 +38,7 @@ jobs:
           [ "$VERSION" == "master" ] && VERSION=latest
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          
+
           docker tag $IMAGE_NAME $IMAGE_ID:$GITHUB_SHA
           docker push $IMAGE_ID:$GITHUB_SHA
 
