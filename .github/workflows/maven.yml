@@ -4,7 +4,9 @@
 name: Java CI with Maven
 
 on: [push, pull_request]
-
+env:
+  IMAGE_NAME: wings
+  
 jobs:
   build:
 
@@ -38,7 +40,7 @@ jobs:
       with:
         name: Package
         path: build/
-        
+
     - name: Build image
       run: |
         docker build --tag $IMAGE_NAME  -f wings-docker/docker/default/Dockerfile .
