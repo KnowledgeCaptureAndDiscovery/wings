@@ -91,29 +91,18 @@
   </developers>
 
   <distributionManagement>
-    <repository>
-      <id>archiva.internal</id>
-      <name>Internal Release Repository</name>
-      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
-    </repository>
-    <snapshotRepository>
-      <id>archiva.snapshots</id>
-      <name>Internal Snapshot Repository</name>
-      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
-    </snapshotRepository>
+   <repository>
+     <id>github</id>
+     <name>GitHub OWNER Apache Maven Packages</name>
+     <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/wings</url>
+   </repository>
   </distributionManagement>
 
   <repositories>
     <repository>
-      <id>archiva.internal</id>
-      <name>Internal Release Repository</name>
-      <url>https://www.wings-workflows.org/archiva/repository/internal/</url>
-    </repository>
-    <repository>
-      <id>archiva.snapshots</id>
-      <name>Internal Snapshot Repository</name>
-      <url>https://www.wings-workflows.org/archiva/repository/snapshots/</url>
+      <id>github</id>
+      <name>Github</name>
+      <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/ontapi</url>
     </repository>
   </repositories>
-
 </project>
