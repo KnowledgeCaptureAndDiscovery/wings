@@ -47,7 +47,7 @@ COPY portal portal
 RUN mkdir -p /root/.m2 \
     && mkdir /root/.m2/repository
 # Copy maven settings, containing repository configurations
-COPY settings.xml /root/.m2
+COPY ./wings-docker/config/default/settings.xml /root/.m2
 
 RUN _JAVA_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true mvn package
 
