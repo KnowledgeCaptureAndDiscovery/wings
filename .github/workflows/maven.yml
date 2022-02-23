@@ -23,8 +23,18 @@ jobs:
       env:
         GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - run: mkdir staging && cp */target/*.war staging
+    - run: mkdir staging && cp wings-portal/target/*.war staging
     - uses: actions/upload-artifact@v2
       with:
-        name: Package
+        name: wings-portal
         path: staging
+  
+  image:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v2
+     - uses: actions/download-artifact@v2
+       with:
+        name: wings-portal
+        path: build/
