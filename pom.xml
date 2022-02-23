@@ -19,6 +19,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub OWNER Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/wings</url>
+    </repository>
+   </distributionManagement>
+
   <repositories>
     <repository>
       <id>github</id>
