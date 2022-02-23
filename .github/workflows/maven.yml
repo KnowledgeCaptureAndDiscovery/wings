@@ -6,7 +6,7 @@ name: Java CI with Maven
 on: [push, pull_request]
 env:
   IMAGE_NAME: wings
-  
+
 jobs:
   build:
 
@@ -53,8 +53,7 @@ jobs:
 
     - name: Push image
       run: |
-        IMAGE_ID=${{ github.repository }}
-        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        IMAGE_ID=ikcap/wings
         VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
         [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
         [ "$VERSION" == "master" ] && VERSION=latest
