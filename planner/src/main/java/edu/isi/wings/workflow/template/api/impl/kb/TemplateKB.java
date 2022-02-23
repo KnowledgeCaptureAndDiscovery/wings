@@ -2304,7 +2304,14 @@ implements Template, TransactionsAPI {
   }
 
   @Override
+  public boolean is_in_transaction() {
+	return transaction.is_in_transaction();
+  }
+
+  @Override
   public void stop_batch_operation() {
     transaction.stop_batch_operation();
   }
+
+  
 }
