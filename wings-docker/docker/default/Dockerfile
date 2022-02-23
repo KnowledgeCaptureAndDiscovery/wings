@@ -44,12 +44,18 @@ COPY engines engines
 COPY planner planner
 COPY portal portal
 
+RUN mkdir -p /root/.m2 \
+    && mkdir /root/.m2/repository
+# Copy maven settings, containing repository configurations
+COPY settings.xml /root/.m2
+
 RUN _JAVA_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true mvn package
 
 # Add wings properties
 RUN mkdir -p /opt/wings/storage/default \
     && mkdir -p /etc/wings/ \
     && mkdir -p /usr/local/tomcat/webapps/wings-portal/META-INF/
+
 
 # Add Wings build to tomcat (Deploy)
 WORKDIR /usr/local/tomcat/webapps/wings-portal
