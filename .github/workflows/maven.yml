@@ -23,7 +23,7 @@ jobs:
       env:
         GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - run: mkdir staging && cp target/*.jar staging
+    - run: mkdir staging && cp */target/*.war staging
     - uses: actions/upload-artifact@v2
       with:
         name: Package
