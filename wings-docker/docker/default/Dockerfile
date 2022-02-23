@@ -6,7 +6,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
         graphviz \
         libcurl4-openssl-dev \
         libxml2-dev \
-        python-pip \
+        python3-pip \
         git \
         cgroupfs-mount \
         maven \
