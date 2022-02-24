@@ -19,7 +19,7 @@
     "release": true
   },
   "hooks": {
-    "after:bump": "bash .update-version.sh"
+    "after:bump": "bash .update-version.sh ${version}"
   }
 }
 
