@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.isi.wings</groupId>
   <artifactId>wings-core</artifactId>
-  <version>${revision}</version>
+  <version>4.2.5</version>
   <name>Wings Core</name>
   <packaging>pom</packaging>
   <description>Wings project for the IKCAP group</description>

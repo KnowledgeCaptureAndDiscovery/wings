@@ -18,11 +18,8 @@
   "github": {
     "release": true
   },
-"npm": { "publish": true,
-    "publishPath": ".",
-    "access": null,
-    "otp": null
+  "hooks": {
+    "after:bump": "bash .update-version.sh"
   }
-
 }
 

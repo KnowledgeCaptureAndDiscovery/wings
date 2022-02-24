@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>edu.isi.wings</groupId>
 		<artifactId>wings-core</artifactId>
-		<version>${revision}</version>
+		<version>4.2.5</version>
 		<relativePath>../core/pom.xml</relativePath>
 	</parent>
 
