@@ -1,0 +1,45 @@
+
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <activeProfiles>
+    <activeProfile>github</activeProfile>
+  </activeProfiles>
+
+  <profiles>
+    <profile>
+      <id>github</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+          <id>WINGS-OPMW-Mapper</id>
+          <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/WINGS-OPMW-Mapper</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>ontapi</id>
+          <url>https://maven.pkg.github.com/KnowledgeCaptureAndDiscovery/ontapi</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <servers>
+    <server>
+      <id>github</id>
+      <username>mosoriob</username>
+      <password>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</password>
+    </server>
+  </servers>
+</settings>

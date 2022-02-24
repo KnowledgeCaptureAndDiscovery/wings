@@ -6,7 +6,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
         graphviz \
         libcurl4-openssl-dev \
         libxml2-dev \
-        python-pip \
+        python3-pip \
         git \
         cgroupfs-mount \
         maven \
@@ -38,22 +38,18 @@ ENV WINGS_MODE='dind'
 RUN apt-get update && apt-get install -y git default-jdk
 RUN mkdir -p /wings-src/wings/
 WORKDIR /wings-src/wings
-COPY pom.xml pom.xml 
-COPY core core 
-COPY engines engines 
-COPY planner planner
-COPY portal portal
 
-RUN _JAVA_OPTIONS=-Djdk.net.URLClassPath.disableClassPathURLCheck=true mvn package
 
 # Add wings properties
 RUN mkdir -p /opt/wings/storage/default \
     && mkdir -p /etc/wings/ \
     && mkdir -p /usr/local/tomcat/webapps/wings-portal/META-INF/
 
+
 # Add Wings build to tomcat (Deploy)
 WORKDIR /usr/local/tomcat/webapps/wings-portal
-RUN jar -xvf /wings-src/wings/portal/target/wings-portal-*.war
+COPY build/wings-portal-*.war .
+RUN jar -xvf wings-portal-*.war
 
 # Add wings context file to the wings portal webapp
 COPY ./wings-docker/config/default/wings-portal.xml /usr/local/tomcat/webapps/wings-portal/META-INF/context.xml
