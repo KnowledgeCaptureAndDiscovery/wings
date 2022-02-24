@@ -3,11 +3,9 @@
 
 name: Maven Package
 
-#on:
-#  release:
-#    types: [created]
-on: [push, pull_request]
-
+on:
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -26,6 +24,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+      env:
+        GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn --batch-mode deploy
