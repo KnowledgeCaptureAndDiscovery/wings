@@ -12,7 +12,7 @@
   <parent>
     <groupId>edu.isi.wings</groupId>
     <artifactId>wings-pegasus</artifactId>
-    <version>4.2.4</version>
+    <version>4.2.5</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
