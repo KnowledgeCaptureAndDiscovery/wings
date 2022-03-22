@@ -120,6 +120,13 @@ TemplateEvents.prototype.enableSelectEventForItem = function(gitem) {
 		d3.event.stopPropagation();
 	})
 	.on("dblclick", function() {
+		if(gitem.binding && gitem.binding.type == "literal") {
+			var newval = prompt("Please enter a new value", gitem.binding.value);
+			if(newval) {
+				gitem.binding.value = newval;	
+				gitem.setBinding(gitem.binding, true);
+			}
+		}
 		if (gitem.inputLinks) {
 			for(var i=0; i<gitem.inputLinks.length; i++)
 				me.selectItem(gitem.inputLinks[i].variable)
