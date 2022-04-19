@@ -32,10 +32,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.http.cookie.Cookie;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
@@ -57,6 +57,7 @@ import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.util.CookieHandler;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
@@ -710,20 +711,20 @@ public class 	DataController {
   }	
 	
 	public synchronized boolean addBatchData(String dtypeid, String[] dids, String[] locations, 
-	    Cookie[] cookies, ServletContext context) {
+	    HttpServletRequest request, ServletContext context) {
 		for(int i=0; i<dids.length; i++) {
 			if(!dc.addData(dids[i], dtypeid))
 				return false;
 			if(locations.length > i && locations[i] != null)
 				if(!dc.setDataLocation(dids[i], locations[i]))
 					return false;
-			this.runSensorWorkflow(dids[i], cookies, context);
+			this.runSensorWorkflow(dids[i], request, context);
 		}
 		return true;
 	}
 	
 
-  public String runSensorWorkflow(String dataid, Cookie[] cookies, ServletContext context) {
+  public String runSensorWorkflow(String dataid, HttpServletRequest request, ServletContext context) {
     try {
       DataItem dtype = this.dc.getDatatypeForData(dataid);
       if(dtype == null) {
@@ -735,7 +736,7 @@ public class 	DataController {
       if(tplid == null) {
         return null;
       }
-      
+
       Variable[] invars = this.tc.getTemplate(tplid).getInputVariables();
       if(invars.length != 1) {
         System.err.println("Template should have exactly 1 input variable. Has " + invars.length);
@@ -750,7 +751,7 @@ public class 	DataController {
       tbindings.setCallbackUrl(this.config.getServerUrl() +
           this.config.getUserDomainUrl() +"/data/setMetadataFromSensorOutput?data_id=" + 
           URLEncoder.encode(dataid, "UTF-8"));
-      tbindings.setCallbackCookies(cookies);
+      tbindings.setCallbackCookies(CookieHandler.httpCookiesFromServlet(request));
       tbindings.setDataBindings(dataBindings);
       tbindings.setParameterBindings(new HashMap<String, Object>());
       tbindings.setParameterTypes(new HashMap<String, String>());
@@ -768,7 +769,7 @@ public class 	DataController {
     return null;
   }
   
-  public String runSensorComponent(String dataid, Cookie[] cookies, ServletContext context) {
+  public String runSensorComponent(String dataid, HttpServletRequest request, ServletContext context) {
     try {
       DataItem dtype = this.dc.getDatatypeForData(dataid);
       if(dtype == null) {
@@ -802,11 +803,11 @@ public class 	DataController {
       role_bindings.put(inroles.get(0).getRoleName(), b);
       role_bindings.put(outroles.get(0).getRoleName(), bout);
       
-      String callbackUrl = this.config.getServerUrl() +
+      String callbackUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + 
           this.config.getUserDomainUrl() +"/data/setMetadataFromSensorOutput?data_id=" + 
           URLEncoder.encode(dataid, "UTF-8");
       
-      this.rc.runComponent(cid, role_bindings, callbackUrl, cookies, context);
+      this.rc.runComponent(cid, role_bindings, callbackUrl, CookieHandler.httpCookiesFromServlet(request), context);
     }
     catch (Exception e) {
       e.printStackTrace();
