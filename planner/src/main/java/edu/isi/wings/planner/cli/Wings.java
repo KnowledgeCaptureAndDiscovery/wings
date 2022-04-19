@@ -20,8 +20,10 @@ package edu.isi.wings.planner.cli;
 import org.apache.log4j.Logger;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
+import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
@@ -70,7 +72,9 @@ public class Wings {
 	WorkflowGenerationAPI wg;
 
 	ComponentReasoningAPI pc;
+	ComponentCreationAPI ccc;
 	DataReasoningAPI dc;
+	DataCreationAPI dcc;
 	ResourceAPI rc;
 	
 	boolean storeProvenance;
@@ -142,13 +146,14 @@ public class Wings {
 	public void initializeWorkflowGenerator() {
 		this.props.putAll(TemplateFactory.createLegacyConfiguration());
 		this.props.putAll(DataFactory.createLegacyConfiguration());
-		wg = new WorkflowGenerationKB(this.props, dc, pc, rc, requestId);
+		wg = new WorkflowGenerationKB(this.props, dc, dcc, pc, ccc, rc, requestId);
 	}
 
 	public DataReasoningAPI initializeDC() {
 		LogEvent event = getEvent(LogEvent.EVENT_WG_INITIALIZE_DC);
 		logger.info(event.createStartLogMsg().addWQ(LogEvent.DOMAIN, DCDomain));
 		dc = DataFactory.getReasoningAPI(this.props);
+		dcc = DataFactory.getCreationAPI(this.props);
 		logger.info(event.createEndLogMsg());
 		return dc;
 	}
@@ -158,8 +163,9 @@ public class Wings {
 		wg.useDataService(dc);
 	}
 
-	public void setPC(ComponentReasoningAPI pc) {
+	public void setPC(ComponentReasoningAPI pc, ComponentCreationAPI ccc) {
 		this.pc = pc;
+		this.ccc = ccc;
 		wg.useComponentService(pc);
 	}
 

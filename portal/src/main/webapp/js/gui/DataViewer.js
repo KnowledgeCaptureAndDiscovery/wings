@@ -16,13 +16,14 @@
  */
 
 function DataViewer(guid, store, 
-		op_url, upload_url, prov_url,
+		op_url, upload_url, prov_url, results_url, 
 		dcns, ontns, libns, 
 		advanced_user, use_import_ui, has_external_catalog) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
     this.upload_url = upload_url;
+    this.results_url = results_url;
     this.prov_url = prov_url;
     this.advanced_user = advanced_user;
     this.use_import_ui = use_import_ui;
@@ -245,18 +246,18 @@ DataViewer.prototype.openDataTypeEditor = function(args) {
     });
     
 
-    var sensorWorkflowData = [];
+    var sensorData = [];
     for(var i=0; i<this.store.sensors.length; i++) {
     	var sensorid = this.store.sensors[i];
-    	sensorWorkflowData.push({id: sensorid, name: getLocalName(sensorid)});
+    	sensorData.push({id: sensorid, name: getLocalName(sensorid)});
     }
-    var sensorWorkflowStore = Ext.create('Ext.data.Store', {
+    var sensorStore = Ext.create('Ext.data.Store', {
     	fields: ['id', 'name'],
-    	data: sensorWorkflowData
+    	data: sensorData
     });
-    
+
     var sensorEditor = new Ext.form.ComboBox({
-    	store: sensorWorkflowStore,
+    	store: sensorStore,
         displayField: 'name',
         valueField: 'id',
         value: store.sensor,
@@ -950,12 +951,15 @@ DataViewer.prototype.openDataEditor = function(args) {
     		var msgTarget = gridPanel.getEl();
         	msgTarget.mask('Running Sensor Workflow...', 'x-mask-loading');           	
             Ext.Ajax.request({
-                url: me.op_url + "/runSensorWorkflow?data_id=" + escape(id),
+                //url: me.op_url + "/runSensorWorkflow?data_id=" + escape(id),
+                url: me.op_url + "/runSensorComponent?data_id=" + escape(id),
                 timeout: Ext.Ajax.timeout,
                 success: function(response) {
                 	msgTarget.unmask();
                     var runid = response.responseText;
-                    showWingsRanMessage(me.template_id, runid, me.results_url);
+                    showWingsMessage("Sensor component is now executing. Please reload the component in a little while to check if the values have changed", 
+                    		"Sensor Executing");
+                    //showWingsRanMessage(me.template_id, runid, me.results_url);
                 },
                 failure: function(response) {
                 	msgTarget.unmask();

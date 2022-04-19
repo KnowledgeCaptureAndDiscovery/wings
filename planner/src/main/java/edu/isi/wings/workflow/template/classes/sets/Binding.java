@@ -31,6 +31,7 @@ public class Binding extends WingsSet implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	protected URI id; // Id of the Binding, for object bindings
+	protected String location; // Location of the file, for Data Bindings (only used sparingly)
 	protected Object value; // Value of the Binding, for Value Bindings
 	protected Metrics metrics = new Metrics();
 	
@@ -154,6 +155,14 @@ public class Binding extends WingsSet implements Serializable {
   public Object getData(String key) {
     return this.data.get(key);
   }
+  
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  public String getLocation() {
+    return this.location;
+  }  
 
 	/*
 	 * public Binding clone() { Binding b = (Binding)super.clone(); if(isSet())

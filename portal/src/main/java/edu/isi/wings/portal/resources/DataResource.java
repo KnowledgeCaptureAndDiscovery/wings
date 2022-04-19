@@ -81,6 +81,16 @@ public class DataResource extends WingsResource {
   }
   
   @GET
+  @Path("runSensorComponent")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String runSensorComponent(
+      @QueryParam("data_id") final String dataid) {
+    if(this.dc != null) {
+      return dc.runSensorComponent(dataid, this.request.getRequestedSessionId(), this.context);
+    }
+    return null;
+  }  
+  @GET
   @Path("getDataTypeJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataTypeJSON(

@@ -252,8 +252,15 @@ implements Template, TransactionsAPI {
 		for (KBObject obj : kb.getAllDatatypeProperties()) {
 			if(obj != null)
 				propertyObjMap.put(obj.getName(), obj);
-		}
+		}		
 		this.end();
+		
+    // Legacy ontologies don't have some properties. Add them in here
+    if(!propertyObjMap.containsKey("isSkipped")) {
+      this.start_write();
+      propertyObjMap.put("isSkipped", kb.createDatatypeProperty(this.wflowns+"isSkipped"));
+      this.end();
+    }
 	}
 
 	private Node readNodeFromKB(KBObject obj) {
@@ -265,11 +272,15 @@ implements Template, TransactionsAPI {
 		KBObject compObj = kb.getPropertyValue(obj, propertyObjMap.get("hasComponent"));
 		KBObject wObj = kb.getPropertyValue(obj, propertyObjMap.get("hasWorkflow"));
     KBObject isInactive = kb.getPropertyValue(obj, propertyObjMap.get("isInactive"));
+    KBObject isSkip = kb.getPropertyValue(obj, propertyObjMap.get("isSkipped"));
 
 		Node n = new Node(obj.getID());
     
 		if(isInactive != null && (Boolean)isInactive.getValue())
       n.setInactive(true);
+    
+    if(isSkip != null && (Boolean)isSkip.getValue())
+      n.setSkip(true);
     
 		if (compObj != null) {
 			ComponentVariable comp = new ComponentVariable(compObj.getID());
@@ -1262,15 +1273,24 @@ implements Template, TransactionsAPI {
 				if (ev.isTemplate()) {
 					cv.setBinding(copyTemplateBindings((ValueBinding) ev.getBinding()));
 
-				} else
+				} else {
 					cv.setBinding((Binding) SerializableObjectCloner.clone(ev.getBinding()));
+					if(ev.getDerivedFrom() != null)
+					  cv.setDerivedFrom(ev.getDerivedFrom());
+					else
+					  cv.setDerivedFrom(ev.getID());
+				}
 			}
 			
 			// Copy node details
 			Node n = t.addNode(e.getID(), cv);
 			n.setComment(e.getComment());
 			n.setInactive(e.isInactive());
-
+			if(e.getDerivedFrom() != null)
+			  n.setDerivedFrom(e.getDerivedFrom());
+			else
+			  n.setDerivedFrom(e.getID());
+      
 			// Copy over ports
 			for (Port p : e.getInputPorts()) {
 				Port np = new Port(p.getID());
@@ -1546,6 +1566,16 @@ implements Template, TransactionsAPI {
 		try {
 	    URIEntity newentity = new URIEntity(newid);
 	    
+	    // Set derivedFrom to the original ids of all nodes and variables (if not already set)
+	    for(Node n : this.Nodes.values()) {
+	      if(n.getDerivedFrom() == null)
+	        n.setDerivedFrom(n.getID());
+	    }
+	    for(Variable v : this.Variables.values()) {
+	      if(v.getDerivedFrom() == null)
+	        v.setDerivedFrom(v.getID());
+	    }
+	    
       // Serialize to temporary KB
       KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
       serializeIntoKB(tkb, false);
@@ -1553,7 +1583,10 @@ implements Template, TransactionsAPI {
       // Change namespaces
       String curns = this.getNamespace();
       String newns = newentity.getNamespace();
-      KBUtils.renameTripleNamespace(tkb, curns, newns);
+      
+      ArrayList<String> blacklistProperties = new ArrayList<String>();
+      blacklistProperties.add(propertyObjMap.get("derivedFrom").getID());
+      KBUtils.renameTripleNamespace(tkb, curns, newns, blacklistProperties);
 
       // Write to triple store
       this.start_write();
@@ -1657,6 +1690,11 @@ implements Template, TransactionsAPI {
 
       if(n.isInactive()) {
         tkb.addPropertyValue(nobj, pmap.get("isInactive"), 
+            tkb.createLiteral(true));
+      }
+
+      if(n.isSkip()) {
+        tkb.addPropertyValue(nobj, pmap.get("isSkipped"), 
             tkb.createLiteral(true));
       }
       

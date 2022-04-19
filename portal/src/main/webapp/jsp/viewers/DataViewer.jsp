@@ -16,6 +16,7 @@ DataController dc = (DataController) request.getAttribute("controller");
 boolean isSandboxed = dc.config.isSandboxed();
 String uploadApi = dc.config.getUserDomainUrl() + "/upload";
 String provApi = dc.config.getCommunityPath() + "/provenance";
+String runApi = dc.config.getUserDomainUrl() + "/executions";
 String thisApi = dc.config.getScriptPath();
 
 int guid = 1;
@@ -23,7 +24,8 @@ int guid = 1;
 String tree = "{\"item\":{\"type\":1,\"id\":\"http://www.wings-workflows.org/ontology/data.owl#DataObject\"}}";
 
 String metrics = dc.getMetricsHierarchyJSON();
-String sensors = dc.getSensorWorkflowsListJSON();
+//String sensors = dc.getSensorWorkflowsListJSON();
+String sensors = dc.getSensorComponentsListJSON();
 boolean hasExternalCatalog = (dc.dc != null && dc.dc.getExternalCatalog() != null);
 %>
 
@@ -45,6 +47,7 @@ var metrics = <%=metrics%>;
 var sensors = <%=sensors%>;
 var this_api = "<%=thisApi%>";
 var prov_api = "<%=provApi%>";
+var results_api = "<%=runApi%>";
 var upload_api = "<%=uploadApi%>";
 var advanced_user = <%=!dc.config.isSandboxed()%>;
 var use_import_ui = false;
@@ -61,7 +64,7 @@ Ext.onReady(function() {
 			metrics: metrics,
 			sensors: sensors
 		},
-		this_api, upload_api, prov_api,
+		this_api, upload_api, prov_api, results_api, 
 		dcns, domns, libns,
 		advanced_user, use_import_ui, has_external_catalog
 	);

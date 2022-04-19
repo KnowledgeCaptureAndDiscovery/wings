@@ -8,6 +8,7 @@ function GraphItem(parent, id, config) {
 	this.binding = null;
 	this.dimensionality = 0;
 	this.inactive = false;
+	this.derivedFrom = null;
 	
 	this.textbounds = {x: 0, y: 0, width: 0, height: 0};
 	this.bounds = {x: 0, y: 0, width: 0, height: 0}

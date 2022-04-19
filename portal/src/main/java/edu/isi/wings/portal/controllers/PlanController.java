@@ -29,8 +29,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.wings.catalog.component.ComponentFactory;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.data.DataFactory;
+import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
@@ -65,7 +67,9 @@ import com.google.gson.JsonParser;
 @SuppressWarnings("unused")
 public class PlanController {
 	private DataReasoningAPI dc;
+	private DataCreationAPI dcc;
 	private ComponentReasoningAPI cc;
+	private ComponentCreationAPI ccc;
 	private ResourceAPI rc;
 	private TemplateCreationAPI tc;
 	private WorkflowGenerationAPI wg;
@@ -89,10 +93,12 @@ public class PlanController {
 
 		tc = TemplateFactory.getCreationAPI(props);
 		cc = ComponentFactory.getReasoningAPI(props);
+		ccc = ComponentFactory.getCreationAPI(props, true);
 		dc = DataFactory.getReasoningAPI(props);
+		dcc = DataFactory.getCreationAPI(props);
 		rc = ResourceFactory.getAPI(props);
 		  
-		wg = new WorkflowGenerationKB(props, dc, cc, rc, UuidGen.generateAUuid(""));
+		wg = new WorkflowGenerationKB(props, dc, dcc, cc, ccc, rc, UuidGen.generateAUuid(""));
 
 		this.wliburl = (String) props.get("domain.workflows.dir.url");
 		this.dcdomns = (String) props.get("ont.domain.data.url") + "#";
@@ -108,9 +114,15 @@ public class PlanController {
 	  if(dc != null) {
 	    dc.end();
 	  }
+	  if(dcc != null) {
+      dcc.end();
+    }
 	  if(cc != null) {
 	    cc.end();
 	  }
+	  if(ccc != null) {
+      ccc.end();
+    }
 	  if(rc != null) {
 	    rc.end();
 	  }

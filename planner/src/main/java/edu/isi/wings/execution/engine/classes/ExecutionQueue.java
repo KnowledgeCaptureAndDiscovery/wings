@@ -50,9 +50,11 @@ public class ExecutionQueue {
 		for(ExecutionStep step : plan.getAllExecutionSteps()) {
       RuntimeStep exestep = stepmap.get(step.getID());
       for (ExecutionStep pstep : step.getParentSteps()) {
-        RuntimeStep exepstep = stepmap.get(pstep.getID());
-        if (exepstep != null)
-          exestep.addParent(exepstep);
+        if(pstep != null) {
+          RuntimeStep exepstep = stepmap.get(pstep.getID());
+          if (exepstep != null)
+            exestep.addParent(exepstep);
+        }
       }
 		}
 	}

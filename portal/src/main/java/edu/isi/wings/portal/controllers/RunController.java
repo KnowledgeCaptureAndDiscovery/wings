@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
@@ -32,6 +33,7 @@ import javax.ws.rs.core.Response;
 import edu.isi.wings.opmm.Catalog;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
 import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
 import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
@@ -68,6 +70,7 @@ import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
+import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 
 import com.google.gson.Gson;
@@ -350,6 +353,22 @@ public class RunController {
     return runid;
   }
   
+  public Future<?> runComponent(String cid, HashMap<String, Binding> role_bindings, 
+      String callbackUrl, String callbackCookies, ServletContext context) {
+    PlanningAPIBindings apis = null;
+    String exPrefix = props.getProperty("domain.executions.dir.url");
+    if(apiBindings.containsKey(exPrefix)) {
+      apis = apiBindings.get(exPrefix);
+    }
+    else {
+      apis = new PlanningAPIBindings(props);
+      apiBindings.put(exPrefix, apis);
+    }
+    
+    // Submit the planning and execution thread
+    return executor.submit(new ComponentExecutingThread(cid, this.config, role_bindings, apis, callbackUrl, callbackCookies));
+  }
+  
   public static void invalidateCachedAPIs() {
     apiBindings.clear();
   }
@@ -370,7 +389,8 @@ public class RunController {
       ServletContext context, Template xtpl, Template seedtpl, String callbackUrl) {
     String requestid = UuidGen.generateAUuid("");
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
-        DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
+        DataFactory.getReasoningAPI(props), DataFactory.getCreationAPI(props), 
+        ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props, true),
         ResourceFactory.getAPI(props), requestid);
 
     ExecutionPlan plan = wg.getExecutionPlan(xtpl);

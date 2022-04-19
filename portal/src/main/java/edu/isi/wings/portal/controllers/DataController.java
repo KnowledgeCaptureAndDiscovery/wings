@@ -36,6 +36,12 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.FileUtils;
 
+import edu.isi.wings.catalog.component.ComponentFactory;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
+import edu.isi.wings.catalog.component.classes.Component;
+import edu.isi.wings.catalog.component.classes.ComponentRole;
+import edu.isi.wings.catalog.component.classes.ComponentTree;
+import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.classes.DataItem;
@@ -56,6 +62,7 @@ import edu.isi.wings.workflow.plan.api.ExecutionStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
+import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
@@ -82,6 +89,7 @@ public class 	DataController {
 
 	public DataCreationAPI dc;
 	public TemplateCreationAPI tc;
+	public ComponentCreationAPI cc;
 	public ProvenanceAPI prov;
 	public RunController rc;
 	
@@ -102,6 +110,7 @@ public class 	DataController {
 		if(this.loadExternal)
 		  dc = dc.getExternalCatalog();
 		
+		cc = ComponentFactory.getCreationAPI(props, true);
 		tc = TemplateFactory.getCreationAPI(props);
 		
 		prov = ProvenanceFactory.getAPI(props);
@@ -175,6 +184,28 @@ public class 	DataController {
     }
     return json.toJson(list);
   }
+  
+  public String getSensorComponentsListJSON() {
+    ArrayList<String> list = new ArrayList<String>();
+    ComponentTree tree = this.cc.getComponentHierarchy(false);
+    ComponentTreeNode root = tree.getRoot();
+    ComponentTreeNode extractorRoot = null;
+    for (ComponentTreeNode child : root.getChildren()) {
+      if (child.getCls().getID().contains("#MetadataExtraction")) {
+        extractorRoot = child;
+        break;
+      }
+    }
+    if(extractorRoot != null) {
+      for(ComponentTreeNode extractorNode : tree.flatten(extractorRoot)) {
+        Component c = extractorNode.getCls().getComponent();
+        if(c != null && c.getType() == Component.CONCRETE) {
+          list.add(c.getID());
+        }
+      }
+    }
+    return json.toJson(list);
+  }  
 	
 	private HashMap<String, Object> convertNodeToUINode(DataTreeNode node) {
 	  if(node == null)
@@ -729,9 +760,62 @@ public class 	DataController {
     }
     catch (Exception e) {
       e.printStackTrace();
+      this.cc.end();
+      this.rc.end();
+      this.dc.end();
     }
     return null;
   }
+  
+  public String runSensorComponent(String dataid, String sessionid, ServletContext context) {
+    try {
+      DataItem dtype = this.dc.getDatatypeForData(dataid);
+      if(dtype == null) {
+        System.err.println("No datatype for data id: " + dataid);
+        return null;
+      }  
+      
+      String cid = this.dc.getTypeSensor(dtype.getID());
+      if(cid == null) {
+        return null;
+      }
+      Component c = this.cc.getComponent(cid, true);   
+      ArrayList<ComponentRole> inroles = c.getInputs();
+      ArrayList<ComponentRole> outroles = c.getOutputs();
+      if(inroles.size() != 1) {
+        System.err.println("Sensor component should have exactly 1 input. Has " + inroles.size());
+        return null;
+      }
+      if(outroles.size() != 1) {
+        System.err.println("Sensor component should have exactly 1 output. Has " + outroles.size());
+        return null;
+      }
+      
+      HashMap<String, Binding> role_bindings = new HashMap<String, Binding>();
+      Binding b = new Binding(dataid);
+      b.setLocation(this.dc.getDataLocation(dataid));
+      
+      Binding bout = new Binding(dataid + ExecutionFile.metaExtension);
+      bout.setLocation(b.getLocation() + ExecutionFile.metaExtension);
+      
+      role_bindings.put(inroles.get(0).getRoleName(), b);
+      role_bindings.put(outroles.get(0).getRoleName(), bout);
+      
+      String callbackUrl = this.config.getServerUrl() +
+          this.config.getUserDomainUrl() +"/data/setMetadataFromSensorOutput?data_id=" + 
+          URLEncoder.encode(dataid, "UTF-8");
+      String callbackCookies = "JSESSIONID=" + sessionid;
+      
+      this.rc.runComponent(cid, role_bindings, callbackUrl, callbackCookies, context);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      this.rc.end();
+      this.dc.end();
+      this.cc.end();
+    }
+    return null;
+  }  
   
   public String setMetadataFromSensorOutput(String data_id, ExecutionPlan plan) {
     //System.out.println(plan);

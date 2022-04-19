@@ -265,8 +265,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
                throw new Exception("Cannot create temp directory");
             
             HashMap<String, String> environment = new HashMap<String, String>();
-            for(EnvironmentValue eval : machine.getEnvironmentValues()) {
-              environment.put(eval.getVariable(), eval.getValue());
+            if (machine != null) {
+              for(EnvironmentValue eval : machine.getEnvironmentValues()) {
+                environment.put(eval.getVariable(), eval.getValue());
+              }
             }
             
       			ProcessBuilder pb = new ProcessBuilder(args);

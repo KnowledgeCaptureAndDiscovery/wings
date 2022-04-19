@@ -18,6 +18,7 @@
 package edu.isi.wings.catalog.data.classes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DataTree {
 	DataTreeNode root;
@@ -57,4 +58,18 @@ public class DataTree {
 		}
 		return null;
 	}
+	
+	 public HashMap<String, String> getParents() {
+	    HashMap<String, String> parents = new HashMap<String, String>();
+	    ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
+	    queue.add(root);
+	    while (!queue.isEmpty()) {
+	      DataTreeNode node = queue.remove(0);
+	      for(DataTreeNode cnode: node.getChildren()) {
+	        parents.put(cnode.getItem().getID(), node.getItem().getID());
+	        queue.add(cnode);
+	      }
+	    }
+	    return parents;
+	  }
 }

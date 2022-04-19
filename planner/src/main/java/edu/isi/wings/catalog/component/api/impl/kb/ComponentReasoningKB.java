@@ -991,8 +991,9 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
           for(ComponentRole inrole : comp.getInputs()) {
             if(!inrole.isParam()) {
               Variable invar = sRoleMap.get(inrole.getRoleName());
+              // TEST: Setting all outputs to the input variable. Otherwise the component is still run and not skipped 
               if(checkTypeCompatibility(varclasses, inrole.getID())) {
-                System.out.println("Setting binding of " + outvar.getName() + " to " + invar.getBinding());
+                logger.debug("Setting binding of " + outvar.getName() + " to " + invar.getBinding());
                 outvar.setBinding(invar.getBinding());
               }
             }

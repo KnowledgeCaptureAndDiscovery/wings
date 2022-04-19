@@ -25,11 +25,16 @@ import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.kcap.ontapi.OntSpec;
 import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
 import edu.isi.wings.catalog.component.api.impl.kb.TemplateReasoningKB;
+import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
+import edu.isi.wings.catalog.component.classes.ComponentRole;
+import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
+import edu.isi.wings.catalog.data.classes.DataTree;
 import edu.isi.wings.catalog.data.classes.VariableBindings;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
@@ -39,6 +44,7 @@ import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.SerializableObjectCloner;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
+import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.common.logging.LogEvent;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.workflow.plan.PlanFactory;
@@ -84,10 +90,14 @@ implements WorkflowGenerationAPI {
 	public Seed currentSeed;
 
 	public DataReasoningAPI dc;
+	
+	public DataCreationAPI dcc;
 
 	public ComponentReasoningAPI pc;
 
 	public ComponentReasoningAPI tc;
+	
+	public ComponentCreationAPI ccc;
 	
 	public ResourceAPI rc;
 
@@ -118,15 +128,17 @@ implements WorkflowGenerationAPI {
 	 *            the domain of the template library
 	 */
 
-	public WorkflowGenerationKB(Properties props, DataReasoningAPI dc, 
-	    ComponentReasoningAPI pc, ResourceAPI rc, String ldid) {
+	public WorkflowGenerationKB(Properties props, DataReasoningAPI dc, DataCreationAPI dcc,
+	    ComponentReasoningAPI pc, ComponentCreationAPI ccc, ResourceAPI rc, String ldid) {
 		this.props = props;
 		this.request_id = ldid;
 		this.logger = Logger.getLogger(this.getClass().getName());
 
 		this.dc = dc;
+		this.dcc = dcc;
 		this.pc = pc;
 		this.rc = rc;
+		this.ccc = ccc;
 		this.tc = new TemplateReasoningKB(this);
 		this.dataNS = props.getProperty("lib.domain.data.url") + "#";
 		this.wNS = props.getProperty("ont.workflow.url") + "#";
@@ -1303,10 +1315,76 @@ implements WorkflowGenerationAPI {
 			String planid = UuidGen.generateURIUuid((URIEntity)template);
 			ExecutionPlan plan = PlanFactory.createExecutionPlan(planid, props);
 
+      DataTree dtree = dcc.getDatatypeHierarchy();
+      HashMap<String, String> dparents = dtree.getParents();
+      
 			HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
 			for(Node n : template.getNodes()) {
 			  if(n.isInactive()) {
 			    plan.setIsIncomplete(true);
+			    
+			    // This node is inactive due to an input having a breakpoint
+			    for(Variable v: template.getInputVariables(n)) {
+			      if(v.isBreakpoint()) {
+  		        // Check if this input datatype has a sensor.
+  		        String vtype = null;
+  		        for(KBTriple triple : template.getConstraintEngine().getConstraints(v.getID())) {
+  		          if(triple.getPredicate().getID().equals(KBUtils.RDF + "type")) {
+  		            vtype = triple.getObject().getID();
+  		          }
+  		        }
+  		        String sensorcid = null;
+  		        while(vtype != null && sensorcid == null) {
+  		          String scid = dcc.getTypeSensor(vtype);
+  		          if(scid == null) {
+  		            vtype = dparents.get(vtype);
+  		          } else {
+  		            sensorcid = scid;
+  		            break;
+  		          }
+  		        }
+  		        if(sensorcid != null) {
+  		          System.out.println("Need to run sensor: " + sensorcid + " for " + v.getName());
+  
+                // Create a sensor component variable with correct bindings
+  		          Component c = this.ccc.getComponent(sensorcid, true);
+  		          ComponentVariable cv = new ComponentVariable(c.getID());
+  		          cv.setBinding(new Binding(c.getID()));
+  		          
+  		          Binding bin = v.getBinding();
+  		          Binding bout = new Binding(bin.getID()+ ExecutionFile.metaExtension);
+  		          bout.setLocation(bin.getLocation() + ExecutionFile.metaExtension);
+  
+  		          LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<Role, Variable>();
+  		          ArrayList<ComponentRole> inroles = c.getInputs();
+  		          ArrayList<ComponentRole> outroles = c.getOutputs();
+  		          if(inroles.size() == 1 && outroles.size() == 1) {
+  		            Role irole = new Role(c.getID()+"_in");
+  		            Role orole = new Role(c.getID()+"_out");
+  		            irole.setRoleId(inroles.get(0).getRoleName());
+  		            orole.setRoleId(outroles.get(0).getRoleName());
+  		            Variable vin = new Variable(irole.getID(), VariableType.DATA);
+  		            Variable vout = new Variable(orole.getID(), VariableType.DATA);
+                  vin.setBinding(bin);
+                  vout.setBinding(bout);
+  		            roleMap.put(irole, vin);
+  		            roleMap.put(orole, vout);
+  		            
+  	               // Add this sensor component to the plan
+  	              ExecutionStep sensor_step = this.getExecutionStep(sensorcid, cv, roleMap, n.getMachineIds());
+  	              plan.addExecutionStep(sensor_step);
+  
+  	              for(Node parent_node: this.getParentNodes(n, template)) {
+  	                ExecutionStep parent_step = nodeMap.get(parent_node);
+  	                sensor_step.addParentStep(parent_step);
+  	              }
+  		          }
+  		          else {
+                  System.err.println("Sensor component should have exactly 1 input and output");
+  		          }		          	          
+  		        }
+			      }
+			    }
 			    continue;
 			  }
 			  // TODO: Skip execution step if n.isSkip() is set
@@ -1314,12 +1392,6 @@ implements WorkflowGenerationAPI {
 			    continue;
 			  }
 			  
-				ExecutionStep step = PlanFactory.createExecutionStep(n.getID(), props);
-				step.setMachineIds(n.getMachineIds());
-				// TODO: Plan should save internally using runOn/canRunOn
-				
-				ComponentVariable c = n.getComponentVariable();
-
 				LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<Role, Variable>();
 				for (Link outputLink : template.getOutputLinks(n)) {
 				  Role or = outputLink.getOriginPort().getRole();
@@ -1333,50 +1405,7 @@ implements WorkflowGenerationAPI {
           r.setRoleId(dr.getRoleId());
 					roleMap.put(r, inputLink.getVariable());
 				}
-
-				ComponentPacket mapsComponentDetails = new ComponentPacket(c, roleMap, new ArrayList<KBTriple>());
-
-				// Query 4.5
-				ComponentInvocation invocation = this.pc.getComponentInvocation(mapsComponentDetails);
-
-				if(invocation == null) {
-					System.err.println("Cannot create invocation for "+c.getBinding());
-					return null;
-				}
-				
-				ExecutionCode code = new ExecutionCode(invocation.getComponentId());
-				code.setLocation(invocation.getComponentLocation());
-				code.setCodeDirectory(invocation.getComponentDirectory());
-				step.setCodeBinding(code);
-				
-				HashMap<String, ArrayList<Object>> argMaps = new HashMap<String, ArrayList<Object>>(); 
-				for(ComponentInvocation.Argument arg : invocation.getArguments()) {
-					ArrayList<Object> cur = argMaps.get(arg.getName());
-					if(cur == null)
-						cur = new ArrayList<Object>();
-					if(arg.getValue() instanceof Binding) {
-						Binding b = (Binding)arg.getValue();
-						String varid = arg.getVariableid();
-						ExecutionFile file = new ExecutionFile(varid);
-						
-						String location = dc.getDataLocation(b.getID());
-						if(location == null) {
-							location = dc.getDefaultDataLocation(b.getID());
-						}
-						file.setLocation(location);
-						file.setBinding(b.getName());
-						if(arg.isInput())
-							step.addInputFile(file);
-						else
-							step.addOutputFile(file);
-						cur.add(file);
-					}
-					else {
-						cur.add(arg.getValue().toString());
-					}
-					argMaps.put(arg.getName(), cur);
-				}
-				step.setInvocationArguments(argMaps);
+				ExecutionStep step = this.getExecutionStep(n.getID(), n.getComponentVariable(), roleMap, n.getMachineIds());
 				plan.addExecutionStep(step);
 				nodeMap.put(n,  step);
 			}
@@ -1415,6 +1444,58 @@ implements WorkflowGenerationAPI {
 	    }
 	  }
 	  return list;
+	}
+	
+	private ExecutionStep getExecutionStep(String sid, ComponentVariable c, 
+	    LinkedHashMap<Role, Variable> roleMap, ArrayList<String> machineIds) {
+    ExecutionStep step = PlanFactory.createExecutionStep(sid, props);
+    step.setMachineIds(machineIds);
+    // TODO: Plan should save internally using runOn/canRunOn
+
+    ComponentPacket mapsComponentDetails = new ComponentPacket(c, roleMap, new ArrayList<KBTriple>());
+
+    // Query 4.5
+    ComponentInvocation invocation = this.pc.getComponentInvocation(mapsComponentDetails);
+
+    if(invocation == null) {
+      System.err.println("Cannot create invocation for "+c.getBinding());
+      return null;
+    }
+    
+    ExecutionCode code = new ExecutionCode(invocation.getComponentId());
+    code.setLocation(invocation.getComponentLocation());
+    code.setCodeDirectory(invocation.getComponentDirectory());
+    step.setCodeBinding(code);
+    
+    HashMap<String, ArrayList<Object>> argMaps = new HashMap<String, ArrayList<Object>>(); 
+    for(ComponentInvocation.Argument arg : invocation.getArguments()) {
+      ArrayList<Object> cur = argMaps.get(arg.getName());
+      if(cur == null)
+        cur = new ArrayList<Object>();
+      if(arg.getValue() instanceof Binding) {
+        Binding b = (Binding)arg.getValue();
+        String varid = arg.getVariableid();
+        ExecutionFile file = new ExecutionFile(varid);
+        
+        String location = dc.getDataLocation(b.getID());
+        if(location == null) {
+          location = dc.getDefaultDataLocation(b.getID());
+        }
+        file.setLocation(location);
+        file.setBinding(b.getName());
+        if(arg.isInput())
+          step.addInputFile(file);
+        else
+          step.addOutputFile(file);
+        cur.add(file);
+      }
+      else {
+        cur.add(arg.getValue().toString());
+      }
+      argMaps.put(arg.getName(), cur);
+    }
+    step.setInvocationArguments(argMaps);
+    return step;
 	}
 	
 	/**
@@ -1591,6 +1672,7 @@ implements WorkflowGenerationAPI {
 										    dataCollection || compCollection);
 										newVariable.setBinding(cb);
 										newVariable.setDerivedFrom(variable.getID());
+										newVariable.setBreakpoint(variable.isBreakpoint());
 										newVariables.put(varkey, newVariable);
 										
 										// Add new input link
@@ -1618,7 +1700,8 @@ implements WorkflowGenerationAPI {
 								Variable variable = outputLink.getVariable();
 								
 								Port oldport = outputLink.getOriginPort();
-								String portid = ns + oldport.getName() + "_" + jobCounter;
+								String portid = ns + oldport.getName() + "_" + 
+                    String.format("%04d", jobCounter);
 								Port newPort = newNode.findOutputPort(portid);
 								// Create a new port
 								if(newPort == null) {
@@ -1679,6 +1762,7 @@ implements WorkflowGenerationAPI {
 										newVariable.setBinding(cb);
 										// TODO: Set the output data binding to the compatible input if newNode skip is true
 										newVariable.setDerivedFrom(variable.getID());
+										newVariable.setBreakpoint(variable.isBreakpoint());
 										newVariables.put(varkey, newVariable);
 									}
 									

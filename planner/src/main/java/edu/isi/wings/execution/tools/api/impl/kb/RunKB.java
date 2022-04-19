@@ -60,6 +60,8 @@ import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
+import edu.isi.wings.workflow.template.classes.Node;
+import edu.isi.wings.workflow.template.classes.variables.Variable;
 
 public class RunKB extends TransactionsJena 
 implements ExecutionLoggerAPI, ExecutionMonitorAPI {
@@ -763,15 +765,39 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	  planexe.getRuntimeInfo().setStatus(RuntimeInfo.Status.FAILURE);
 	  return planexe;
 	}
+	
+	private void copyBindings(Template tpl, Template xtpl) {
+	  // Copy bindings from xtpl to tpl
+	  HashMap<String, Variable> xvarMap = new HashMap<String, Variable>();
+	  for (Node n: xtpl.getNodes()) 
+	    if(n.getDerivedFrom() != null)
+	      xvarMap.put(n.getDerivedFrom(), n.getComponentVariable());
+	  for (Variable v: xtpl.getVariables())
+	    if(v.isParameterVariable() && v.getDerivedFrom() != null)
+	      xvarMap.put(v.getDerivedFrom(), v);
+	  
+    for (Node n: tpl.getNodes())
+      if(xvarMap.containsKey(n.getDerivedFrom()))
+        n.getComponentVariable().setBinding(xvarMap.get(n.getDerivedFrom()).getBinding());
+    for (Variable v: tpl.getVariables())
+      if(v.isParameterVariable() && xvarMap.containsKey(v.getDerivedFrom()))
+        v.setBinding(xvarMap.get(v.getDerivedFrom()).getBinding());	  
+	}
 
   @Override
   public RuntimePlan rePlan(RuntimePlan planexe) {
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
-        DataFactory.getReasoningAPI(props), ComponentFactory.getReasoningAPI(props),
+        DataFactory.getReasoningAPI(props), DataFactory.getCreationAPI(props), 
+        ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props, true),
         ResourceFactory.getAPI(props), planexe.getID());
     
     TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+    
+    //TODO: Set bindings of the seedtpl to the bindings in seedxtpl
+    //- so that concrete components in the selected expansion are re-used)
     Template seedtpl = tc.getTemplate(planexe.getSeededTemplateID());
+    Template seedxtpl = tc.getTemplate(planexe.getExpandedTemplateID());
+    this.copyBindings(seedtpl, seedxtpl);
     
     try {
       Template itpl = wg.getInferredTemplate(seedtpl);

@@ -103,6 +103,19 @@ public class KBUtils {
 		}
 	}
 	
+  public static void renameTripleNamespace(KBAPI kb, String oldns, String newns, ArrayList<String> blacklistProperties) {
+    ArrayList<KBTriple> triples = kb.getAllTriples();
+    for (KBTriple t : triples) {
+      kb.removeTriple(t);
+      t.setSubject(renameKBObjectNamespace(kb, t.getSubject(), oldns, newns));     
+      if(!blacklistProperties.contains(t.getPredicate().getID())) {
+        t.setPredicate(renameKBObjectNamespace(kb, t.getPredicate(), oldns, newns));         
+        t.setObject(renameKBObjectNamespace(kb, t.getObject(), oldns, newns));
+      }
+      kb.addTriple(t);
+    }
+  }
+  
 	public static void renameTripleNamespace(KBAPI kb, String oldns, String newns) {
 		ArrayList<KBTriple> triples = kb.getAllTriples();
 		for (KBTriple t : triples) {

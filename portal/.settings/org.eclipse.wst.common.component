@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+        
     <wb-module deploy-name="wings-portal-4.2.6">
+                
         <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+                
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+                
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+                
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <dependent-module archiveName="wings-planner-4.2.7.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/wings-planner/wings-planner">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="ontapi-1.2.4.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ontapi/ontapi">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+                
         <property name="context-root" value="wings-portal"/>
+                
         <property name="java-output-path" value="/wings-portal/target/classes"/>
+            
     </wb-module>
+    
 </project-modules>
