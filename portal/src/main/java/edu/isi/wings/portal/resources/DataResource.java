@@ -77,7 +77,7 @@ public class DataResource extends WingsResource {
       @QueryParam("data_id") final String dataid) {
     if(this.dc != null) {
       return dc.runSensorWorkflow(dataid, 
-          CookieHandler.httpCookiesFromServlet(this.request), 
+          CookieHandler.httpCookiesFromServlet(this.request, this.config), 
           this.context);
     }
     return null;
@@ -90,7 +90,7 @@ public class DataResource extends WingsResource {
       @QueryParam("data_id") final String dataid) {
     if(this.dc != null) {
       return dc.runSensorComponent(dataid, 
-          CookieHandler.httpCookiesFromServlet(this.request), 
+          CookieHandler.httpCookiesFromServlet(this.request, this.config), 
           this.context);
     }
     return null;
@@ -344,7 +344,7 @@ public class DataResource extends WingsResource {
     String[] data_locations = gson.fromJson(locs, String[].class);
     if(this.dc != null && this.isOwner() && !config.isSandboxed() &&
         this.dc.addBatchData(data_type, data_ids, data_locations, 
-            CookieHandler.httpCookiesFromServlet(this.request), 
+            CookieHandler.httpCookiesFromServlet(this.request, this.config), 
             this.context)) {
       RunController.invalidateCachedAPIs();
       return "OK";
