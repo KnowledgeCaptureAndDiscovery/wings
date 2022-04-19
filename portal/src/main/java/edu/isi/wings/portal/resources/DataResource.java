@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 
+import edu.isi.wings.portal.classes.util.CookieHandler;
 import edu.isi.wings.portal.controllers.DataController;
 import edu.isi.wings.portal.controllers.RunController;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
@@ -75,7 +76,9 @@ public class DataResource extends WingsResource {
   public String runSensorWorkflow(
       @QueryParam("data_id") final String dataid) {
     if(this.dc != null) {
-      return dc.runSensorWorkflow(dataid, this.request.getRequestedSessionId(), this.context);
+      return dc.runSensorWorkflow(dataid, 
+          CookieHandler.httpCookiesFromServlet(this.request), 
+          this.context);
     }
     return null;
   }
@@ -86,7 +89,9 @@ public class DataResource extends WingsResource {
   public String runSensorComponent(
       @QueryParam("data_id") final String dataid) {
     if(this.dc != null) {
-      return dc.runSensorComponent(dataid, this.request.getRequestedSessionId(), this.context);
+      return dc.runSensorComponent(dataid, 
+          CookieHandler.httpCookiesFromServlet(this.request), 
+          this.context);
     }
     return null;
   }  
@@ -339,7 +344,8 @@ public class DataResource extends WingsResource {
     String[] data_locations = gson.fromJson(locs, String[].class);
     if(this.dc != null && this.isOwner() && !config.isSandboxed() &&
         this.dc.addBatchData(data_type, data_ids, data_locations, 
-            this.request.getRequestedSessionId(), this.context)) {
+            CookieHandler.httpCookiesFromServlet(this.request), 
+            this.context)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }

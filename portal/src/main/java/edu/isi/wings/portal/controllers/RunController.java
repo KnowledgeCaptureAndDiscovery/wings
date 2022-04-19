@@ -42,6 +42,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -354,7 +355,7 @@ public class RunController {
   }
   
   public Future<?> runComponent(String cid, HashMap<String, Binding> role_bindings, 
-      String callbackUrl, String callbackCookies, ServletContext context) {
+      String callbackUrl, Cookie[] callbackCookies, ServletContext context) {
     PlanningAPIBindings apis = null;
     String exPrefix = props.getProperty("domain.executions.dir.url");
     if(apiBindings.containsKey(exPrefix)) {

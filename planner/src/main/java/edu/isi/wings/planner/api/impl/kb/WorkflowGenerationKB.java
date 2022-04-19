@@ -1321,6 +1321,8 @@ implements WorkflowGenerationAPI {
       HashMap<String, String> dparents = dtree.getParents();
       
 			HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
+			HashMap<ExecutionStep, Node> sensorNodeMap = new HashMap<ExecutionStep, Node>();
+			
 			for(Node n : template.getNodes()) {
 			  if(n.isInactive()) {
 			    plan.setIsIncomplete(true);
@@ -1375,11 +1377,7 @@ implements WorkflowGenerationAPI {
   	               // Add this sensor component to the plan
   	              ExecutionStep sensor_step = this.getExecutionStep(sensorcid, cv, roleMap, n.getMachineIds());
   	              plan.addExecutionStep(sensor_step);
-  
-  	              for(Node parent_node: this.getParentNodes(n, template)) {
-  	                ExecutionStep parent_step = nodeMap.get(parent_node);
-  	                sensor_step.addParentStep(parent_step);
-  	              }
+  	              sensorNodeMap.put(sensor_step, n);
   		          }
   		          else {
                   System.err.println("Sensor component should have exactly 1 input and output");
@@ -1411,6 +1409,7 @@ implements WorkflowGenerationAPI {
 				plan.addExecutionStep(step);
 				nodeMap.put(n,  step);
 			}
+			
 			// Add Parent Steps
 			for(Node n : template.getNodes()) {
 			  if(n.isInactive())
@@ -1425,7 +1424,16 @@ implements WorkflowGenerationAPI {
   				}
 				}
 			}
+			// Add Parent steps for Sensors
+			for(ExecutionStep sensor_step: sensorNodeMap.keySet()) {
+        for(Node parent_node: this.getParentNodes(sensorNodeMap.get(sensor_step), template)) {
+          ExecutionStep parent_step = nodeMap.get(parent_node);
+          sensor_step.addParentStep(parent_step);
+        }
+			}
+			
 			return plan;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -3,6 +3,8 @@ package edu.isi.wings.portal.classes.util;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.http.cookie.Cookie;
+
 public class TemplateBindings {
   String templateId;
   HashMap<String, ArrayList<String>> dataBindings;
@@ -10,7 +12,7 @@ public class TemplateBindings {
   HashMap<String, Object> parameterBindings;
   HashMap<String, String> parameterTypes;
   String callbackUrl;
-  String callbackCookies;
+  Cookie[] callbackCookies;
 
   public String getTemplateId() {
     return templateId;
@@ -60,11 +62,11 @@ public class TemplateBindings {
     this.callbackUrl = callbackUrl;
   }
 
-  public String getCallbackCookies() {
+  public Cookie[] getCallbackCookies() {
     return callbackCookies;
   }
 
-  public void setCallbackCookies(String callbackCookies) {
+  public void setCallbackCookies(Cookie[] callbackCookies) {
     this.callbackCookies = callbackCookies;
   }
 }

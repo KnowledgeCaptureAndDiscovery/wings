@@ -35,6 +35,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.http.cookie.Cookie;
 
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
@@ -709,20 +710,20 @@ public class 	DataController {
   }	
 	
 	public synchronized boolean addBatchData(String dtypeid, String[] dids, String[] locations, 
-	    String sessionid, ServletContext context) {
+	    Cookie[] cookies, ServletContext context) {
 		for(int i=0; i<dids.length; i++) {
 			if(!dc.addData(dids[i], dtypeid))
 				return false;
 			if(locations.length > i && locations[i] != null)
 				if(!dc.setDataLocation(dids[i], locations[i]))
 					return false;
-			this.runSensorWorkflow(dids[i], sessionid, context);
+			this.runSensorWorkflow(dids[i], cookies, context);
 		}
 		return true;
 	}
 	
 
-  public String runSensorWorkflow(String dataid, String sessionid, ServletContext context) {
+  public String runSensorWorkflow(String dataid, Cookie[] cookies, ServletContext context) {
     try {
       DataItem dtype = this.dc.getDatatypeForData(dataid);
       if(dtype == null) {
@@ -748,8 +749,8 @@ public class 	DataController {
       TemplateBindings tbindings = new TemplateBindings();
       tbindings.setCallbackUrl(this.config.getServerUrl() +
           this.config.getUserDomainUrl() +"/data/setMetadataFromSensorOutput?data_id=" + 
-          URLEncoder.encode(dataid, "UTF-8"));   
-      tbindings.setCallbackCookies("JSESSIONID=" + sessionid);
+          URLEncoder.encode(dataid, "UTF-8"));
+      tbindings.setCallbackCookies(cookies);
       tbindings.setDataBindings(dataBindings);
       tbindings.setParameterBindings(new HashMap<String, Object>());
       tbindings.setParameterTypes(new HashMap<String, String>());
@@ -767,7 +768,7 @@ public class 	DataController {
     return null;
   }
   
-  public String runSensorComponent(String dataid, String sessionid, ServletContext context) {
+  public String runSensorComponent(String dataid, Cookie[] cookies, ServletContext context) {
     try {
       DataItem dtype = this.dc.getDatatypeForData(dataid);
       if(dtype == null) {
@@ -804,9 +805,8 @@ public class 	DataController {
       String callbackUrl = this.config.getServerUrl() +
           this.config.getUserDomainUrl() +"/data/setMetadataFromSensorOutput?data_id=" + 
           URLEncoder.encode(dataid, "UTF-8");
-      String callbackCookies = "JSESSIONID=" + sessionid;
       
-      this.rc.runComponent(cid, role_bindings, callbackUrl, callbackCookies, context);
+      this.rc.runComponent(cid, role_bindings, callbackUrl, cookies, context);
     }
     catch (Exception e) {
       e.printStackTrace();

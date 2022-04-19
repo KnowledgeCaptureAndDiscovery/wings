@@ -17,12 +17,21 @@
 
 package edu.isi.wings.execution.engine.classes;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Date;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.util.EntityUtils;
 
 import com.google.gson.Gson;
 
@@ -44,7 +53,7 @@ public class RuntimePlan extends URIEntity {
 	String seededTemplateId;
 	
 	String callbackUrl;
-	String callbackCookies;
+	Cookie[] callbackCookies;
 	
 	public RuntimePlan() {
 	  super();
@@ -104,27 +113,28 @@ public class RuntimePlan extends URIEntity {
 	private void postCallback() {
 	  if(this.callbackUrl != null && this.runtimeInfo.status == Status.SUCCESS) {
 	    try {
-        URL url = new URL (this.callbackUrl);
-        HttpURLConnection con = (HttpURLConnection)url.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        if(this.callbackCookies != null)
-          con.setRequestProperty("Cookie", this.callbackCookies);
-        con.setDoOutput(true);
-        String inputString = new Gson().toJson(plan);
-        try(OutputStream os = con.getOutputStream()) {
-          byte[] input = inputString.getBytes("utf-8");
-          os.write(input, 0, input.length);           
+        BasicCookieStore cookieStore = new BasicCookieStore();
+        if(this.callbackCookies != null) {
+          cookieStore.addCookies(callbackCookies);
         }
-        try(BufferedReader br = new BufferedReader(
-            new InputStreamReader(con.getInputStream()))) {
-          StringBuilder response = new StringBuilder();
-          String responseLine = null;
-          while ((responseLine = br.readLine()) != null) {
-            response.append(responseLine.trim());
-          }
-          System.out.println(response.toString());
-        }
+        RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+
+        // automatically follow redirects
+        CloseableHttpClient client = HttpClients.custom()
+            .setRedirectStrategy(new LaxRedirectStrategy())
+            .setDefaultRequestConfig(requestConfig)
+            .setDefaultCookieStore(cookieStore)
+            .build();
+        
+        HttpPost httpPost = new HttpPost(this.callbackUrl);
+        String planjson = new Gson().toJson(plan);
+        HttpEntity stringEntity = new StringEntity(planjson, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(stringEntity);
+        
+        HttpResponse response = client.execute(httpPost);
+        HttpEntity entity = response.getEntity();
+        String responseString = EntityUtils.toString(entity, "UTF-8");
+        System.out.println(responseString);
       } catch (Exception e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -183,11 +193,11 @@ public class RuntimePlan extends URIEntity {
     this.callbackUrl = callbackUrl;
   }
 
-  public String getCallbackCookies() {
+  public Cookie[] getCallbackCookies() {
     return callbackCookies;
   }
 
-  public void setCallbackCookies(String callbackCookies) {
+  public void setCallbackCookies(Cookie[] callbackCookies) {
     this.callbackCookies = callbackCookies;
   }
 }

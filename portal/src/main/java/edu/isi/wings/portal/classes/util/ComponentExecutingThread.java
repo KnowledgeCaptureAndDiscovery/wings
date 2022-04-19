@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 
+import org.apache.http.cookie.Cookie;
+
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentInvocation;
@@ -29,14 +31,14 @@ public class ComponentExecutingThread implements Runnable {
   HashMap<String, Binding> role_bindings;
   PlanningAPIBindings api_bindings;
   String callbackUrl;
-  String callbackCookies;
+  Cookie[] callbackCookies;
   
   public ComponentExecutingThread(
       String cid,
       Config config,
       HashMap<String, Binding> role_bindings, 
       PlanningAPIBindings api_bindings,
-      String callbackUrl, String callbackCookies
+      String callbackUrl, Cookie[] callbackCookies
       ) {
     this.cid = cid;
     this.config = config;
