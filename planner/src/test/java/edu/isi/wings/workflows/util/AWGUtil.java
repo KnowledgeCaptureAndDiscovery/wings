@@ -61,7 +61,8 @@ public class AWGUtil {
 		wings.initializePC();
     wings.initializeRC();
 		wings.initializeWorkflowGenerator();
-		wings.setDC(wings.initializeDC());
+		wings.initializeDC();
+		wings.setDC(wings.dc, wings.dcc);
 		wings.initializeItem();
 
 		Template it = wings.getWG().getInferredTemplate(wings.getTemplate());
@@ -87,7 +88,8 @@ public class AWGUtil {
 		wings.initializePC();
 		wings.initializeRC();
 		wings.initializeWorkflowGenerator();
-		wings.setDC(wings.initializeDC());
+    wings.initializeDC();
+    wings.setDC(wings.dc, wings.dcc);
 		wings.initializeItem();
 
 		ArrayList<Template> candidates = wings.backwardSweep(wings.getSeed());

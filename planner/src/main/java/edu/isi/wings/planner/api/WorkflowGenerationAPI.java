@@ -20,7 +20,9 @@ package edu.isi.wings.planner.api;
 import java.util.ArrayList;
 
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
+import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.data.api.DataReasoningAPI;
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
@@ -30,9 +32,9 @@ import edu.isi.wings.workflow.template.api.Template;
 
 public interface WorkflowGenerationAPI extends TransactionsAPI {
 
-	public void useDataService(DataReasoningAPI dc);
+	public void useDataService(DataReasoningAPI dc, DataCreationAPI dcc);
 
-	public void useComponentService(ComponentReasoningAPI pc);
+	public void useComponentService(ComponentReasoningAPI pc, ComponentCreationAPI ccc);
 
 	public Seed loadSeed(String seedName);
 

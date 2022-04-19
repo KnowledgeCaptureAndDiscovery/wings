@@ -71,11 +71,11 @@ public class Wings {
 
 	WorkflowGenerationAPI wg;
 
-	ComponentReasoningAPI pc;
-	ComponentCreationAPI ccc;
-	DataReasoningAPI dc;
-	DataCreationAPI dcc;
-	ResourceAPI rc;
+	public ComponentReasoningAPI pc;
+	public ComponentCreationAPI ccc;
+	public DataReasoningAPI dc;
+	public DataCreationAPI dcc;
+	public ResourceAPI rc;
 	
 	boolean storeProvenance;
 
@@ -133,6 +133,7 @@ public class Wings {
 		logger.info(event.createStartLogMsg().addWQ(LogEvent.DOMAIN, PCDomain));
 		this.props.putAll(ComponentFactory.createLegacyConfiguration());
 		pc = ComponentFactory.getReasoningAPI(this.props);
+		ccc = ComponentFactory.getCreationAPI(props, true);
 		logger.info(event.createEndLogMsg());
 		return pc;
 	}
@@ -158,15 +159,16 @@ public class Wings {
 		return dc;
 	}
 
-	public void setDC(DataReasoningAPI dc) {
+	public void setDC(DataReasoningAPI dc, DataCreationAPI dcc) {
 		this.dc = dc;
-		wg.useDataService(dc);
+		this.dcc = dcc;
+		wg.useDataService(dc, dcc);
 	}
 
 	public void setPC(ComponentReasoningAPI pc, ComponentCreationAPI ccc) {
 		this.pc = pc;
 		this.ccc = ccc;
-		wg.useComponentService(pc);
+		wg.useComponentService(pc, ccc);
 	}
 
 	public void initializeItem() {
@@ -532,10 +534,11 @@ public class Wings {
 		wings.initializePC();
 		wings.initializeRC();
 		wings.initializeWorkflowGenerator();
+		wings.initializeDC();
 		// Initialize the DC later
 		// (DC initialization messes up Jena Maps and we can't load the
 		// template)
-		wings.setDC(wings.initializeDC());
+		wings.setDC(wings.dc, wings.dcc);
 		wings.initializeItem();
 
 		// -------- Template/Seed Operations -------

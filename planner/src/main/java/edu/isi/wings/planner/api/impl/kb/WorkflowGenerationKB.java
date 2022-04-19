@@ -161,13 +161,15 @@ implements WorkflowGenerationAPI {
 	}
 
 	@Override
-	public void useDataService(DataReasoningAPI dc) {
+	public void useDataService(DataReasoningAPI dc, DataCreationAPI dcc) {
 		this.dc = dc;
+		this.dcc = dcc;
 	}
 
 	@Override
-	public void useComponentService(ComponentReasoningAPI pc) {
+	public void useComponentService(ComponentReasoningAPI pc, ComponentCreationAPI ccc) {
 		this.pc = pc;
+		this.ccc = ccc;
 	}
 
 	@Override
