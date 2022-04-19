@@ -19,6 +19,7 @@ public class CookieHandler {
     String name = cookie.getName();
     String value = cookie.getValue();    
     String domain = config.getServerUrl().replaceAll(".*\\.(?=.*\\.)", "");
+    domain = domain.replaceFirst("http:\\/\\/", "").replaceFirst("https:\\/\\/", "");
     String path = request.getContextPath();
     boolean secure = cookie.getSecure();
 
