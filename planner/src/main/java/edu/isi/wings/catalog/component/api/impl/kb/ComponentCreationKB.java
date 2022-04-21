@@ -117,42 +117,80 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		return tree;
 	}
 
-	@Override
-	public boolean setComponentLocation(String cid, String location) {
-		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
-		KBObject cobj = this.writerkb.getResource(cid);
-		KBObject locobj = writerkb.createLiteral(location);
-		this.writerkb.setPropertyValue(cobj, locprop, locobj);
-    if(this.externalCatalog != null)
-      this.externalCatalog.setComponentLocation(cid, location);
-		return true;
-	}
-	
-	@Override
-	public boolean setComponentVersion(String cid, int version) {
-    KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
-    KBObject cobj = this.writerkb.getResource(cid);
-    KBObject versionobj = writerkb.createLiteral(version);
-    this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
-    return true;
-	}
-
-
-	public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
-	  try {
-  		KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
-  		KBObject cobj = this.writerkb.getResource(cid);
-  		KBObject locobj = writerkb.createLiteral(modelIdentifier);
-  		this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
-  		if(this.externalCatalog != null)
-  			this.externalCatalog.setComponentLocation(cid, modelIdentifier);
-  		return true;
-	  }
-    catch(Exception e) {
-      e.printStackTrace();
+  @Override
+  public boolean setComponentLocation(String cid, String location) {
+    boolean already_in_transaction = false;
+    if (!this.is_in_transaction()) {
+      this.start_write();
+      already_in_transaction = false;
     }
-	  return false;
-	}
+    try {
+      KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
+      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject locobj = writerkb.createLiteral(location);
+      this.writerkb.setPropertyValue(cobj, locprop, locobj);
+      if (this.externalCatalog != null)
+        this.externalCatalog.setComponentLocation(cid, location);
+      if (!already_in_transaction)
+        this.save();
+      return true;
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (!already_in_transaction) {
+        this.end();
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean setComponentVersion(String cid, int version) {
+    boolean already_in_transaction = false;
+    if (!this.is_in_transaction()) {
+      this.start_write();
+      already_in_transaction = false;
+    }
+    try {
+      KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
+      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject versionobj = writerkb.createLiteral(version);
+      this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
+      return true;
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (!already_in_transaction) {
+        this.end();
+      }
+    }
+    return false;
+  }
+
+
+  public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
+    boolean already_in_transaction = false;
+    if (!this.is_in_transaction()) {
+      this.start_write();
+      already_in_transaction = false;
+    }
+    try {
+      KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
+      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject locobj = writerkb.createLiteral(modelIdentifier);
+      this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
+      if (this.externalCatalog != null)
+        this.externalCatalog.setComponentLocation(cid, modelIdentifier);
+      return true;
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      if (!already_in_transaction) {
+        this.end();
+      }
+    }
+    return false;
+  }
 
 
 	@Override
