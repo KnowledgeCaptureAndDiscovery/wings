@@ -929,6 +929,8 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     var compStore = args[2];
     var mainPanel;
     var This = this;
+    
+    c.location = compStore.location;
 
     var savebtn = new Ext.Button({
         text: 'Save',
@@ -939,6 +941,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
             var comp = {
                 id: c.id,
                 type: (c.concrete ? 2: 1),
+                version: compStore.version,
                 inputs: [],
                 outputs: [],
                 rulesText: "",
@@ -1088,7 +1091,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                         items: [{
                             xtype: 'textfield',
                             flex: 1,
-                            value: c.location,
+                            value: compStore.location,
                             emptyText: 'Enter path to component or Upload from below'
                         }, {
                             xtype: 'button',
@@ -1160,7 +1163,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
 			iconCls : 'icon-download fa fa-blue',
 			itemId : 'downloadComponent',
 			text : 'Download',
-			disabled : !c.location,
+			disabled : !compStore.location,
 			handler : function() {
 				window.open(This.op_url+"/fetch?cid="+escape(c.id));
 //				showWingsMessage('Location: ' + compStore.location,

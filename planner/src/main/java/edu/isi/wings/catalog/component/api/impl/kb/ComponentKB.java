@@ -207,10 +207,10 @@ public class ComponentKB extends TransactionsJena {
 	}
 
 	public String getComponentLocation(String cid) {
-	  boolean end_transaction = false;
+	  boolean new_transaction = false;
 	  if(!this.is_in_transaction()) {
 	    this.start_read();
-	    end_transaction = true;
+	    new_transaction = true;
 	  }
 	  try {
   		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
@@ -227,24 +227,24 @@ public class ComponentKB extends TransactionsJena {
   		return null;
 	  }
 	  finally {
-	    if(end_transaction) {
+	    if(new_transaction) {
 	      this.end();
 	    }
 	  }
 	}
 	
 	public String getDefaultComponentLocation(String cid) {
-	   boolean end_transaction = false;
+	   boolean new_transaction = false;
     if(!this.is_in_transaction()) {
       this.start_read();
-      end_transaction = true;
+      new_transaction = true;
     }
     try {
   	  KBObject cobj = this.kb.getIndividual(cid);
   	  return this.codedir + File.separator + cobj.getName();
     }
     finally {
-      if(end_transaction) {
+      if(new_transaction) {
         this.end();
       }
     }

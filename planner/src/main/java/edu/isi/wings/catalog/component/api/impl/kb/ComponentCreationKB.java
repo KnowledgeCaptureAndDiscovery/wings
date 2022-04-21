@@ -119,10 +119,10 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
   @Override
   public boolean setComponentLocation(String cid, String location) {
-    boolean already_in_transaction = false;
+    boolean new_transaction = false;
     if (!this.is_in_transaction()) {
       this.start_write();
-      already_in_transaction = false;
+      new_transaction = true;
     }
     try {
       KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
@@ -131,13 +131,13 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       this.writerkb.setPropertyValue(cobj, locprop, locobj);
       if (this.externalCatalog != null)
         this.externalCatalog.setComponentLocation(cid, location);
-      if (!already_in_transaction)
+      if (new_transaction)
         this.save();
       return true;
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      if (!already_in_transaction) {
+      if (new_transaction) {
         this.end();
       }
     }
@@ -146,21 +146,23 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
   @Override
   public boolean setComponentVersion(String cid, int version) {
-    boolean already_in_transaction = false;
+    boolean new_transaction = false;
     if (!this.is_in_transaction()) {
       this.start_write();
-      already_in_transaction = false;
+      new_transaction = true;
     }
     try {
       KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
       KBObject cobj = this.writerkb.getResource(cid);
       KBObject versionobj = writerkb.createLiteral(version);
       this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
+      if (new_transaction)
+        this.save();
       return true;
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      if (!already_in_transaction) {
+      if (new_transaction) {
         this.end();
       }
     }
@@ -169,10 +171,10 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 
   public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
-    boolean already_in_transaction = false;
+    boolean new_transaction = false;
     if (!this.is_in_transaction()) {
       this.start_write();
-      already_in_transaction = false;
+      new_transaction = true;
     }
     try {
       KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
@@ -181,11 +183,13 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
       if (this.externalCatalog != null)
         this.externalCatalog.setComponentLocation(cid, modelIdentifier);
+      if (new_transaction)
+        this.save();
       return true;
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      if (!already_in_transaction) {
+      if (new_transaction) {
         this.end();
       }
     }
@@ -199,7 +203,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		// Remove existing component assertions and re-add the new component details
 		try {
-		  boolean ok1 = this.removeComponent(comp.getID(), false, false);
+		  boolean ok1 = this.removeComponent(comp.getID(), false, false);		  
 		  boolean ok2 = this.addComponent(comp, null);
 	    if(this.externalCatalog != null)
 	      this.externalCatalog.updateComponent(comp);
@@ -352,22 +356,30 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	@Override
 	public boolean removeComponent(String cid, boolean remove_holder, boolean unlink) {
+	  ArrayList<KBObject> inputobjs, outputobjs, sdobjs, hdobjs;
+	  String loc;
 	  try {
   	  this.start_read();  	  
   		KBObject compobj = kb.getIndividual(cid);
   		if(compobj == null) {
   		  return false;
   		}
-  		ArrayList<KBObject> inputobjs = this.getComponentInputs(compobj);
-  		ArrayList<KBObject> outputobjs = this.getComponentOutputs(compobj);
-      ArrayList<KBObject> sdobjs = this.kb.getPropertyValues(compobj, 
+  		inputobjs = this.getComponentInputs(compobj);
+  		outputobjs = this.getComponentOutputs(compobj);
+      sdobjs = this.kb.getPropertyValues(compobj, 
           this.objPropMap.get("hasSoftwareDependency"));
-      ArrayList<KBObject> hdobjs = this.kb.getPropertyValues(compobj,
+      hdobjs = this.kb.getPropertyValues(compobj,
           this.objPropMap.get("hasHardwareDependency"));
-      String loc = this.getComponentLocation(cid);
+      loc = this.getComponentLocation(cid);
       this.end();
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+      this.end();
+      return false;
+    }
       
-      
+	  try {
       // Remove items from KB
       this.start_write();
       
@@ -396,7 +408,15 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   		KBUtils.removeAllTriplesWith(writerkb, cid, false);
   		
   		this.save();
+  		this.end();
+	  }
+    catch(Exception e) {
+      e.printStackTrace();
+      this.end();
+      return false;
+    }
   		
+	  try {
   		// Remove the component directory
   		if (unlink) {
   			// Remove component if it is in the catalog's component directory
@@ -416,12 +436,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   		}
       if(this.externalCatalog != null)
         this.externalCatalog.removeComponent(cid, remove_holder, unlink);
-      
-      return true;
 	  }
-	  finally {
-	    this.end();
-	  }
+	  catch(Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
 	}
 
 	@Override
