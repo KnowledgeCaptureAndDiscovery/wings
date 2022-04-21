@@ -207,8 +207,12 @@ public class ComponentKB extends TransactionsJena {
 	}
 
 	public String getComponentLocation(String cid) {
+	  boolean end_transaction = false;
+	  if(!this.is_in_transaction()) {
+	    this.start_read();
+	    end_transaction = true;
+	  }
 	  try {
-  	  this.start_read();
   		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
   		KBObject cobj = this.kb.getIndividual(cid);
   		KBObject locobj = this.kb.getPropertyValue(cobj, locprop);
@@ -221,25 +225,32 @@ public class ComponentKB extends TransactionsJena {
   				return location;
   		}
   		return null;
-    }
-    finally {
-      this.end();
-    }
+	  }
+	  finally {
+	    if(end_transaction) {
+	      this.end();
+	    }
+	  }
 	}
 	
 	public String getDefaultComponentLocation(String cid) {
-	  try {
-	    this.start_read();
+	   boolean end_transaction = false;
+    if(!this.is_in_transaction()) {
+      this.start_read();
+      end_transaction = true;
+    }
+    try {
   	  KBObject cobj = this.kb.getIndividual(cid);
   	  return this.codedir + File.separator + cobj.getName();
     }
     finally {
-      this.end();
+      if(end_transaction) {
+        this.end();
+      }
     }
 	}
 	
 	protected void setComponentRules(String cid, String text) {
-	  this.start_write();
 		KBObject compobj = this.writerkb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		try {
@@ -247,12 +258,10 @@ public class ComponentKB extends TransactionsJena {
   			KBObject ruleobj = writerkb.createLiteral(rule.toString());
   			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
   		}
-      this.save(this.writerkb);
 		}
 		catch (Exception e) {
 		  e.printStackTrace();
 		}
-		this.end();
 	}
 	
 	protected KBRuleList getComponentRules(String cid) {
@@ -262,28 +271,21 @@ public class ComponentKB extends TransactionsJena {
 	}
 	
 	protected KBRuleList getDirectComponentRules(String cid) {
-	  try {
-	    this.start_read();
-  		String rulestr = "";
-  		KBObject compobj = this.kb.getIndividual(cid);
-  		KBObject ruleProp = this.dataPropMap.get("hasRule");
-  		for(KBObject ruleobj : this.kb.getPropertyValues(compobj, ruleProp))
-  			rulestr += ruleobj.getValueAsString();
-  		try {
-  		  return ontologyFactory.parseRules(rulestr);
-  		}
-  		catch (Exception e) {
-  		  return ontologyFactory.createEmptyRuleList();
-  		}
-    }
-    finally {
-      this.end();
-    }
+		String rulestr = "";
+		KBObject compobj = this.kb.getIndividual(cid);
+		KBObject ruleProp = this.dataPropMap.get("hasRule");
+		for(KBObject ruleobj : this.kb.getPropertyValues(compobj, ruleProp))
+			rulestr += ruleobj.getValueAsString();
+		try {
+		  return ontologyFactory.parseRules(rulestr);
+		}
+		catch (Exception e) {
+		  return ontologyFactory.createEmptyRuleList();
+		}
 	}
 	
 	protected KBRuleList getInheritedComponentRules(String cid) {
 	  try {
-	    this.start_read();
   		String rulestr = "";
   		KBObject compobj = this.kb.getIndividual(cid);
   		KBObject ruleProp = this.dataPropMap.get("hasRule");
@@ -299,16 +301,11 @@ public class ComponentKB extends TransactionsJena {
     catch (Exception e) {
       return ontologyFactory.createEmptyRuleList();
     }
-    finally {
-      this.end();
-    }
 	}
 	
 	 
   protected ComponentRequirement getComponentRequirements(KBObject compobj, 
       KBAPI tkb) {
-    this.start_read();
-    
     ComponentRequirement requirement = new ComponentRequirement();
     
     KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
@@ -337,7 +334,6 @@ public class ComponentKB extends TransactionsJena {
       if(s4bitobj != null)
         requirement.setNeed64bit((Boolean)s4bitobj.getValue());
     }
-    this.end();
     
     return requirement;
   }
@@ -345,8 +341,6 @@ public class ComponentKB extends TransactionsJena {
 
   protected void setComponentRequirements(KBObject compobj,
       ComponentRequirement requirement, KBAPI tkb, KBAPI writerkb) {
-    this.start_write();
-    
     KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
     KBObject sdcls = this.conceptMap.get("SoftwareDependency");
     KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
@@ -375,9 +369,6 @@ public class ComponentKB extends TransactionsJena {
         this.dataPropMap.get("needs64bit"), 
         writerkb.createLiteral(requirement.isNeed64bit()));
     writerkb.setPropertyValue(compobj, hdprop, hdobj);
-    
-    this.save(writerkb);
-    this.end();
   }
 
 	/*
@@ -471,6 +462,7 @@ public class ComponentKB extends TransactionsJena {
 					librulesfile.delete();
 
 			} catch (Exception e) {
+			  this.end();
 				e.printStackTrace();
 			}
 		}
@@ -529,6 +521,7 @@ public class ComponentKB extends TransactionsJena {
 			this.kb = this.ontologyFactory.getKB(this.absurl, OntSpec.PELLET);
 		}
 		catch (Exception e) {
+		  this.end();
 			e.printStackTrace();
 			return;
 		}
@@ -564,7 +557,6 @@ public class ComponentKB extends TransactionsJena {
 	
   public Component getComponent(String cid, boolean details) {
     this.start_read();
-    boolean batchok = this.start_batch_operation();
     
     try {
       KBObject compobj = kb.getIndividual(cid);
@@ -584,10 +576,12 @@ public class ComponentKB extends TransactionsJena {
 				comp.setDocumentation(this.getComponentDocumentation(compobj));
 				//obtain component type
 				KBObject classComponent = this.kb.getClassOfInstance(this.kb.getIndividual(cid));
-				ArrayList<KBObject> clss = this.kb.getSuperClasses(classComponent, true);
-				if (clss != null && clss.size() > 0){
-					KBObject cls = clss.get(0);
-					comp.setComponentType(cls.getName().replace("Class", ""));
+				if(classComponent != null && classComponent.getID() != null) {
+  				ArrayList<KBObject> clss = this.kb.getSuperClasses(classComponent, true);
+  				if (clss != null && clss.size() > 0){
+  					KBObject cls = clss.get(0);
+  					comp.setComponentType(cls.getName().replace("Class", ""));
+  				}
 				}
         comp.setComponentRequirement(
             this.getComponentRequirements(compobj, this.kb));
@@ -608,77 +602,43 @@ public class ComponentKB extends TransactionsJena {
       return comp;
     }
     finally {
-      if(batchok)
-        this.stop_batch_operation();
       this.end();      
     }
   }	
   
   protected int getComponentVersion(KBObject compobj) {
-    try {
-      this.start_read();
-      KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
-      KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
-      return (Integer) ((versionVal != null && versionVal.getValue() != null) ? versionVal.getValue() : 0);  
-    }
-    finally {
-      this.end();
-    }
+    KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
+    KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
+    return (Integer) ((versionVal != null && versionVal.getValue() != null) ? versionVal.getValue() : 0);  
   }
   
   protected ArrayList<KBObject> getComponentInputs(KBObject compobj) {
-    try {
-      this.start_read();
-      KBObject inProp = kb.getProperty(this.pcns + "hasInput");
-      return kb.getPropertyValues(compobj, inProp);
-    }
-    finally {
-      this.end();
-    }
+    KBObject inProp = kb.getProperty(this.pcns + "hasInput");
+    return kb.getPropertyValues(compobj, inProp);
   }
 
   protected ArrayList<KBObject> getComponentOutputs(KBObject compobj) {
-    try {
-      this.start_read();
-      KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
-      return kb.getPropertyValues(compobj, outProp);
-    }
-    finally {
-      this.end();
-    }
+    KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
+    return kb.getPropertyValues(compobj, outProp);
   }
 
   protected String getComponentDocumentation(KBObject compobj) {
-    try {
-      this.start_read();
-      KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
-      KBObject doc = kb.getPropertyValue(compobj, docProp);
-      if(doc != null && doc.getValue() != null)
-          return doc.getValueAsString();
-      return null;
-    }
-    finally {
-      this.end();
-    }
+    KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
+    KBObject doc = kb.getPropertyValue(compobj, docProp);
+    if(doc != null && doc.getValue() != null)
+        return doc.getValueAsString();
+    return null;
   }
 
 	protected String getComponentModelCatalog(KBObject compobj) {
-		try {
-			this.start_read();
-			KBObject docProp = kb.getProperty(this.pcns + "source");
-			KBObject doc = kb.getPropertyValue(compobj, docProp);
-			if(doc != null && doc.getValue() != null)
-				return doc.getValueAsString();
-			return null;
-		}
-		finally {
-			this.end();
-		}
+		KBObject docProp = kb.getProperty(this.pcns + "source");
+		KBObject doc = kb.getPropertyValue(compobj, docProp);
+		if(doc != null && doc.getValue() != null)
+			return doc.getValueAsString();
+		return null;
 	}
   
   protected ComponentRole getRole(KBObject argobj) {
-    this.start_read();
-    
     ComponentRole arg = new ComponentRole(argobj.getID());
     KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");
     KBObject dimProp = kb.getProperty(this.pcns + "hasDimensionality");
@@ -714,7 +674,6 @@ public class ComponentKB extends TransactionsJena {
     if (pfx != null && pfx.getValue() != null)
       arg.setPrefix(pfx.getValueAsString());
     
-    this.end();
     return arg;
   }
   

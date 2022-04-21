@@ -117,6 +117,7 @@ public class ComponentController {
   		    prov.addProvenance(p);
 		}
 		catch(Exception e) {
+		  e.printStackTrace();
 		  this.end();
 		}
 		return false;
@@ -130,6 +131,7 @@ public class ComponentController {
 	    return cc.incrementComponentVersion(cid);
 	  }
 	  catch(Exception e) {
+	    e.printStackTrace();
 	    this.end();
 	  }
 	  return false;
@@ -157,6 +159,7 @@ public class ComponentController {
   		    prov.addProvenance(p);
 	  }
 	  catch(Exception e) {
+	    e.printStackTrace();
 	    this.end();
 	  }
 	  return false;
@@ -174,6 +177,7 @@ public class ComponentController {
   		    prov.addProvenance(p);
 	  }
 	  catch(Exception e) {
+	    e.printStackTrace();
 	    this.end();
 	  }
 	  return false;
@@ -184,6 +188,7 @@ public class ComponentController {
 	    return cc.addComponentHolder(ctype, ptype);
 	  }
 	  catch(Exception e) {
+	    e.printStackTrace();
 	    this.end();
 	  }
 	  return false;
@@ -195,6 +200,7 @@ public class ComponentController {
 	        prov.removeAllProvenance(cid);
 	  }
 	  catch (Exception e){
+	    e.printStackTrace();
 	    this.end();
 	  }
 	  return false;
@@ -224,12 +230,15 @@ public class ComponentController {
   	      return false;
   	    }
   	  }
+  	  temp_component.setLocation(new_location);
+      
   	  //generate new json component
   	  String new_component_json = json.toJson(temp_component);
   	  //add the new component and save it
   	  return this.saveComponentJSON(new_cid, new_component_json);
 	  }
 	  catch (Exception e) {
+	    e.printStackTrace();
 	    this.end();
 	  }
     return false;	  
@@ -240,6 +249,7 @@ public class ComponentController {
 	    return cc.removeComponentHolder(ctype);
 	  }
 	  catch (Exception e) {
+	    e.printStackTrace();
 	    this.end();
 	  }
 	  return false;

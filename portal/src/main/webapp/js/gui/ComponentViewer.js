@@ -843,7 +843,7 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
     }
 
 
-    Ext.MessageBox.prompt("Duplicate component", "Enter the new name", function(btn, txt) {
+    Ext.MessageBox.prompt("Duplicate component", "<i>(Note: Rules won't be copied over)</i><br/><br/>Enter the new name", function(btn, txt) {
         if (btn == "ok" && txt) {
             var new_cid = This.ns[''] + txt;
             var enode = cTree.getStore().getNodeById(new_cid);

@@ -109,8 +109,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		this.end();
 		
-		for(String compid: tbd)
+		for(String compid: tbd) {
 		  this.removeComponent(compid, true, true);
+		}
 
 		ComponentTree tree = new ComponentTree(rootnode);
 		return tree;
@@ -118,54 +119,38 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	@Override
 	public boolean setComponentLocation(String cid, String location) {
-	  try {
-  	  this.start_write();
-  		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
-  		KBObject cobj = this.writerkb.getResource(cid);
-  		KBObject locobj = writerkb.createLiteral(location);
-  		this.writerkb.setPropertyValue(cobj, locprop, locobj);
-      if(this.externalCatalog != null)
-        this.externalCatalog.setComponentLocation(cid, location);
-  		return this.save();
-	  }
-    finally {
-      this.end();
-    }
+		KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
+		KBObject cobj = this.writerkb.getResource(cid);
+		KBObject locobj = writerkb.createLiteral(location);
+		this.writerkb.setPropertyValue(cobj, locprop, locobj);
+    if(this.externalCatalog != null)
+      this.externalCatalog.setComponentLocation(cid, location);
+		return true;
 	}
 	
 	@Override
 	public boolean setComponentVersion(String cid, int version) {
-	  try {
-	    this.start_write();
-	    KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
-	    KBObject cobj = this.writerkb.getResource(cid);
-	    KBObject versionobj = writerkb.createLiteral(version);
-	    this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
-	    return this.save();
-	  }
-	  finally {
-	    this.end();
-	  }
+    KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
+    KBObject cobj = this.writerkb.getResource(cid);
+    KBObject versionobj = writerkb.createLiteral(version);
+    this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
+    return true;
 	}
 
 
 	public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
 	  try {
-  		this.start_write();
   		KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
   		KBObject cobj = this.writerkb.getResource(cid);
   		KBObject locobj = writerkb.createLiteral(modelIdentifier);
   		this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
   		if(this.externalCatalog != null)
   			this.externalCatalog.setComponentLocation(cid, modelIdentifier);
-  		return this.save();
+  		return true;
 	  }
     catch(Exception e) {
       e.printStackTrace();
     }
-	  finally {
-      this.end();
-	  }
 	  return false;
 	}
 
@@ -237,7 +222,6 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		try {
   		this.start_write();
-  		this.start_batch_operation();
   		
   		// If parent holder passed in, create a holder as subclass of parent holder
   		// Else assume that current holder already exists and fetch that
@@ -293,7 +277,6 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       if(this.externalCatalog != null)
         this.externalCatalog.addComponent(comp, pholderid);
   
-      this.stop_batch_operation();
   		return this.save();
 		}
     finally {
@@ -331,71 +314,76 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	@Override
 	public boolean removeComponent(String cid, boolean remove_holder, boolean unlink) {
-	  this.start_read();
-	  this.start_batch_operation();
-	  
-		KBObject compobj = kb.getIndividual(cid);
-		if(compobj == null) {
-		  this.stop_batch_operation();
-		  this.end();
-		  return false;
-		}
-		ArrayList<KBObject> inputobjs = this.getComponentInputs(compobj);
-		ArrayList<KBObject> outputobjs = this.getComponentOutputs(compobj);
-    ArrayList<KBObject> sdobjs = this.kb.getPropertyValues(compobj, 
-        this.objPropMap.get("hasSoftwareDependency"));
-    ArrayList<KBObject> hdobjs = this.kb.getPropertyValues(compobj,
-        this.objPropMap.get("hasHardwareDependency"));
-    String loc = this.getComponentLocation(cid);
-    this.stop_batch_operation();
-    this.end();
-    
-    this.start_write();
-    this.start_batch_operation();
-    
-    //Remove holder
-    if(remove_holder) {
-      String holderid = this.getComponentHolderId(cid);
-      this.removeComponentHolder(holderid);
-    }
-    
-		for (KBObject obj : inputobjs) {
-			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
-		}
-		for (KBObject obj : outputobjs) {
-			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
-		}
-		for(KBObject obj : sdobjs)
-		  for(KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
-		    this.writerkb.removeTriple(t);
-
-    for(KBObject obj : hdobjs)
-      for (KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
-        this.writerkb.removeTriple(t);
-		KBUtils.removeAllTriplesWith(writerkb, cid, false);
-		
-		// Delete the component directory
-		if (unlink) {
-			// Remove component if it is in the catalog's component directory
-			if(loc != null) {
-				File f = new File(loc);
-				if(f.getParentFile().getAbsolutePath().equals(this.codedir)) {
-					if(f.isDirectory())
-						try {
-							FileUtils.deleteDirectory(f);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					else
-						f.delete();
-				}
-			}
-		}
-    if(this.externalCatalog != null)
-      this.externalCatalog.removeComponent(cid, remove_holder, unlink);
-    
-    this.stop_batch_operation();
-    return this.save() && this.end();
+	  try {
+  	  this.start_read();  	  
+  		KBObject compobj = kb.getIndividual(cid);
+  		if(compobj == null) {
+  		  return false;
+  		}
+  		ArrayList<KBObject> inputobjs = this.getComponentInputs(compobj);
+  		ArrayList<KBObject> outputobjs = this.getComponentOutputs(compobj);
+      ArrayList<KBObject> sdobjs = this.kb.getPropertyValues(compobj, 
+          this.objPropMap.get("hasSoftwareDependency"));
+      ArrayList<KBObject> hdobjs = this.kb.getPropertyValues(compobj,
+          this.objPropMap.get("hasHardwareDependency"));
+      String loc = this.getComponentLocation(cid);
+      this.end();
+      
+      
+      // Remove items from KB
+      this.start_write();
+      
+      // - Remove component class (holder)
+      if(remove_holder) {
+        String holderid = this.getComponentHolderId(cid);
+        KBUtils.removeAllTriplesWith(writerkb, holderid, false);
+      }
+      // - Remove inputs
+  		for (KBObject obj : inputobjs) {
+  			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
+  		}
+  		// - Remove outputs
+  		for (KBObject obj : outputobjs) {
+  			KBUtils.removeAllTriplesWith(writerkb, obj.getID(), false);
+  		}
+  		// - Remove software requirement items
+  		for(KBObject obj : sdobjs)
+  		  for(KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
+  		    this.writerkb.removeTriple(t);
+  		// - Remove hardware requirement items
+      for(KBObject obj : hdobjs)
+        for (KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
+          this.writerkb.removeTriple(t);
+      // - Remove the component itself
+  		KBUtils.removeAllTriplesWith(writerkb, cid, false);
+  		
+  		this.save();
+  		
+  		// Remove the component directory
+  		if (unlink) {
+  			// Remove component if it is in the catalog's component directory
+  			if(loc != null) {
+  				File f = new File(loc);
+  				if(f.getParentFile().getAbsolutePath().equals(this.codedir)) {
+  					if(f.isDirectory())
+  						try {
+  							FileUtils.deleteDirectory(f);
+  						} catch (IOException e) {
+  							e.printStackTrace();
+  						}
+  					else
+  						f.delete();
+  				}
+  			}
+  		}
+      if(this.externalCatalog != null)
+        this.externalCatalog.removeComponent(cid, remove_holder, unlink);
+      
+      return true;
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	@Override

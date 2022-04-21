@@ -1004,7 +1004,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   
   		// Check component dependencies
   		// If set, overwrite the component dependencies with these
-  		ComponentRequirement req = this.getComponentRequirements(tcomp, tkb);
+  		ComponentRequirement req = comp.getComponentRequirement();
   		if(req != null) {
   		  if(req.getMemoryGB() != 0)
   		    c.getRequirements().setMemoryGB(req.getMemoryGB());
@@ -1206,6 +1206,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		ComponentVariable c = details.getComponent();
 		Map<Variable, Role> varMap = details.getVariableMap();
 
+    this.start_read();
+    
 		// Get Component
 		KBObject comp = this.kb.getResource(c.getBinding().getID());
 		String exepath = this.getComponentLocation(comp.getID());
@@ -1227,9 +1229,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		invocation.setComponentId(comp.getID());
 		invocation.setComponentLocation(exepath);
 		invocation.setComponentDirectory(exedir);
-
-		this.start_read();
-		boolean batchok = this.start_batch_operation();
 		
 		ArrayList<KBObject> inputs = this.kb.getPropertyValues(comp, omap.get("hasInput"));
 		ArrayList<KBObject> outputs = this.kb.getPropertyValues(comp, omap.get("hasOutput"));
@@ -1246,8 +1245,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 			}
 		}
 		
-		if(batchok)
-		  this.stop_batch_operation();
 		this.end();
 		
 		return invocation;
