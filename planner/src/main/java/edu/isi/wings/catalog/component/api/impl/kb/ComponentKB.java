@@ -144,19 +144,35 @@ public class ComponentKB extends TransactionsJena {
 				this.abs_writerkb = this.ontologyFactory.getKB(absurl, OntSpec.PLAIN);
 			}
 			
-			this.start_write();
-			this.initializeMaps(this.kb);
-			this.end();
-			
 			this.start_read();
+	    this.initializeMaps(this.kb);
 			this.initDomainKnowledge();
 			this.setRuleMappings(this.kb);
+			this.end();
 			
+			this.start_write();
+			this.addMissingProperties();
+			this.save(lib_writerkb);
 			this.end();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			this.end();
 		}
+	}
+	
+	private void addMissingProperties() {
+    // Legacy ontologies don't have some properties. Add them in here
+    if(!dataPropMap.containsKey("hasLocation"))
+      dataPropMap.put("hasLocation", lib_writerkb.createDatatypeProperty(this.pcns+"hasLocation"));
+    if(!dataPropMap.containsKey("hasVersion"))
+      dataPropMap.put("hasVersion", lib_writerkb.createDatatypeProperty(this.pcns+"hasVersion"));
+    if(!dataPropMap.containsKey("hasRule"))
+      dataPropMap.put("hasRule", lib_writerkb.createDatatypeProperty(this.pcns+"hasRule"));
+    if(!dataPropMap.containsKey("hasDocumentation"))
+      dataPropMap.put("hasDocumentation", lib_writerkb.createDatatypeProperty(this.pcns+"hasDocumentation"));
+    if(!dataPropMap.containsKey("isNoOperation"))
+      dataPropMap.put("isNoOperation", lib_writerkb.createDatatypeProperty(this.pcns+"isNoOperation"));   
 	}
 
 	private void initializeMaps(KBAPI kb) {
@@ -176,18 +192,6 @@ public class ComponentKB extends TransactionsJena {
 			this.dataPropMap.put(odp.getName(), odp);
 			this.dataPropMap.put(odp.getID(), odp);
 		}
-		
-		// Legacy ontologies don't have some properties. Add them in here
-		if(!dataPropMap.containsKey("hasLocation"))
-			dataPropMap.put("hasLocation", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasLocation"));
-    if(!dataPropMap.containsKey("hasVersion"))
-      dataPropMap.put("hasVersion", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasVersion"));
-		if(!dataPropMap.containsKey("hasRule"))
-			dataPropMap.put("hasRule", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasRule"));
-		if(!dataPropMap.containsKey("hasDocumentation"))
-			dataPropMap.put("hasDocumentation", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasDocumentation"));
-    if(!dataPropMap.containsKey("isNoOperation"))
-      dataPropMap.put("isNoOperation", this.abs_writerkb.createDatatypeProperty(this.pcns+"isNoOperation"));		
 	}
 
 	private void initDomainKnowledge() {

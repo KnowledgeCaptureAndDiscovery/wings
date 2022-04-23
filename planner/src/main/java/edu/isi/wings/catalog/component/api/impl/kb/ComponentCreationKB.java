@@ -696,7 +696,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 			if(defobj == null)
 				return null;
 			writerkb.setPropertyValue(roleobj, valProp, defobj);
-		} else if (!role.isParam()) {
+		} else if (!role.isParam() && role.getType() != null) {
 			// Write the role type
 			KBObject typeobj = kb.getConcept(role.getType());
 			if(typeobj != null)

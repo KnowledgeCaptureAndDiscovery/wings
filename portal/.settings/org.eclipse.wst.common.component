@@ -29,7 +29,7 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <dependent-module archiveName="wings-planner-5.1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/wings-planner/wings-planner">
+        <dependent-module archiveName="wings-planner-5.1.1.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/wings-planner/wings-planner">
             <dependency-type>uses</dependency-type>
         </dependent-module>
                                                 
