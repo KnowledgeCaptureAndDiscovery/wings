@@ -179,15 +179,15 @@ public class ComponentKB extends TransactionsJena {
 		
 		// Legacy ontologies don't have some properties. Add them in here
 		if(!dataPropMap.containsKey("hasLocation"))
-			dataPropMap.put("hasLocation", kb.createDatatypeProperty(this.pcns+"hasLocation"));
+			dataPropMap.put("hasLocation", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasLocation"));
     if(!dataPropMap.containsKey("hasVersion"))
-      dataPropMap.put("hasVersion", kb.createDatatypeProperty(this.pcns+"hasVersion"));
+      dataPropMap.put("hasVersion", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasVersion"));
 		if(!dataPropMap.containsKey("hasRule"))
-			dataPropMap.put("hasRule", kb.createDatatypeProperty(this.pcns+"hasRule"));
+			dataPropMap.put("hasRule", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasRule"));
 		if(!dataPropMap.containsKey("hasDocumentation"))
-			dataPropMap.put("hasDocumentation", kb.createDatatypeProperty(this.pcns+"hasDocumentation"));
+			dataPropMap.put("hasDocumentation", this.abs_writerkb.createDatatypeProperty(this.pcns+"hasDocumentation"));
     if(!dataPropMap.containsKey("isNoOperation"))
-      dataPropMap.put("isNoOperation", kb.createDatatypeProperty(this.pcns+"isNoOperation"));		
+      dataPropMap.put("isNoOperation", this.abs_writerkb.createDatatypeProperty(this.pcns+"isNoOperation"));		
 	}
 
 	private void initDomainKnowledge() {
