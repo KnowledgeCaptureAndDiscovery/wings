@@ -133,7 +133,7 @@ public class Wings {
 		logger.info(event.createStartLogMsg().addWQ(LogEvent.DOMAIN, PCDomain));
 		this.props.putAll(ComponentFactory.createLegacyConfiguration());
 		pc = ComponentFactory.getReasoningAPI(this.props);
-		ccc = ComponentFactory.getCreationAPI(props, true);
+		ccc = ComponentFactory.getCreationAPI(props);
 		logger.info(event.createEndLogMsg());
 		return pc;
 	}

@@ -11,7 +11,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <%
 ComponentController cc = (ComponentController) request.getAttribute("controller");
-String title = "Manage Component" + (cc.loadConcrete ? "s" : " Types");
+String title = "Manage Components";
 
 boolean isSandboxed = cc.config.isSandboxed();
 
@@ -47,7 +47,6 @@ var resource_api = "<%=resourceApi%>";
 var prov_api = "<%=provApi%>";
 var upload_api = "<%=uploadApi%>";
 var advanced_user = <%=!cc.config.isSandboxed()%>;
-var load_concrete = <%=cc.loadConcrete%>;
 var pcdomns = "<%=cc.pcdomns%>";
 var dcdomns = "<%=cc.dcdomns%>";
 var liburl = "<%=cc.liburl%>";
@@ -61,7 +60,7 @@ Ext.onReady(function() {
 		},
 		this_api, resource_api, upload_api, prov_api,
 		pcdomns, dcdomns, liburl,
-		load_concrete, advanced_user
+		advanced_user
 	);
 	componentViewer.initialize(); 
 });

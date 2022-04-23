@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 
+import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
@@ -39,8 +40,15 @@ import edu.isi.wings.common.kb.KBUtils;
 public class ComponentCreationKB extends ComponentKB implements ComponentCreationAPI {
   ComponentCreationAPI externalCatalog;
   
-	public ComponentCreationKB(Properties props, boolean load_concrete) {
-		super(props, load_concrete, true, false, true);
+	public ComponentCreationKB(Properties props) {
+		super(props, true, false, true);
+		
+		// Separate abstract and concrete if an older version of the catalog
+		int catVersion = this.getCatalogVersion();
+		if(catVersion < 1) {
+		  this.separateAbstractAndConcrete();
+		  this.setCatalogVersion(1);
+		}
 		
     String extern = props.getProperty("extern_component_catalog");
     if(extern != null) {
@@ -54,6 +62,47 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       }
     }
 	}
+	
+  // Cleanup code
+  private void separateAbstractAndConcrete() {
+    try {
+      // Get all component information
+      ComponentTree tree = this.getComponentHierarchy(true);
+      //System.out.println(tree);
+
+      // Delete existing
+      this.delete();
+      
+      // Move components to the respective writers (abstract, or concrete library)
+      ArrayList<ComponentTreeNode> queue = new ArrayList<ComponentTreeNode>();
+      queue.add(tree.getRoot());
+      HashMap<String, String> parents = new HashMap<String, String>();
+      while(!queue.isEmpty()) {
+        ComponentTreeNode tn = queue.remove(0);
+        ComponentHolder cholder = tn.getCls();
+        String parentId = parents.get(cholder.getID());
+        if(cholder.getComponent() == null) {
+          // Add category
+          //System.out.println("Add component holder for "+cholder.getID() + " with parent " + parentId);
+          this.addComponentHolder(cholder.getID(), parentId, false, this.abs_writerkb);
+        }
+        else {
+          Component c = cholder.getComponent();
+          KBAPI writerkb = c.isConcrete() ? this.lib_writerkb : this.abs_writerkb;
+          // Add component
+          //System.out.println("Add component " + c.getID() + " : " + c.getType() + " with parent " + parentId);;
+          this.addComponent(c, parentId, writerkb); 
+        }
+        for(ComponentTreeNode childn : tn.getChildren()) {
+          parents.put(childn.getCls().getID(), cholder.getID());
+          queue.add(childn);
+        }
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
 	@Override
 	public ComponentTree getComponentHierarchy(boolean details) {
@@ -109,6 +158,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		this.end();
 		
+		// cleanup hack (for components that have the top class as the holder)
 		for(String compid: tbd) {
 		  this.removeComponent(compid, true, true);
 		}
@@ -119,6 +169,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
   @Override
   public boolean setComponentLocation(String cid, String location) {
+    KBAPI writerkb = this.getWriterKB(cid);
+    return this.setComponentLocation(cid, location, writerkb);
+
+  }
+  
+  protected boolean setComponentLocation(String cid, String location, KBAPI writerkb) {
     boolean new_transaction = false;
     if (!this.is_in_transaction()) {
       this.start_write();
@@ -126,9 +182,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
     }
     try {
       KBObject locprop = this.kb.getProperty(this.pcns + "hasLocation");
-      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject cobj = writerkb.getResource(cid);
       KBObject locobj = writerkb.createLiteral(location);
-      this.writerkb.setPropertyValue(cobj, locprop, locobj);
+      writerkb.setPropertyValue(cobj, locprop, locobj);
       if (this.externalCatalog != null)
         this.externalCatalog.setComponentLocation(cid, location);
       if (new_transaction)
@@ -146,6 +202,11 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
   @Override
   public boolean setComponentVersion(String cid, int version) {
+    KBAPI writerkb = this.getWriterKB(cid);
+    return this.setComponentVersion(cid, version, writerkb);
+  }
+  
+  protected boolean setComponentVersion(String cid, int version, KBAPI writerkb) {
     boolean new_transaction = false;
     if (!this.is_in_transaction()) {
       this.start_write();
@@ -153,9 +214,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
     }
     try {
       KBObject versionProp = this.kb.getProperty(this.pcns + "hasVersion");
-      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject cobj = writerkb.getResource(cid);
       KBObject versionobj = writerkb.createLiteral(version);
-      this.writerkb.setPropertyValue(cobj, versionProp, versionobj);
+      writerkb.setPropertyValue(cobj, versionProp, versionobj);
       if (new_transaction)
         this.save();
       return true;
@@ -171,6 +232,11 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 
   public boolean setModelCatalogIdentifier(String cid, String modelIdentifier) {
+    KBAPI writerkb = this.getWriterKB(cid);
+    return this.setModelCatalogIdentifier(cid, modelIdentifier, writerkb);
+  }
+  
+  protected boolean setModelCatalogIdentifier(String cid, String modelIdentifier, KBAPI writerkb) {
     boolean new_transaction = false;
     if (!this.is_in_transaction()) {
       this.start_write();
@@ -178,9 +244,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
     }
     try {
       KBObject modelIdProp = this.kb.getProperty(this.pcns + "source");
-      KBObject cobj = this.writerkb.getResource(cid);
+      KBObject cobj = writerkb.getResource(cid);
       KBObject locobj = writerkb.createLiteral(modelIdentifier);
-      this.writerkb.setPropertyValue(cobj, modelIdProp, locobj);
+      writerkb.setPropertyValue(cobj, modelIdProp, locobj);
       if (this.externalCatalog != null)
         this.externalCatalog.setComponentLocation(cid, modelIdentifier);
       if (new_transaction)
@@ -219,7 +285,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	
 	@Override
   public boolean incrementComponentVersion(String cid) {
-	  try {
+    KBAPI writerkb = this.getWriterKB(cid);
+    return this.incrementComponentVersion(cid, writerkb);
+  }
+	
+	protected boolean incrementComponentVersion(String cid, KBAPI writerkb) {
+    try {
       this.start_write();
       KBObject compobj = kb.getIndividual(cid);      
       KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
@@ -227,27 +298,36 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       int currentVersion = (Integer) (versionVal.getValue() != null ? versionVal.getValue() : 0);
       
       int newVersion = currentVersion+1;
-      KBObject cobj = this.writerkb.getResource(cid);
-      KBObject newVersionVal = this.writerkb.createLiteral(newVersion);
-      this.writerkb.setPropertyValue(cobj, versionProp, newVersionVal);
+      KBObject cobj = writerkb.getResource(cid);
+      KBObject newVersionVal = writerkb.createLiteral(newVersion);
+      writerkb.setPropertyValue(cobj, versionProp, newVersionVal);
       return this.save();
     }
     catch(Exception e) {
       e.printStackTrace();
       this.end();
     }
-	  return false;
-  }
+    return false;	  
+	}
 
+	
 	@Override
 	public boolean save() {
-		if(this.writerkb != null)
-			return this.save(writerkb);
-		return false;
+	  boolean ok1 = false, ok2 = false;
+    if(abs_writerkb != null)
+      ok1 = this.save(abs_writerkb);	  
+		if(lib_writerkb != null)
+			ok2 = this.save(lib_writerkb);
+		return ok1 && ok2;
 	}
 
 	@Override
-	public boolean addComponent(Component comp, String pholderid) {		
+	public boolean addComponent(Component comp, String pholderid) {
+	  KBAPI writerkb = this.getWriterKB((comp.getType() == Component.CONCRETE));
+	  return this.addComponent(comp, pholderid, writerkb);
+	}
+	  
+	protected boolean addComponent(Component comp, String pholderid, KBAPI writerkb) {  
 		// Check for uniqueness of the role names passed in
 		HashSet<String> unique = new HashSet<String>();
 		for (ComponentRole role : comp.getInputs())
@@ -273,48 +353,47 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   		else
   			cls = kb.getConcept(cholderid);
   
-  		KBObject cobj = this.writerkb.createObjectOfClass(cid, cls);
+  		KBObject cobj = writerkb.createObjectOfClass(cid, cls);
   
   		KBObject inProp = kb.getProperty(this.pcns + "hasInput");
   		KBObject outProp = kb.getProperty(this.pcns + "hasOutput");
-  		KBObject isConcreteProp = kb.getProperty(this.pcns + "isConcrete");
   
   		for (ComponentRole role : comp.getInputs()) {
   			role.setID(cid + "_" + role.getRoleName()); // HACK: role id is <compid>_<rolename/argid>
-  			KBObject roleobj = this.createRole(role);
+  			KBObject roleobj = this.createRole(role, writerkb);
   			if(roleobj == null)
   				return false;
-  			this.writerkb.addTriple(cobj, inProp, roleobj);
+  			writerkb.addTriple(cobj, inProp, roleobj);
   		}
   		for (ComponentRole role : comp.getOutputs()) {
   			role.setID(cid + "_" + role.getRoleName());
-  			KBObject roleobj = this.createRole(role);
+  			KBObject roleobj = this.createRole(role, writerkb);
   			if(roleobj == null)
   				return false;
-  			this.writerkb.addTriple(cobj, outProp, roleobj);
+  			writerkb.addTriple(cobj, outProp, roleobj);
   		}
   
   		if(comp.getSource() != null){
-  			this.setModelCatalogIdentifier(cid, comp.getSource());
+  			this.setModelCatalogIdentifier(cid, comp.getSource(), writerkb);
   		}
   		if(comp.getDocumentation() != null)
-  			this.setComponentDocumentation(cobj, comp.getDocumentation());
+  			this.setComponentDocumentation(cobj, comp.getDocumentation(), writerkb);
   		
       if(comp.getComponentRequirement() != null)
-        this.setComponentRequirements(cobj, comp.getComponentRequirement(),
-            this.kb, this.writerkb);
+        this.setComponentRequirements(cobj, comp.getComponentRequirement(), writerkb);
       
   		if(comp.getLocation() != null)
-  			this.setComponentLocation(cid, comp.getLocation());
+  			this.setComponentLocation(cid, comp.getLocation(), writerkb);
   		
   		if(comp.getRulesText() != null) {
-  			this.setComponentRules(cid, comp.getRulesText());
+  			this.setComponentRules(cid, comp.getRulesText(), writerkb);
   		}
   		
-  		this.setComponentVersion(cid, comp.getVersion());
+  		this.setComponentVersion(cid, comp.getVersion(), writerkb);
   		
-  		KBObject isConcreteVal = this.writerkb.createLiteral(comp.getType() == Component.CONCRETE);
-  		this.writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);
+      KBObject isConcreteProp = kb.getProperty(this.pcns + "isConcrete");
+  		KBObject isConcreteVal = writerkb.createLiteral(comp.getType() == Component.CONCRETE);
+  		writerkb.setPropertyValue(cobj, isConcreteProp, isConcreteVal);
   		
       if(this.externalCatalog != null)
         this.externalCatalog.addComponent(comp, pholderid);
@@ -327,26 +406,49 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	}
 
 	@Override
-	public boolean addComponentHolder(String holderid, String pholderid) {
+	public boolean addComponentHolder(String holderid, String pholderid, boolean is_concrete) {
+    KBAPI writerkb = this.getWriterKB(is_concrete);
+    return this.addComponentHolder(holderid, pholderid, is_concrete, writerkb);
+	}
+	
+	protected boolean addComponentHolder(String holderid, String pholderid, boolean is_concrete, KBAPI writerkb) {
 	  try {
   	  this.start_write();
   		writerkb.createClass(holderid, pholderid);
       if(this.externalCatalog != null)
-        this.externalCatalog.addComponentHolder(holderid, pholderid);
+        this.externalCatalog.addComponentHolder(holderid, pholderid, is_concrete);
   		return this.save();
 	  }
     finally {
       this.end();
     }
 	}
+  
+	 
+  @SuppressWarnings("unused")
+  private void setSubclassParentsToGrandparents(String holderid, KBAPI writerkb) {
+    KBObject holderobj = kb.getConcept(holderid);
+    ArrayList<KBObject> holderparents = kb.getSuperClasses(holderobj, true);
+    for(KBObject subcls: kb.getSubClasses(holderobj, true)) {
+      // Set parents of subclasses to holderparents
+      for(KBObject parentobj: holderparents)
+        writerkb.setSuperClass(subcls.getID(), parentobj.getID());
+    }
+  }
 	
 	@Override
-	public boolean removeComponentHolder(String ctype) {
+	public boolean removeComponentHolder(String ctype, boolean is_concrete) {
+    KBAPI writerkb = this.getWriterKB(is_concrete);
+    return this.removeComponentHolder(ctype, is_concrete, writerkb);
+	}
+	
+	protected boolean removeComponentHolder(String ctype, boolean is_concrete, KBAPI writerkb) {
 	  try {
   	  this.start_write();
+  	  //this.setSubclassParentsToGrandparents(ctype);
   		KBUtils.removeAllTriplesWith(writerkb, ctype, false);
       if(this.externalCatalog != null)
-        this.externalCatalog.removeComponentHolder(ctype);
+        this.externalCatalog.removeComponentHolder(ctype, is_concrete);
   		return this.save();
 	  }
     finally {
@@ -356,6 +458,11 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 
 	@Override
 	public boolean removeComponent(String cid, boolean remove_holder, boolean unlink) {
+	  KBAPI writerkb = this.getWriterKB(cid);
+	  return this.removeComponent(cid, remove_holder, unlink, writerkb);
+	}
+	  
+	protected boolean removeComponent(String cid, boolean remove_holder, boolean unlink, KBAPI writerkb) {	
 	  ArrayList<KBObject> inputobjs, outputobjs, sdobjs, hdobjs;
 	  String loc;
 	  try {
@@ -386,6 +493,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       // - Remove component class (holder)
       if(remove_holder) {
         String holderid = this.getComponentHolderId(cid);
+        //this.setSubclassParentsToGrandparents(holderid);
         KBUtils.removeAllTriplesWith(writerkb, holderid, false);
       }
       // - Remove inputs
@@ -398,12 +506,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   		}
   		// - Remove software requirement items
   		for(KBObject obj : sdobjs)
-  		  for(KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
-  		    this.writerkb.removeTriple(t);
+  		  for(KBTriple t : writerkb.genericTripleQuery(obj, null, null))
+  		    writerkb.removeTriple(t);
   		// - Remove hardware requirement items
       for(KBObject obj : hdobjs)
-        for (KBTriple t : this.writerkb.genericTripleQuery(obj, null, null))
-          this.writerkb.removeTriple(t);
+        for (KBTriple t : writerkb.genericTripleQuery(obj, null, null))
+          writerkb.removeTriple(t);
       // - Remove the component itself
   		KBUtils.removeAllTriplesWith(writerkb, cid, false);
   		
@@ -448,6 +556,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	public boolean renameComponent(String oldid, String newid) {
 	  try {
   	  this.start_write();
+  	  KBAPI writerkb = this.getWriterKB(oldid);
   		KBUtils.renameAllTriplesWith(writerkb, this.getComponentHolderId(oldid), 
   				this.getComponentHolderId(newid), false);
   		KBUtils.renameAllTriplesWith(writerkb, oldid, newid, false);
@@ -461,12 +570,6 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       this.end();
     }
 	}
-	
-	@Override
-	public String getComponentHolderId(String cid) {
-		//Component holder id is <compid>Class
-		return cid + "Class";
-	}
 
 
 	@Override
@@ -476,7 +579,9 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		try {
   		this.start_write();
   		dckb.start_read();
-  		this.writerkb.copyFrom(dckb.writerkb);
+  		
+  		this.abs_writerkb.copyFrom(dckb.abs_writerkb);
+  		this.lib_writerkb.copyFrom(dckb.lib_writerkb);
   		
       // Namespace rename maps
       HashMap<String, String> nsmap = new HashMap<String, String>();
@@ -484,41 +589,47 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
       nsmap.put(dckb.pcns, this.pcns);
       nsmap.put(dckb.dcdomns, this.dcdomns);
       nsmap.put(dckb.pcdomns, this.pcdomns);
-  		KBUtils.renameTripleNamespaces(this.writerkb, nsmap);
+  		KBUtils.renameTripleNamespaces(abs_writerkb, nsmap);
+  		KBUtils.renameTripleNamespaces(lib_writerkb, nsmap);
   		
-  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.pcurl, this.pcurl, false);
-  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.absurl, this.absurl, false);
-  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.liburl, this.liburl, false);
-  		KBUtils.renameAllTriplesWith(this.writerkb, dckb.dconturl, this.dconturl, false);
+  		KBUtils.renameAllTriplesWith(abs_writerkb, dckb.pcurl, this.pcurl, false);
+  		KBUtils.renameAllTriplesWith(abs_writerkb, dckb.absurl, this.absurl, false);
+  		KBUtils.renameAllTriplesWith(abs_writerkb, dckb.dconturl, this.dconturl, false);
+  		
+      KBUtils.renameAllTriplesWith(lib_writerkb, dckb.pcurl, this.pcurl, false);
+      KBUtils.renameAllTriplesWith(lib_writerkb, dckb.absurl, this.absurl, false);
+      KBUtils.renameAllTriplesWith(lib_writerkb, dckb.liburl, this.liburl, false);
+      KBUtils.renameAllTriplesWith(lib_writerkb, dckb.dconturl, this.dconturl, false);
       
       // Change any specified locations of data
-      KBObject locProp = this.writerkb.getProperty(this.pcns+"hasLocation");
+      KBObject locProp = lib_writerkb.getProperty(this.pcns+"hasLocation");
       ArrayList<KBTriple> triples = 
-          this.writerkb.genericTripleQuery(null, locProp, null);
+          lib_writerkb.genericTripleQuery(null, locProp, null);
       for(KBTriple t : triples) {
-        this.writerkb.removeTriple(t);
+        lib_writerkb.removeTriple(t);
         if(t.getObject() == null || t.getObject().getValue() == null)
           continue;
         KBObject comp = t.getSubject();
         String loc = (String) t.getObject().getValue();
         File f = new File(loc);
         loc = this.codedir + File.separator + f.getName();
-        this.writerkb.setPropertyValue(comp, locProp, this.writerkb.createLiteral(loc));
+        lib_writerkb.setPropertyValue(comp, locProp, lib_writerkb.createLiteral(loc));
       }
       
   		//FIXME: A hack to get the imported domain's resource namespace. Should be explicit
   		String dcreslibns = dckb.liburl.replaceAll("\\/export\\/users\\/.+$", 
   		    "/export/common/resource/library.owl#");
-  		KBUtils.renameTripleNamespace(this.writerkb, dcreslibns, this.resliburl+"#");
+  		KBUtils.renameTripleNamespace(lib_writerkb, dcreslibns, this.resliburl+"#");
   		this.save();
-  		dc.end();
   		this.end();
+      dckb.end();  		
   
   		this.start_read();
   		this.initializeAPI(true, true, true);
 		}
     finally {
       this.end();
+      dckb.end();
     }
 	}
 
@@ -526,7 +637,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	public boolean delete() {
 		return 
 		    this.start_write() && 
-		    this.writerkb.delete() &&
+		    this.abs_writerkb.delete() &&
+		    this.lib_writerkb.delete() &&
 		    this.save() &&
 		    this.end();
 	}
@@ -545,12 +657,12 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	/*
 	 * Private helper functions
 	 */
-	private void setComponentDocumentation(KBObject compobj, String doc) {
+	private void setComponentDocumentation(KBObject compobj, String doc, KBAPI writerkb) {
 		KBObject docProp = kb.getProperty(this.pcns + "hasDocumentation");
-		kb.setPropertyValue(compobj, docProp, kb.createLiteral(doc));
+		writerkb.setPropertyValue(compobj, docProp, writerkb.createLiteral(doc));
 	}
 
-	private KBObject createRole(ComponentRole role) {
+	private KBObject createRole(ComponentRole role, KBAPI writerkb) {	  
 		KBObject argidProp = kb.getProperty(this.pcns + "hasArgumentID");
 		KBObject dimProp = kb.getProperty(this.pcns + "hasDimensionality");
 		KBObject pfxProp = kb.getProperty(this.pcns + "hasArgumentName");

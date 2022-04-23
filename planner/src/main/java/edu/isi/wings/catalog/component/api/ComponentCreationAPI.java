@@ -36,7 +36,7 @@ public interface ComponentCreationAPI extends TransactionsAPI {
 	// Update
 	boolean addComponent(Component comp, String pholderid);
 	
-	boolean addComponentHolder(String holderid, String pholderid);
+	boolean addComponentHolder(String holderid, String pholderid, boolean is_concrete);
 
 	boolean updateComponent(Component newcomp);
 	
@@ -44,7 +44,7 @@ public interface ComponentCreationAPI extends TransactionsAPI {
 
 	boolean removeComponent(String cid, boolean remove_holder, boolean unlink);
 	
-	boolean removeComponentHolder(String holderid);
+	boolean removeComponentHolder(String holderid, boolean is_concrete);
 	
 	boolean setComponentLocation(String cid, String location);
 	

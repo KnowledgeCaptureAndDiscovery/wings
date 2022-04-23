@@ -17,7 +17,7 @@
 
 function ComponentViewer(guid, store, op_url, res_url, 
 		upload_url, prov_url, pcdomns, dcdomns, liburl, 
-		load_concrete, advanced_user) {
+		advanced_user) {
     this.guid = guid;
     this.store = store;
     this.op_url = op_url;
@@ -26,7 +26,6 @@ function ComponentViewer(guid, store, op_url, res_url,
     this.prov_url = prov_url;
     this.liburl = liburl;
     this.libname = liburl.replace(/.+\//, '').replace(/\.owl$/, '');
-    this.load_concrete = load_concrete;
     this.advanced_user = advanced_user;
 
     this.ns = {};
@@ -59,7 +58,7 @@ ComponentViewer.prototype.getComponentTreePanel = function(root, title, iconCls,
         border: false,
         autoScroll: true,
         hideHeaders: true,
-        rootVisible: false,
+        rootVisible: true,
 	    useArrows: true,
         viewConfig: {
             plugins: {
@@ -90,12 +89,25 @@ ComponentViewer.prototype.getComponentTreePanel = function(root, title, iconCls,
 ComponentViewer.prototype.getAddMenuItem = function() {
     var This = this;
 	return {
-        text: 'Add ' + (this.load_concrete ? 'Component': 'Type'),
-        iconCls: 'icon-add fa fa-green',
+        text: 'Add Component',
+        iconCls: 'icon-component fa fa-orange',
         handler: function() {
             var nodes = This.treePanel.getSelectionModel().getSelection();
             var parentNode = (nodes && nodes.length) ? nodes[0] : null;
-            This.addComponent(parentNode);
+            This.addComponent(parentNode, false);
+        }
+    };
+};
+
+ComponentViewer.prototype.getAddTypeMenuItem = function() {
+    var This = this;
+	return {
+        text: 'Add Component Type',
+        iconCls: 'icon-component fa fa-grey',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            var parentNode = (nodes && nodes.length) ? nodes[0] : null;
+            This.addComponent(parentNode, true);
         }
     };
 };
@@ -148,16 +160,16 @@ ComponentViewer.prototype.createTreeToolbar = function() {
     if (this.advanced_user) {
         var items = [];
     	var additem = This.getAddMenuItem();
+    	var addtypeitem = This.getAddTypeMenuItem();
     	var addcatitem = This.getAddCategoryMenuItem()
     	var delitem = This.getDeleteMenuItem();
     	var duplicate_item = This.getDuplicateMenuItem();
-        items.push(additem);
-        if (!this.load_concrete) {
-            items.push(addcatitem);
-        }
-        else {
-            items.push(duplicate_item);
-        }
+    	items.push({
+            text: 'Add',
+            iconCls: 'icon-add fa fa-green',
+            menu: [additem, addtypeitem, addcatitem]
+        })
+        items.push(duplicate_item);
         items.push(delitem);
         var toolbar = Ext.create('Ext.toolbar.Toolbar', {
             dock: 'top',
@@ -174,33 +186,28 @@ ComponentViewer.prototype.onComponentItemContextMenu =
     e.stopEvent();
     if (!this.menu && this.advanced_user) {
     	var additem = This.getAddMenuItem();
+    	var addtypeitem = This.getAddTypeMenuItem();
     	var addcatitem = This.getAddCategoryMenuItem()
     	var delitem = This.getDeleteMenuItem();
     	var duplicate_item = This.getDuplicateMenuItem()
-    	additem.iconCls = 'icon-add fa-menu fa-green';
+    	additem.iconCls = 'icon-component fa-menu fa-orange';
+    	addtypeitem.iconCls = 'icon-component fa-menu fa-grey';
     	addcatitem.iconCls = 'icon-folder-open fa-menu fa-yellow';
     	delitem.iconCls = 'icon-del fa-menu fa-red';
         duplicate_item.iconCls = 'icon-docs fa-menu fa-blue';
 
-        var items = [additem];
-        if (!this.load_concrete) {
-            items.push(addcatitem);
-        } else {
-            items.push(duplicate_item);
-        }
-        items.push(delitem);
-
-        var roitems = [additem];
-        this.menu = Ext.create('Ext.menu.Menu', {
-            items: items });
-        this.readmenu = Ext.create('Ext.menu.Menu', {
-            items: roitems });
+        var typeitems = [additem, addtypeitem, addcatitem, duplicate_item, delitem];
+        var compitems = [duplicate_item, delitem];
+        this.typemenu = Ext.create('Ext.menu.Menu', {
+            items: typeitems });
+        this.compmenu = Ext.create('Ext.menu.Menu', {
+            items: compitems });
     }
     if(this.advanced_user) {
-	    if (node.data.component.concrete || !this.load_concrete)
-	        this.menu.showAt(e.getXY());
+	    if (node.data.component.concrete)
+	        this.compmenu.showAt(e.getXY());
 	    else
-	        this.readmenu.showAt(e.getXY());
+	        this.typemenu.showAt(e.getXY());
     }
 };
 
@@ -318,8 +325,7 @@ ComponentViewer.prototype.getComponentTreeNode = function(item, setid) {
 ComponentViewer.prototype.getComponentListTree = function(enableDrag) {
     var tmp = this.getComponentTree(this.store.tree);
     return this.getComponentTreePanel(tmp, 'Tree',
-    		'icon-component fa-title ' + 
-    		(this.load_concrete ? 'fa-orange': 'fa-grey'), enableDrag);
+    		'icon-component fa-title fa-grey', enableDrag);
 };
 
 ComponentViewer.prototype.getComponentInputsTree = function(enableDrag) {
@@ -657,7 +663,7 @@ ComponentViewer.prototype.getIOListEditor = function(c, iostore, types, tab, sav
     return mainPanel;
 };
 
-ComponentViewer.prototype.addComponent = function(parentNode) {
+ComponentViewer.prototype.addComponent = function(parentNode, isType) {
     var This = this;
     var cTree = this.treePanel;
     if (parentNode == null)
@@ -669,29 +675,33 @@ ComponentViewer.prototype.addComponent = function(parentNode) {
     var parentIsConcrete = pc.component.concrete;
 
     // New: Can only add concrete components to existing component types
-    if (this.load_concrete && (!parentId || parentIsConcrete)) {
-        showError('Please select a Component Type');
+    if (!isType && (!parentId || parentIsConcrete)) {
+        showError('Please select a Component Type as the parent');
         return;
     }
+    if (isType && parentId && parentIsConcrete) {
+        showError('Please select a Component Type as the parent');
+        return;
+    }
+    var ctxt = "Component" + (isType ? " Type": "");
 
-    Ext.Msg.prompt("Add Component", "Enter name for the new Component:", function(btn, text) {
+    Ext.Msg.prompt("Add " + ctxt, "Enter name for the " + ctxt+":", function(btn, text) {
         if (btn == 'ok' && text) {
             text = getRDFID(text);
             var cid = This.ns[''] + text;
             var enode = cTree.getStore().getNodeById(cid);
             if (enode) {
-                showError('Component ' + text + ' already exists');
+                showError(text + ' already exists');
                 return;
             }
-            var url = This.op_url + '/addComponent';
+            var url = This.op_url + '/addComponent' + (isType ? "Type": "") ;
             cTree.getEl().mask("Creating..");
             Ext.Ajax.request({
                 url: url,
                 params: {
                     parent_cid: parentId,
                     parent_type: parentType,
-                    cid: cid,
-                    load_concrete: This.load_concrete
+                    cid: cid
                 },
                 success: function(response) {
                     cTree.getEl().unmask();
@@ -705,7 +715,7 @@ ComponentViewer.prototype.addComponent = function(parentNode) {
                                     id: cid,
                                     text: text,
                                     cls: clsid,
-                                    type: (This.load_concrete ? 2: 1)
+                                    type: (!isType ? 2: 1)
                                 }
                             }
                         });
@@ -752,8 +762,7 @@ ComponentViewer.prototype.addCategory = function(parentNode) {
                 url: url,
                 params: {
                     parent_type: parentType,
-                    cid: cid,
-                    load_concrete: This.load_concrete
+                    cid: cid
                 },
                 success: function(response) {
                     cTree.getEl().unmask();
@@ -789,14 +798,6 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
 	var This = this;
     var c = node.data.component;
     var cls = node.data.cls;
-    /*if (!c.concrete && This.load_concrete) {
-        Ext.MessageBox.show({
-            title: 'Cannot delete',
-            msg: 'Cannot delete component types from this interface. Go to "Manage Component Types" instead',
-            buttons: Ext.Msg.OK
-        });
-        return;
-    }*/
     Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls), function(yesno) {
         if (yesno == "yes") {
             var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');
@@ -831,17 +832,15 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
     var cTree = this.treePanel;
     var c = node.data.component;
     var cls = node.data.cls;
+    var isConcrete = c.isConcrete;
     var parentNode = node.parentNode
     var pc = parentNode.data;
     var parentType = pc.cls;
     var parentId = pc.component ? pc.component.id: null;
-    var parentIsConcrete = pc.component.concrete;
-    // New: Can only add concrete components to existing component types
-    if (this.load_concrete && (!parentId || parentIsConcrete)) {
+    if (!c) {
         showError('Please select a Component');
         return;
     }
-
 
     Ext.MessageBox.prompt("Duplicate component", "<i>(Note: Rules won't be copied over)</i><br/><br/>Enter the new name", function(btn, txt) {
         if (btn == "ok" && txt) {
@@ -859,8 +858,7 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
                     new_cid: new_cid,
                     parent_cid: parentId,
                     parent_type: parentType,
-                    cid: c.id,
-                    load_concrete: This.load_concrete
+                    cid: c.id
                 },
                 //TODO: Fix me
                 success: function(response) {
@@ -875,7 +873,7 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
                                     id: new_cid,
                                     text: txt,
                                     cls: clsid,
-                                    type: (This.load_concrete ? 2: 1),
+                                    type: (isConcrete ? 2: 1),
                                     location: "blank"
                                 }
                             }
@@ -912,7 +910,7 @@ ComponentViewer.prototype.refreshInactiveTabs = function() {
 			//tab.guifn.call(this, tab.args);
 		}
 	}*/
-    };
+};
 
 ComponentViewer.prototype.prepareRoleRecord = function(arg, isParam) {
     var narg = {};
@@ -1037,8 +1035,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
                 url: url,
                 params: {
                 	cid: c.id,
-                    component_json: Ext.encode(comp),
-                    load_concrete: This.load_concrete
+                    component_json: Ext.encode(comp)
                 },
                 success: function(response) {
                     This.treePanel.getEl().unmask();
@@ -1066,7 +1063,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
         }
     });
 
-    tab.ioEditor = This.getIOListEditor(c, compStore, This.store.types, tab, savebtn, (This.advanced_user && c.concrete == This.load_concrete));
+    tab.ioEditor = This.getIOListEditor(c, compStore, This.store.types, tab, savebtn, This.advanced_user);
     
     var addcompbtn = {
             xtype: 'button',
@@ -1134,7 +1131,7 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
         };
 
 	        
-	var editable = (This.advanced_user && This.load_concrete == c.concrete);
+	var editable = This.advanced_user;
 	
     var tbar = [];
     if(editable)
@@ -1738,7 +1735,7 @@ ComponentViewer.prototype.initialize = function() {
     });
     var libname = (this.libname == "library" ? "Default": this.libname);
     Ext.apply(this.treePanel, {
-        title: 'Component' + (!This.load_concrete ? ' Types': 's: ' + libname)
+        title: 'Components: ' + libname
     });
 
     this.store.types.sort();

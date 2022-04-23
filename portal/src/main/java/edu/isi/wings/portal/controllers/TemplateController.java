@@ -69,7 +69,7 @@ public class TemplateController {
         this.props = config.getProperties();
 
         tc = TemplateFactory.getCreationAPI(props);
-        cc = ComponentFactory.getCreationAPI(props, true);
+        cc = ComponentFactory.getCreationAPI(props);
         dc = DataFactory.getCreationAPI(props);
         prov = ProvenanceFactory.getAPI(props);
     }

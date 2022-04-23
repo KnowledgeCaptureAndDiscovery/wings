@@ -52,8 +52,11 @@ public class ComponentPacket {
 	public boolean isInvalid;
   // If the reasoner marked this ComponentDetails packet as a No-operation (i.e. skip processing)
   public boolean isNoOperation;	
+  // Mapping of compatible output roles to input roles to pass through
+  private HashMap<String, String> noOperationIOPassthrough;
   
 	private ArrayList<String> inputRoles;
+
 
 	public ComponentPacket(ComponentVariable component, Map<Role, Variable> roleMap,
 			ArrayList<KBTriple> requirements) {
@@ -62,7 +65,8 @@ public class ComponentPacket {
 		this.variableMap = createReverseMap(roleMap);
 		this.requirements = requirements;
 		this.explanations = new HashSet<String>();
-		inputRoles = new ArrayList<String>();
+		this.inputRoles = new ArrayList<String>();
+		this.noOperationIOPassthrough = new HashMap<String, String>();
 		this.isInvalid = false;
 	}
 
@@ -244,6 +248,14 @@ public class ComponentPacket {
 
   public void setNoOperationFlag(boolean isNoOperation) {
     this.isNoOperation = isNoOperation;
+  }
+
+  public HashMap<String, String> getNoOperationIOPassthrough() {
+    return noOperationIOPassthrough;
+  }
+
+  public void addNoOperationIOPassthrough(String invar, String outvar) {
+    this.noOperationIOPassthrough.put(invar,  outvar);
   }
 
   @Override

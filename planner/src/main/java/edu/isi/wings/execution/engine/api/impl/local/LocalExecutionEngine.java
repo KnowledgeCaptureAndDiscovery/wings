@@ -221,6 +221,11 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
     		try {
           // Mark job as started
           this.exe.onStart(this.logger);
+          if(exe.getStep().isSkipped()) {
+            exe.onUpdate(this.logger, "This job has been SKIPPED");
+            exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
+            return;
+          }
           
     			ArrayList<String> args = new ArrayList<String>();
     			args.add(exe.getStep().getCodeBinding().getLocation());
@@ -249,7 +254,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
           // Check if the outputs already exist, if so don't run
           boolean allExist = true;
           for (ExecutionFile file : exe.getStep().getOutputFiles()) {
-            file.removeMetadataFile();
+            //file.removeMetadataFile();
             File f = new File(file.getLocation());
             if(!f.exists())
               allExist = false;

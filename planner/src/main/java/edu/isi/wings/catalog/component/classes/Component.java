@@ -155,4 +155,8 @@ public class Component extends URIEntity {
   public String getSource() {
     return source;
   }
+  
+  public boolean isConcrete() {
+    return this.type == CONCRETE;
+  }
 }

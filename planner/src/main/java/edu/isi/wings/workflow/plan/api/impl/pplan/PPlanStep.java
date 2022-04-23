@@ -34,6 +34,7 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 	ArrayList<ExecutionFile> inputFiles;
 	ArrayList<ExecutionFile> outputFiles;
 	ArrayList<String> machineIds;
+	boolean skip = false;
 	
 	HashMap<String, ArrayList<Object>> argumentNameValueMap;
 	
@@ -159,5 +160,15 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
 
   public void setArgumentNameValueMap(HashMap<String, ArrayList<Object>> argumentNameValueMap) {
     this.argumentNameValueMap = argumentNameValueMap;
+  }
+
+  @Override
+  public boolean isSkipped() {
+    return this.skip;
+  }
+
+  @Override
+  public void setSkip(boolean skip) {
+    this.skip = skip;
   }
 }

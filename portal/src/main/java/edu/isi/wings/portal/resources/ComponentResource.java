@@ -16,23 +16,21 @@ import javax.ws.rs.core.Response.Status;
 import edu.isi.wings.portal.controllers.ComponentController;
 import edu.isi.wings.portal.controllers.RunController;
 
-@Path("{user}/{domain}/components{type:(/type)?}{external:(/external)?}")
+@Path("{user}/{domain}/components{external:(/external)?}")
 public class ComponentResource extends WingsResource {
   ComponentController cc;
 
   @PathParam("external") String external;
-  @PathParam("type") String type;
   
-  boolean loadExternal, loadConcrete;
+  boolean loadExternal;
   
   @PostConstruct
   public void init() {
     super.init();
     this.loadExternal = "/external".equals(external);
-    this.loadConcrete = !"/type".equals(type);
     
     if(this.hasPermissions() && !this.isPage("intro"))
-      this.cc = new ComponentController(config, loadConcrete, loadExternal);
+      this.cc = new ComponentController(config, loadExternal);
   }
   
   @PreDestroy
@@ -55,7 +53,7 @@ public class ComponentResource extends WingsResource {
   @GET
   @Path("intro")
   public void getIntroduction() {
-    String introPage = "ManageComponent" + (loadConcrete ? "s" : "Types");
+    String introPage = "ManageComponents";
     this.loadIntroduction(introPage);
   }
   
@@ -111,7 +109,22 @@ public class ComponentResource extends WingsResource {
       @FormParam("parent_cid") String parent_cid,
       @FormParam("parent_type") String parent_type) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() && 
-        this.cc.addComponent(cid, parent_cid, parent_type)) {
+        this.cc.addComponent(cid, parent_cid, parent_type, true)) {
+      RunController.invalidateCachedAPIs();
+      return "OK";
+    }
+    return null;
+  }
+  
+  @POST
+  @Path("addComponentType")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String addComponentType(
+      @FormParam("cid") String cid,
+      @FormParam("parent_cid") String parent_cid,
+      @FormParam("parent_type") String parent_type) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() && 
+        this.cc.addComponent(cid, parent_cid, parent_type, false)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }

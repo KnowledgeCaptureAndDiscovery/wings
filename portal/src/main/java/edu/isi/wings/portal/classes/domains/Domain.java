@@ -124,22 +124,19 @@ public class Domain {
 		legacyprops.putAll(DataFactory.createLegacyConfiguration());
 		legacyprops.putAll(ComponentFactory.createLegacyConfiguration());
 		DataCreationAPI ldc = DataFactory.getCreationAPI(legacyprops);
-		ComponentCreationAPI lacc = ComponentFactory.getCreationAPI(legacyprops, false);
-		ComponentCreationAPI lccc = ComponentFactory.getCreationAPI(legacyprops, true);
+		ComponentCreationAPI lcc = ComponentFactory.getCreationAPI(legacyprops);
 		TemplateCreationAPI ltc = TemplateFactory.getCreationAPI(legacyprops);
 
 		// Get new apis
 		Domain domain = Domain.createDefaultDomain(domName, config.getUserDir(), config.getExportUserUrl());
 		Properties props = config.getProperties(domain);
 		DataCreationAPI dc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI cc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 		
 		// Copy from legacy apis to new apis
 		dc.copyFrom(ldc);
-		acc.copyFrom(lacc);
-		ccc.copyFrom(lccc);
+		cc.copyFrom(lcc);
 		tc.copyFrom(ltc);
 		
 		// Copy legacy data/code directories to new data/code storage directory
@@ -184,26 +181,23 @@ public class Domain {
 		Domain fromdom = new Domain(domName, importDomDir, domurl, false);
 		Properties props = config.getProperties(fromdom);
 		DataCreationAPI dc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI cc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 		ResourceAPI rc = ResourceFactory.getAPI(props);
 
 		Domain todom = Domain.createDefaultDomain(domName, config.getUserDir(), config.getExportUserUrl());
 		props = config.getProperties(todom);
 		DataCreationAPI todc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI tocc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
 		ResourceAPI torc = ResourceFactory.getAPI(props);
 		
 		// Copy from file-based apis to triple-store apis
 		todc.copyFrom(dc);
-		toacc.copyFrom(acc);
-		toccc.copyFrom(ccc);
+		tocc.copyFrom(cc);
 		totc.copyFrom(tc);
 		if(rc != null && torc != null)
-		  torc.copyFrom(rc, ccc);
+		  torc.copyFrom(rc, cc);
 		
 		// Copy legacy data/code directories to new data/code storage directory
 		File srcDataDir = new File(fromdom.getDomainDirectory() + fsep
@@ -239,8 +233,7 @@ public class Domain {
 	public static File exportDomain(Domain fromdom, Config config) {
 		Properties props = config.getProperties(fromdom);
 		DataCreationAPI dc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI cc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 		ResourceAPI rc = ResourceFactory.getAPI(props);
 		
@@ -259,18 +252,16 @@ public class Domain {
 		todom.saveDomain();
 		props = config.getProperties(todom);
 		DataCreationAPI todc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI tocc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
 		ResourceAPI torc = ResourceFactory.getAPI(props);
 		
 		// Copy into non-triple-store apis
 		todc.copyFrom(dc);
-		toacc.copyFrom(acc);
-		toccc.copyFrom(ccc);
+		tocc.copyFrom(cc);
 		totc.copyFrom(tc);
     if(rc != null && torc != null)
-      torc.copyFrom(rc, ccc);
+      torc.copyFrom(rc, cc);
 		
 		// Copy legacy data/code directories to new data/code storage directory
 		File srcDataDir = new File(fromdom.getDomainDirectory() + fsep
@@ -316,12 +307,11 @@ public class Domain {
 		// Get new apis
 		Properties props = config.getProperties(domain);
 		DataCreationAPI dc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI cc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 		ExecutionMonitorAPI em = ExecutionToolsFactory.createMonitor(props);
 		
-		if(dc.delete() && acc.delete() && ccc.delete() &&
+		if(dc.delete() && cc.delete() &&
 		   tc.delete() && em.delete()) {
   		// Remove domain directory
   		if(deleteStorage) {
@@ -341,8 +331,7 @@ public class Domain {
 	public static Domain renameDomain(Domain domain, String newname, Config config) {
 		Properties props = config.getProperties(domain);
 		DataCreationAPI dc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI acc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI ccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI cc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
 		
 		File tempdir;
@@ -360,14 +349,12 @@ public class Domain {
 		
 		props = config.getProperties(todom);
 		DataCreationAPI todc = DataFactory.getCreationAPI(props);
-		ComponentCreationAPI toacc = ComponentFactory.getCreationAPI(props, false);
-		ComponentCreationAPI toccc = ComponentFactory.getCreationAPI(props, true);
+		ComponentCreationAPI tocc = ComponentFactory.getCreationAPI(props);
 		TemplateCreationAPI totc = TemplateFactory.getCreationAPI(props);
 		
 		// Copy into non-triple-store apis
 		todc.copyFrom(dc);
-		toacc.copyFrom(acc);
-		toccc.copyFrom(ccc);
+		tocc.copyFrom(cc);
 		totc.copyFrom(tc);
 		
 		// Copy legacy data/code directories to new data/code storage directory

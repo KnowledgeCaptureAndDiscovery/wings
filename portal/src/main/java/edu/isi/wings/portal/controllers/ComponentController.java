@@ -55,22 +55,19 @@ public class ComponentController {
 	public ProvenanceAPI prov;
 	
 	public boolean isSandboxed;
-	public boolean loadConcrete;
 	public boolean loadExternal;
 	
 	public Config config;
 	public Properties props;
 	public Gson json;
 
-	public ComponentController(Config config, 
-	    boolean loadConcrete, boolean loadExternal) {
+	public ComponentController(Config config, boolean loadExternal) {
 		this.config = config;
-		this.loadConcrete = loadConcrete;
 		this.isSandboxed = config.isSandboxed();
 		json = JsonHandler.createComponentJson();
 		this.props = config.getProperties();
 
-		cc = ComponentFactory.getCreationAPI(props, this.loadConcrete);
+		cc = ComponentFactory.getCreationAPI(props);
 		dc = DataFactory.getCreationAPI(props);
 		prov = ProvenanceFactory.getAPI(props);
 		
@@ -137,9 +134,9 @@ public class ComponentController {
 	  return false;
 	}
 	 
-	public synchronized boolean addComponent(String cid, String pid, String ptype) {
+	public synchronized boolean addComponent(String cid, String pid, String ptype, boolean isConcrete) {
 	  try {
-  	  int type = this.loadConcrete ? Component.CONCRETE : Component.ABSTRACT;
+  	  int type = (isConcrete ? Component.CONCRETE : Component.ABSTRACT);
   		Component comp = this.cc.getComponent(pid, true);
   		String provlog = "New component";
   		if (comp == null) {
@@ -185,7 +182,7 @@ public class ComponentController {
 	
 	public synchronized boolean addCategory(String ctype, String ptype) {
 	  try {
-	    return cc.addComponentHolder(ctype, ptype);
+	    return cc.addComponentHolder(ctype, ptype, false);
 	  }
 	  catch(Exception e) {
 	    e.printStackTrace();
@@ -211,26 +208,29 @@ public class ComponentController {
 	  try {
   	  Component temp_component = cc.getComponent(cid, true);
   
-  	  this.addComponent(new_cid, pid, ptype);
+  	  this.addComponent(new_cid, pid, ptype, temp_component.isConcrete());
   
   	  //edit the id field
   	  temp_component.setID(new_cid);
+  	  
   	  //copy the location file
-  	  String old_location = temp_component.getLocation();
-  	  String new_location = cc.getDefaultComponentLocation(new_cid);
-  	  File old_file = new File(old_location);
-  	  File new_file = new File(new_location);
-  	  if(old_file.exists() && !new_file.exists()) {
-  	    try {
-  	      FileUtils.copyDirectory(old_file, new_file);
-  	      temp_component.setLocation(new_location);
-  	      File runFile = new File(new_location+"/run");
-  	      runFile.setExecutable(true);
-  	    } catch (IOException e) {
-  	      return false;
-  	    }
+  	  if(temp_component.isConcrete()) {
+    	  String old_location = temp_component.getLocation();
+    	  String new_location = cc.getDefaultComponentLocation(new_cid);
+    	  File old_file = new File(old_location);
+    	  File new_file = new File(new_location);
+    	  if(old_file.exists() && !new_file.exists()) {
+    	    try {
+    	      FileUtils.copyDirectory(old_file, new_file);
+    	      temp_component.setLocation(new_location);
+    	      File runFile = new File(new_location+"/run");
+    	      runFile.setExecutable(true);
+    	    } catch (IOException e) {
+    	      return false;
+    	    }
+    	  }
+    	  temp_component.setLocation(new_location);
   	  }
-  	  temp_component.setLocation(new_location);
       
   	  //generate new json component
   	  String new_component_json = json.toJson(temp_component);
@@ -246,7 +246,7 @@ public class ComponentController {
 
 	public synchronized boolean delCategory(String ctype) {
 	  try {
-	    return cc.removeComponentHolder(ctype);
+	    return cc.removeComponentHolder(ctype, false);
 	  }
 	  catch (Exception e) {
 	    e.printStackTrace();

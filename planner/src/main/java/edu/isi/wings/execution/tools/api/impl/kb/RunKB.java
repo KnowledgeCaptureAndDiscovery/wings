@@ -768,27 +768,42 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	
 	private void copyBindings(Template tpl, Template xtpl) {
 	  // Copy bindings from xtpl to tpl
+	  // Match variables based on both template variables being derived from the same
 	  HashMap<String, Variable> xvarMap = new HashMap<String, Variable>();
-	  for (Node n: xtpl.getNodes()) 
-	    if(n.getDerivedFrom() != null)
-	      xvarMap.put(n.getDerivedFrom(), n.getComponentVariable());
-	  for (Variable v: xtpl.getVariables())
-	    if(v.isParameterVariable() && v.getDerivedFrom() != null)
-	      xvarMap.put(v.getDerivedFrom(), v);
+	  for (Node n: xtpl.getNodes()) {
+	    if(n.getDerivedFrom() != null) {
+	      String from = KBUtils.getLocalName(n.getDerivedFrom());
+	      xvarMap.put(from, n.getComponentVariable());
+	    }
+	  }
+	  for (Variable v: xtpl.getVariables()) {
+	    if(v.isParameterVariable() && v.getDerivedFrom() != null) {
+	      String from = KBUtils.getLocalName(v.getDerivedFrom());
+	      xvarMap.put(from, v);
+	    }
+	  }
 	  
-    for (Node n: tpl.getNodes())
-      if(xvarMap.containsKey(n.getDerivedFrom()))
-        n.getComponentVariable().setBinding(xvarMap.get(n.getDerivedFrom()).getBinding());
-    for (Variable v: tpl.getVariables())
-      if(v.isParameterVariable() && xvarMap.containsKey(v.getDerivedFrom()))
-        v.setBinding(xvarMap.get(v.getDerivedFrom()).getBinding());	  
+    for (Node n: tpl.getNodes()) {
+      if(n.getDerivedFrom() != null) {
+        String from = KBUtils.getLocalName(n.getDerivedFrom());
+        if(xvarMap.containsKey(from))
+          n.getComponentVariable().setBinding(xvarMap.get(from).getBinding());
+      }
+    }
+    for (Variable v: tpl.getVariables()) {
+      if(v.getDerivedFrom() != null) {
+        String from = KBUtils.getLocalName(v.getDerivedFrom());
+        if(v.isParameterVariable() && xvarMap.containsKey(from))
+          v.setBinding(xvarMap.get(from).getBinding());
+      }
+    }
 	}
 
   @Override
   public RuntimePlan rePlan(RuntimePlan planexe) {
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), DataFactory.getCreationAPI(props), 
-        ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props, true),
+        ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props),
         ResourceFactory.getAPI(props), planexe.getID());
     
     TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
@@ -883,8 +898,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
         stepMap = new HashMap<String, RuntimeStep>();
         for(RuntimeStep step : planexe.getQueue().getAllSteps())
           stepMap.put(step.getID(), step);
-  
-        // Add new steps to the current queue
+        
         boolean newsteps = false;
         for(RuntimeStep newstep : newexe.getQueue().getAllSteps()) {
           // Add steps not already in current queue

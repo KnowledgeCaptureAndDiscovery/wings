@@ -1542,6 +1542,16 @@ implements Template, TransactionsAPI {
     return tkb;
   }
   
+  public void clearProvenance() {
+    // Set derivedFrom to the original ids of all nodes and variables (if not already set)
+    for(Node n : this.Nodes.values()) {
+      n.setDerivedFrom(null);
+    }
+    for(Variable v : this.Variables.values()) {
+      v.setDerivedFrom(null);
+    }
+  }
+  
 	public boolean save() {
     try {
       // Serialize to temporary KB

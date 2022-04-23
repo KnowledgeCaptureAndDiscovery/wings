@@ -93,7 +93,7 @@ public class PlanController {
 
 		tc = TemplateFactory.getCreationAPI(props);
 		cc = ComponentFactory.getReasoningAPI(props);
-		ccc = ComponentFactory.getCreationAPI(props, true);
+		ccc = ComponentFactory.getCreationAPI(props);
 		dc = DataFactory.getReasoningAPI(props);
 		dcc = DataFactory.getCreationAPI(props);
 		rc = ResourceFactory.getAPI(props);
@@ -172,6 +172,7 @@ public class PlanController {
 	  	String tplid = template_bindings.getTemplateId();
 		Template tpl = tc.getTemplate(tplid);
 		this.addTemplateBindings(tpl, template_bindings);
+		tpl.clearProvenance();
 		
 		Template itpl = wg.getInferredTemplate(tpl);
 		

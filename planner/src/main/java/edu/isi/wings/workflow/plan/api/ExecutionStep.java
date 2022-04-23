@@ -39,6 +39,8 @@ public interface ExecutionStep {
 	
 	public String getURL();
 	
+	public boolean isSkipped();
+	
 	// Precondition/Parent Steps
 	public void addParentStep(ExecutionStep step);
 	
@@ -68,5 +70,7 @@ public interface ExecutionStep {
 	public ArrayList<String> getMachineIds();
 	
 	public void setMachineIds(ArrayList<String> machineIds);
+	
+	public void setSkip(boolean skip);
 	
 }

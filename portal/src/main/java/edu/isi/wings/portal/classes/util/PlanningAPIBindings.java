@@ -30,7 +30,7 @@ public class PlanningAPIBindings {
   public PlanningAPIBindings(Properties props) {
     this.tc = TemplateFactory.getCreationAPI(props);
     this.cc = ComponentFactory.getReasoningAPI(props);
-    this.ccc = ComponentFactory.getCreationAPI(props, true);
+    this.ccc = ComponentFactory.getCreationAPI(props);
     this.dc = DataFactory.getReasoningAPI(props);
     this.dcc = DataFactory.getCreationAPI(props);
     this.rc = ResourceFactory.getAPI(props);

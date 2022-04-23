@@ -148,9 +148,6 @@ function getPortalHeader() {
 			+ "/data\">Manage Data</a></li>\n"
 			+ "<li><a href=\""
 			+ userdompath
-			+ "/components/type\">Manage Component Types</a></li>\n"
-			+ "<li><a href=\""
-			+ userdompath
 			+ "/components\">Manage Components</a></li>\n"
 			+ "<li class=\"last\"><a href=\""
 			+ userpath

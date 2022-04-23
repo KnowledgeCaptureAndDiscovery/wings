@@ -112,7 +112,7 @@ public class 	DataController {
 		if(this.loadExternal)
 		  dc = dc.getExternalCatalog();
 		
-		cc = ComponentFactory.getCreationAPI(props, true);
+		cc = ComponentFactory.getCreationAPI(props);
 		tc = TemplateFactory.getCreationAPI(props);
 		
 		prov = ProvenanceFactory.getAPI(props);

@@ -391,7 +391,7 @@ public class RunController {
     String requestid = UuidGen.generateAUuid("");
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), DataFactory.getCreationAPI(props), 
-        ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props, true),
+        ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props),
         ResourceFactory.getAPI(props), requestid);
 
     ExecutionPlan plan = wg.getExecutionPlan(xtpl);

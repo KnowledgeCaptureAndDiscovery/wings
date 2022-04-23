@@ -58,6 +58,9 @@ GraphItem.prototype.configure = function() {
 		this.outputPorts[portid].configure();
 	}
 	
+	if(this.skip)
+		this.textitem.style("text-decoration", "line-through");
+		
 	if(this.inactive || this.skip)
 		this.item.style("opacity", this.config.inactiveopacity);
 	else

@@ -45,10 +45,10 @@ public class ComponentFactory {
 		return new ComponentReasoningKB(props);
 	}
 
-	public static ComponentCreationAPI getCreationAPI(Properties props, boolean load_concrete) {
+	public static ComponentCreationAPI getCreationAPI(Properties props) {
 		if (props == null)
 			props = createLegacyConfiguration();
-		return new ComponentCreationKB(props, load_concrete);
+		return new ComponentCreationKB(props);
 	}
 
 	/**

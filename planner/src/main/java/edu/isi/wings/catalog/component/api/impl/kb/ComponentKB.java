@@ -43,7 +43,7 @@ import edu.isi.wings.common.kb.KBUtils;
 
 public class ComponentKB extends TransactionsJena {
 	protected KBAPI kb;
-	protected KBAPI writerkb;
+	protected KBAPI abs_writerkb, lib_writerkb;
 	protected String dcns;
 	protected String pcns;
 	protected String pcdomns;
@@ -66,10 +66,10 @@ public class ComponentKB extends TransactionsJena {
 
 	protected ArrayList<KBTriple> domainKnowledge;
 	protected HashMap<String, String> rulePrefixes;
-
-	protected boolean load_concrete;
 	
 	protected Properties props;
+	
+	protected String componentClassSuffix = "Class";
 
 	/**
 	 * Constructor
@@ -81,8 +81,7 @@ public class ComponentKB extends TransactionsJena {
 	 *            ont.domain.data.url, ont.component.url, ont.data.url,
 	 *            ont.workflow.url tdb.repository.dir (optional)
 	 */
-	public ComponentKB(Properties props, boolean load_concrete, 
-			boolean create_writers, boolean create_if_empty, boolean plainkb) {
+	public ComponentKB(Properties props, boolean create_writers, boolean create_if_empty, boolean plainkb) {
 		this.props = props;
 		
 		String hash = "#";
@@ -98,7 +97,6 @@ public class ComponentKB extends TransactionsJena {
 		this.codedir = props.getProperty("lib.domain.code.storage");
     this.resonturl = props.getProperty("ont.resource.url");
     this.resliburl = props.getProperty("lib.resource.url");
-		this.load_concrete = load_concrete;
 		this.topclass = this.pcns + "Component";
 		
 		String tdbRepository = props.getProperty("tdb.repository.dir");
@@ -129,9 +127,7 @@ public class ComponentKB extends TransactionsJena {
 		}
 		
 		try {
-			if (load_concrete) {
-				this.kb.importFrom(this.ontologyFactory.getKB(liburl, OntSpec.PLAIN, create_if_empty));
-			}
+			this.kb.importFrom(this.ontologyFactory.getKB(liburl, OntSpec.PLAIN, create_if_empty));
 			this.kb.importFrom(this.ontologyFactory.getKB(props.getProperty("ont.domain.data.url"),
 					OntSpec.PLAIN, create_if_empty));
 			this.kb.importFrom(this.ontologyFactory.getKB(props.getProperty("ont.component.url"),
@@ -144,10 +140,8 @@ public class ComponentKB extends TransactionsJena {
 //        OntSpec.PLAIN, create_if_empty, true));
 	
 			if (create_writers) {
-				if (load_concrete)
-					this.writerkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
-				else
-					this.writerkb = this.ontologyFactory.getKB(absurl, OntSpec.PLAIN);
+				this.lib_writerkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
+				this.abs_writerkb = this.ontologyFactory.getKB(absurl, OntSpec.PLAIN);
 			}
 			
 			this.start_write();
@@ -205,7 +199,54 @@ public class ComponentKB extends TransactionsJena {
 		domainKnowledge.addAll(kb.genericTripleQuery(null, rdfsSubProp, dcMetricsProp));
 		domainKnowledge.addAll(kb.genericTripleQuery(null, rdfsSubProp, dcDataMetricsProp));
 	}
+	
+	protected int getCatalogVersion() {
+    boolean new_transaction = false;
+    if (!this.is_in_transaction()) {
+      this.start_read();
+      new_transaction = true;
+    }
+    try {
+      KBObject catalog = this.lib_writerkb.getResource(this.liburl);
+      KBObject versionProp = this.lib_writerkb.getProperty(KBUtils.OWL + "versionInfo");
+  	  for(KBTriple triple : this.lib_writerkb.genericTripleQuery(catalog, versionProp, null)) {
+  	    KBObject versionObj = triple.getObject();
+    	  if(versionObj != null && versionObj.getValue() != null) {
+    	    return Integer.valueOf(versionObj.getValue().toString());
+    	  }
+  	  }
+  	  return 0;
+    }
+    finally {
+      if(new_transaction)
+        this.end();
+    }
+	}
 
+	 protected void setCatalogVersion(int version) {
+	    boolean new_transaction = false;
+	    if (!this.is_in_transaction()) {
+	      this.start_write();
+	      new_transaction = true;
+	    }
+	    try {
+	      KBObject catalog = this.lib_writerkb.getResource(this.liburl);
+	      KBObject versionProp = this.kb.getProperty(KBUtils.OWL + "versionInfo");
+        KBObject versionObj = this.lib_writerkb.createLiteral(""+version);
+        this.lib_writerkb.deleteObject(catalog, false, false);
+        for(KBTriple triple : this.lib_writerkb.genericTripleQuery(catalog, versionProp, null)) {
+          this.lib_writerkb.removeTriple(triple);
+        }
+        this.lib_writerkb.addTriple(catalog, versionProp, versionObj);
+	    }
+	    finally {
+	      if(new_transaction) {
+	        this.save(this.lib_writerkb);
+	        this.end();
+	      }
+	    }
+	 }
+	 
 	public String getComponentLocation(String cid) {
 	  boolean new_transaction = false;
 	  if(!this.is_in_transaction()) {
@@ -250,13 +291,44 @@ public class ComponentKB extends TransactionsJena {
     }
 	}
 	
-	protected void setComponentRules(String cid, String text) {
-		KBObject compobj = this.writerkb.getIndividual(cid);
+  protected KBAPI getWriterKB(String cid) {
+    boolean new_transaction = false;
+    if (!this.is_in_transaction()) {
+      this.start_read();
+      new_transaction = true;
+    }
+    try {
+      KBObject compobj = this.kb.getIndividual(cid);
+      KBObject concobj = kb.getDatatypePropertyValue(compobj, this.dataPropMap.get("isConcrete"));
+      boolean isConcrete = false;
+      if(concobj != null && concobj.getValue() != null)
+        isConcrete = ((Boolean) concobj.getValue()).booleanValue();
+      
+      return (isConcrete ? this.lib_writerkb : this.abs_writerkb);
+    }
+    finally {
+      if(new_transaction)
+        this.end();
+    }
+  }
+	
+	protected KBAPI getWriterKB(boolean isConcrete) {
+	  if(isConcrete) {
+	    return this.lib_writerkb;
+	  }
+	  return this.abs_writerkb;
+	}
+	
+	protected void setComponentRules(String cid, String text, KBAPI writerkb) {
+		KBObject compobj = writerkb.getIndividual(cid);
 		KBObject ruleProp = this.dataPropMap.get("hasRule");
 		try {
+		  for(KBTriple t : writerkb.genericTripleQuery(compobj, ruleProp, null)) {
+		    writerkb.removeTriple(t);
+		  }
   		for(KBRule rule : ontologyFactory.parseRules(text).getRules()) {
   			KBObject ruleobj = writerkb.createLiteral(rule.toString());
-  			this.writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
+  			writerkb.addPropertyValue(compobj, ruleProp, ruleobj);
   		}
 		}
 		catch (Exception e) {
@@ -339,8 +411,7 @@ public class ComponentKB extends TransactionsJena {
   }
   
 
-  protected void setComponentRequirements(KBObject compobj,
-      ComponentRequirement requirement, KBAPI tkb, KBAPI writerkb) {
+  protected void setComponentRequirements(KBObject compobj, ComponentRequirement requirement, KBAPI writerkb) {
     KBObject sdprop = this.objPropMap.get("hasSoftwareDependency");
     KBObject sdcls = this.conceptMap.get("SoftwareDependency");
     KBObject hdprop = this.objPropMap.get("hasHardwareDependency");
@@ -351,7 +422,7 @@ public class ComponentKB extends TransactionsJena {
     if(requirement.getSoftwareIds() != null) {
       for (String softwareId : requirement.getSoftwareIds()) {
         KBObject sdobj = writerkb.createObjectOfClass(null, sdcls);
-        KBObject verobj = tkb.getResource(softwareId);
+        KBObject verobj = this.kb.getResource(softwareId);
         if(verobj != null)
           writerkb.setPropertyValue(sdobj, minver, verobj);
         writerkb.addPropertyValue(compobj, sdprop, sdobj);
@@ -417,7 +488,7 @@ public class ComponentKB extends TransactionsJena {
 								continue;
 							if (subj.isVariable() && !pred.isVariable() && !obj.isVariable()) {
 								if (pred.getKBObject().getID().equals(KBUtils.RDF + "type")
-										&& (obj.getKBObject().getID().endsWith("Class"))) {
+										&& (obj.getKBObject().getID().endsWith(componentClassSuffix))) {
 									KBObject cls = abskb.getConcept(obj.getKBObject().getID());
 									if(cls != null) {
 										for(KBObject compobj : abskb.getInstancesOfClass(cls, true))
@@ -468,6 +539,7 @@ public class ComponentKB extends TransactionsJena {
 		}
 	}
 	
+  
 	// Legacy Porting code
 	private void createAbstractFromConcrete() {
 		try {
@@ -555,6 +627,16 @@ public class ComponentKB extends TransactionsJena {
 		return result_line;
 	}
 	
+  public String getComponentHolderId(String cid) {
+    //Component holder id is <compid>Class
+    return cid + componentClassSuffix;
+  }
+  
+  public String getComponentTypeFromHolder(String holderid) {
+    //Component holder id is <compid>Class
+    return holderid.replace(componentClassSuffix, "");
+  }	
+	
   public Component getComponent(String cid, boolean details) {
     this.start_read();
     
@@ -580,7 +662,8 @@ public class ComponentKB extends TransactionsJena {
   				ArrayList<KBObject> clss = this.kb.getSuperClasses(classComponent, true);
   				if (clss != null && clss.size() > 0){
   					KBObject cls = clss.get(0);
-  					comp.setComponentType(cls.getName().replace("Class", ""));
+  					String comptype = this.getComponentTypeFromHolder(cls.getName());
+  					comp.setComponentType(comptype);
   				}
 				}
         comp.setComponentRequirement(

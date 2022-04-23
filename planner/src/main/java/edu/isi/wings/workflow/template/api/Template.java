@@ -159,6 +159,8 @@ public interface Template extends Serializable {
 	
 	void autoLayout();
 	
+	void clearProvenance();
+	
 	// Save/Delete
 	boolean save();
 	

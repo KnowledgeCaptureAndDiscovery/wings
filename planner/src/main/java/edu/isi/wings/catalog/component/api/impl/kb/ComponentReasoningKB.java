@@ -66,7 +66,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	private ArrayList<KBObject> metricProps;
 	
 	public ComponentReasoningKB(Properties props) {
-		super(props, true, false, true, false);
+		super(props, false, true, false);
 		this.useRules = Boolean.parseBoolean(props.getProperty("use_rules", "true"));
 		this.initializeMetrics();
 	}
@@ -980,7 +980,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
         logger.debug(tcomp + " is going to be skipped");
         details.addExplanations("INFO " + tcomp + " is going to be skipped");
         details.setNoOperationFlag(true);
-        // Copy over Binding of compatible input to output
+        
+        // Set compatible input/output pairs
         for(ComponentRole outrole : comp.getOutputs()) {
           Variable outvar = sRoleMap.get(outrole.getRoleName());
           ArrayList<String> varclasses = new ArrayList<String>();
@@ -991,10 +992,11 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
           for(ComponentRole inrole : comp.getInputs()) {
             if(!inrole.isParam()) {
               Variable invar = sRoleMap.get(inrole.getRoleName());
-              // TEST: Setting all outputs to the input variable. Otherwise the component is still run and not skipped 
+              // Marking all compatible inputs to be passed through to the output. 
+              // Otherwise the component is still run and not skipped 
               if(checkTypeCompatibility(varclasses, inrole.getID())) {
-                logger.debug("Setting binding of " + outvar.getName() + " to " + invar.getBinding());
-                outvar.setBinding(invar.getBinding());
+                details.addNoOperationIOPassthrough(outrole.getRoleName(), inrole.getRoleName());
+                logger.debug("Passing through " + invar.getName() + " to " + outvar.getName());
               }
             }
           }

@@ -31,6 +31,7 @@ import edu.isi.wings.catalog.data.classes.DataTreeNode;
 import edu.isi.wings.catalog.data.classes.MetadataProperty;
 import edu.isi.wings.catalog.data.classes.MetadataValue;
 import edu.isi.wings.common.kb.KBUtils;
+import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.kcap.ontapi.KBTriple;
@@ -473,8 +474,14 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
   		String loc = this.getDataLocation(dataid);
   		if(loc != null) {
   			File f = new File(loc);
-  			if(f.getParentFile().getAbsolutePath().equals(this.datadir))
-  				f.delete();
+  			if(f.exists()) {
+    			if(f.getParentFile().getAbsolutePath().equals(this.datadir)) {
+    			  File metafile = new File(f.getAbsolutePath() + ExecutionFile.metaExtension);
+    			  if(metafile.exists())
+    			    metafile.delete();
+    				f.delete();
+    			}
+  			}
   		}
   		this.start_write();		
   		KBUtils.removeAllTriplesWith(this.libkb, dataid, false);

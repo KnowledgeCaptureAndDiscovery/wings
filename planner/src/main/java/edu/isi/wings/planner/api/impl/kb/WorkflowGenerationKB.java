@@ -1324,12 +1324,21 @@ implements WorkflowGenerationAPI {
 			HashMap<ExecutionStep, Node> sensorNodeMap = new HashMap<ExecutionStep, Node>();
 			
 			for(Node n : template.getNodes()) {
+			  // If this is an inactive node
 			  if(n.isInactive()) {
 			    plan.setIsIncomplete(true);
-			    
-			    // This node is inactive due to an input having a breakpoint
 			    for(Variable v: template.getInputVariables(n)) {
+			      // This node is inactive due to an input having a breakpoint
 			      if(v.isBreakpoint()) {
+			        // Check that the input is an output of an active node
+			        boolean activeVariable = true;
+			        for(Link l: template.getLinks(v)) {
+			          if(l.getOriginNode() != null && l.getOriginNode().isInactive())
+			            activeVariable = false;
+			        }
+			        if(!activeVariable)
+			          continue;
+			        
   		        // Check if this input datatype has a sensor.
   		        String vtype = null;
   		        for(KBTriple triple : template.getConstraintEngine().getConstraints(v.getID())) {
@@ -1375,20 +1384,16 @@ implements WorkflowGenerationAPI {
   		            roleMap.put(orole, vout);
   		            
   	               // Add this sensor component to the plan
-  	              ExecutionStep sensor_step = this.getExecutionStep(sensorcid, cv, roleMap, n.getMachineIds());
+  	              ExecutionStep sensor_step = this.getExecutionStep(sensorcid + "_" + bin.getName(), cv, roleMap, n.getMachineIds());
   	              plan.addExecutionStep(sensor_step);
   	              sensorNodeMap.put(sensor_step, n);
   		          }
   		          else {
                   System.err.println("Sensor component should have exactly 1 input and output");
-  		          }		          	          
+  		          }
   		        }
 			      }
 			    }
-			    continue;
-			  }
-			  // TODO: Skip execution step if n.isSkip() is set
-			  if(n.isSkip()) {
 			    continue;
 			  }
 			  
@@ -1406,6 +1411,8 @@ implements WorkflowGenerationAPI {
 					roleMap.put(r, inputLink.getVariable());
 				}
 				ExecutionStep step = this.getExecutionStep(n.getID(), n.getComponentVariable(), roleMap, n.getMachineIds());
+				step.setSkip(n.isSkip());
+				
 				plan.addExecutionStep(step);
 				nodeMap.put(n,  step);
 			}
@@ -2481,6 +2488,7 @@ implements WorkflowGenerationAPI {
 						PortBinding newpb = new PortBinding();
 						// PortBinding opb = new PortBinding();
 						HashMap<Role, Variable> mRoleMap = m.getRoleMap();
+						HashMap<String, Variable> msRoleMap = m.getStringRoleMaps();
 						for (Role r : mRoleMap.keySet()) {
 							if(m.isInputRole(r.getRoleId())) {
 								Variable v = mRoleMap.get(r);
@@ -2490,7 +2498,7 @@ implements WorkflowGenerationAPI {
 						String sortedInputs = getInputRoleStr(newpb, ccmr.getComponent());
 
 						for (Role r : mRoleMap.keySet()) {
-							// For outputs
+							// Set binding for outputs
 							if(!m.isInputRole(r.getRoleId())) {
 								Variable v = mRoleMap.get(r);
 
@@ -2518,13 +2526,24 @@ implements WorkflowGenerationAPI {
 											indices.put(sb.getID(), sfx + "-" +ind);
 											ind++;
 										}
-									} else if(!m.getNoOperationFlag()) {
-										KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
-										Binding ds = createNewBinding(v, db, vtype, r,
-												sortedInputs, event);
-										dc.getDataLocation(ds.getID());
-										db.setID(ds.getID() + sfx);
-										
+									} else {
+									  if (m.getNoOperationFlag()) {
+									    // If this is a no-op, pass through the input binding to the output
+									    HashMap<String, String> iovars = m.getNoOperationIOPassthrough();
+								      String iroleid = iovars.get(r.getRoleId());
+								      if(iroleid != null) {
+								        Variable invar = msRoleMap.get(iroleid);
+								        db.setID(invar.getBinding().getID());
+								      }
+									  }
+									  else {
+  										KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
+  										Binding ds = createNewBinding(v, db, vtype, r,
+  												sortedInputs, event);
+  										//dc.getDataLocation(ds.getID());
+  										db.setID(ds.getID() + sfx);
+									  }
+  										
 										// For each output, fetch actual metrics from .met file 
 										// and override predicted metrics
 										Metrics newm = this.dc.fetchDataMetricsForDataObject(db.getID());
@@ -2554,7 +2573,7 @@ implements WorkflowGenerationAPI {
 							cpblist.add(tmp);
 							cb.setData(cbl);
 						}
-            
+            // Mark the component to be skipped in further operations
 						cb.setData("skip", m.getNoOperationFlag());
             
 						component.getBinding().add(cb);

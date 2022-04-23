@@ -139,6 +139,14 @@ public class DistributedExecutionEngine extends LocalExecutionEngine implements
       @Override
       public void run() {
         try {
+          // Mark job as started
+          this.exe.onStart(this.logger);
+          if(exe.getStep().isSkipped()) {
+            exe.onUpdate(this.logger, "This job has been SKIPPED");
+            exe.onEnd(this.logger, RuntimeInfo.Status.SUCCESS, "");
+            return;
+          }
+          
           this.localfolder = this.resource.getLocalStorageFolder();
           this.remotefolder = machine.getStorageFolder();
 
