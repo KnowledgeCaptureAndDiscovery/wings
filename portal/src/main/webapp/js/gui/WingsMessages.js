@@ -165,9 +165,13 @@ function formatTemplateSummary(value, meta, record, rowind, colind, store) {
     var time = record.data.field1.time;
     var numJobs = {};
     for (var i in tpl.Nodes) {
-    	if(tpl.Nodes[i].inactive || tpl.Nodes[i].skip)
-    		continue;
         var jobname = getLocalName(tpl.Nodes[i].componentVariable.binding.id);
+        if(tpl.Nodes[i].skip) 
+        	continue;
+    	if(tpl.Nodes[i].inactive)
+    		jobname = "<span style='color:grey'>" + jobname + "</span>";
+    	else
+    		jobname = "<b>" + jobname + "</b>"; 
         if (numJobs[jobname])
             numJobs[jobname]++;
         else
