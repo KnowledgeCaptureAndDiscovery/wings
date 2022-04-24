@@ -38,6 +38,7 @@ import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
+import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
@@ -193,7 +194,7 @@ public class ComponentController {
 
 	public synchronized boolean delComponent(String cid) {
 	  try {
-	    return cc.removeComponent(cid, true, true) &&
+	    return cc.removeComponent(cid, true, true, true) &&
 	        prov.removeAllProvenance(cid);
 	  }
 	  catch (Exception e){
@@ -213,23 +214,37 @@ public class ComponentController {
   	  //edit the id field
   	  temp_component.setID(new_cid);
   	  
+      //modify the rules
+      if(temp_component.getRules() != null) {
+        String cname = KBUtils.getLocalName(cid);
+        String new_cname = KBUtils.getLocalName(new_cid);
+        ArrayList<String> new_rules = new ArrayList<String>();
+        for(String rule : temp_component.getRules()) {
+          rule = rule.replaceAll(cname+"Class", new_cname+"Class");
+          new_rules.add(rule);
+        }
+        temp_component.setRules(new_rules);
+      }
+      
   	  //copy the location file
   	  if(temp_component.isConcrete()) {
     	  String old_location = temp_component.getLocation();
     	  String new_location = cc.getDefaultComponentLocation(new_cid);
-    	  File old_file = new File(old_location);
-    	  File new_file = new File(new_location);
-    	  if(old_file.exists() && !new_file.exists()) {
-    	    try {
-    	      FileUtils.copyDirectory(old_file, new_file);
-    	      temp_component.setLocation(new_location);
-    	      File runFile = new File(new_location+"/run");
-    	      runFile.setExecutable(true);
-    	    } catch (IOException e) {
-    	      return false;
-    	    }
+    	  if(old_location != null) {
+      	  File old_file = new File(old_location);
+      	  File new_file = new File(new_location);
+      	  if(old_file.exists() && !new_file.exists()) {
+      	    try {
+      	      FileUtils.copyDirectory(old_file, new_file);
+      	      temp_component.setLocation(new_location);
+      	      File runFile = new File(new_location+"/run");
+      	      runFile.setExecutable(true);
+      	    } catch (IOException e) {
+      	      return false;
+      	    }
+      	  }
+          temp_component.setLocation(new_location);
     	  }
-    	  temp_component.setLocation(new_location);
   	  }
       
   	  //generate new json component
@@ -244,6 +259,18 @@ public class ComponentController {
     return false;	  
 	}
 
+	 public synchronized boolean renameComponent(String cid, String pid, String ptype, String new_cid){
+	    try {
+	      return this.duplicateComponent(cid, pid, ptype, new_cid) &&
+	          cc.moveChildComponentsTo(cid, new_cid) &&
+	          cc.removeComponent(cid, true, true, false);
+	    }
+	    catch (Exception e) {
+	      e.printStackTrace();
+	    }
+	    return false;   
+  }
+	 
 	public synchronized boolean delCategory(String ctype) {
 	  try {
 	    return cc.removeComponentHolder(ctype, false);

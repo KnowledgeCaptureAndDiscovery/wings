@@ -160,7 +160,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		// cleanup hack (for components that have the top class as the holder)
 		for(String compid: tbd) {
-		  this.removeComponent(compid, true, true);
+		  this.removeComponent(compid, true, true, false);
 		}
 
 		ComponentTree tree = new ComponentTree(rootnode);
@@ -269,7 +269,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		
 		// Remove existing component assertions and re-add the new component details
 		try {
-		  boolean ok1 = this.removeComponent(comp.getID(), false, false);		  
+		  boolean ok1 = this.removeComponent(comp.getID(), false, false, false);		  
 		  boolean ok2 = this.addComponent(comp, null);
 	    if(this.externalCatalog != null)
 	      this.externalCatalog.updateComponent(comp);
@@ -424,15 +424,28 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
     }
 	}
   
-	 
-  @SuppressWarnings("unused")
-  private void setSubclassParentsToGrandparents(String holderid, KBAPI writerkb) {
-    KBObject holderobj = kb.getConcept(holderid);
-    ArrayList<KBObject> holderparents = kb.getSuperClasses(holderobj, true);
-    for(KBObject subcls: kb.getSubClasses(holderobj, true)) {
-      // Set parents of subclasses to holderparents
-      for(KBObject parentobj: holderparents)
-        writerkb.setSuperClass(subcls.getID(), parentobj.getID());
+  private void setSubclassParentsToClass(String oldclsid, String newclsid) {
+    KBObject oldcls = this.kb.getConcept(oldclsid);
+    for(KBObject subcls: kb.getSubClasses(oldcls, true)) {
+      KBObject dum = this.lib_writerkb.getConcept(subcls.getID());
+      if(dum != null)
+        this.lib_writerkb.setSuperClass(subcls.getID(), newclsid);
+      else
+        this.abs_writerkb.setSuperClass(subcls.getID(), newclsid);
+    }
+  }
+  
+  @Override
+  public boolean moveChildComponentsTo(String oldid, String newid) {
+    try {
+      this.start_write();
+      String oldclsid = this.getComponentHolderId(oldid);
+      String newclsid = this.getComponentHolderId(newid);
+      this.setSubclassParentsToClass(oldclsid, newclsid);
+      return this.save();
+    }
+    finally {
+      this.end();
     }
   }
 	
@@ -457,12 +470,21 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 	}
 
 	@Override
-	public boolean removeComponent(String cid, boolean remove_holder, boolean unlink) {
+	public boolean removeComponent(String cid, boolean remove_holder, boolean unlink, boolean remove_children) {
 	  KBAPI writerkb = this.getWriterKB(cid);
-	  return this.removeComponent(cid, remove_holder, unlink, writerkb);
+	  return this.removeComponent(cid, remove_holder, unlink, remove_children, writerkb);
 	}
 	  
-	protected boolean removeComponent(String cid, boolean remove_holder, boolean unlink, KBAPI writerkb) {	
+	protected boolean removeComponent(String cid, boolean remove_holder, boolean unlink, boolean remove_children, KBAPI writerkb) {
+	  if(remove_children) {
+      String holderid = this.getComponentHolderId(cid);
+	    ComponentTree cnode = createComponentHierarchy(holderid, false);
+	    for(ComponentTreeNode tn: cnode.getRoot().getChildren()) {
+	      String childid = tn.getCls().getComponent().getID();
+	      this.removeComponent(childid, remove_holder, unlink, remove_children);
+	    }
+	  }
+	  
 	  ArrayList<KBObject> inputobjs, outputobjs, sdobjs, hdobjs;
 	  String loc;
 	  try {
@@ -543,7 +565,7 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
   			}
   		}
       if(this.externalCatalog != null)
-        this.externalCatalog.removeComponent(cid, remove_holder, unlink);
+        this.externalCatalog.removeComponent(cid, remove_holder, unlink, remove_children);
 	  }
 	  catch(Exception e) {
       e.printStackTrace();

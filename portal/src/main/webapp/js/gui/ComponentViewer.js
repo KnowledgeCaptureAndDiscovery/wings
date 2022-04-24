@@ -140,6 +140,21 @@ ComponentViewer.prototype.getDuplicateMenuItem = function() {
     };
 };
 
+ComponentViewer.prototype.getRenameMenuItem = function() {
+    var This = this;
+    return {
+        text: 'Rename',
+        iconCls: 'icon-edit fa fa-blue',
+        handler: function() {
+            var nodes = This.treePanel.getSelectionModel().getSelection();
+            if (!nodes || !nodes.length)
+                return;
+            var node = nodes[0];
+            This.renameComponent(node);
+        }
+    };
+};
+
 ComponentViewer.prototype.getDeleteMenuItem = function() {
     var This = this;
 	return {
@@ -190,14 +205,16 @@ ComponentViewer.prototype.onComponentItemContextMenu =
     	var addcatitem = This.getAddCategoryMenuItem()
     	var delitem = This.getDeleteMenuItem();
     	var duplicate_item = This.getDuplicateMenuItem()
+    	var rename_item = This.getRenameMenuItem();
     	additem.iconCls = 'icon-component fa-menu fa-orange';
     	addtypeitem.iconCls = 'icon-component fa-menu fa-grey';
     	addcatitem.iconCls = 'icon-folder-open fa-menu fa-yellow';
     	delitem.iconCls = 'icon-del fa-menu fa-red';
         duplicate_item.iconCls = 'icon-docs fa-menu fa-blue';
-
-        var typeitems = [additem, addtypeitem, addcatitem, duplicate_item, delitem];
-        var compitems = [duplicate_item, delitem];
+		rename_item.iconCls = 'icon-edit fa-menu fa-blue';
+		
+        var typeitems = [additem, addtypeitem, addcatitem, rename_item, duplicate_item, delitem];
+        var compitems = [duplicate_item, rename_item, delitem];
         this.typemenu = Ext.create('Ext.menu.Menu', {
             items: typeitems });
         this.compmenu = Ext.create('Ext.menu.Menu', {
@@ -798,32 +815,35 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
 	var This = this;
     var c = node.data.component;
     var cls = node.data.cls;
-    Ext.MessageBox.confirm("Confirm Delete", "Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls), function(yesno) {
-        if (yesno == "yes") {
-            var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');
-            This.treePanel.getEl().mask("Deleting..");
-            Ext.Ajax.request({
-                url: url,
-                params: {
-                    cid: c.id ? c.id: cls
-                },
-                success: function(response) {
-                    This.treePanel.getEl().unmask();
-                    if (response.responseText == "OK") {
-                        node.parentNode.removeChild(node);
-                        if (c.id)
-                            This.tabPanel.remove(This.tabPanel.getActiveTab());
-                    } else {
-                        _console(response.responseText);
-                    }
-                },
-                failure: function(response) {
-                    This.treePanel.getEl().unmask();
-                    _console(response.responseText);
-                }
-            });
-        }
-    });
+    Ext.MessageBox.confirm("Confirm Delete", 
+    	"Are you sure you want to Delete " + getLocalName(c.id ? c.id: cls) + " ?\n<br/>" +
+    	"WARNING: Any child components will also be deleted", 
+    	function(yesno) {
+	        if (yesno == "yes") {
+	            var url = This.op_url + '/' + (c.id ? 'delComponent': 'delCategory');
+	            This.treePanel.getEl().mask("Deleting..");
+	            Ext.Ajax.request({
+	                url: url,
+	                params: {
+	                    cid: c.id ? c.id: cls
+	                },
+	                success: function(response) {
+	                    This.treePanel.getEl().unmask();
+	                    if (response.responseText == "OK") {
+	                        node.parentNode.removeChild(node);
+	                        if (c.id)
+	                            This.tabPanel.remove(This.tabPanel.getActiveTab());
+	                    } else {
+	                        _console(response.responseText);
+	                    }
+	                },
+	                failure: function(response) {
+	                    This.treePanel.getEl().unmask();
+	                    _console(response.responseText);
+	                }
+	            });
+	        }
+    	});
 };
 
 
@@ -832,6 +852,7 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
     var cTree = this.treePanel;
     var c = node.data.component;
     var cls = node.data.cls;
+    var oldName = node.data.text;
     var isConcrete = c.isConcrete;
     var parentNode = node.parentNode
     var pc = parentNode.data;
@@ -842,7 +863,7 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
         return;
     }
 
-    Ext.MessageBox.prompt("Duplicate component", "<i>(Note: Rules won't be copied over)</i><br/><br/>Enter the new name", function(btn, txt) {
+    Ext.MessageBox.prompt("Duplicate component", "Enter the new name", function(btn, txt) {
         if (btn == "ok" && txt) {
             var new_cid = This.ns[''] + txt;
             var enode = cTree.getStore().getNodeById(new_cid);
@@ -896,7 +917,86 @@ ComponentViewer.prototype.duplicateComponent = function(node) {
                 }
             });
         }
-    }, window, false);
+    }, window, false, oldName);
+};
+
+ComponentViewer.prototype.renameComponent = function(node) {
+    var This = this;
+    var cTree = this.treePanel;
+    var c = node.data.component;
+    var cls = node.data.cls;
+    var oldName = node.data.text;
+    var parentNode = node.parentNode
+    var pc = parentNode.data;
+    var parentType = pc.cls;
+    var parentId = pc.component ? pc.component.id: null;
+    
+    if (!c) {
+        showError('Please select a Component');
+        return;
+    }
+    console.log(c);
+
+    Ext.MessageBox.prompt("Rename component", "Enter the new name", function(btn, txt) {
+        if (btn == "ok" && txt) {
+            var new_cid = This.ns[''] + txt;
+            var enode = cTree.getStore().getNodeById(new_cid);
+            if (enode) {
+                showError('Component ' + txt + ' already exists');
+                return;
+            }
+            var url = This.op_url + '/renameComponent';
+            This.treePanel.getEl().mask("Renaming..");
+            Ext.Ajax.request({
+                url: url,
+                params: {
+                    new_cid: new_cid,
+                    cid: c.id,
+                    parent_cid: parentId,
+                    parent_type: parentType                    
+                },
+                success: function(response) {
+                    cTree.getEl().unmask();
+                    if (response.responseText == "OK") {
+                        var clsid = new_cid + 'Class';
+                        cls.id = clsid;
+                        c.id = new_cid;
+                        c.location = "blank";
+                        node.setId(new_cid);
+					    node.set('text', txt);
+					    var tab = This.searchOpenTabs(oldName);
+					    if(tab !=  null) {
+					    	// If tab is open, refresh it
+					    	var url = This.getComponentViewerURL(c.id);
+					    	This.setComponentTabLoader(tab, url);
+					    	tab.setTitle(txt);
+					    	tab.getLoader().load();
+					    }
+                    } else {
+                        if (window.console)
+                            window.console.log(response.responseText);
+                    }
+                },
+                failure: function(response) {
+                    cTree.getEl().unmask();
+                    if (window.console)
+                        window.console.log(response.responseText);
+                }
+            });
+        }
+    }, window, false, oldName);
+};
+
+ComponentViewer.prototype.searchOpenTabs = function(tabName) {
+    // Search all open tabs
+    var items = this.tabPanel.items.items;
+    console.log(items);
+    for (var i = 0; i < items.length; i++) {
+        var tab = items[i];
+        if (tab && tab.title.replace(/^\**/, '') == tabName) {
+        	return tab;
+        }
+    }
 };
 
 ComponentViewer.prototype.refreshInactiveTabs = function() {
@@ -1286,7 +1386,7 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
         }
 
         // Fetch Store via Ajax
-        var url = This.op_url + '/getComponentJSON?cid=' + escape(c.id);
+        var url = This.getComponentViewerURL(c.id);
 
         var tab = This.openNewIconTab(tabName, 'icon-component fa-title ' + 
         		(c.concrete ? (c.location ? 'fa-orange': 
@@ -1297,22 +1397,7 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
             args: [tab, c, {}]
             });
         This.tabPanel.setActiveTab(tab);
-        
-        Ext.apply(tab, {
-            loader: {
-                loadMask: true,
-                url: url,
-                renderer: function(loader, response, req) {
-                    var store = Ext.decode(response.responseText);
-                    if (store) {
-                        tab.removeAll();
-                        tab.args[2] = store;
-                        tab.guifn.call(This, tab.args);
-                        // tab.doLayout(false,true);
-                    }
-                }
-            }
-        });
+        This.setComponentTabLoader(tab, url);
         tab.getLoader().load();
     });
 
@@ -1329,6 +1414,29 @@ ComponentViewer.prototype.initComponentTreePanelEvents = function() {
     });
 
     return This.treePanel;
+};
+
+ComponentViewer.prototype.setComponentTabLoader = function(tab, url) {
+	var This = this;
+    Ext.apply(tab, {
+        loader: {
+            loadMask: true,
+            url: url,
+            renderer: function(loader, response, req) {
+                var store = Ext.decode(response.responseText);
+                tab.removeAll();
+                if (store) {
+                    tab.args[2] = store;
+                    tab.guifn.call(This, tab.args);
+                    // tab.doLayout(false,true);
+                }
+            }
+        }
+    });
+};
+
+ComponentViewer.prototype.getComponentViewerURL = function(cid) {
+	return this.op_url + '/getComponentJSON?cid=' + escape(cid);
 };
 
 ComponentViewer.prototype.getCodeTab = function(cid, textareaid, editable, tab, savebtn) {

@@ -159,6 +159,22 @@ public class ComponentResource extends WingsResource {
   }
 
   @POST
+  @Path("renameComponent")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String renameComponent(
+          @FormParam("new_cid") String new_cid,
+          @FormParam("cid") String cid,
+          @FormParam("parent_cid") String parent_cid,
+          @FormParam("parent_type") String parent_type) {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+            this.cc.renameComponent(cid, parent_cid, parent_type, new_cid)) {
+      RunController.invalidateCachedAPIs();
+      return "OK";
+    }
+    return null;
+  }
+  
+  @POST
   @Path("duplicateComponent")
   @Produces(MediaType.TEXT_PLAIN)
   public String duplicateComponent(

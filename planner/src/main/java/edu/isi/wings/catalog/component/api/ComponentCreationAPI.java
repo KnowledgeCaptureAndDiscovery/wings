@@ -42,9 +42,11 @@ public interface ComponentCreationAPI extends TransactionsAPI {
 	
 	boolean renameComponent(String oldid, String newid);
 
-	boolean removeComponent(String cid, boolean remove_holder, boolean unlink);
+	boolean removeComponent(String cid, boolean remove_holder, boolean unlink, boolean remove_children);
 	
 	boolean removeComponentHolder(String holderid, boolean is_concrete);
+	
+	boolean moveChildComponentsTo(String oldid, String newid);
 	
 	boolean setComponentLocation(String cid, String location);
 	

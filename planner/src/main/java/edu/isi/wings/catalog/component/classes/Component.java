@@ -73,7 +73,12 @@ public class Component extends URIEntity {
   }
 
   public String getRulesText() {
-    return rulesText;
+    if(rulesText != null)
+      return rulesText;
+    if(rules != null) {
+      return String.join("\n", rules);
+    }
+    return null;
   }
 
   public ArrayList<ComponentRole> getInputs() {
@@ -102,6 +107,10 @@ public class Component extends URIEntity {
     }
   }
 
+  public void setRules(ArrayList<String> rules) {
+    this.rules = rules;
+  }
+  
   public ArrayList<String> getInheritedRules() {
     return this.inheritedRules;
   }
