@@ -315,14 +315,9 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 		ArrayList<KBObject> props = this.kb.getPropertiesOfClass(cls, false);
 		this.end();
 		
-		this.start_write();
-		// Suspend further internal transactions (i.e. Batch write)
-		this.start_batch_operation(); 
-		
     // Remove properties
     for (KBObject prop : props) {
       MetadataProperty mprop = this.getMetadataProperty(prop.getID());
-      this.start_write();
       if(mprop.getDomains().contains(dtypeid)) {
         if(mprop.getDomains().size() > 1)
           this.removeMetadataPropertyDomain(prop.getID(), dtypeid);
@@ -340,14 +335,13 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 			if (!subcls.isNothing())
 				this.removeDatatype(subcls.getID());
 		}
+		
+    this.start_write();
 		// Finally remove the class itself
 		KBUtils.removeAllTriplesWith(this.ontkb, dtypeid, false);
 
 		if(this.externalCatalog != null)
-			this.externalCatalog.removeDatatype(dtypeid);
-		
-		// Resume transactions
-		this.stop_batch_operation(); 		
+			this.externalCatalog.removeDatatype(dtypeid);	
 		
 		return this.save() && this.end();
 	}
@@ -701,11 +695,12 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	
 	@Override
 	public boolean removeMetadataProperty(String propid) {
+    MetadataProperty prop = this.getMetadataProperty(propid);
+    
 		// Remove all domains manually
 		// - Due to bug in removing triples with union classes
 	  try {
-  	  this.start_write();
-  		MetadataProperty prop = this.getMetadataProperty(propid);
+      this.start_write();
   		for(String domid : prop.getDomains())
   			this.ontkb.removePropertyDomainDisjunctive(propid, domid);
   		

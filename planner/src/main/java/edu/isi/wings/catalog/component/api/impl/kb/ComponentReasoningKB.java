@@ -92,25 +92,47 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
     this.end();
 	}
 
-	protected KBObject copyObjectIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
+	protected KBObject copyObjectIntoKB(String id, String originid, KBAPI tkb, String includeNS,
 			String excludeNS, boolean direct) {
-		// Add component to the temporary KB (add all its classes explicitly)
-		for(KBTriple triple : this.getTriplesForObject(id, obj, includeNS, excludeNS, direct)) {
-		  tkb.addTriple(triple);
+	  try {
+  	  this.start_read();
+  	  KBObject obj = this.kb.getIndividual(originid);
+  		// Add component to the temporary KB (add all its classes explicitly)
+  		for(KBTriple triple : this.getTriplesForObject(id, obj, includeNS, excludeNS, direct)) {
+  		  tkb.addTriple(triple);
+  		}
+  		return tkb.getIndividual(id);
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+	  }
+		finally {
+		  this.end();
 		}
-		return tkb.getIndividual(id);
+	  return null;
 	}
 	
-	protected KBObject copyObjectClassesIntoKB(String id, KBObject obj, KBAPI tkb, String includeNS,
+	protected KBObject copyObjectClassesIntoKB(String id, String originid, KBAPI tkb, String includeNS,
 	    String excludeNS, boolean direct) {
-	  // Add component to the temporary KB (add all its classes explicitly)
-	  for(KBTriple triple : this.getObjectClassTriples(id, obj, includeNS, excludeNS, direct)) {
-	    tkb.addTriple(triple);
+	  try {
+      this.start_read();
+      KBObject obj = this.kb.getIndividual(originid);
+  	  // Add component to the temporary KB (add all its classes explicitly)
+  	  for(KBTriple triple : this.getObjectClassTriples(id, obj, includeNS, excludeNS, direct)) {
+  	    tkb.addTriple(triple);
+  	  }
+  	  KBObject ind = tkb.getIndividual(id);
+  	  if(ind == null)
+  	    ind = tkb.createIndividual(id);
+  	  return ind;
 	  }
-	  KBObject ind = tkb.getIndividual(id);
-	  if(ind == null)
-	    ind = tkb.createIndividual(id);
-	  return ind;
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    finally {
+      this.end();
+    }
+    return null;  	  
 	}
 	
 	protected ArrayList<String> getConcreteComponentsForAbstract(String id) {
@@ -300,9 +322,6 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 				cbindings.add(((Binding)s).getID());
 			}
 		}
-		
-    this.start_read();
-    boolean batchok = this.start_batch_operation();
     
     try {
   		// Get List of all concrete components
@@ -335,7 +354,17 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   				 * 	- [conc2 (isConcrete: true)] 
   				 * Note: Only 1 Component Instance per Class
   				 */
-  			  ArrayList<String> concreteids = this.getConcreteComponentsForAbstract(comp.getID());
+  			  ArrayList<String> concreteids = new ArrayList<String>();
+  		    try {
+            this.start_read();
+  		      concreteids = this.getConcreteComponentsForAbstract(comp.getID());
+  		      this.end();
+  		    }
+  		    catch(Exception e) {
+  		      e.printStackTrace();
+  		      this.end();
+  		    }
+  		    
   				for (String concreteid : concreteids) {
   				  Component instcomp = this.getCachedComponent(concreteid);
   					if (instcomp != null && instcomp.getType() == Component.CONCRETE) {
@@ -369,11 +398,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   			tkb.addTriples(redbox);
   			tkb.addTriples(domainKnowledge);
   
-  			KBObject ccompobj = this.kb.getIndividual(ccomp.getID());
-  			// Create a copy of the specialized component in the temporary kb
-  			KBObject tcomp = this.copyObjectIntoKB(incompid, ccompobj, tkb, this.pcdomns, null,
-  					false);
-  
+        KBObject tcomp = this.copyObjectIntoKB(incompid, ccomp.getID(), tkb, this.pcdomns, null, false);
   			boolean typesOk = true;
   
   			// For all argument roles of the specialized component :
@@ -429,9 +454,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   				}
   
   				// Copy over the argument's classes to the variable
-  				KBObject argobj = this.kb.getIndividual(arg.getID());
-  				KBObject varobj = this.copyObjectClassesIntoKB(varid, argobj, tkb, this.dcdomns,
-  						null, false);
+  				KBObject varobj = this.copyObjectClassesIntoKB(varid, arg.getID(), tkb, this.dcdomns, null, false);
   				if(varobj == null)
   				  continue;
   
@@ -578,11 +601,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   		}
   		return list;
     }
-    finally {
-      if(batchok)
-        this.stop_batch_operation();
-      this.end();
+    catch(Exception e) {
+      e.printStackTrace();
     }
+    return null;
 	}
   
 	private Component getCachedComponent(String compid) {
@@ -721,18 +743,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
     
 		// Create a new temporary KB store to run rules on
 		KBAPI tkb = this.ontologyFactory.getKB(OntSpec.PLAIN);
-
-		this.start_read();
-		boolean batchok = this.start_batch_operation();
 		
 		try {
   		
-  		KBObject compobj = this.kb.getIndividual(comp.getID());
-  		
-  		// Add component to the temporary KB store (add all its classes
-  		// explicitly)
-  		KBObject tcomp = this
-  				.copyObjectIntoKB(comp.getID(), compobj, tkb, this.pcdomns, null, false);
+      KBObject tcomp = this.copyObjectIntoKB(comp.getID(), comp.getID(), tkb, this.pcdomns, null, false);
       
   		// Keep a map of variable object to variable name
   		HashMap<Variable, String> variableNameMap = new HashMap<Variable, String>();
@@ -815,7 +829,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
     								// Copy over the object class into kb as well
     								// (except where the object itself is a class)
     								if (!metricProp.getID().equals(KBUtils.RDF + "type")) {
-    									valobj = this.copyObjectIntoKB(valobj.getID(), valobj, tkb,
+    									valobj = this.copyObjectIntoKB(valobj.getID(), valobj.getID(), tkb,
     											null, null, true);
     									// Remove any existing values first
     									for(KBTriple t : tkb.genericTripleQuery(varobj, metricProp, null))
@@ -897,8 +911,7 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   
   			// Copy argument classes from Catalog as classes for the temporary
   			// variable in the temporary kb store
-  	    KBObject argobj = kb.getIndividual(arg.getID());
-  			this.copyObjectClassesIntoKB(varobj.getID(), argobj, tkb, null, null, true);
+  			this.copyObjectClassesIntoKB(varobj.getID(), arg.getID(), tkb, null, null, true);
   
   			// Set the temporary variable's argumentID so rules can get/set
   			// triples based on the argument
@@ -1193,11 +1206,10 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   		list.add(details);
   		return list;
 		}
-		finally {
-		  if(batchok)
-		    this.stop_batch_operation();
-		  this.end();
+		catch(Exception e) {
+		  e.printStackTrace();
 		}
+    return null;
 	}
 
 	public ComponentInvocation getComponentInvocation(ComponentPacket details) {
@@ -1207,48 +1219,54 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 		// Extract info from details object
 		ComponentVariable c = details.getComponent();
 		Map<Variable, Role> varMap = details.getVariableMap();
-
-    this.start_read();
     
 		// Get Component
-		KBObject comp = this.kb.getResource(c.getBinding().getID());
-		String exepath = this.getComponentLocation(comp.getID());
-		String exedir = null;
-		if(exepath != null) {
-			File f = new File(exepath);
-			if(f.isDirectory()) {
-			  exedir = exepath;
-				File shexef = new File(exepath + File.separator + "run");
-				File winexef = new File(exepath + File.separator + "run.bat");
-				if(SystemUtils.IS_OS_WINDOWS && winexef.exists())
-					exepath = winexef.getAbsolutePath();
-				else
-					exepath = shexef.getAbsolutePath();
-			}
-		}
+    ComponentInvocation invocation = new ComponentInvocation();		
+		try {
+		  this.start_read();
+		  KBObject comp = this.kb.getResource(c.getBinding().getID());
+		  String exepath = this.getComponentLocation(comp.getID());
+		  
 		
-		ComponentInvocation invocation = new ComponentInvocation();
-		invocation.setComponentId(comp.getID());
-		invocation.setComponentLocation(exepath);
-		invocation.setComponentDirectory(exedir);
-		
-		ArrayList<KBObject> inputs = this.kb.getPropertyValues(comp, omap.get("hasInput"));
-		ArrayList<KBObject> outputs = this.kb.getPropertyValues(comp, omap.get("hasOutput"));
-		ArrayList<KBObject> args = new ArrayList<KBObject>(inputs);
-		args.addAll(outputs);
-		
-		for (KBObject arg : args) {
-			KBObject argid = this.kb.getDatatypePropertyValue(arg, dmap.get("hasArgumentID"));
-			String role = (String) argid.getValue();
-			for(Variable var : varMap.keySet()) {
-			  Role r = varMap.get(var);
-				if(r.getRoleId().equals(role))
-					setInvocationArguments(invocation, arg, var, inputs.contains(arg));
-			}
-		}
-		
-		this.end();
-		
+  		String exedir = null;
+  		if(exepath != null) {
+  			File f = new File(exepath);
+  			if(f.isDirectory()) {
+  			  exedir = exepath;
+  				File shexef = new File(exepath + File.separator + "run");
+  				File winexef = new File(exepath + File.separator + "run.bat");
+  				if(SystemUtils.IS_OS_WINDOWS && winexef.exists())
+  					exepath = winexef.getAbsolutePath();
+  				else
+  					exepath = shexef.getAbsolutePath();
+  			}
+  		}
+  		
+  		invocation.setComponentId(comp.getID());
+  		invocation.setComponentLocation(exepath);
+  		invocation.setComponentDirectory(exedir);
+  		
+  		ArrayList<KBObject> inputs = this.kb.getPropertyValues(comp, omap.get("hasInput"));
+  		ArrayList<KBObject> outputs = this.kb.getPropertyValues(comp, omap.get("hasOutput"));
+  		ArrayList<KBObject> args = new ArrayList<KBObject>(inputs);
+  		args.addAll(outputs);
+  		
+  		for (KBObject arg : args) {
+  			KBObject argid = this.kb.getDatatypePropertyValue(arg, dmap.get("hasArgumentID"));
+  			String role = (String) argid.getValue();
+  			for(Variable var : varMap.keySet()) {
+  			  Role r = varMap.get(var);
+  				if(r.getRoleId().equals(role))
+  					setInvocationArguments(invocation, arg, var, inputs.contains(arg));
+  			}
+  		}
+  		this.end();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      this.end();
+    }
+				
 		return invocation;
 	}
 

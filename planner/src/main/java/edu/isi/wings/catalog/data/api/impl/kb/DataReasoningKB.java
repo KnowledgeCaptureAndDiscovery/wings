@@ -95,8 +95,6 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 		String query = sq.getQuery();
 
 		this.start_read();
-		boolean batchok = this.start_batch_operation();
-		
 		//System.out.println(query);
 		ArrayList<ArrayList<SparqlQuerySolution>> queryResults = kb.sparqlQuery(query);
 		for (ArrayList<SparqlQuerySolution> queryResult : queryResults) {
@@ -115,8 +113,6 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 			String returnString = LoggerHelper.getReturnString("<findDataSources> q3.1", result);
 			logger.debug(returnString);
 		}
-		if(batchok)
-		  this.stop_batch_operation();
 		this.end();
 		
 		return result;
@@ -145,7 +141,6 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 		Metrics result = new Metrics();
 
 		this.start_read();
-		boolean batchok = this.start_batch_operation();
 		
 		KBObject dataObject = this.dataObjectForDataObjectNameOrId(dataObjectId);
 		if(dataObject == null)
@@ -177,8 +172,6 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
 			logger.debug(resultValue);
 		}
 		
-		if(batchok)
-		  this.stop_batch_operation();
 		this.end();
 		
 		return result;
@@ -193,9 +186,6 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
    */
   @Override
   public Metrics fetchDataMetricsForDataObject(String dataObjectId) {
-    this.start_read();
-    boolean batchok = this.start_batch_operation();
-    
     Metrics metrics = new Metrics();
     ExecutionFile file = new ExecutionFile(dataObjectId);
     String loc = this.getDataLocation(dataObjectId);
@@ -203,6 +193,8 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
       loc = this.getDefaultDataLocation(dataObjectId);
     file.setLocation(loc);
     file.loadMetadataFromLocation();
+    
+    this.start_read();
     for (Object key : file.getMetadata().keySet()) {
       KBObject mprop = this.dataPropMap.get(key);
       String valstr = file.getMetadata().get(key).toString();
@@ -220,9 +212,6 @@ public class DataReasoningKB extends DataKB implements DataReasoningAPI {
         }
       }
     }
-    
-    if(batchok)
-      this.stop_batch_operation();
     this.end();
     
     return metrics;

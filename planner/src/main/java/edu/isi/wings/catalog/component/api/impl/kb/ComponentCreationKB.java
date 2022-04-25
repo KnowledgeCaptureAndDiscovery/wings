@@ -116,9 +116,6 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 		queue.add(rootnode);
 
 		ArrayList<String> tbd = new ArrayList<String>();
-
-		this.start_read();
-		boolean batchok = this.start_batch_operation();
 		
 		while (!queue.isEmpty()) {
 			ComponentTreeNode node = queue.remove(0);
@@ -126,10 +123,23 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 			if (cls.getID() == null)
 				continue;
 
+		  this.start_read();
 	    KBObject clsobj = kb.getConcept(cls.getID());
 			if(clsobj == null) continue;
 			
 			ArrayList<KBObject> compobjs = kb.getInstancesOfClass(clsobj, true);
+      ArrayList<KBObject> subclasses = this.kb.getSubClasses(clsobj, true);
+      for (KBObject subcls : subclasses) {
+        if (!subcls.getNamespace().equals(this.pcdomns)
+            && !subcls.getNamespace().equals(this.pcns))
+          continue;
+        ComponentHolder clsitem = new ComponentHolder(subcls.getID());
+        ComponentTreeNode childnode = new ComponentTreeNode(clsitem);
+        node.addChild(childnode);
+        queue.add(childnode);
+      }   
+      this.end();
+      
 			for (KBObject compobj : compobjs) {
 				if(cls.getID().equals(this.topclass)) {
 					// The top class cannot be used as a holder. If we find any
@@ -140,23 +150,8 @@ public class ComponentCreationKB extends ComponentKB implements ComponentCreatio
 					// Add the component as the holder's component
 					cls.setComponent(this.getComponent(compobj.getID(), details));
 				}
-			}
-			
-			ArrayList<KBObject> subclasses = this.kb.getSubClasses(clsobj, true);
-			for (KBObject subcls : subclasses) {
-				if (!subcls.getNamespace().equals(this.pcdomns)
-						&& !subcls.getNamespace().equals(this.pcns))
-					continue;
-				ComponentHolder clsitem = new ComponentHolder(subcls.getID());
-				ComponentTreeNode childnode = new ComponentTreeNode(clsitem);
-				node.addChild(childnode);
-				queue.add(childnode);
-			}			
+			}	
 		}
-		if(batchok)
-		  this.stop_batch_operation();
-		
-		this.end();
 		
 		// cleanup hack (for components that have the top class as the holder)
 		for(String compid: tbd) {
