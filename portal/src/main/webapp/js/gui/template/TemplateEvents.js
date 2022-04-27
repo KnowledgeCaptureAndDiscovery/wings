@@ -400,6 +400,7 @@ TemplateEvents.prototype.startLinkDrag = function() {
 		var varid = this.template.getFreeVariableId(this.fromport.role.roleid);
 		var varname = getLocalName(varid);	
 		this.tmpvariable.setId(varid);
+		this.tmpvariable.setDimensionality(this.fromport.role.dimensionality);
 		this.tmpvariable.setText(varname, true);
 		
 		var dims = this.tmpvariable.getBounds()

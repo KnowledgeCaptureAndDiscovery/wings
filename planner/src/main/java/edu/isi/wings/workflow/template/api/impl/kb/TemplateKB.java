@@ -1834,8 +1834,18 @@ implements Template, TransactionsAPI {
 			} else if (v.isParameterVariable()) {
 				vobj = tkb.createObjectOfClass(v.getID(), cmap.get("ParameterVariable"));
 				if (v.getBinding() != null) {
-					tkb.addPropertyValue(vobj, pmap.get("hasParameterValue"),
-							writeValueBindingObjectToKB(tkb, (ValueBinding)v.getBinding()));
+				  ArrayList<ValueBinding> valueBindings = new ArrayList<ValueBinding>();
+				  if(!v.getBinding().isSet())
+				     valueBindings.add((ValueBinding)v.getBinding());
+				  else {
+				    for(WingsSet bset: v.getBinding()) {
+				      valueBindings.add((ValueBinding)bset);
+				    }
+				  }
+				  for(ValueBinding valueBinding: valueBindings) {
+				    tkb.addPropertyValue(vobj, pmap.get("hasParameterValue"),
+				        writeValueBindingObjectToKB(tkb, valueBinding));
+				  }
 				}
 			}
       if(v.isAutoFill()) {

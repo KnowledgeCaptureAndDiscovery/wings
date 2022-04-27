@@ -476,17 +476,28 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   				// Set variable parameter binding (default if none set)
   				if(var.isParameterVariable()) {
   			        KBObject arg_value = null;
-  			        ValueBinding parambinding = (ValueBinding) var.getBinding();
-  			        if (parambinding != null && parambinding.getValue() != null) {
-  			          arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
-  			              parambinding.getDatatype());
+  			        
+  			        List<ValueBinding> paramBindings = new ArrayList<ValueBinding>();
+  			        if(var.getBinding().isSet()) {
+  			          for(WingsSet bset : var.getBinding()) {
+  			            paramBindings.add((ValueBinding) bset);
+  			          }
   			        }
-  			        else if(arg.getParamDefaultalue() != null) {
-  			          arg_value = tkb.createLiteral(arg.getParamDefaultalue());
+  			        else {
+  			          paramBindings.add((ValueBinding) var.getBinding());
   			        }
-  			        if (arg_value != null) {
-  			          tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
-  			        }				  
+  			        for(ValueBinding parambinding: paramBindings) {
+  			          if (parambinding != null && parambinding.getValue() != null) {
+                    arg_value = tkb.createXSDLiteral(parambinding.getValueAsString(), 
+                        parambinding.getDatatype());
+                  }
+    			        else if(arg.getParamDefaultalue() != null) {
+    			          arg_value = tkb.createLiteral(arg.getParamDefaultalue());
+    			        }
+    			        if (arg_value != null) {
+    			          tkb.addPropertyValue(varobj, dmap.get("hasValue"), arg_value);
+    			        }	
+  			        }
   				}
   
   				// assign this variable as an input or output to the component
@@ -555,11 +566,15 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
   			for (Variable var : roleMaps.values()) {
   				if (var.isParameterVariable() && var.getBinding() == null) {
   					KBObject varobj = tkb.getResource(var.getID());
-  					KBObject val = tkb.getPropertyValue(varobj, dmap.get("hasValue"));
-  					if (val != null && val.getValue() != null) {
-  						tkb.addTriple(varobj,
-  								tkb.getResource(this.wflowns + "hasParameterValue"), val);
-  						var.setBinding(new ValueBinding(val.getValue(), val.getDataType()));
+  					ArrayList<KBObject> vals = tkb.getPropertyValues(varobj, dmap.get("hasValue"));
+  					if (vals != null) {
+  					  Binding b = new Binding();
+  					  for(KBObject val : vals) {
+  					    b.add(new ValueBinding(val.getValue(), val.getDataType()));
+  					    tkb.addTriple(varobj,
+                    tkb.getResource(this.wflowns + "hasParameterValue"), val);
+  					  }
+              var.setBinding(b.size() > 0 ? b : (ValueBinding) b.get(0));
   					}
   				}
   			}

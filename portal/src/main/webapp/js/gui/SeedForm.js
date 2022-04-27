@@ -89,35 +89,42 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 this.parameterTypes[item.id] = item.dtype;
                 // Store datatype for this param to be sent to server
                 var dtype = getLocalName(item.dtype);
-                copts.emptyText = 'Enter a ' + dtype + ' value...';
+                copts.emptyText = 'Enter ' + (item.dim ? 'semicolon (;) separated ': 'a ') + dtype + 
+                	' value' + (item.dim ? 's': '') + '...';
                 if (item.binding)
                     copts.value = item.binding;
-
-                if (dtype == "boolean") {
-                    formitem = new Ext.form.field.ComboBox({
-                        editable: false,
-                        store: [[true, 'true'], [false, 'false']]
-                        });
-                    Ext.apply(formitem, copts);
+                
+                if(item.dim) {
+                	formitem = new Ext.form.TextField(copts);
                 }
-                else if (dtype == "anyURI" && 
-                		typeof(runs) != 'undefined' && 
-                		Array.isArray(runs)) {
-                	var emptyText = "Select a runid...";
-                	copts = setURLComboListOptions(copts, runs, item.binding, emptyText, !item.dim, item.dim);
-                    formitem = new Ext.form.field.ComboBox(copts);
+                else {
+	
+	                if (dtype == "boolean") {
+	                    formitem = new Ext.form.field.ComboBox({
+	                        editable: false,
+	                        store: [[true, 'true'], [false, 'false']]
+	                        });
+	                    Ext.apply(formitem, copts);
+	                }
+	                else if (dtype == "anyURI" && 
+	                		typeof(runs) != 'undefined' && 
+	                		Array.isArray(runs)) {
+	                	var emptyText = "Select a runid...";
+	                	copts = setURLComboListOptions(copts, runs, item.binding, emptyText, !item.dim, item.dim);
+	                    formitem = new Ext.form.field.ComboBox(copts);
+	                }
+	                else if (dtype == "float") {
+	                    copts['decimalPrecision'] = 6;
+	                    formitem = new Ext.form.NumberField(copts);
+	                } else if (dtype == "int" || dtype == "integer") {
+	                    copts.allowDecimals = false;
+	                    formitem = new Ext.form.NumberField(copts);
+	                } else if (dtype == "date") {
+	                	copts.format = 'Y-m-d';
+	                	formitem = new Ext.form.DateField(copts);
+	                } else
+	                    formitem = new Ext.form.TextField(copts);
                 }
-                else if (dtype == "float") {
-                    copts['decimalPrecision'] = 6;
-                    formitem = new Ext.form.NumberField(copts);
-                } else if (dtype == "int" || dtype == "integer") {
-                    copts.allowDecimals = false;
-                    formitem = new Ext.form.NumberField(copts);
-                } else if (dtype == "date") {
-                	copts.format = 'Y-m-d';
-                	formitem = new Ext.form.DateField(copts);
-                } else
-                    formitem = new Ext.form.TextField(copts);
             }
             if (formitem) {
             	formitem.focusInGraph = true;
@@ -347,6 +354,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
             if (item.wtype == "param") {
             	var value = item.getValue();
             	if(value) {
+            		if(!Array.isArray(value))
+            			value = value.split(/;/); // SEMICOLON SEPARATED MULTIPLE VALUES
             		bindings[id] = value;
             	}
             }

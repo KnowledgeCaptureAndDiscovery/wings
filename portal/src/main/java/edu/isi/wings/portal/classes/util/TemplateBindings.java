@@ -9,7 +9,7 @@ public class TemplateBindings {
   String templateId;
   HashMap<String, ArrayList<String>> dataBindings;
   HashMap<String, String> componentBindings;
-  HashMap<String, Object> parameterBindings;
+  HashMap<String, ArrayList<Object>> parameterBindings;
   HashMap<String, String> parameterTypes;
   String callbackUrl;
   Cookie[] callbackCookies;
@@ -38,11 +38,11 @@ public class TemplateBindings {
     this.componentBindings = componentBindings;
   }
 
-  public HashMap<String, Object> getParameterBindings() {
+  public HashMap<String, ArrayList<Object>> getParameterBindings() {
     return parameterBindings;
   }
 
-  public void setParameterBindings(HashMap<String, Object> parameterBindings) {
+  public void setParameterBindings(HashMap<String, ArrayList<Object>> parameterBindings) {
     this.parameterBindings = parameterBindings;
   }
 
