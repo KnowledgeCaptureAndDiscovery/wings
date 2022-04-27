@@ -1157,7 +1157,7 @@ implements Template, TransactionsAPI {
 			vid = varid + "_" + String.format("%04d", i++);
 		}
 		
-		Variable v = new Variable(vid, type);
+		Variable v = type == VariableType.PARAM ? new ParameterVariable(vid) : new DataVariable(vid);
 		this.addVariable(v);
 		return v;
 	}

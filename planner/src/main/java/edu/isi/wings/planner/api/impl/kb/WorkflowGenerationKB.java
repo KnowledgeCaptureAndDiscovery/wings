@@ -1959,7 +1959,7 @@ implements WorkflowGenerationAPI {
 				boolean isInput = inputRoles.get(sRoleId);
 				
 				// Create a new variable
-				String varid = template.getNamespace() + svar.getName();
+				String varid = node.getNamespace() + svar.getName();
 				Variable var = template.addVariable(varid, svar.getVariableType());
 				idChanged.put(svar.getID(), varid);
 
