@@ -170,6 +170,17 @@ ComponentViewer.prototype.getDeleteMenuItem = function() {
     };
 };
 
+ComponentViewer.prototype.getClearCacheMenuItem = function() {
+    var This = this;
+	return {
+        text: 'Clear Cache',
+        iconCls: 'icon-reload fa fa-grey',
+        handler: function() {
+            This.clearCache();
+        }
+    };
+};
+
 ComponentViewer.prototype.createTreeToolbar = function() {
     var This = this;
     if (this.advanced_user) {
@@ -206,15 +217,20 @@ ComponentViewer.prototype.onComponentItemContextMenu =
     	var delitem = This.getDeleteMenuItem();
     	var duplicate_item = This.getDuplicateMenuItem()
     	var rename_item = This.getRenameMenuItem();
+    	var clearcache_item = This.getClearCacheMenuItem();
     	additem.iconCls = 'icon-component fa-menu fa-orange';
     	addtypeitem.iconCls = 'icon-component fa-menu fa-grey';
     	addcatitem.iconCls = 'icon-folder-open fa-menu fa-yellow';
     	delitem.iconCls = 'icon-del fa-menu fa-red';
         duplicate_item.iconCls = 'icon-docs fa-menu fa-blue';
 		rename_item.iconCls = 'icon-edit fa-menu fa-blue';
+		clearcache_item.iconCls = 'icon-reload fa-menu fa-grey';
 		
         var typeitems = [additem, addtypeitem, addcatitem, rename_item, duplicate_item, delitem];
+		var topitems = typeitems.concat([clearcache_item]);        
         var compitems = [duplicate_item, rename_item, delitem];
+        this.topmenu = Ext.create('Ext.menu.Menu', {
+            items: topitems });        
         this.typemenu = Ext.create('Ext.menu.Menu', {
             items: typeitems });
         this.compmenu = Ext.create('Ext.menu.Menu', {
@@ -223,6 +239,8 @@ ComponentViewer.prototype.onComponentItemContextMenu =
     if(this.advanced_user) {
 	    if (node.data.component.concrete)
 	        this.compmenu.showAt(e.getXY());
+	    else if(node.data.cls == this.store.tree.cls.id) // Click on top node (Component)
+	    	this.topmenu.showAt(e.getXY());
 	    else
 	        this.typemenu.showAt(e.getXY());
     }
@@ -833,6 +851,36 @@ ComponentViewer.prototype.confirmAndDelete = function(node) {
 	                        node.parentNode.removeChild(node);
 	                        if (c.id)
 	                            This.tabPanel.remove(This.tabPanel.getActiveTab());
+	                    } else {
+	                        _console(response.responseText);
+	                    }
+	                },
+	                failure: function(response) {
+	                    This.treePanel.getEl().unmask();
+	                    _console(response.responseText);
+	                }
+	            });
+	        }
+    	});
+};
+
+
+ComponentViewer.prototype.clearCache = function() {
+	var This = this;
+    Ext.MessageBox.confirm("Confirm Cache Clean", 
+    	"WARNING: This process will increment all component versions so " + 
+    	"that any new workflow runs generate new outputs. " +
+    	"Are you sure you want to do that ?\n",
+    	function(yesno) {
+	        if (yesno == "yes") {
+	            var url = This.op_url + '/incrementComponentVersions';
+	            This.treePanel.getEl().mask("Incrementing versions..");
+	            Ext.Ajax.request({
+	                url: url,
+	                success: function(response) {
+	                    This.treePanel.getEl().unmask();
+	                    if (response.responseText == "OK") {
+	                    	alert("Versions incremented for all components");
 	                    } else {
 	                        _console(response.responseText);
 	                    }

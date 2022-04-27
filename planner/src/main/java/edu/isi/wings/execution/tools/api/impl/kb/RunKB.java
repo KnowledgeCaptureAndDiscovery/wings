@@ -554,7 +554,6 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
     }
 	}
 	
-	@SuppressWarnings("unused")
   private boolean fileIsOutputofAnotherRun(ExecutionFile file) {
     String query = 
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" + 

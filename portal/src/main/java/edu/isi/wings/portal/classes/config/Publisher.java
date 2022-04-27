@@ -1,7 +1,5 @@
 package edu.isi.wings.portal.classes.config;
 
-import edu.isi.wings.portal.classes.config.ServerDetails;
-
 /**
  * Created by varun on 13/07/2015.
  */

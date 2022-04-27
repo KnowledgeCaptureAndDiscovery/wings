@@ -218,6 +218,18 @@ public class ComponentResource extends WingsResource {
     return null;
   }
   
+  @GET
+  @Path("incrementComponentVersions")
+  @Produces(MediaType.TEXT_PLAIN)
+  public String incrementComponentVersions() {
+    if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
+        this.cc.incrementComponentVersions()) {
+      RunController.invalidateCachedAPIs();
+      return "OK";
+    }
+    return null;
+  }
+  
   /*
    * Component directory filebrowser functions
    */

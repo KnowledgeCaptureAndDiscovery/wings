@@ -31,7 +31,9 @@ import org.apache.commons.io.IOUtils;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.Component;
+import edu.isi.wings.catalog.component.classes.ComponentHolder;
 import edu.isi.wings.catalog.component.classes.ComponentRole;
+import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.data.api.DataCreationAPI;
 import edu.isi.wings.catalog.provenance.ProvenanceFactory;
@@ -492,6 +494,17 @@ public class ComponentController {
     }
     catch (Exception e) {
       e.printStackTrace();
+    }
+    return false;
+  }
+
+  // Increment component version of all components in the library
+  // - This is sometimes necessary if the dependent software changes (like the docker image)
+  public boolean incrementComponentVersions() {
+    for(ComponentTreeNode cnode : this.cc.getComponentHierarchy(false).flatten()) {
+      ComponentHolder holder = cnode.getCls();
+      if(holder != null && holder.getComponent() != null)
+        cc.incrementComponentVersion(holder.getComponent().getID());
     }
     return false;
   }

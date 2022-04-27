@@ -18,7 +18,6 @@
 package edu.isi.wings.workflow.template.classes;
 
 import edu.isi.wings.common.URIEntity;
-import edu.isi.wings.workflow.template.classes.Port;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 
 public class Link extends URIEntity {

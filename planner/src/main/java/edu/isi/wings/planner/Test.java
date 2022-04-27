@@ -29,7 +29,6 @@ import edu.isi.wings.workflow.template.classes.sets.SetExpression;
 import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.sets.SetExpression.SetOperator;
 
-@SuppressWarnings("unused")
 public class Test {
 
 	// TODO: Need a flatten function

@@ -61,7 +61,8 @@ public class PortSetRuleHandler {
 		return possibleBindings;
 	}
 
-	private static SetExpression crossProductPorts(SetExpression expr, ArrayList<Port> ports) {
+	@SuppressWarnings("unused")
+  private static SetExpression crossProductPorts(SetExpression expr, ArrayList<Port> ports) {
 		if (ports.size() == 0)
 			return expr;
 
