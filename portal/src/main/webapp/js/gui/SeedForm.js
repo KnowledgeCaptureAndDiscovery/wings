@@ -355,7 +355,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
             	var value = item.getValue();
             	if(value) {
             		if(!Array.isArray(value))
-            			value = value.split(/;/); // SEMICOLON SEPARATED MULTIPLE VALUES
+            			value = value.toString().split(/;/); // SEMICOLON SEPARATED MULTIPLE VALUES
             		bindings[id] = value;
             	}
             }

@@ -169,7 +169,7 @@ public class PlanController {
 	private void printPlannerJSON(TemplateBindings template_bindings,
 	    String op, boolean noexplain, PrintWriter out) {
 	  
-	  	String tplid = template_bindings.getTemplateId();
+	  String tplid = template_bindings.getTemplateId();
 		Template tpl = tc.getTemplate(tplid);
 		this.addTemplateBindings(tpl, template_bindings);
 		tpl.clearProvenance();
