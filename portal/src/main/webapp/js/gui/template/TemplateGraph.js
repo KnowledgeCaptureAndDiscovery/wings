@@ -766,19 +766,30 @@ Template.prototype.addLinkToVariable = function(fromPort, toPort, markOnly) {
 	// One of the ports needs to be a variable port
 	// - Get the variable included in the link, and fromNodePort, or toNodePort
 	if (fromPort.graphItem instanceof GraphVariable) {
+		// If the connection is from a variable to a node
 		variable = fromPort.graphItem;
 		var ls = this.getLinksWithVariable(variable);
-		if(ls.length)
-			return this.addLink(ls[0].fromPort, toPort, variable, markOnly);
+		if(ls.length) {
+			if(!ls[0].toPort) {
+				// If existing link is an Output Link, then make it an IO link			
+				this.changeLinkDestination(ls[0], toPort, markOnly);
+				this.linkAdditionSideEffects(ls[0].fromPort, ls[0].toPort, ls[0].variable, markOnly);
+				return ls[0];
+			}
+			else {
+				// Otherwise, just add another link with this variable
+				return this.addLink(ls[0].fromPort, toPort, variable, markOnly);
+			}
+		}
 	}
 	else if (toPort.graphItem instanceof GraphVariable) {
+		// If the connection is from a node to a variable
 		variable = toPort.graphItem;
 		var ls = this.getLinksWithVariable(variable);
 		for ( var i = 0; i < ls.length; i++) {
-			if(ls[i].fromPort) 
-				this.changeLinkOrigin(ls[i], fromPort, markOnly);
-			else
-				this.addLink(fromPort, ls[i].toPort, variable, markOnly);
+			// Change link origins for all
+			this.changeLinkOrigin(ls[i], fromPort, markOnly);
+			this.linkAdditionSideEffects(ls[i].fromPort, ls[i].toPort, ls[i].variable, markOnly);
 		}
 		return ls;
 	}
@@ -1092,13 +1103,15 @@ Template.prototype.removeNode = function(node) {
 	for ( var i = 0; i < iports.length; i++) {
 		var l = this.getLinkToPort(iports[i]);
 		if (l)
-			this.changeLinkDestination(l, null);
+			this.removeLink(l);
+			//this.changeLinkDestination(l, null);
 	}
 	var oports = node.getOutputPorts();
 	for ( var i = 0; i < oports.length; i++) {
 		var ls = this.getLinksFromPort(oports[i]);
 		for ( var j = 0; j < ls.length; j++) {
-			this.changeLinkOrigin(ls[j], null);
+			this.removeLink(ls[j]);
+			//this.changeLinkOrigin(ls[j], null);
 		}
 	}
 	this.refreshGraphItems();
