@@ -14,11 +14,16 @@ Deploy the container with the following command:
 $ docker-compose up -d
 ```
 
+
 Open the browser [http://localhost:8080/wings-portal](http://localhost:8080/wings-portal) to access the Wings portal.
 
 
 Go to [README Docker](wings-docker/) for additional instructions on running the Docker image.
 
+
+#### Images
+
+Docker images are available at [DockerHub](https://hub.docker.com/repository/docker/ikcap/wings)
 
 ### Maven
 
