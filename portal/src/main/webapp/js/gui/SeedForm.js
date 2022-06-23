@@ -353,13 +353,14 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
     		var id = item.uri;
             if (item.wtype == "param") {
             	var value = item.getValue();
-            	if(value != null) {
+            	if(value != null && value !== "") {
             		if(!Array.isArray(value))
             			value = value.toString().split(/;/); // SEMICOLON SEPARATED MULTIPLE VALUES
             		bindings[id] = value;
             	}
             }
     	}
+    	console.log(bindings);
     	return bindings;
     },
     
