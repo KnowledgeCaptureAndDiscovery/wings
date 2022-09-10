@@ -274,78 +274,84 @@ implements TemplateCreationAPI {
 
 	@Override
 	public void copyFrom(TemplateCreationAPI tc) {
-		TemplateCreationKB tckb = (TemplateCreationKB) tc;
-    
-		System.out.println("Copying template list");
-		
-		// Edit local workflow list
-    this.start_write();
-    boolean batched = this.start_batch_operation();
-    
-    // Copy the workflow list
-    tckb.start_read();
-		this.writerkb.copyFrom(tckb.writerkb);
-		
-		// Rename ontology namespaces to local ones
-		KBUtils.renameTripleNamespace(this.writerkb, tckb.wflowns, this.wflowns);
-		KBUtils.renameAllTriplesWith(this.writerkb, tckb.onturl, this.onturl, false);
-		KBUtils.renameAllTriplesWith(this.writerkb, tckb.liburl, this.liburl, false);
-		
-		// Rename template ids to local ones
-		ArrayList<String> tplids = tckb.getTemplateList();
-		for(String tplid: tplids) {
-		  String ntplid = tplid.replace(tckb.wdirurl, this.wdirurl); 
-		  KBUtils.renameAllTriplesWith(this.writerkb, tplid, ntplid, false);
-		}
-    
-    // Workflow/Template namespace rename maps
-    HashMap<String, String> nsmap = new HashMap<String, String>();
-    nsmap.put(tckb.wflowns, this.wflowns);
-    nsmap.put(tckb.dcdomns, this.dcdomns);
-    nsmap.put(tckb.dclibns, this.dclibns);
-    nsmap.put(tckb.pcdomns, this.pcdomns);
-    
-    // Copy workflows into local space and rename urls to local
-		for(String tplid : tplids) {
-			// Load and save the template in the latest format
-			TemplateKB tpl = (TemplateKB) tckb.getTemplate(tplid);
-			//tpl.save();
-			
-			String tplurl = tplid.replaceAll("#.*$", "");
-			String ntplurl = tplurl.replace(tckb.wdirurl, this.wdirurl);
-      //System.out.println("Copying template " + ntplurl);			
-			try {
-				KBAPI ntplkb = this.ontologyFactory.getKB(ntplurl, OntSpec.PLAIN);
-				tpl.start_read();
-				ntplkb.copyFrom(tpl.kb);
-				tpl.end();
-				//System.out.println("Copied Template KB");
-				
-				HashMap<String, String> tnsmap = new HashMap<String, String>(nsmap);
-				tnsmap.put(tplurl+"#", ntplurl+"#");
-				KBUtils.renameTripleNamespaces(ntplkb, tnsmap);
-				KBUtils.renameAllTriplesWith(ntplkb, tplurl, ntplurl, false);
-				KBUtils.renameAllTriplesWith(ntplkb, tckb.onturl, this.onturl, false);
-				KBUtils.renameAllTriplesWith(ntplkb, tckb.liburl, this.liburl, false);
-        //System.out.println("Renamed Triples in KB");
+	  try {
+  		TemplateCreationKB tckb = (TemplateCreationKB) tc;
+      
+  		//System.out.println("Copying template list");
+  		
+  		// Edit local workflow list
+      this.start_write();
+      
+      // FIRST: Copy the workflow list
+      // -----------------------------
+      tckb.start_read();
+  		this.writerkb.copyFrom(tckb.writerkb);
+  		
+  		// Rename ontology namespaces to local ones
+  		KBUtils.renameTripleNamespace(this.writerkb, tckb.wflowns, this.wflowns);
+  		KBUtils.renameAllTriplesWith(this.writerkb, tckb.onturl, this.onturl, false);
+  		KBUtils.renameAllTriplesWith(this.writerkb, tckb.liburl, this.liburl, false);
+  		
+  		// Rename template ids to local ones
+  		ArrayList<String> tplids = tckb.getTemplateList();
+  		for(String tplid: tplids) {
+  		  String ntplid = tplid.replace(tckb.wdirurl, this.wdirurl); 
+  		  KBUtils.renameAllTriplesWith(this.writerkb, tplid, ntplid, false);
+  		}
+      
+      // Workflow/Template namespace rename maps
+      HashMap<String, String> nsmap = new HashMap<String, String>();
+      nsmap.put(tckb.wflowns, this.wflowns);
+      nsmap.put(tckb.dcdomns, this.dcdomns);
+      nsmap.put(tckb.dclibns, this.dclibns);
+      nsmap.put(tckb.pcdomns, this.pcdomns);
+      
+      this.save();
+      tckb.end();
+      this.end();
+      
+      // SECOND: Copy Each workflow Graph
+      // --------------------------------
+      
+      // Copy workflows into local space and rename urls to local
+  		for(String tplid : tplids) {
+  		  
+  			// Load and save the template in the latest format
+  			TemplateKB tpl = (TemplateKB) tckb.getTemplate(tplid);
 
-        this.save(ntplkb);
-				
-				//System.out.println("Saved KB");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		if(batched)
-		  this.stop_batch_operation();
-		
-		this.save();
-		tckb.end();
-		this.end();
-		
-		//System.out.println("Done");
-		this.initializeAPI(true);
+  			String tplurl = tplid.replaceAll("#.*$", "");
+  			String ntplurl = tplurl.replace(tckb.wdirurl, this.wdirurl);
+        //System.out.println("Copying template " + ntplurl);			
+  			try {
+          this.start_write();
+          
+  				KBAPI ntplkb = this.ontologyFactory.getKB(ntplurl, OntSpec.PLAIN);
+  				ntplkb.copyFrom(tpl.getKBCopy(true));
+  				
+  				//System.out.println("Copied Template KB");
+  				
+  				HashMap<String, String> tnsmap = new HashMap<String, String>(nsmap);
+  				tnsmap.put(tplurl+"#", ntplurl+"#");
+  				KBUtils.renameTripleNamespaces(ntplkb, tnsmap);
+  				KBUtils.renameAllTriplesWith(ntplkb, tplurl, ntplurl, false);
+  				KBUtils.renameAllTriplesWith(ntplkb, tckb.onturl, this.onturl, false);
+  				KBUtils.renameAllTriplesWith(ntplkb, tckb.liburl, this.liburl, false);
+          //System.out.println("Renamed Triples in KB");
+          
+          this.save(ntplkb);
+           
+  				//System.out.println("Saved KB");
+  			} catch (Exception e) {
+  				e.printStackTrace();
+  			}
+  		}
+  		
+  		//System.out.println("Done");
+  		this.initializeAPI(true);
+	  }
+	  finally {
+	    this.end();
+	  }
 	}
 
 	@Override
