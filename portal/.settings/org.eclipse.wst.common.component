@@ -69,7 +69,7 @@
         <dependent-module archiveName="wings-planner-5.2.4.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/wings-planner/wings-planner">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="ontapi-1.2.6.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ontapi/ontapi">
+        <dependent-module archiveName="ontapi-1.2.7.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ontapi/ontapi">
             <dependency-type>uses</dependency-type>
         </dependent-module>
                                                                                                         

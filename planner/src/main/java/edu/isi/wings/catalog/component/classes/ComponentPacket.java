@@ -17,6 +17,7 @@
 
 package edu.isi.wings.catalog.component.classes;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,8 +40,10 @@ import edu.isi.wings.workflow.template.classes.variables.*;
  * basically a list of KBTriple Objects
  * </ul>
  */
-public class ComponentPacket {
-	private ComponentVariable component;
+public class ComponentPacket implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
+  private ComponentVariable component;
 	private LinkedHashMap<Role, Variable> roleMap;
 	private ArrayList<KBTriple> requirements;
 

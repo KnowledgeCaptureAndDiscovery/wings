@@ -1312,7 +1312,6 @@ implements WorkflowGenerationAPI {
 	 */
 	public ExecutionPlan getExecutionPlan(Template template) {
 	  this.addExplanation("INFO: --------- Creating an execution plan ---------");
-	  System.out.println("INFO: --------- Creating an execution plan ---------");
 	  
 		try {
 			String planid = UuidGen.generateURIUuid((URIEntity)template);
@@ -2397,7 +2396,8 @@ implements WorkflowGenerationAPI {
 				}
 				c.setBinding(cb);
 
-				ComponentPacket ccmr = cmr.clone();
+				ComponentPacket ccmr = (ComponentPacket) SerializableObjectCloner.clone(cmr); //cmr.clone();
+				ccmr.setRequirements(cmr.getRequirements());
 				ccmr.setComponent(c);
 
 				PortBinding pb = ipblist.getPortBinding();

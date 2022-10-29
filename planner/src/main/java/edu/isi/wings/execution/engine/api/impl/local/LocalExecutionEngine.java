@@ -140,7 +140,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	  // - checks for next steps and executes them
 	  // - or replans
 	  // - or ends
-	  System.out.println("Plan: Step End");
+	  //System.out.println("Plan: Step End");
 	  // If aborted, shut it down
 	  if(exe.getRuntimeInfo().getStatus() == Status.FAILURE) {
 	    exe.onEnd(this.logger, Status.FAILURE, "Finished");
@@ -158,13 +158,13 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 				if(exe.getQueue().getFinishedSteps().size() 
 				    == exe.getQueue().getAllSteps().size()) {
 					if(exe.getPlan().isIncomplete()) {
-					  System.out.println("* Workflow is Incomplete !");
+					  //System.out.println("* Workflow is Incomplete !");
 					  if(!exe.isReplanned()) {
               exe.setReplanned(true);
               
   					  // If the plan is incomplete, then replan and continue
-              System.out.println("* Workflow needs Replanning");
-              System.out.println(">> Replanning, and re-executing");
+              //System.out.println("* Workflow needs Replanning");
+              //System.out.println(">> Replanning, and re-executing");
   					  exe = this.monitor.rePlan(exe);
   					  
   					  if(exe.getRuntimeInfo().getStatus() != 
@@ -181,10 +181,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 					}
 					else {
 					  status = RuntimeInfo.Status.SUCCESS;
-		        System.out.println("* Successful Finish");
+		        //System.out.println("* Successful Finish");
 					}
 				}
-				System.out.println("** Shutting down execution !");
+				//System.out.println("** Shutting down execution !");
 				exe.onEnd(this.logger, status, endlog);
 				this.shutdown();
 			}
@@ -197,7 +197,7 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 			}
 
 			for(RuntimeStep stepexe : steps) {
-			  System.out.println(">> Executing " + stepexe.getName());
+			  //System.out.println(">> Executing " + stepexe.getName());
 				this.stepEngine.execute(stepexe, exe);
 			}
 

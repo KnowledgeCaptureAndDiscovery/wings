@@ -10,13 +10,13 @@
 	<parent>
 		<groupId>edu.isi.wings</groupId>
 		<artifactId>wings-core</artifactId>
-		<version>5.2.4</version>
+		<version>5.2.5</version>
 		<relativePath>../core/pom.xml</relativePath>
 	</parent>
 
 	<properties>
 		<jsch.version>0.1.53</jsch.version>
-		<ontapi.version>1.2.6</ontapi.version>
+		<ontapi.version>1.2.7</ontapi.version>
 		<nanocloud.version>0.8.11</nanocloud.version>
 		<gson.version>2.2.4</gson.version>
 		<junit.version>4.5</junit.version>
