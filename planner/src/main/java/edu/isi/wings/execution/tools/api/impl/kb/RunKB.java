@@ -799,7 +799,17 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	}
 
   @Override
-  public RuntimePlan rePlan(RuntimePlan planexe) {
+  public RuntimePlan rePlan(RuntimePlan oldplanexe) {
+    RuntimePlan planexe;
+    try {
+      planexe = (RuntimePlan) oldplanexe.clone();
+      planexe.setReplanned(false);
+    } catch (CloneNotSupportedException e1) {
+      e1.printStackTrace();
+      return this.setPlanError(oldplanexe, 
+          "Cannot clone the old plan");
+    }
+    
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(props,
         DataFactory.getReasoningAPI(props), DataFactory.getCreationAPI(props), 
         ComponentFactory.getReasoningAPI(props), ComponentFactory.getCreationAPI(props),

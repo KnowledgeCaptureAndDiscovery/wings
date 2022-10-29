@@ -136,6 +136,11 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 	
 	@Override
 	public void onStepEnd(RuntimePlan exe) {
+	  // Called when a step ends, *or* when the plan starts
+	  // - checks for next steps and executes them
+	  // - or replans
+	  // - or ends
+	  System.out.println("Plan: Step End");
 	  // If aborted, shut it down
 	  if(exe.getRuntimeInfo().getStatus() == Status.FAILURE) {
 	    exe.onEnd(this.logger, Status.FAILURE, "Finished");
@@ -153,19 +158,33 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 				if(exe.getQueue().getFinishedSteps().size() 
 				    == exe.getQueue().getAllSteps().size()) {
 					if(exe.getPlan().isIncomplete()) {
-					  // If the plan is incomplete, then replan and continue
-            System.out.println("Replanning, and re-executing");
-					  exe = this.monitor.rePlan(exe);
-					  if(exe.getRuntimeInfo().getStatus() != 
-					      RuntimeInfo.Status.FAILURE) {
-					    this.onStepEnd(exe);
+					  System.out.println("* Workflow is Incomplete !");
+					  if(!exe.isReplanned()) {
+              exe.setReplanned(true);
+              
+  					  // If the plan is incomplete, then replan and continue
+              System.out.println("* Workflow needs Replanning");
+              System.out.println(">> Replanning, and re-executing");
+  					  exe = this.monitor.rePlan(exe);
+  					  
+  					  if(exe.getRuntimeInfo().getStatus() != 
+  					      RuntimeInfo.Status.FAILURE) {
+  					    this.onStepEnd(exe);
+  					    return;
+  					  }
+					  }
+					  else {
+					    //System.out.println("* Ending planner without shutdown");
+					    //exe.onEnd(this.logger, status, endlog);
 					    return;
 					  }
 					}
 					else {
 					  status = RuntimeInfo.Status.SUCCESS;
+		        System.out.println("* Successful Finish");
 					}
 				}
+				System.out.println("** Shutting down execution !");
 				exe.onEnd(this.logger, status, endlog);
 				this.shutdown();
 			}
@@ -177,8 +196,10 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 			  //System.out.println("Queued "+stepexe.getName());
 			}
 
-			for(RuntimeStep stepexe : steps)
+			for(RuntimeStep stepexe : steps) {
+			  System.out.println(">> Executing " + stepexe.getName());
 				this.stepEngine.execute(stepexe, exe);
+			}
 
 		}
 	}

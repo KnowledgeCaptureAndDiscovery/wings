@@ -2340,6 +2340,20 @@ implements Template, TransactionsAPI {
   }
   
   @Override
+  public boolean read(Runnable r) {
+    if(transaction != null)
+      return transaction.read(r);
+    return true;
+  }
+
+  @Override
+  public boolean write(Runnable r) {
+    if(transaction != null)
+      return transaction.write(r);
+    return true;
+  }  
+  
+  @Override
   public boolean save(KBAPI kb) {
     return transaction.save(kb);
   }

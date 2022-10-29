@@ -176,7 +176,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     
                 	var msgTarget = me.getEl();
                 	msgTarget.mask('Preparing Workflow Execution...', 'x-mask-loading');           	
-                    Ext.Ajax.requestGZ({
+                    Ext.Ajax.request({
                         url: me.plan_url + "/" + op,
                         jsonData: me.getTemplateBindings(),
                         timeout: Ext.Ajax.timeout,
@@ -212,7 +212,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                 
             	var msgTarget = me.getEl();
             	msgTarget.mask('Planning & Running Workflow...', 'x-mask-loading');           	
-                Ext.Ajax.requestGZ({
+                Ext.Ajax.request({
                     url: me.run_url + "/" + op,
                     jsonData: me.getTemplateBindings(),
                     timeout: Ext.Ajax.timeout,
@@ -269,7 +269,7 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
         
     	var msgTarget = me.getEl();
     	msgTarget.mask('Suggesting ' + type + ' ...', 'x-mask-loading');           	
-        Ext.Ajax.requestGZ({
+        Ext.Ajax.request({
             url: me.plan_url + "/" + op,
             jsonData: me.getTemplateBindings(),
             timeout: Ext.Ajax.timeout,

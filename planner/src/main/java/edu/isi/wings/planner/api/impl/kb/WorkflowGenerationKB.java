@@ -1312,6 +1312,7 @@ implements WorkflowGenerationAPI {
 	 */
 	public ExecutionPlan getExecutionPlan(Template template) {
 	  this.addExplanation("INFO: --------- Creating an execution plan ---------");
+	  System.out.println("INFO: --------- Creating an execution plan ---------");
 	  
 		try {
 			String planid = UuidGen.generateURIUuid((URIEntity)template);

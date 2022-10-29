@@ -343,6 +343,20 @@ implements ExecutionPlan, TransactionsAPI {
   public boolean start_write() {
     return transaction.start_write();
   }
+  
+  @Override
+  public boolean read(Runnable r) {
+    if(transaction != null)
+      return transaction.read(r);
+    return true;
+  }
+
+  @Override
+  public boolean write(Runnable r) {
+    if(transaction != null)
+      return transaction.write(r);
+    return true;
+  }   
 
   @Override
   public boolean saveAll() {

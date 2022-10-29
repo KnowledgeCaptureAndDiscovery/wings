@@ -404,29 +404,39 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 
 	@Override
 	public boolean moveDataParent(String dataid, String fromtypeid, String totypeid) {
-	  KBObject obj = this.kb.getIndividual(dataid);
-	  KBObject fromcls = this.kb.getConcept(fromtypeid);
-	  KBObject tocls = this.kb.getConcept(totypeid);
-	  ArrayList<KBObject> oldprops = this.kb.getPropertiesOfClass(fromcls, false);
-	  ArrayList<KBObject> newprops = this.kb.getPropertiesOfClass(tocls, false);
-	  ArrayList<KBObject> removedProps = new ArrayList<KBObject>(); 
-	  for(KBObject oldprop : oldprops) {
-	    if(!newprops.contains(oldprop)) {
-	      removedProps.add(oldprop);
-	    }
-	  }
-	  for(KBObject prop : removedProps) {
-	    for(KBTriple triple : this.kb.genericTripleQuery(obj, prop, null)) 
-	      this.libkb.removeTriple(triple);
-	  }
-
-	  KBObject typeProp = this.kb.getProperty(KBUtils.RDF+"type");
-	  this.libkb.removeTriple(obj, typeProp, fromcls);
-	  this.libkb.addTriple(obj, typeProp, tocls);
-	  
-	  if(this.externalCatalog != null)
-	    this.externalCatalog.moveDataParent(dataid, fromtypeid, totypeid);
-	  return true;
+	  try {
+      this.start_write();
+  	  KBObject obj = this.kb.getIndividual(dataid);
+  	  KBObject fromcls = this.kb.getConcept(fromtypeid);
+  	  KBObject tocls = this.kb.getConcept(totypeid);
+  	  ArrayList<KBObject> oldprops = this.kb.getPropertiesOfClass(fromcls, false);
+  	  ArrayList<KBObject> newprops = this.kb.getPropertiesOfClass(tocls, false);
+  	  ArrayList<KBObject> removedProps = new ArrayList<KBObject>(); 
+  	  for(KBObject oldprop : oldprops) {
+  	    if(!newprops.contains(oldprop)) {
+  	      removedProps.add(oldprop);
+  	    }
+  	  }
+  	  for(KBObject prop : removedProps) {
+  	    for(KBTriple triple : this.kb.genericTripleQuery(obj, prop, null)) 
+  	      this.libkb.removeTriple(triple);
+  	  }
+  
+  	  KBObject typeProp = this.kb.getProperty(KBUtils.RDF+"type");
+  	  this.libkb.removeTriple(obj, typeProp, fromcls);
+  	  this.libkb.addTriple(obj, typeProp, tocls);
+  	  
+  	  if(this.externalCatalog != null)
+  	    this.externalCatalog.moveDataParent(dataid, fromtypeid, totypeid);
+  	  return this.save();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+    finally {
+      this.end();
+    }
 	}
 	 
 	@Override

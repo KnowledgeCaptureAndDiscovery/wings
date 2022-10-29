@@ -41,7 +41,7 @@ import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 
-public class RuntimePlan extends URIEntity {
+public class RuntimePlan extends URIEntity implements Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	ExecutionQueue queue;
@@ -54,6 +54,8 @@ public class RuntimePlan extends URIEntity {
 	
 	String callbackUrl;
 	Cookie[] callbackCookies;
+	
+	boolean replanned = false;
 	
 	public RuntimePlan() {
 	  super();
@@ -199,5 +201,17 @@ public class RuntimePlan extends URIEntity {
 
   public void setCallbackCookies(Cookie[] callbackCookies) {
     this.callbackCookies = callbackCookies;
+  }
+
+  public boolean isReplanned() {
+    return replanned;
+  }
+
+  public void setReplanned(boolean replanned) {
+    this.replanned = replanned;
+  }
+  
+  public Object clone() throws CloneNotSupportedException{  
+    return super.clone();  
   }
 }
