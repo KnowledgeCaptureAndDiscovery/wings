@@ -26,6 +26,7 @@ import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.kcap.ontapi.OntSpec;
+import edu.isi.kcap.ontapi.SparqlQuerySolution;
 import edu.isi.kcap.ontapi.jena.transactions.TransactionsJena;
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.kb.KBUtils;
@@ -48,6 +49,7 @@ implements TemplateCreationAPI {
 	KBAPI kb;
 	KBAPI ontkb;
 	KBAPI writerkb;
+  KBAPI unionkb;	
 	Properties props;
 	
 	public TemplateCreationKB(Properties props) {
@@ -81,6 +83,9 @@ implements TemplateCreationAPI {
 			this.kb.importFrom(this.ontkb);
 			
 			this.writerkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
+			
+			this.unionkb = this.ontologyFactory.getKB("urn:x-arq:UnionGraph", OntSpec.PLAIN);
+			
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -183,6 +188,59 @@ implements TemplateCreationAPI {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+  @Override
+  public HashMap<String, ArrayList<String>> getTemplatesContainingComponents(String[] cids) {
+    HashMap<String, ArrayList<String>> componentTemplates = new HashMap<String, ArrayList<String>>();
+    ArrayList<String> templateIds = this.getTemplateList();
+    
+    String cidstr = "";
+    for(String cid : cids) 
+      cidstr += "<" + cid + ">\n";
+
+    String query = "PREFIX wflow: <" + this.wflowns + ">\n" +
+        "SELECT DISTINCT ?tpl ?compid WHERE {\n" +
+        "?cv wflow:hasComponentBinding ?compid .\n" + 
+        "VALUES ?compid {\n" + cidstr + "\n} .\n" +
+        "?node wflow:hasComponent ?cv .\n" +
+        "?tpl wflow:hasNode ?node\n" +
+        "}";
+    
+    try {
+      this.read(()-> { 
+        ArrayList<ArrayList<SparqlQuerySolution>> result = unionkb.sparqlQuery(query);
+        
+        for(ArrayList<SparqlQuerySolution> row : result) {
+          String tplid = null, compid = null;      
+          for (SparqlQuerySolution item : row) {
+            if(item.getVariable().equals("tpl")) {
+              tplid = item.getObject().getID();
+            }
+            else if(item.getVariable().equals("compid")) {
+              compid = item.getObject().getID();
+            }
+          }
+          if (tplid != null && compid != null && templateIds.contains(tplid)) {
+            if (!componentTemplates.containsKey(compid)) {
+              componentTemplates.put(compid, new ArrayList<String>());
+            }
+            componentTemplates.get(compid).add(tplid);
+          }
+        }
+      });
+      return componentTemplates;
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+  
+  
+	@Override
+	public boolean incrementTemplateVersion(String tplid) {
+	  return false;
 	}
 	
 	@Override

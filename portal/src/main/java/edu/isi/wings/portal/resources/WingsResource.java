@@ -38,12 +38,14 @@ public class WingsResource {
     return this.getPage("/jsp/viewers/"+viewer+".jsp");
   }
   
-  protected void loadIntroduction(String page) {
+  protected boolean loadIntroduction(String page) {
     try {
       response.sendRedirect(request.getContextPath() +
           "/html/intros/"+page+".html");
+      return true;
     } catch (IOException e) {
       e.printStackTrace();
+      return false;
     }
   }
   

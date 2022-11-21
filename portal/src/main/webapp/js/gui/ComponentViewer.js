@@ -1343,7 +1343,9 @@ ComponentViewer.prototype.openComponentEditor = function(args) {
     		compStore.requirement, editable, tab, savebtn));
         
         mainPanelItems.push(This.getCodeTab(c.id, 'code', editable, tab, savebtn));
-    }    	
+    }
+    
+    mainPanelItems.push(This.getUsageTab(c.id, tab));
     
     mainPanelItems.push(This.provenanceViewer.createItemProvenanceGrid(c.id));
     
@@ -1699,6 +1701,74 @@ ComponentViewer.prototype.getDocumentationTab = function(id, doc, editable, tab,
 	}
 };
 
+ComponentViewer.prototype.getUsageTab = function(id, tab) {
+	var This = this;
+	
+	return {
+		xtype : 'panel',
+		title : 'Usage',
+		type : 'usagePanel',
+		iconCls : 'icon-wflow-alt fa-title fa-blue',
+		bodyStyle : 'padding:5px',
+		autoScroll : true,		
+		border: false,
+		margin: 5,
+		html: '',
+		listeners: {
+			'afterrender': function() {
+				This.getComponentUsage(id, tab);
+			}
+		}
+	};
+};
+
+ComponentViewer.prototype.getComponentUsage = function(cid, tab) {
+	var This = this;
+	
+	var usagePanel = tab.down('panel[type="usagePanel"]');
+	var msgTarget = usagePanel.getEl();
+    msgTarget.mask('Loading...', 'x-mask-loading');
+    
+    Ext.Ajax.request({
+        url: This.op_url + '/getWorkflowsContainingComponent',
+        method: 'GET',
+       	responseType: 'json',
+        params: {
+            cid: cid,
+        },
+        success: function (response) {
+            msgTarget.unmask();
+            var workflows = Ext.decode(response.responseText);
+            html = "<ul>";
+			if(!(cid in workflows)) {
+				html += "<li><b>"+getLocalName(cid) +"</b> is not used in any workflow template<br/><br/></li>"
+			}
+			for(rcid in workflows) {
+				
+				html += "<li>";
+				if(rcid != cid) {
+					html += "Parent Component Type ";
+				} 
+				html += "<b>"+ getLocalName(rcid) +"</b> is used in the following workflow templates:<br/><br/> "
+				html += "<ul>";
+				for(ind in workflows[rcid]) {
+					wflowid = workflows[rcid][ind]
+					wflowname = getLocalName(wflowid);
+					wflowurl = wflowid.replace("export/", "");
+					html += "<li><a href='"+wflowurl+"'>" + getLocalName(wflowid) + "</a></li>\n";
+				}
+				html += "</ul><br/><br/></li>";
+			}
+			html += "</ul>"
+            Ext.getCmp(usagePanel.getId()).update(html)
+
+        },
+        failure: function (response) {
+            _console(response.responseText);
+        }
+    });
+}
+
 ComponentViewer.prototype.getDependenciesTab = 
 		function(title, mstore, editable, tab, savebtn) {
 	var This = this;
@@ -1777,7 +1847,7 @@ ComponentViewer.prototype.getDependenciesTab =
 			valueField: 'id',
 			tpl: tpl,
 			listeners: {
-				select: function(item) {
+				change: function(item) {
 					mstore.softwareIds = item.value;
 					This.showEnvironmentVariables(tab, mstore);
 				}
@@ -1850,6 +1920,7 @@ ComponentViewer.prototype.showEnvironmentVariables = function(tab, mstore) {
 		text = "No Environment Variables are available for the component";
 	Ext.getCmp(ptext.getId()).update(text);
 };
+
 
 ComponentViewer.prototype.initialize = function() {
     // Add the template tabPanel in the center

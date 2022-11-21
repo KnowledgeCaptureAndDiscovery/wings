@@ -17,6 +17,8 @@
 
 package edu.isi.wings.catalog.component.api;
 
+import java.util.ArrayList;
+
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentTree;
@@ -32,6 +34,8 @@ public interface ComponentCreationAPI extends TransactionsAPI {
 	String getDefaultComponentLocation(String cid);
 
 	String getComponentHolderId(String cid);
+	
+	ArrayList<String> getParentComponentTypes(String cid);
 	
 	// Update
 	boolean addComponent(Component comp, String pholderid);

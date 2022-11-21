@@ -20,6 +20,8 @@ package edu.isi.wings.portal.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -42,6 +44,8 @@ import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.workflow.template.TemplateFactory;
+import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 
@@ -55,6 +59,7 @@ public class ComponentController {
 
 	public ComponentCreationAPI cc;
 	public DataCreationAPI dc;
+  public TemplateCreationAPI tc;	
 	public ProvenanceAPI prov;
 	
 	public boolean isSandboxed;
@@ -72,6 +77,7 @@ public class ComponentController {
 
 		cc = ComponentFactory.getCreationAPI(props);
 		dc = DataFactory.getCreationAPI(props);
+		tc = TemplateFactory.getCreationAPI(props);
 		prov = ProvenanceFactory.getAPI(props);
 		
 		this.loadExternal = loadExternal;
@@ -136,7 +142,50 @@ public class ComponentController {
 	  }
 	  return false;
 	}
-	 
+
+  public synchronized boolean incrementWorkflowVersionContainingComponent(String cid) {
+    if (this.tc == null || this.cc == null)
+      return false;
+    try {
+      /*
+      // TODO: Uncomment this, when :
+       * - incrementTemplateVersion is implemented
+       * - this call is made asynchronous (otherwise it could take time, and will make editing components tedious) 
+      ArrayList<String> types = this.cc.getParentComponentTypes(cid);
+      types.add(0, cid);
+      String[] cids = new String[types.size()];
+      HashMap<String, ArrayList<String>> compTemplates = tc.getTemplatesContainingComponents(types.toArray(cids));
+      HashSet<String> tplids = new HashSet<String>();
+      for(ArrayList<String> ctplids : compTemplates.values()) {
+        tplids.addAll(ctplids);
+      }
+      for(String tplid: tplids) {
+        tc.incrementTemplateVersion(tplid);
+      }*/
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      this.end();
+    }
+    return false;
+  }
+  
+  public synchronized HashMap<String, ArrayList<String>> getWorkflowsContainingComponent(String cid) {
+    if (this.tc == null)
+      return null;
+    try {
+      ArrayList<String> types = this.cc.getParentComponentTypes(cid);
+      types.add(0, cid);
+      String[] cids = new String[types.size()];
+      return tc.getTemplatesContainingComponents(types.toArray(cids));
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      this.end();
+    }
+    return null;
+  }
+  
 	public synchronized boolean addComponent(String cid, String pid, String ptype, boolean isConcrete) {
 	  try {
   	  int type = (isConcrete ? Component.CONCRETE : Component.ABSTRACT);

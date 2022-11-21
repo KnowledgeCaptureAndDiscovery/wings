@@ -18,6 +18,7 @@
 package edu.isi.wings.workflow.template.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.workflow.template.classes.ConstraintProperty;
@@ -30,6 +31,8 @@ public interface TemplateCreationAPI extends TransactionsAPI {
 	
 	ArrayList<ConstraintProperty> getAllConstraintProperties();
 	
+	public HashMap<String, ArrayList<String>> getTemplatesContainingComponents(String[] cids);
+
 	// Creation
 	
 	Template createTemplate(String tplid);
@@ -39,6 +42,10 @@ public interface TemplateCreationAPI extends TransactionsAPI {
 	boolean registerTemplateAs(Template tpl, String newid);
 	
 	boolean deregisterTemplate(Template tpl);
+	
+	// Versioning
+	
+	boolean incrementTemplateVersion(String tplid);
 
 	// Transactions
 	boolean delete();

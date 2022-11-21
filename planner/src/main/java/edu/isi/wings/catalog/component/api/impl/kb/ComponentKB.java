@@ -295,6 +295,25 @@ public class ComponentKB extends TransactionsJena {
     }
 	}
 	
+	public ArrayList<String> getParentComponentTypes(String cid) {
+	  ArrayList<String> ctypes = new ArrayList<String>();
+    try {
+      this.read(()->{
+        KBObject compobj = this.kb.getIndividual(cid);
+        for(KBObject clsobj : this.kb.getAllClassesOfInstance(compobj, true)) {
+          for(KBObject superclsobj : this.kb.getSuperClasses(clsobj, false)) {
+            for(KBObject supercompobj : this.kb.getInstancesOfClass(superclsobj, true))
+              ctypes.add(supercompobj.getID());
+          }
+        }
+      });
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return ctypes;
+	}
+	
   protected KBAPI getWriterKB(String cid) {
     boolean new_transaction = false;
     if (!this.is_in_transaction()) {

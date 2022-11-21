@@ -52,9 +52,9 @@ public class ComponentResource extends WingsResource {
   
   @GET
   @Path("intro")
-  public void getIntroduction() {
+  public boolean getIntroduction() {
     String introPage = "ManageComponents";
-    this.loadIntroduction(introPage);
+    return this.loadIntroduction(introPage);
   }
   
   @GET
@@ -77,6 +77,16 @@ public class ComponentResource extends WingsResource {
   }
   
   @GET
+  @Path("getWorkflowsContainingComponent")
+  @Produces(MediaType.APPLICATION_JSON)
+  public String getWorkflowsContainingComponent(
+      @QueryParam("cid") String cid) {
+    if(this.cc != null)
+      return cc.json.toJson(this.cc.getWorkflowsContainingComponent(cid));
+    return null;
+  }  
+  
+  @GET
   @Path("fetch")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response fetchComponent(
@@ -86,6 +96,7 @@ public class ComponentResource extends WingsResource {
     return Response.status(Status.FORBIDDEN).build();    
   }
   
+  
   @POST
   @Path("saveComponentJSON")
   @Produces(MediaType.TEXT_PLAIN)
@@ -94,6 +105,7 @@ public class ComponentResource extends WingsResource {
       @FormParam("component_json") String json) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
         this.cc.saveComponentJSON(cid, json) && 
+        this.cc.incrementWorkflowVersionContainingComponent(cid) &&
         this.cc.incrementComponentVersion(cid)) {
       RunController.invalidateCachedAPIs();
       return "OK";
@@ -211,6 +223,7 @@ public class ComponentResource extends WingsResource {
       @FormParam("location") String location) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
         this.cc.setComponentLocation(cid, location) && 
+        this.cc.incrementWorkflowVersionContainingComponent(cid) &&
         this.cc.incrementComponentVersion(cid)) {
       RunController.invalidateCachedAPIs();
       return "OK";
@@ -229,7 +242,7 @@ public class ComponentResource extends WingsResource {
     }
     return null;
   }
-  
+    
   /*
    * Component directory filebrowser functions
    */
@@ -289,6 +302,7 @@ public class ComponentResource extends WingsResource {
       @FormParam("filedata") String data) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
         this.cc.saveComponentFile(cid, path, data) && 
+        this.cc.incrementWorkflowVersionContainingComponent(cid) &&
         this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
@@ -315,6 +329,7 @@ public class ComponentResource extends WingsResource {
       @FormParam("newname") String newname) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
         this.cc.renameComponentItem(cid, path, newname) && 
+        this.cc.incrementWorkflowVersionContainingComponent(cid) &&   
         this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
@@ -328,6 +343,7 @@ public class ComponentResource extends WingsResource {
       @FormParam("language") String lang) {
     if(this.cc != null && this.isOwner() && !config.isSandboxed() &&
         this.cc.initializeComponentFiles(cid, lang) && 
+        this.cc.incrementWorkflowVersionContainingComponent(cid) &&
         this.cc.incrementComponentVersion(cid))
       return "OK";
     return null;
