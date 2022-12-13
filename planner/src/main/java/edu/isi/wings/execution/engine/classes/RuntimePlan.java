@@ -55,6 +55,8 @@ public class RuntimePlan extends URIEntity implements Cloneable {
 	String callbackUrl;
 	Cookie[] callbackCookies;
 	
+	Runnable callbackThread;
+	
 	boolean replanned = false;
 	
 	public RuntimePlan() {
@@ -72,7 +74,7 @@ public class RuntimePlan extends URIEntity implements Cloneable {
 		this.queue = new ExecutionQueue(plan);
 		this.runtimeInfo = new RuntimeInfo();
 	}
-
+  
 	public ExecutionQueue getQueue() {
 		return queue;
 	}
@@ -113,6 +115,13 @@ public class RuntimePlan extends URIEntity implements Cloneable {
 	}
 	
 	private void postCallback() {
+	  if(this.callbackThread != null) {
+	    synchronized(this.callbackThread) {
+  	    //System.out.println("Notifying execution thread: " + this.callbackThread);
+  	    this.callbackThread.notify();
+	    }
+	  }
+	  
 	  if(this.callbackUrl != null && this.runtimeInfo.status == Status.SUCCESS) {
 	    try {
         BasicCookieStore cookieStore = new BasicCookieStore();
@@ -211,6 +220,14 @@ public class RuntimePlan extends URIEntity implements Cloneable {
     this.replanned = replanned;
   }
   
+  public Runnable getCallbackThread() {
+    return callbackThread;
+  }
+
+  public void setCallbackThread(Runnable callbackThread) {
+    this.callbackThread = callbackThread;
+  }
+
   public Object clone() throws CloneNotSupportedException{  
     return super.clone();  
   }

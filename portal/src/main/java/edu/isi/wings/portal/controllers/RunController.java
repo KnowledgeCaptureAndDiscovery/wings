@@ -99,7 +99,8 @@ public class RunController {
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
     
     if (executor == null) {
-      executor = Executors.newWorkStealingPool(config.getPlannerConfig().getParallelism());
+      //System.out.println("Parallel:" + config.getPlannerConfig().getParallelism());
+      executor = Executors.newFixedThreadPool(config.getPlannerConfig().getParallelism());
     }
   }
   
@@ -355,7 +356,7 @@ public class RunController {
     
     // Submit the planning and execution thread
     executor.submit(new PlanningAndExecutingThread(ex_prefix, template_id, 
-        this.config, config.getPlannerConfig().getMaxQueueSize(), template_bindings, apis, executor));
+        this.config, config.getPlannerConfig().getMaxQueueSize(), template_bindings, apis, executor, context));
     
     // Return the runid
     return runid;

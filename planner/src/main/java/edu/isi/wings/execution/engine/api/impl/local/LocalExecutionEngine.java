@@ -48,10 +48,10 @@ import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 
 public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionEngine {
 	
-	protected final ExecutorService executor;
+	protected ExecutorService executor; // FIXME: Should be Static to work properly - but causes problem with shutdown
 	
 	protected Properties props;
-	protected int maxParallel = 4;
+	protected int maxParallel = 10;
 	
 	protected StepExecutionEngine stepEngine;
 	protected PlanExecutionEngine planEngine;
@@ -66,9 +66,9 @@ public class LocalExecutionEngine implements PlanExecutionEngine, StepExecutionE
 			this.maxParallel = Integer.parseInt(props.getProperty("parallel"));
 		this.stepEngine = this;
 		this.planEngine = this;
-		executor = Executors.newFixedThreadPool(maxParallel);
+		if (executor == null)
+		  executor = Executors.newFixedThreadPool(maxParallel);
 	}
-
 
 	@Override
 	public void setExecutionLogger(ExecutionLoggerAPI logger) {

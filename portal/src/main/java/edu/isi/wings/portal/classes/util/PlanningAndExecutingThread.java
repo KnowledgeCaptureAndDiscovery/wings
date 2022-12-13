@@ -3,6 +3,8 @@ package edu.isi.wings.portal.classes.util;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 
+import javax.servlet.ServletContext;
+
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.common.CollectionsHelper;
@@ -21,19 +23,38 @@ import edu.isi.wings.workflow.template.classes.variables.Variable;
 class ExecutionThread implements Runnable {
   RuntimePlan rplan;
   Config config;
+  ServletContext context;
   
-  public ExecutionThread(RuntimePlan rplan, Config config) {
+  public ExecutionThread(RuntimePlan rplan, Config config, ServletContext context) {
     this.rplan = rplan;
     this.config = config;
+    this.context = context;
   }
   
   @Override
   public void run() {
     PlanExecutionEngine engine = config.getDomainExecutionEngine();
-    engine.execute(rplan);
+    
     // Save the engine for an abort if needed
-    //this.context.setAttribute("plan_" + rplan.getID(), rplan);
-    //this.context.setAttribute("engine_" + rplan.getID(), engine);    
+    this.context.setAttribute("plan_" + rplan.getID(), rplan);
+    this.context.setAttribute("engine_" + rplan.getID(), engine);
+    
+    // Set callback thread to be this thread
+    synchronized(this) {
+      rplan.setCallbackThread(this);
+      
+      // This is an asynchronous call.. So we make it synchronous by waiting until the execution is complete
+      engine.execute(rplan);      
+      
+      // Wait until notified of completion
+      try {
+        //System.out.println("Waiting for thread: " + this);
+        this.wait();
+        //System.out.println("Execution finished");
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
 }
 
@@ -46,6 +67,7 @@ public class PlanningAndExecutingThread implements Runnable {
   PlanningAPIBindings api_bindings;
   ExecutorService executor;
   int max_number_of_executions;
+  ServletContext context;
   
   public PlanningAndExecutingThread(
       String ex_prefix,
@@ -54,7 +76,8 @@ public class PlanningAndExecutingThread implements Runnable {
       int max_number_of_executions,
       TemplateBindings template_bindings, 
       PlanningAPIBindings api_bindings,
-      ExecutorService executor) {
+      ExecutorService executor,
+      ServletContext context) {
     this.config = config;
     this.template_bindings = template_bindings;
     this.api_bindings = api_bindings;
@@ -62,6 +85,7 @@ public class PlanningAndExecutingThread implements Runnable {
     this.executor = executor;
     this.ex_prefix = ex_prefix;
     this.template_id = template_id;
+    this.context = context;
   }
   
   private void addTemplateBindings(Template tpl, TemplateBindings tb) {
@@ -166,7 +190,8 @@ public class PlanningAndExecutingThread implements Runnable {
   }
   
   private void runExecutionPlan(RuntimePlan rplan) {
-    ExecutionThread exthread = new ExecutionThread(rplan, config);
+    ExecutionThread exthread = new ExecutionThread(rplan, this.config, this.context);
+    // This is an asynchronous call
     executor.submit(exthread);
   }
   
