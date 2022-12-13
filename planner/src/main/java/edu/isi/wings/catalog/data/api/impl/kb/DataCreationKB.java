@@ -221,12 +221,10 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
   		KBObject datatype = this.kb.getConcept(dtypeid);
   		Pattern pat = Pattern.compile("NameFormat=(.+)");
   		for (String comment : this.kb.getAllComments(datatype)) {
-  		  for(String commentLine : comment.split("\\n")) {
-    			Matcher m = pat.matcher(commentLine);
-    			if (m.find()) {
-    				return m.group(1);
-    			}
-  		  }
+  			Matcher m = pat.matcher(comment);
+  			if (m.find()) {
+  				return m.group(1);
+  			}
   		}
   		return null;
 	  }
@@ -242,11 +240,9 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
       KBObject datatype = this.kb.getConcept(dtypeid);
       Pattern pat = Pattern.compile("Sensor=(.+)");
       for (String comment : this.kb.getAllComments(datatype)) {
-        for(String commentLine : comment.split("\\n")) {
-          Matcher m = pat.matcher(commentLine);
-          if (m.find()) {
-            return m.group(1);
-          }
+        Matcher m = pat.matcher(comment);
+        if (m.find()) {
+          return m.group(1);
         }
       }
       return null;
@@ -522,12 +518,21 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 	  try {
   	  this.start_write();
   		KBObject dtypeobj = this.ontkb.getConcept(dtypeid);
-  		String annotation = "";
-  		if(nameFormat != null)
-  		  annotation += "NameFormat=" + nameFormat;
-  		if(sensorWorkflow != null)
-  		  annotation += (nameFormat != null ? "\n" : "") + "Sensor=" + sensorWorkflow;
-  		this.ontkb.setComment(dtypeobj, annotation);
+  		boolean added = false;
+  		if(nameFormat != null) {
+  		  String comment = "NameFormat=" + nameFormat;
+  		  this.ontkb.setComment(dtypeobj, comment);
+  		  added = true;
+  		}
+  		if(sensorWorkflow != null) {
+        String comment = "Sensor=" + sensorWorkflow;
+  		  if(added) {
+  		    this.ontkb.addComment(dtypeobj, comment);
+  		  }
+  		  else {
+          this.ontkb.setComment(dtypeobj, comment);
+  		  }
+  		}
   		if(this.externalCatalog != null)
   			this.externalCatalog.setTypeAnnotations(dtypeid, nameFormat, sensorWorkflow);
   		return this.save();

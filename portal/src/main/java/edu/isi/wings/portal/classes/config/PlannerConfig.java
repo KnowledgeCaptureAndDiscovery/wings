@@ -4,6 +4,8 @@ public class PlannerConfig {
   boolean dataValidation = true;
   boolean specialization = true;
   boolean useRules = true;
+  int maxQueueSize = 1000;
+  int parallelism = 10;
   
   public boolean useDataValidation() {
     return dataValidation;
@@ -22,5 +24,17 @@ public class PlannerConfig {
   }
   public void setUseRules(boolean useRules) {
     this.useRules = useRules;
+  }
+  public int getMaxQueueSize() {
+    return maxQueueSize;
+  }
+  public void setMaxQueueSize(int maxQueueSize) {
+    this.maxQueueSize = maxQueueSize;
+  }
+  public int getParallelism() {
+    return parallelism;
+  }
+  public void setParallelism(int parallelism) {
+    this.parallelism = parallelism;
   }
 }

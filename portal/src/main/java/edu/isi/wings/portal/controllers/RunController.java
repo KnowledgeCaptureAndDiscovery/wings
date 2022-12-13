@@ -88,7 +88,7 @@ public class RunController {
 
   private Properties props;
 
-  public static ExecutorService executor = Executors.newSingleThreadExecutor();
+  public static ExecutorService executor;
   public static HashMap<String, PlanningAPIBindings> apiBindings = new HashMap<String, PlanningAPIBindings>();
 
   public RunController(Config config) {
@@ -97,6 +97,10 @@ public class RunController {
     this.props = config.getProperties();
     this.dataUrl = config.getUserDomainUrl() + "/data";
     this.templateUrl = config.getUserDomainUrl() + "/workflows";
+    
+    if (executor == null) {
+      executor = Executors.newWorkStealingPool(config.getPlannerConfig().getParallelism());
+    }
   }
   
   public void end() {
@@ -333,22 +337,25 @@ public class RunController {
   */
   public String expandAndRunTemplate(TemplateBindings template_bindings, ServletContext context) {
     // Create a runid
-    URIEntity tpluri = new URIEntity(template_bindings.getTemplateId());
+    String ex_prefix = props.getProperty("domain.executions.dir.url");
+    String template_id = template_bindings.getTemplateId();
+    
+    URIEntity tpluri = new URIEntity(template_id);
     tpluri.setID(UuidGen.generateURIUuid(tpluri));
-    String exPrefix = props.getProperty("domain.executions.dir.url");
-    String runid = exPrefix + "/" + tpluri.getName() + ".owl#" + tpluri.getName();
+    String runid = ex_prefix + "/" + tpluri.getName() + ".owl#" + tpluri.getName();
     
     PlanningAPIBindings apis = null;
-    if(apiBindings.containsKey(exPrefix)) {
-      apis = apiBindings.get(exPrefix);
+    if(apiBindings.containsKey(ex_prefix)) {
+      apis = apiBindings.get(ex_prefix);
     }
     else {
       apis = new PlanningAPIBindings(props);
-      apiBindings.put(exPrefix, apis);
+      apiBindings.put(ex_prefix, apis);
     }
     
     // Submit the planning and execution thread
-    executor.submit(new PlanningAndExecutingThread(runid, this.config, template_bindings, apis));
+    executor.submit(new PlanningAndExecutingThread(ex_prefix, template_id, 
+        this.config, config.getPlannerConfig().getMaxQueueSize(), template_bindings, apis, executor));
     
     // Return the runid
     return runid;

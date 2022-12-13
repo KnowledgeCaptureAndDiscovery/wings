@@ -347,6 +347,15 @@ public class Config {
         if(serverConfig.containsKey("planner.use-rules")) 
           plannerConfig.useRules = serverConfig.getBoolean("planner.use-rules");
         
+        if(serverConfig.containsKey("planner.max-queue-size")) 
+          plannerConfig.maxQueueSize = serverConfig.getInt("planner.max-queue-size", 1000);
+        else
+          plannerConfig.maxQueueSize = 1000;
+        if(serverConfig.containsKey("planner.parallelism")) 
+          plannerConfig.parallelism = serverConfig.getInt("planner.parallelism", 10);
+        else
+          plannerConfig.parallelism = 10;
+        
         if(serverConfig.containsKey("storage.logs")) {
           this.logsDirectory = serverConfig.getString("storage.logs");
         }

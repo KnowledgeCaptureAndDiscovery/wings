@@ -1,6 +1,8 @@
 package edu.isi.wings.portal.classes.util;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+
 import edu.isi.wings.catalog.data.classes.VariableBindingsList;
 import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.common.CollectionsHelper;
@@ -16,21 +18,50 @@ import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
 
+class ExecutionThread implements Runnable {
+  RuntimePlan rplan;
+  Config config;
+  
+  public ExecutionThread(RuntimePlan rplan, Config config) {
+    this.rplan = rplan;
+    this.config = config;
+  }
+  
+  @Override
+  public void run() {
+    PlanExecutionEngine engine = config.getDomainExecutionEngine();
+    engine.execute(rplan);
+    // Save the engine for an abort if needed
+    //this.context.setAttribute("plan_" + rplan.getID(), rplan);
+    //this.context.setAttribute("engine_" + rplan.getID(), engine);    
+  }
+}
+
+
 public class PlanningAndExecutingThread implements Runnable {
-  String runid;
+  String ex_prefix;
+  String template_id;
   Config config;
   TemplateBindings template_bindings;
   PlanningAPIBindings api_bindings;
+  ExecutorService executor;
+  int max_number_of_executions;
   
   public PlanningAndExecutingThread(
-      String runid,
+      String ex_prefix,
+      String template_id,
       Config config,
+      int max_number_of_executions,
       TemplateBindings template_bindings, 
-      PlanningAPIBindings api_bindings) {
-    this.runid = runid;
+      PlanningAPIBindings api_bindings,
+      ExecutorService executor) {
     this.config = config;
     this.template_bindings = template_bindings;
     this.api_bindings = api_bindings;
+    this.max_number_of_executions = max_number_of_executions; 
+    this.executor = executor;
+    this.ex_prefix = ex_prefix;
+    this.template_id = template_id;
   }
   
   private void addTemplateBindings(Template tpl, TemplateBindings tb) {
@@ -135,13 +166,8 @@ public class PlanningAndExecutingThread implements Runnable {
   }
   
   private void runExecutionPlan(RuntimePlan rplan) {
-    PlanExecutionEngine engine = config.getDomainExecutionEngine();
-    // "execute" below is an asynchronous call
-    engine.execute(rplan);
-
-    // Save the engine for an abort if needed
-    //this.context.setAttribute("plan_" + rplan.getID(), rplan);
-    //this.context.setAttribute("engine_" + rplan.getID(), engine);
+    ExecutionThread exthread = new ExecutionThread(rplan, config);
+    executor.submit(exthread);
   }
   
   @Override
@@ -152,22 +178,33 @@ public class PlanningAndExecutingThread implements Runnable {
       this.addTemplateBindings(seedtpl, template_bindings);
       
       ArrayList<Template> ets = this.getExpandedTemplates(seedtpl);
-      if(ets != null && ets.size() > 0) {
-        Template xtpl = ets.get(0); // Choose first expanded template
-        ExecutionPlan plan = api_bindings.wg.getExecutionPlan(xtpl);
-    
-        String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
-        if (plan != null) {
-          // Save the expanded template, seeded template and plan
-          if (xtpl.save() && seedtpl.saveAs(seedid) && plan.save()) {
-            RuntimePlan rplan = new RuntimePlan(plan);
-            rplan.setID(this.runid);
-            rplan.setExpandedTemplateID(xtpl.getID());
-            rplan.setOriginalTemplateID(tplid);
-            rplan.setSeededTemplateId(seedid);
-            rplan.setCallbackUrl(this.template_bindings.getCallbackUrl());
-            rplan.setCallbackCookies(this.template_bindings.getCallbackCookies());
-            this.runExecutionPlan(rplan);
+      if(ets != null) {
+        int i=0;
+        for (Template xtpl: ets) {
+          i++;
+          ExecutionPlan plan = api_bindings.wg.getExecutionPlan(xtpl);
+      
+          String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
+          if (plan != null) {
+            // Create a runid
+            URIEntity tpluri = new URIEntity(this.template_id);
+            tpluri.setID(UuidGen.generateURIUuid(tpluri));    
+            String runid = this.ex_prefix + "/" + tpluri.getName() + ".owl#" + tpluri.getName();
+            
+            // Save the expanded template, seeded template and plan
+            if (xtpl.save() && seedtpl.saveAs(seedid) && plan.save()) {
+              RuntimePlan rplan = new RuntimePlan(plan);
+              rplan.setID(runid);
+              rplan.setExpandedTemplateID(xtpl.getID());
+              rplan.setOriginalTemplateID(tplid);
+              rplan.setSeededTemplateId(seedid);
+              rplan.setCallbackUrl(this.template_bindings.getCallbackUrl());
+              rplan.setCallbackCookies(this.template_bindings.getCallbackCookies());
+              this.runExecutionPlan(rplan);
+            }
+          }
+          if (i >= this.max_number_of_executions) {
+            break;
           }
         }
       }
