@@ -80,7 +80,7 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
       this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
       
       this.initializeMaps();
-      if(!initializeLibrary)
+      if(!initializeLibrary && this.tdbRepository != null)
         this.initializeLibrary();
     } 
     catch (Exception e) {
