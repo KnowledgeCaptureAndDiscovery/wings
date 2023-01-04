@@ -1,4 +1,4 @@
-FROM tomcat:8
+FROM tomcat:8-jdk8
 RUN sed -i 's/debian testing main/debian testing main contrib non-free/' /etc/apt/sources.list
 
 # Install general tools
@@ -17,12 +17,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
         gnupg2
 
 # Install Docker
-RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add -
-RUN add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
-   $(lsb_release -cs) \
-   stable"
-RUN apt-get update && apt-get -y install docker-ce
+RUN curl -fsSL get.docker.com | CHANNEL=stable sh
+RUN apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # Configure tomcat
 # Add the tomcat users file
