@@ -6,8 +6,6 @@ name: Java CI with Maven
 on: [push, pull_request]
 env:
   IMAGE_NAME: wings
-  #variables related with the repository
-  REPOSITORY_MAIN_BRANCH: "master"
   #variables related with the docker imager registry
   DOCKER_IMAGE_REPOSITORY: ikcap
   DOCKER_IMAGE_NAME: wings
@@ -54,11 +52,10 @@ jobs:
           echo "DOCKER_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
       - name: Create environment variable with the version id
         run: |
-          IMAGE_ID=ikcap/wings
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           [ "$VERSION" == "master" ] && VERSION=latest
-           echo "WINGS_VERSION=${WINGS_VERSION}" >> $GITHUB_ENV
+           echo "WINGS_VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Expose the commit id
         id: exposeValue
         run: |
