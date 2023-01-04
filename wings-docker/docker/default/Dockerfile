@@ -48,7 +48,7 @@ RUN mkdir -p /opt/wings/storage/default \
 
 # Add Wings build to tomcat (Deploy)
 WORKDIR /usr/local/tomcat/webapps/wings-portal
-COPY build/wings-portal-*.war .
+COPY */target/wings-portal-*.war .
 RUN jar -xvf wings-portal-*.war
 
 # Add wings context file to the wings portal webapp
