@@ -166,7 +166,7 @@ public class ComponentController {
       e.printStackTrace();
       this.end();
     }
-    return false;
+    return true;
   }
   
   public synchronized HashMap<String, ArrayList<String>> getWorkflowsContainingComponent(String cid) {
