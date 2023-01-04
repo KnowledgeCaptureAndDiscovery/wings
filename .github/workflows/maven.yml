@@ -52,6 +52,13 @@ jobs:
       - name: Create environment variable with the commit id
         run: |
           echo "DOCKER_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+      - name: Create environment variable with the version id
+        run: |
+          IMAGE_ID=ikcap/wings
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [ "$VERSION" == "master" ] && VERSION=latest
+           echo "WINGS_VERSION=${WINGS_VERSION}" >> $GITHUB_ENV
       - name: Expose the commit id
         id: exposeValue
         run: |
@@ -73,6 +80,6 @@ jobs:
         with:
           push: true
           context: .
-          tags: ${{ env.DOCKER_IMAGE_REPOSITORY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ steps.branch-name.outputs.current_branch }}, ${{ env.DOCKER_IMAGE_REPOSITORY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}
+          tags: ${{ env.DOCKER_IMAGE_REPOSITORY }}/${{ env.DOCKER_IMAGE_NAME }}:latest, ${{ env.DOCKER_IMAGE_REPOSITORY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}, ${{ env.DOCKER_IMAGE_REPOSITORY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.WINGS_VERSION }}
           file: ${{ env.DOCKER_FILE}}
           platforms: linux/amd64,linux/arm64
