@@ -45,7 +45,8 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
 
   public String onturl, liburl;
   private String tdbRepository;
-  private static boolean initializeLibrary = false;
+  
+  private static HashMap<String, Boolean> initializedLibrary = new HashMap<String, Boolean>();
 
   private KBAPI ontkb, libkb;
   
@@ -80,8 +81,12 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
       this.libkb = this.ontologyFactory.getKB(liburl, OntSpec.PLAIN);
       
       this.initializeMaps();
-      if(!initializeLibrary && this.tdbRepository != null)
+      
+      String libkey = onturl + this.tdbRepository;
+      if(!initializedLibrary.containsKey(libkey)) {
         this.initializeLibrary();
+        initializedLibrary.put(libkey, true);
+      }
     } 
     catch (Exception e) {
       e.printStackTrace();
@@ -128,7 +133,6 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
     if(ok)
       this.save();
     this.end();
-    initializeLibrary = true;
   }
   
   private ArrayList<KBObject> getInstancesOfClass(KBObject cls, KBAPI kb) {
