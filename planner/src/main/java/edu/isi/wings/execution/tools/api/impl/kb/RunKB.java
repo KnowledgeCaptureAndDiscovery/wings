@@ -487,7 +487,11 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 	    return null;
 	  
 		RuntimePlan rplan = new RuntimePlan(exobj.getID());
+		
+    this.start_read();
 		rplan.setRuntimeInfo(this.getRuntimeInfo(this.kb, exobj));
+		this.end();
+		
 		RuntimeInfo.Status status = rplan.getRuntimeInfo().getStatus();
 		if (details
 				|| (status == RuntimeInfo.Status.FAILURE || status == RuntimeInfo.Status.RUNNING)) {
@@ -496,17 +500,17 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 				KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
 				
 				this.start_read(); 
-				
 				exobj = tkb.getIndividual(rplan.getID());
+        
 				if(exobj == null) {
-				  this.end();
+	        this.end();				  
 				  return null;
 				}
+				ArrayList<KBObject> stepobjs = tkb.getPropertyValues(exobj, objPropMap.get("hasStep"));
 				
-        boolean batchok = this.start_batch_operation();
 				// Get execution queue (list of steps)
 				ExecutionQueue queue = new ExecutionQueue();
-				for (KBObject stepobj : tkb.getPropertyValues(exobj, objPropMap.get("hasStep"))) {
+				for (KBObject stepobj : stepobjs) {
 					RuntimeStep rstep = new RuntimeStep(stepobj.getID());
 					rstep.setRuntimeInfo(this.getRuntimeInfo(tkb, stepobj));
 					queue.addStep(rstep);
@@ -519,8 +523,6 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 				KBObject tobj = tkb.getPropertyValue(exobj, objPropMap.get("hasTemplate"));
 				KBObject pobj = tkb.getPropertyValue(exobj, objPropMap.get("hasPlan"));
         
-        if(batchok)
-          this.stop_batch_operation();
         this.end();
         
 				if(xtobj != null)
@@ -613,62 +615,74 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
   } 
   
 	private boolean deleteExecutionRun(String runid, boolean deleteOutputs) {
-		RuntimePlan rplan = this.getExecutionRun(runid, true);
+	  RuntimePlan rplan = null;
+	  try {
+	    this.start_read();
+	    rplan = this.getExecutionRun(runid, true);
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+	  }
+	  this.end();
 		
-		try {
-			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
-
-			if(rplan.getPlan() != null) {
-        for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
-          // Delete output files
-          if(deleteOutputs) {
-            for (ExecutionFile file : step.getOutputFiles()) {
-              file.removeMetadataFile();
-              File f = new File(file.getLocation());
-              if(f.exists() && !this.fileIsOutputofAnotherRun(file))
-                f.delete();
+	  if(rplan != null) {
+  		try {
+  			KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
+  
+  			if(rplan.getPlan() != null) {
+          for (ExecutionStep step : rplan.getPlan().getAllExecutionSteps()) {
+            // Delete output files
+            if(deleteOutputs) {
+              for (ExecutionFile file : step.getOutputFiles()) {
+                file.removeMetadataFile();
+                File f = new File(file.getLocation());
+                if(f.exists() && !this.fileIsOutputofAnotherRun(file))
+                  f.delete();
+              }
             }
+            // Delete log file
+            File logfile = this.getLogFile(step.getID());
+            if(logfile.exists())
+              logfile.delete();
           }
-          // Delete log file
-          File logfile = this.getLogFile(step.getID());
-          if(logfile.exists())
-            logfile.delete();
-        }
-			}
-			// Delete expanded template
-      if(!this.xgraphIsUsedInAnotherRun(rplan.getExpandedTemplateID()))
-        this.deleteGraph(rplan.getExpandedTemplateID());
-      
-      // Delete seeded template
-      if(!this.sgraphIsUsedInAnotherRun(rplan.getSeededTemplateID()))
-        this.deleteGraph(rplan.getSeededTemplateID());
-      
-      // Delete execution plan
-      if(rplan.getPlan() != null)
-        this.deleteGraph(rplan.getPlan().getID());
-      
-      // Delete plan log file
-      File plan_logfile = this.getLogFile(rplan.getID());
-      if(plan_logfile.exists())
-        plan_logfile.delete();
-      
-      // Delete execution provenance
-      this.start_write();
-      tkb.delete();
-      this.save(tkb);
-      this.end();
-       			
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+  			}
+  			// Delete expanded template
+        if(!this.xgraphIsUsedInAnotherRun(rplan.getExpandedTemplateID()))
+          this.deleteGraph(rplan.getExpandedTemplateID());
+        
+        // Delete seeded template
+        if(!this.sgraphIsUsedInAnotherRun(rplan.getSeededTemplateID()))
+          this.deleteGraph(rplan.getSeededTemplateID());
+        
+        // Delete execution plan
+        if(rplan.getPlan() != null)
+          this.deleteGraph(rplan.getPlan().getID());
+        
+        // Delete plan log file
+        File plan_logfile = this.getLogFile(rplan.getID());
+        if(plan_logfile.exists())
+          plan_logfile.delete();
+        
+        // Delete execution provenance
+        this.start_write();
+        tkb.delete();
+        this.save(tkb);
+        this.end();
+         			
+  		} catch (Exception e) {
+  			e.printStackTrace();
+  			this.end();
+  			return false;
+  		}
 
-		this.start_write();
-		KBUtils.removeAllTriplesWith(this.kb, runid, false);
-		this.save();
-		this.end();
+  		this.start_write();
+  		KBUtils.removeAllTriplesWith(this.kb, runid, false);
+  		this.save();
+  		this.end();
+      return true;
+	  }
 		
-		return true;
+	  return false;
 	}
 
 	private KBObject writeExecutionStep(KBAPI tkb, RuntimeStep stepexe) {
@@ -724,10 +738,7 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
 		      tkb.createLiteral(rinfo.getStatus().toString()));
 	}
 
-	private RuntimeInfo getRuntimeInfo(KBAPI tkb, KBObject exobj) {
-	  this.start_read();
-	  boolean batchok = this.start_batch_operation();
-	  
+	private RuntimeInfo getRuntimeInfo(KBAPI tkb, KBObject exobj) {	  
 		RuntimeInfo info = new RuntimeInfo();
 		KBObject sttime = this.kb.getPropertyValue(exobj, dataPropMap.get("hasStartTime"));
 		KBObject endtime = this.kb.getPropertyValue(exobj, dataPropMap.get("hasEndTime"));
@@ -752,10 +763,6 @@ implements ExecutionLoggerAPI, ExecutionMonitorAPI {
       if (log != null && log.getValue() != null)
         info.setLog((String) log.getValue());
     }
-    
-		if(batchok)
-		  this.stop_batch_operation();
-		this.end();
 		return info;
 	}
 	

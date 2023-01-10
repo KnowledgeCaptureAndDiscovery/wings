@@ -153,11 +153,13 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
 	protected ArrayList<KBTriple> getTriplesForObject(String id, KBObject obj, 
 	    String includeNS, String excludeNS, boolean direct) {
 	  ArrayList<KBTriple> triples = new ArrayList<KBTriple>();
-	  triples.add(ontologyFactory.getTriple(
-	      ontologyFactory.getObject(id), 
-	      ontologyFactory.getObject(KBUtils.RDF+"type"),
-	      this.kb.getClassOfInstance(obj)));
-	  triples.addAll(getObjectClassTriples(id, obj, includeNS, excludeNS, direct));
+	  if(obj != null) {
+  	  triples.add(ontologyFactory.getTriple(
+  	      ontologyFactory.getObject(id), 
+  	      ontologyFactory.getObject(KBUtils.RDF+"type"),
+  	      this.kb.getClassOfInstance(obj)));
+	    triples.addAll(getObjectClassTriples(id, obj, includeNS, excludeNS, direct));
+	  }
 	  return triples;
 	}
 
