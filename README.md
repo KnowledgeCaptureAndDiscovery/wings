@@ -8,6 +8,12 @@
 
 You must install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/).
 
+Clone the repository
+
+```bash
+$ git clone https://github.com/KnowledgeCaptureAndDiscovery/wings.git
+```
+
 Deploy the container with the following command:
 
 ```bash
