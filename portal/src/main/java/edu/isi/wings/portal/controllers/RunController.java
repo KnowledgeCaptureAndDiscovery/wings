@@ -336,14 +336,10 @@ public class RunController {
      - Immediately returns a run id
      - Puts the rest of the processing in a Queue to be processed sequentially
   */
-  public String expandAndRunTemplate(TemplateBindings template_bindings, ServletContext context) {
+  public ArrayList<String> expandAndRunTemplate(TemplateBindings template_bindings, ServletContext context) {
     // Create a runid
     String ex_prefix = props.getProperty("domain.executions.dir.url");
     String template_id = template_bindings.getTemplateId();
-    
-    URIEntity tpluri = new URIEntity(template_id);
-    tpluri.setID(UuidGen.generateURIUuid(tpluri));
-    String runid = ex_prefix + "/" + tpluri.getName() + ".owl#" + tpluri.getName();
     
     PlanningAPIBindings apis = null;
     if(apiBindings.containsKey(ex_prefix)) {
@@ -355,11 +351,18 @@ public class RunController {
     }
     
     // Submit the planning and execution thread
-    executor.submit(new PlanningAndExecutingThread(ex_prefix, template_id, 
-        this.config, config.getPlannerConfig().getMaxQueueSize(), template_bindings, apis, executor, context));
-    
-    // Return the runid
-    return runid;
+    try {
+      PlanningAndExecutingThread thread = new PlanningAndExecutingThread(ex_prefix, template_id, 
+          this.config, config.getPlannerConfig().getMaxQueueSize(), template_bindings, apis, executor, context);
+      executor.submit(thread).get();
+      
+      // Return the runids
+      return thread.getRunids();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
   
   public Future<?> runComponent(String cid, HashMap<String, Binding> role_bindings, 

@@ -758,7 +758,10 @@ public class 	DataController {
       tbindings.setComponentBindings(new HashMap<String, String>());
       tbindings.setTemplateId(tplid);
       
-      return this.rc.expandAndRunTemplate(tbindings, context);
+      ArrayList<String> runids = this.rc.expandAndRunTemplate(tbindings, context);
+      if(runids != null && runids.size() > 0) {
+        return runids.get(0);
+      }
     }
     catch (Exception e) {
       e.printStackTrace();

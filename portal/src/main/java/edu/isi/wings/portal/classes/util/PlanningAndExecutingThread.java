@@ -68,6 +68,7 @@ public class PlanningAndExecutingThread implements Runnable {
   ExecutorService executor;
   int max_number_of_executions;
   ServletContext context;
+  ArrayList<String> runids;
   
   public PlanningAndExecutingThread(
       String ex_prefix,
@@ -86,6 +87,7 @@ public class PlanningAndExecutingThread implements Runnable {
     this.ex_prefix = ex_prefix;
     this.template_id = template_id;
     this.context = context;
+    this.runids = new ArrayList<String>();
   }
   
   private void addTemplateBindings(Template tpl, TemplateBindings tb) {
@@ -226,6 +228,7 @@ public class PlanningAndExecutingThread implements Runnable {
               rplan.setCallbackUrl(this.template_bindings.getCallbackUrl());
               rplan.setCallbackCookies(this.template_bindings.getCallbackCookies());
               this.runExecutionPlan(rplan);
+              this.runids.add(runid);
             }
           }
           if (i >= this.max_number_of_executions) {
@@ -237,5 +240,13 @@ public class PlanningAndExecutingThread implements Runnable {
     catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public ArrayList<String> getRunids() {
+    return runids;
+  }
+
+  public void setRunids(ArrayList<String> runids) {
+    this.runids = runids;
   }
 }

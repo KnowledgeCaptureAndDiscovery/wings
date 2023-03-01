@@ -1,5 +1,6 @@
 package edu.isi.wings.portal.resources;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.annotation.PostConstruct;
@@ -112,7 +113,7 @@ public class RunResource extends WingsResource {
   @POST
   @Path("expandAndRunWorkflow")
   @Produces(MediaType.APPLICATION_JSON)
-  public String expandAndRunWorkflow(
+  public ArrayList<String> expandAndRunWorkflow(
       @JsonProperty("template_bindings") final TemplateBindings tbindings) {
     if(this.rc != null) {
       return rc.expandAndRunTemplate(tbindings, this.context);
