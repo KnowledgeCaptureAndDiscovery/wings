@@ -1011,7 +1011,8 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
         details.addExplanations("INFO " + tcomp + " is going to be skipped");
         details.setNoOperationFlag(true);
         
-        // Set compatible input/output pairs
+        // Set compatible input/outputs 
+        
         for(ComponentRole outrole : comp.getOutputs()) {
           Variable outvar = sRoleMap.get(outrole.getRoleName());
           ArrayList<String> varclasses = new ArrayList<String>();
@@ -1019,20 +1020,44 @@ public class ComponentReasoningKB extends ComponentKB implements ComponentReason
             varclasses.add(clsobj.getID());
           }
           
+          // Marking all compatible inputs to be passed through to the output. 
+          // Note: If not all outputs have a matching input, then component is still run and not skipped
+          ArrayList<ComponentRole> matchingInputs = new ArrayList<ComponentRole>();
           for(ComponentRole inrole : comp.getInputs()) {
             if(!inrole.isParam()) {
-              Variable invar = sRoleMap.get(inrole.getRoleName());
-              // Marking all compatible inputs to be passed through to the output. 
-              // Otherwise the component is still run and not skipped 
               if(checkTypeCompatibility(varclasses, inrole.getID())) {
-                details.addNoOperationIOPassthrough(outrole.getRoleName(), inrole.getRoleName());
-                logger.debug("Passing through " + invar.getName() + " to " + outvar.getName());
+                matchingInputs.add(inrole);
               }
             }
           }
+          
+          ComponentRole matchingInput = null;
+          if (matchingInputs.size() > 0) {
+            // If some outputs have multiple matching inputs, then we match by prefix (-i1 matches with -o1)
+            // - If no match by prefix, then just choose the first match
+            int outPrefix = Integer.parseInt(outrole.getPrefix().substring(2));
+            
+            matchingInput = matchingInputs.get(0);
+            if (matchingInputs.size() > 1) {
+              for (ComponentRole mInput : matchingInputs) {
+                int inPrefix = Integer.parseInt(mInput.getPrefix().substring(2));
+                if (inPrefix == outPrefix) {
+                  matchingInput = mInput;
+                }
+              }
+            }
+          }
+          
+          if (matchingInput != null) {
+            // Marking the compatible input to be passed through to the output.
+            details.addNoOperationIOPassthrough(outrole.getRoleName(), matchingInput.getRoleName());
+            
+            Variable invar = sRoleMap.get(matchingInput.getRoleName());
+            logger.debug("Passing through " + invar.getName() + " to " + outvar.getName());
+          }
         }
-        
       }
+                
   
   		// Check component dependencies
   		// If set, overwrite the component dependencies with these
