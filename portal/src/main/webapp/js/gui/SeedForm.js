@@ -218,8 +218,8 @@ Ext.ux.form.SeedForm = Ext.extend(Ext.FormPanel, {
                     timeout: Ext.Ajax.timeout,
                     success: function(response) {
                     	msgTarget.unmask();
-                        var runid = response.responseText;
-                        showWingsRanMessage(me.template_id, runid, me.results_url);
+                        //var runid = response.responseText;
+                        showWingsRanMessage(me.template_id, "", me.results_url);
                     },
                     failure: function(response) {
                     	msgTarget.unmask();
