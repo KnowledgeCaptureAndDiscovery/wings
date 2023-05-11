@@ -48,7 +48,7 @@ import org.apache.oodt.cas.workflow.structs.Workflow;
 
 /**
  * Jax-RS server functions for adding/deleting workflows
- * 
+ *
  * @author vratnakar
  */
 public class WorkflowResource extends Resource {
@@ -63,7 +63,7 @@ public class WorkflowResource extends Resource {
 
   /**
    * Add Packaged Repository Workflow
-   * 
+   *
    * @param workflowID
    *          id of the workflow
    * @param workflowXML
@@ -93,7 +93,7 @@ public class WorkflowResource extends Resource {
 
   /**
    * Delete Packaged Repository Workflow
-   * 
+   *
    * @param workflowID
    *          id of the workflow to delete
    * @return true if deletion successful
