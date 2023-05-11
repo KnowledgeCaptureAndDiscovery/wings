@@ -1,3 +1,10 @@
+target
+!/.gitignore
+!/.travis.yml
+portal/src/main/webapp/lib/plupload
+portal/src/main/webapp/lib/extjs
+bin
+*.iml
 # Created by https://www.toptal.com/developers/gitignore/api/maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=maven
 
