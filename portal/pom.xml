@@ -56,7 +56,7 @@
 
 		<!-- Wings OPM Mapper -->
 		<dependency>
-			<groupId>edu.isi.wings</groupId>
+			<groupId>edu.isi.kcap.wings</groupId>
 			<artifactId>wings-opmm</artifactId>
 			<version>${wings-opmm.version}</version>
 		</dependency>
