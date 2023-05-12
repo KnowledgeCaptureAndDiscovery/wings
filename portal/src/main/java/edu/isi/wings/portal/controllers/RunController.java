@@ -528,6 +528,12 @@ public class RunController {
     return null;
   }
 
+  /**
+   * Publish a run to the Tstore
+   *
+   * @param runid
+   * @return
+   */
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
@@ -539,13 +545,11 @@ public class RunController {
         // Mapper opmm = new Mapper();
 
         Publisher publisher = config.getPublisher();
-
         ServerDetails publishUrl = publisher.getUploadServer();
         String tstoreurl = publisher.getTstorePublishUrl();
         String tstorequery = publisher.getTstoreQueryUrl();
         String exportName = publisher.getExportName();
         String exportUrl = publisher.getUrl();
-
         String uploadURL = publishUrl.getUrl();
         String uploadUsername = publishUrl.getUsername();
         String uploadDirectory = publishUrl.getDirectory();
@@ -591,47 +595,46 @@ public class RunController {
         // Create the temporal directory to store data, components, workflow and
         // exection
         tempdir.mkdirs();
-        File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
-        File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
-        File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
-        File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
+        File dataDirectory = new File(tempdir.getAbsolutePath() + "/ont/data");
+        File componentDirect = new File(tempdir.getAbsolutePath() + "/ont/components");
+        File workflowDirectory = new File(tempdir.getAbsolutePath() + "/ont/workflows");
+        File executionDirectory = new File(tempdir.getAbsolutePath() + "/ont/executions");
 
-        File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
-        File tpl_exportdir = new File(tempdir.getAbsolutePath() + "/export/template");
-        dcontdir.mkdirs();
-        acontdir.mkdirs();
-        wflowdir.mkdirs();
-        execsdir.mkdirs();
-        run_exportdir.mkdirs();
-        tpl_exportdir.mkdirs();
+        File runExportDirectory = new File(tempdir.getAbsolutePath() + "/export/run");
+        File templateExportDirectory = new File(tempdir.getAbsolutePath() + "/export/template");
+        dataDirectory.mkdirs();
+        componentDirect.mkdirs();
+        workflowDirectory.mkdirs();
+        executionDirectory.mkdirs();
+        runExportDirectory.mkdirs();
+        templateExportDirectory.mkdirs();
 
         // Merge both concrete and abstract component libraries from WINGS
-        String aclib = props.getProperty("lib.concrete.url");
-        String abslib = props.getProperty("lib.abstract.url");
+        String concreteComponentLibrary = props.getProperty("lib.concrete.url");
+        String abstractComponentLibrary = props.getProperty("lib.abstract.url");
         // String workflow_lib = props.getProperty("lib.domain.workflow.url");
-
-        String aclibdata = urlToString(new URL(aclib));
-        String abslibdata = urlToString(new URL(abslib));
+        String concreteComponentData = urlToString(new URL(concreteComponentLibrary));
+        String abstractComponentData = urlToString(new URL(abstractComponentLibrary));
         // String workflow_lib_data = urlToString(new URL(workflow_lib));
 
-        abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
-        abslibdata = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abslibdata).replaceFirst("");
-        abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
-        aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
+        abstractComponentData = abstractComponentData.replaceFirst("<\\?xml.+?>", "");
+        abstractComponentData = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abstractComponentData)
+            .replaceFirst("");
+        abstractComponentData = abstractComponentData.replaceFirst("<\\/rdf:RDF>", "");
+        concreteComponentData = concreteComponentData.replaceFirst("<\\/rdf:RDF>", "");
 
-        String rplandata = urlToString(new URL(runid));
-
+        String runPlanData = urlToString(new URL(runid));
         // write aclibfie and rplanfile
-        aclibdata += abslibdata + "</rdf:RDF>\n";
-        File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
-        File rplanfile = new File(execsdir.getAbsolutePath() + "/" +
+        concreteComponentData += abstractComponentData + "</rdf:RDF>\n";
+        File aclibfile = new File(componentDirect.getAbsolutePath() + "/library.owl");
+        File rplanfile = new File(executionDirectory.getAbsolutePath() + "/" +
             plan.getName() + ".owl");
-        FileUtils.write(aclibfile, aclibdata);
-        FileUtils.write(rplanfile, rplandata);
+        FileUtils.write(aclibfile, concreteComponentData);
+        FileUtils.write(rplanfile, runPlanData);
 
         // workflow file?
         URL otplurl = new URL(plan.getOriginalTemplateID());
-        File otplfile = new File(wflowdir.getAbsolutePath() + "/" +
+        File otplfile = new File(workflowDirectory.getAbsolutePath() + "/" +
             otplurl.getRef() + ".owl");
         String otpldata = urlToString(otplurl);
         FileUtils.write(otplfile, otpldata);
@@ -651,28 +654,28 @@ public class RunController {
         // publish the catalog
         String domainPath = catalog.exportCatalog(null, serialization);
         File domainFile = new File(domainPath);
-        this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
+        this.publishTriples(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
 
         // execution
-        String executionFilePath = run_exportdir + File.separator + "execution";
+        String executionFilePath = runExportDirectory + File.separator + "execution";
         String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
         if (!exp.isExecPublished()) {
-          this.publishFile(tstoreurl, graphUri, executionFilePath);
+          this.publishTriples(tstoreurl, graphUri, executionFilePath);
 
           // expandedTemplate
-          String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+          String expandedTemplateFilePath = runExportDirectory + File.separator + "expandedTemplate";
           String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath,
               serialization);
           if (!exp.getConcreteTemplateExport().isTemplatePublished())
-            this.publishFile(tstoreurl, expandedTemplateGraphUri, expandedTemplateFilePath);
+            this.publishTriples(tstoreurl, expandedTemplateGraphUri, expandedTemplateFilePath);
 
           // abstract
           WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
           if (abstractTemplateExport != null) {
-            String abstractFilePath = run_exportdir + File.separator + "abstract";
+            String abstractFilePath = runExportDirectory + File.separator + "abstract";
             String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
             if (!abstractTemplateExport.isTemplatePublished())
-              this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
+              this.publishTriples(tstoreurl, abstractGraphUri, abstractFilePath);
           }
         }
 
@@ -719,7 +722,8 @@ public class RunController {
    * @param graphurl:  graph url.
    * @param filepath
    */
-  private void publishFile(String tstoreurl, String graphurl, String filepath) {
+  private void publishTriples(String tstoreurl, String graphurl, String filepath) {
+    // TODO: #154 Move this function into the OPMWExporter class
     System.out.println("Publishing the filepath " + filepath + " on graph " + graphurl);
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
