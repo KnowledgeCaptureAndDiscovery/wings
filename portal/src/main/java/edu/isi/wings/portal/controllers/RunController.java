@@ -30,6 +30,8 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 
 import edu.isi.kcap.wings.opmm.Catalog;
+import edu.isi.kcap.wings.opmm.FilePublisher;
+import edu.isi.kcap.wings.opmm.Mapper;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
@@ -48,6 +50,7 @@ import org.apache.http.impl.client.HttpClients;
 
 import edu.isi.kcap.wings.opmm.WorkflowExecutionExport;
 import edu.isi.kcap.wings.opmm.WorkflowTemplateExport;
+import edu.isi.kcap.wings.opmm.DataTypes.Links;
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
@@ -528,6 +531,10 @@ public class RunController {
     return null;
   }
 
+  /**
+   * @param runid
+   * @return
+   */
   public String publishRun(String runid) {
     HashMap<String, String> retmap = new HashMap<String, String>();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
@@ -537,21 +544,24 @@ public class RunController {
     } else
       try {
         // Mapper opmm = new Mapper();
-
+        String webServerDirectory = "tmp/";
+        String webServerDomain = "http://localhost";
+        FilePublisher filePublisher = new FilePublisher(webServerDirectory, webServerDomain);
+        String domain = config.getDomainId();
+        String catalogRepositoryDirectory = "domains";
+        String endpointQueryURI = "https://endpoint.mint.isi.edu/provenance/query";
+        String endpointPostURI = "https://endpoint.mint.isi.edu/provenance/query";
         Publisher publisher = config.getPublisher();
-
         ServerDetails publishUrl = publisher.getUploadServer();
         String tstoreurl = publisher.getTstorePublishUrl();
-        String tstorequery = publisher.getTstoreQueryUrl();
-        String exportName = publisher.getExportName();
+        String endpointStoreUri = publisher.getTstoreQueryUrl();
+        String exportPrefix = publisher.getExportName();
         String exportUrl = publisher.getUrl();
-
         String uploadURL = publishUrl.getUrl();
         String uploadUsername = publishUrl.getUsername();
         String uploadDirectory = publishUrl.getDirectory();
         String uploadPassword = publishUrl.getPassword();
         long uploadMaxSize = publishUrl.getMaxUploadSize();
-        // opmm.setPublishExportPrefix(puburl);
 
         String rname = runid.substring(runid.indexOf('#') + 1);
         // String runurl = opmm.getRunUrl(rname);
@@ -623,11 +633,11 @@ public class RunController {
 
         // write aclibfie and rplanfile
         aclibdata += abslibdata + "</rdf:RDF>\n";
-        File aclibfile = new File(acontdir.getAbsolutePath() + "/library.owl");
-        File rplanfile = new File(execsdir.getAbsolutePath() + "/" +
+        File componentLibraryFilePath = new File(acontdir.getAbsolutePath() + "/library.owl");
+        File planFilePath = new File(execsdir.getAbsolutePath() + "/" +
             plan.getName() + ".owl");
-        FileUtils.write(aclibfile, aclibdata);
-        FileUtils.write(rplanfile, rplandata);
+        FileUtils.write(componentLibraryFilePath, aclibdata);
+        FileUtils.write(planFilePath, rplandata);
 
         // workflow file?
         URL otplurl = new URL(plan.getOriginalTemplateID());
@@ -636,51 +646,31 @@ public class RunController {
         String otpldata = urlToString(otplurl);
         FileUtils.write(otplfile, otpldata);
 
-        Catalog catalog = new Catalog(config.getDomainId(), exportName,
-            publisher.getDomainsDir(), aclibfile.getAbsolutePath());
-
-        WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportUrl, exportName, tstorequery, config.getDomainId());
-        exp.setUploadURL(uploadURL);
-        exp.setUploadUsername(uploadUsername);
-        exp.setUploadPassword(uploadPassword);
-        exp.setUploadMaxSize(uploadMaxSize);
-        exp.setUploadDirectory(uploadDirectory);
-        String serialization = "TURTLE";
-
-        // publish the catalog
-        String domainPath = catalog.exportCatalog(null, serialization);
-        File domainFile = new File(domainPath);
-        this.publishFile(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
-
-        // execution
         String executionFilePath = run_exportdir + File.separator + "execution";
-        String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
-        if (!exp.isExecPublished()) {
-          this.publishFile(tstoreurl, graphUri, executionFilePath);
-
-          // expandedTemplate
-          String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
-          String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath,
-              serialization);
-          if (!exp.getConcreteTemplateExport().isTemplatePublished())
-            this.publishFile(tstoreurl, expandedTemplateGraphUri, expandedTemplateFilePath);
-
-          // abstract
-          WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
-          if (abstractTemplateExport != null) {
-            String abstractFilePath = run_exportdir + File.separator + "abstract";
-            String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
-            if (!abstractTemplateExport.isTemplatePublished())
-              this.publishFile(tstoreurl, abstractGraphUri, abstractFilePath);
-          }
+        String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+        String abstractFilePath = run_exportdir + File.separator + "abstract";
+        // OPMW MAPPER CODE
+        // domain
+        // exportName
+        // catalogRepositoryDirectory
+        // componentLibraryFile
+        //
+        String serialization = "turtle";
+        File file = new File("tmp/" + serialization);
+        if (!file.exists()) {
+          file.mkdir();
         }
-
-        retmap.put("url", exp.getTransformedExecutionURI());
-
+        try {
+          HashMap<String, Links> response = Mapper.main(domain, exportPrefix, exportUrl, catalogRepositoryDirectory,
+              componentLibraryFilePath.getAbsolutePath(), planFilePath.getAbsolutePath(),
+              endpointQueryURI, endpointPostURI, executionFilePath, expandedTemplateFilePath, abstractFilePath,
+              filePublisher, serialization);
+          return json.toJson(response);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       } catch (Exception e) {
         e.printStackTrace();
-        retmap.put("error", e.getMessage());
       }
     return json.toJson(retmap);
   }
