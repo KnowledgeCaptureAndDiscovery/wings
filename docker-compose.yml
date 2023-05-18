@@ -1,7 +1,10 @@
-version: '3'
+version: "3"
 services:
   wings:
     image: "ikcap/wings:latest"
+    build:
+      context: .
+      dockerfile: wings-docker/docker/default/Dockerfile
     environment:
       WINGS_MODE: dind
     volumes:

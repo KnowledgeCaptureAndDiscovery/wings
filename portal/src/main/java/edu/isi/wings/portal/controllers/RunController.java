@@ -18,37 +18,24 @@
 package edu.isi.wings.portal.controllers;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.regex.Pattern;
-
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 
-import edu.isi.kcap.wings.opmm.Catalog;
 import edu.isi.wings.portal.classes.config.Publisher;
-import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
 import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
 import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-import edu.isi.kcap.wings.opmm.WorkflowExecutionExport;
-import edu.isi.kcap.wings.opmm.WorkflowTemplateExport;
 import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.kcap.wings.opmm.WorkflowExecutionExport;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
 import edu.isi.wings.catalog.resource.ResourceFactory;
@@ -56,7 +43,6 @@ import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
-import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
@@ -91,6 +77,8 @@ public class RunController {
   public static HashMap<String, PlanningAPIBindings> apiBindings = new HashMap<String, PlanningAPIBindings>();
 
   public RunController(Config config) {
+    if (config == null)
+      System.out.println("Config is null");
     this.config = config;
     this.json = JsonHandler.createRunGson();
     this.props = config.getProperties();
@@ -453,338 +441,46 @@ public class RunController {
     context.setAttribute("engine_" + rplan.getID(), engine);
   }
 
-  // public String publishRunList(String pattern) {
-  // ArrayList<HashMap<String, Object>> runs = this.getRunList(pattern);
-  // ArrayList<HashMap<String, Object>> returnJson = new ArrayList<>();
-  // Iterator<HashMap<String, Object>> i = runs.iterator();
-  //
-  // ThreadPoolExecutor executor = (ThreadPoolExecutor)
-  // Executors.newFixedThreadPool(10);
-  // List<Future> futures = new ArrayList<Future>();
-  //
-  // while (i.hasNext()){
-  // String id = (String) i.next().get("id");
-  // futures.add(executor.submit(new Callable<String>() {
-  // public String call() {
-  // try {
-  // return publishRun(id);
-  // } catch (Exception e) {
-  // return "";
-  // }
-  // }
-  // }));
-  //
-  // }
-  // for(Future f: futures) {
-  // HashMap<String, Object> element = new HashMap<>();
-  // try {
-  // String jsonReturn = (String) f.get();
-  // Map<String, String> map = new Gson().fromJson(jsonReturn, Map.class);
-  // if (map.containsKey("url"))
-  // element.put("url", map.get("url"));
-  // returnJson.add(element);
-  // } catch (Exception e) {
-  // e.printStackTrace();
-  // }
-  // }
-  // return json.toJson(returnJson);
-  // }
-
-  private String urlToString(URL url) {
-    try {
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      boolean redirect = false;
-
-      // normally, 3xx is redirect
-      int status = conn.getResponseCode();
-      if (status != HttpURLConnection.HTTP_OK) {
-        if (status == HttpURLConnection.HTTP_MOVED_TEMP
-            || status == HttpURLConnection.HTTP_MOVED_PERM
-            || status == HttpURLConnection.HTTP_SEE_OTHER)
-          redirect = true;
-      }
-
-      if (redirect) {
-        // get redirect url from "location" header field
-        String newUrl = conn.getHeaderField("Location");
-
-        // open the new connnection again
-        conn = (HttpURLConnection) new URL(newUrl).openConnection();
-      }
-
-      BufferedReader in = new BufferedReader(
-          new InputStreamReader(conn.getInputStream()));
-      String inputLine;
-      StringBuffer html = new StringBuffer();
-
-      while ((inputLine = in.readLine()) != null) {
-        html.append(inputLine);
-      }
-      in.close();
-      return html.toString();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
   /**
    * Publish a run to the Tstore
    *
    * @param runid
    * @return
+   * @throws MalformedURLException
    */
-  public String publishRun(String runid) {
-    HashMap<String, String> retmap = new HashMap<String, String>();
-    ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    RuntimePlan plan = monitor.getRunDetails(runid);
-    if (plan.getRuntimeInfo().getStatus() != Status.SUCCESS) {
-      retmap.put("error", "Can only publish successfully completed runs");
-    } else
-      try {
-        // Mapper opmm = new Mapper();
-
-        Publisher publisher = config.getPublisher();
-        ServerDetails publishUrl = publisher.getUploadServer();
-        String tstoreurl = publisher.getTstorePublishUrl();
-        String tstorequery = publisher.getTstoreQueryUrl();
-        String exportName = publisher.getExportName();
-        String exportUrl = publisher.getUrl();
-        String uploadURL = publishUrl.getUrl();
-        String uploadUsername = publishUrl.getUsername();
-        String uploadDirectory = publishUrl.getDirectory();
-        String uploadPassword = publishUrl.getPassword();
-        long uploadMaxSize = publishUrl.getMaxUploadSize();
-        // opmm.setPublishExportPrefix(puburl);
-
-        String rname = runid.substring(runid.indexOf('#') + 1);
-        // String runurl = opmm.getRunUrl(rname);
-
-        // Fetch expanded template (to get data binding ids)
-        TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
-        Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
-        tc.end();
-
-        HashMap<String, String> varBindings = new HashMap<String, String>();
-        for (Variable var : xtpl.getVariables()) {
-          varBindings.put(var.getID(), var.getBinding().getID());
-        }
-
-        // Create a temporary directory to upload/move
-        File _tmpdir = File.createTempFile("temp", "");
-        File tempdir = new File(_tmpdir.getParent() + "/" + rname);
-        FileUtils.deleteQuietly(tempdir);
-        if (!_tmpdir.delete() || !tempdir.mkdirs())
-          throw new Exception("Cannot create temp directory");
-
-        File datadir = new File(tempdir.getAbsolutePath() + "/data");
-        File codedir = new File(tempdir.getAbsolutePath() + "/code");
-        datadir.mkdirs();
-        codedir.mkdirs();
-
-        /*
-         * String tupurl = upurl + "/" + tempdir.getName();
-         * String dataurl = tupurl + "/data";
-         * String codeurl = tupurl + "/code";
-         * String cdir = props.getProperty("lib.domain.code.storage");
-         * String ddir = props.getProperty("lib.domain.data.storage");
-         */
-
-        FileUtils.deleteQuietly(tempdir);
-
-        // Create the temporal directory to store data, components, workflow and
-        // exection
-        tempdir.mkdirs();
-        File dataDirectory = new File(tempdir.getAbsolutePath() + "/ont/data");
-        File componentDirect = new File(tempdir.getAbsolutePath() + "/ont/components");
-        File workflowDirectory = new File(tempdir.getAbsolutePath() + "/ont/workflows");
-        File executionDirectory = new File(tempdir.getAbsolutePath() + "/ont/executions");
-
-        File runExportDirectory = new File(tempdir.getAbsolutePath() + "/export/run");
-        File templateExportDirectory = new File(tempdir.getAbsolutePath() + "/export/template");
-        dataDirectory.mkdirs();
-        componentDirect.mkdirs();
-        workflowDirectory.mkdirs();
-        executionDirectory.mkdirs();
-        runExportDirectory.mkdirs();
-        templateExportDirectory.mkdirs();
-
-        // Merge both concrete and abstract component libraries from WINGS
-        String concreteComponentLibrary = props.getProperty("lib.concrete.url");
-        String abstractComponentLibrary = props.getProperty("lib.abstract.url");
-        // String workflow_lib = props.getProperty("lib.domain.workflow.url");
-        String concreteComponentData = urlToString(new URL(concreteComponentLibrary));
-        String abstractComponentData = urlToString(new URL(abstractComponentLibrary));
-        // String workflow_lib_data = urlToString(new URL(workflow_lib));
-
-        abstractComponentData = abstractComponentData.replaceFirst("<\\?xml.+?>", "");
-        abstractComponentData = Pattern.compile("<rdf:RDF.+?>", Pattern.DOTALL).matcher(abstractComponentData)
-            .replaceFirst("");
-        abstractComponentData = abstractComponentData.replaceFirst("<\\/rdf:RDF>", "");
-        concreteComponentData = concreteComponentData.replaceFirst("<\\/rdf:RDF>", "");
-
-        String runPlanData = urlToString(new URL(runid));
-        // write aclibfie and rplanfile
-        concreteComponentData += abstractComponentData + "</rdf:RDF>\n";
-        File aclibfile = new File(componentDirect.getAbsolutePath() + "/library.owl");
-        File rplanfile = new File(executionDirectory.getAbsolutePath() + "/" +
-            plan.getName() + ".owl");
-        FileUtils.write(aclibfile, concreteComponentData);
-        FileUtils.write(rplanfile, runPlanData);
-
-        // workflow file?
-        URL otplurl = new URL(plan.getOriginalTemplateID());
-        File otplfile = new File(workflowDirectory.getAbsolutePath() + "/" +
-            otplurl.getRef() + ".owl");
-        String otpldata = urlToString(otplurl);
-        FileUtils.write(otplfile, otpldata);
-
-        Catalog catalog = new Catalog(config.getDomainId(), exportName,
-            publisher.getDomainsDir(), aclibfile.getAbsolutePath());
-
-        WorkflowExecutionExport exp = new WorkflowExecutionExport(
-            rplanfile.getAbsolutePath(), catalog, exportUrl, exportName, tstorequery, config.getDomainId());
-        exp.setUploadURL(uploadURL);
-        exp.setUploadUsername(uploadUsername);
-        exp.setUploadPassword(uploadPassword);
-        exp.setUploadMaxSize(uploadMaxSize);
-        exp.setUploadDirectory(uploadDirectory);
-        String serialization = "TURTLE";
-
-        // publish the catalog
-        String domainPath = catalog.exportCatalog(null, serialization);
-        File domainFile = new File(domainPath);
-        this.publishTriples(tstoreurl, catalog.getDomainGraphURI(), domainFile.getAbsolutePath());
-
-        // execution
-        String executionFilePath = runExportDirectory + File.separator + "execution";
-        String graphUri = exp.exportAsOPMW(executionFilePath, serialization);
-        if (!exp.isExecPublished()) {
-          this.publishTriples(tstoreurl, graphUri, executionFilePath);
-
-          // expandedTemplate
-          String expandedTemplateFilePath = runExportDirectory + File.separator + "expandedTemplate";
-          String expandedTemplateGraphUri = exp.getConcreteTemplateExport().exportAsOPMW(expandedTemplateFilePath,
-              serialization);
-          if (!exp.getConcreteTemplateExport().isTemplatePublished())
-            this.publishTriples(tstoreurl, expandedTemplateGraphUri, expandedTemplateFilePath);
-
-          // abstract
-          WorkflowTemplateExport abstractTemplateExport = exp.getConcreteTemplateExport().getAbstractTemplateExport();
-          if (abstractTemplateExport != null) {
-            String abstractFilePath = runExportDirectory + File.separator + "abstract";
-            String abstractGraphUri = abstractTemplateExport.exportAsOPMW(abstractFilePath, serialization);
-            if (!abstractTemplateExport.isTemplatePublished())
-              this.publishTriples(tstoreurl, abstractGraphUri, abstractFilePath);
-          }
-        }
-
-        retmap.put("url", exp.getTransformedExecutionURI());
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        retmap.put("error", e.getMessage());
-      }
-    return json.toJson(retmap);
+  public String publishRun(String runid) throws MalformedURLException, IOException {
+    PublisherRunController pc = new PublisherRunController(config, props, runid);
+    pc.setPublishTriples(true);
+    WorkflowExecutionExport exp = pc.generateProvenance(runid, null);
+    HashMap<String, Object> response = pc.publish(exp);
+    return json.toJson(response);
   }
-
-  /*
-   * private void uploadDirectory(ServerDetails server, File tempdir) {
-   * if(server.getHost() != null) {
-   * Machine m = new Machine(server.getHost());
-   * m.setHostName(server.getHost());
-   * m.setUserId(server.getHostUserId());
-   * m.setUserKey(server.getPrivateKey());
-   * HashMap<String, String> filemap = new HashMap<String, String>();
-   * String srvdir = server.getDirectory();
-   * for(File f : FileUtils.listFiles(tempdir, null, true)) {
-   * String fpath = f.getAbsolutePath();
-   * String srvpath = fpath.replace(tempdir.getParent(), srvdir);
-   * filemap.put(fpath, srvpath);
-   * }
-   * GridkitCloud.uploadFiles(m, filemap);
-   * }
-   * else {
-   * try {
-   * FileUtils.copyDirectoryToDirectory(tempdir, new File(server.getDirectory()));
-   * } catch (IOException e) {
-   * e.printStackTrace();
-   * }
-   * }
-   * }
-   */
 
   /**
-   * Upload triples to a rdf store
+   * Get provenance for a run
    *
-   * @param tstoreurl: triple store url. e.g.,
-   *                   http://ontosoft.isi.edu:3030/provenance/data
-   * @param graphurl:  graph url.
-   * @param filepath
+   * @param
+   * @return
+   * @return
+   * @throws IOException
    */
-  private void publishTriples(String tstoreurl, String graphurl, String filepath) {
-    // TODO: #154 Move this function into the OPMWExporter class
-    System.out.println("Publishing the filepath " + filepath + " on graph " + graphurl);
-    try {
-      CloseableHttpClient httpClient = HttpClients.createDefault();
-      HttpPut putRequest = new HttpPut(tstoreurl + "?graph=" + graphurl);
-
-      // Todo: move it to configuration
-      int timeoutSeconds = 10;
-      int CONNECTION_TIMEOUT_MS = timeoutSeconds * 1000;
-      RequestConfig requestConfig = RequestConfig.custom()
-          .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
-          .setConnectTimeout(CONNECTION_TIMEOUT_MS)
-          .setSocketTimeout(CONNECTION_TIMEOUT_MS)
-          .build();
-      putRequest.setConfig(requestConfig);
-
-      File file = new File(filepath);
-      String content = FileUtils.readFileToString(file);
-      if (content != null) {
-        StringEntity input = new StringEntity(content);
-        input.setContentType("text/turtle");
-        putRequest.setEntity(input);
-        HttpResponse response = httpClient.execute(putRequest);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode > 299) {
-          System.err.println("Unable to upload the domain " + statusCode);
-          System.err.println(response.getStatusLine().getReasonPhrase());
-        } else {
-          System.err.println("Success uploading the domain " + statusCode);
-          System.err.println(response.getStatusLine().getReasonPhrase());
-        }
-      } else {
-        System.err.println("File content is null " + filepath);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
+  public String getProvenance(String runid, String format) throws IOException {
+    System.out.println("Starting provenance export");
+    PublisherRunController pc = new PublisherRunController(config, props, runid);
+    pc.setPublishTriples(true);
+    WorkflowExecutionExport exp = pc.generateProvenance(runid, null);
+    System.out.println("Generate provenance");
+    HashMap<String, Object> response = pc.publish(exp);
+    System.out.println("Publish");
+    String executionPath = pc.executionFilePath;
+    File executionFile = new File(executionPath);
+    System.out.println("file ok" + executionFile.getAbsolutePath());
+    if (executionFile.exists()) {
+      String execution = FileUtils.readFileToString(executionFile);
+      System.out.println("read file ok");
+      response.put("execution", execution);
     }
+    System.out.println("End provenance export");
+    return json.toJson(response);
   }
-
-  /*
-   * private boolean graphExists(String tstoreurl, String graphurl) {
-   * try {
-   * CloseableHttpClient httpClient = HttpClients.createDefault();
-   * HttpGet getRequest = new HttpGet(tstoreurl + "?graph=" + graphurl);
-   *
-   * int timeoutSeconds = 5;
-   * int CONNECTION_TIMEOUT_MS = timeoutSeconds * 1000;
-   * RequestConfig requestConfig = RequestConfig.custom()
-   * .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
-   * .setConnectTimeout(CONNECTION_TIMEOUT_MS)
-   * .setSocketTimeout(CONNECTION_TIMEOUT_MS)
-   * .build();
-   * getRequest.setConfig(requestConfig);
-   *
-   * HttpResponse response = httpClient.execute(getRequest);
-   * if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
-   * return true;
-   * return false;
-   * } catch (IOException e) {
-   * e.printStackTrace();
-   * return false;
-   * }
-   * }
-   */
 }
