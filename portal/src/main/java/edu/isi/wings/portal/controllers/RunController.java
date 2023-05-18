@@ -47,6 +47,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.jena.base.Sys;
 
 import edu.isi.kcap.wings.opmm.WorkflowExecutionExport;
 import edu.isi.kcap.wings.opmm.WorkflowTemplateExport;
@@ -534,13 +535,15 @@ public class RunController {
   /**
    * @param runid
    * @return
+   * @throws Exception
    */
-  public String publishRun(String runid) {
+  public HashMap<String, Links> publishRun(String runid) throws Exception {
     HashMap<String, String> retmap = new HashMap<String, String>();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     RuntimePlan plan = monitor.getRunDetails(runid);
+    HashMap<String, Links> response = null;
     if (plan.getRuntimeInfo().getStatus() != Status.SUCCESS) {
-      retmap.put("error", "Can only publish successfully completed runs");
+      throw new Exception("Can only publish successfully completed runs");
     } else
       try {
         // Mapper opmm = new Mapper();
@@ -649,30 +652,29 @@ public class RunController {
         String executionFilePath = run_exportdir + File.separator + "execution";
         String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
         String abstractFilePath = run_exportdir + File.separator + "abstract";
-        // OPMW MAPPER CODE
-        // domain
-        // exportName
-        // catalogRepositoryDirectory
-        // componentLibraryFile
-        //
         String serialization = "turtle";
         File file = new File("tmp/" + serialization);
         if (!file.exists()) {
           file.mkdir();
         }
         try {
-          HashMap<String, Links> response = Mapper.main(domain, exportPrefix, exportUrl, catalogRepositoryDirectory,
+          response = Mapper.main(domain, exportPrefix, exportUrl, catalogRepositoryDirectory,
               componentLibraryFilePath.getAbsolutePath(), planFilePath.getAbsolutePath(),
               endpointQueryURI, endpointPostURI, executionFilePath, expandedTemplateFilePath, abstractFilePath,
               filePublisher, serialization);
-          return json.toJson(response);
+          System.out.println(executionFilePath);
+          System.out.println(expandedTemplateFilePath);
+          System.out.println(abstractFilePath);
+
+          System.out.println("Response: " + response);
+          System.out.println("Published ended");
         } catch (Exception e) {
-          e.printStackTrace();
+          throw new Exception("Error publishing run: " + e.getMessage());
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        throw new Exception("Error publishing run: " + e.getMessage());
       }
-    return json.toJson(retmap);
+    return response;
   }
 
   /*
