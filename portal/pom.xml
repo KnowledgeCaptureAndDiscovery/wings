@@ -17,7 +17,7 @@
 
 	<properties>
 		<!-- rewrite.version>2.0.12.Final</rewrite.version -->
-		<wings-opmm.version>1.2.5</wings-opmm.version>
+		<wings-opmm.version>1.2.6</wings-opmm.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<jersey.version>2.27</jersey.version>
