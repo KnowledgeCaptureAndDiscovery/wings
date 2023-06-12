@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 
 import edu.isi.kcap.wings.opmm.DataTypes.Links;
+import edu.isi.kcap.wings.opmm.DataTypes.ProvenanceResponseSchema;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.portal.controllers.RunController;
 
@@ -181,11 +182,9 @@ public class RunResource extends WingsResource {
       @FormParam("run_id") String run_id) {
     if (this.rc != null) {
       try {
-        HashMap<String, Links> responseQuery = this.rc.publishRun(run_id);
+        ProvenanceResponseSchema responseQuery = this.rc.publishRun(run_id);
         Gson gson = new Gson();
         String json = gson.toJson(responseQuery);
-        Links catalog = responseQuery.get("catalog");
-        System.out.println(json);
         return json;
       } catch (Exception e) {
         // TODO Auto-generated catch block

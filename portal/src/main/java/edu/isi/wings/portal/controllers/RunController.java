@@ -52,6 +52,7 @@ import org.apache.jena.base.Sys;
 import edu.isi.kcap.wings.opmm.WorkflowExecutionExport;
 import edu.isi.kcap.wings.opmm.WorkflowTemplateExport;
 import edu.isi.kcap.wings.opmm.DataTypes.Links;
+import edu.isi.kcap.wings.opmm.DataTypes.ProvenanceResponseSchema;
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.catalog.component.ComponentFactory;
 import edu.isi.wings.catalog.data.DataFactory;
@@ -537,11 +538,11 @@ public class RunController {
    * @return
    * @throws Exception
    */
-  public HashMap<String, Links> publishRun(String runid) throws Exception {
+  public ProvenanceResponseSchema publishRun(String runid) throws Exception {
     HashMap<String, String> retmap = new HashMap<String, String>();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     RuntimePlan plan = monitor.getRunDetails(runid);
-    HashMap<String, Links> response = null;
+    ProvenanceResponseSchema response = null;
     if (plan.getRuntimeInfo().getStatus() != Status.SUCCESS) {
       throw new Exception("Can only publish successfully completed runs");
     } else
@@ -662,12 +663,6 @@ public class RunController {
               componentLibraryFilePath.getAbsolutePath(), planFilePath.getAbsolutePath(),
               endpointQueryURI, endpointPostURI, executionFilePath, expandedTemplateFilePath, abstractFilePath,
               filePublisher, serialization);
-          System.out.println(executionFilePath);
-          System.out.println(expandedTemplateFilePath);
-          System.out.println(abstractFilePath);
-
-          System.out.println("Response: " + response);
-          System.out.println("Published ended");
         } catch (Exception e) {
           throw new Exception("Error publishing run: " + e.getMessage());
         }

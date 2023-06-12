@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee" 
-         xmlns:web="http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
-         version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee">
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:web="http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+  version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee">
   <display-name>Wings Portal</display-name>
   <servlet>
     <description>Login page</description>
@@ -14,7 +14,7 @@
     <servlet-name>Login</servlet-name>
     <url-pattern>/login/*</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <description>Servlet to Export Graph</description>
     <display-name>Graph Exporter</display-name>
@@ -27,6 +27,17 @@
   </servlet-mapping>
 
   <servlet>
+    <description>Servlet to obtain the Provenance Files</description>
+    <display-name>Provenance Files</display-name>
+    <servlet-name>ProvenanceFile</servlet-name>
+    <servlet-class>edu.isi.wings.portal.servlets.ProvenanceFileServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ProvenanceFile</servlet-name>
+    <url-pattern>/provenance/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <description></description>
     <display-name>SparqlEndpoint</display-name>
     <servlet-name>SparqlEndpoint</servlet-name>
@@ -36,7 +47,7 @@
     <servlet-name>SparqlEndpoint</servlet-name>
     <url-pattern>/sparql</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <description>Wings Config</description>
     <display-name>Wings config</display-name>
@@ -46,9 +57,9 @@
   <servlet-mapping>
     <servlet-name>ViewConfig</servlet-name>
     <url-pattern>/config</url-pattern>
-  </servlet-mapping>  
-  
-  <!-- 
+  </servlet-mapping>
+
+  <!--
   	CORS & Compression filters for Non-REST-API servlets
   	The Jersey REST-APIs have their own filters and interceptors
   -->
@@ -78,11 +89,11 @@
     <dispatcher>REQUEST</dispatcher>
     <dispatcher>FORWARD</dispatcher>
   </filter-mapping>
-  
+
   <session-config>
     <session-timeout>43200</session-timeout>
   </session-config>
-  
+
   <security-role>
     <role-name>WingsUser</role-name>
   </security-role>
@@ -111,7 +122,7 @@
       <role-name>WingsAdmin</role-name>
     </auth-constraint>
   </security-constraint>
-  
+
   <login-config>
     <auth-method>FORM</auth-method>
     <form-login-config>
@@ -119,5 +130,5 @@
       <form-error-page>/jsp/login/login_failed.jsp</form-error-page>
     </form-login-config>
   </login-config>
-  
+
 </web-app>
