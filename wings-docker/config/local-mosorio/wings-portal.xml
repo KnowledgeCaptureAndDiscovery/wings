@@ -1,5 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<Context debug="0" reloadable="true" crossContext="true">
-   <Parameter name="config.file" value="/etc/wings/portal.properties" />
-   <ResourceLink name="users" global="UserDatabase" type="org.apache.catalina.UserDatabase" />
-</Context>

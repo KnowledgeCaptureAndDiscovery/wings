@@ -49,6 +49,5 @@ RUN jar -xvf wings-portal-*.war
 
 # Add wings context file to the wings portal webapp
 COPY ./wings-docker/config/default/wings-portal.xml /usr/local/tomcat/webapps/wings-portal/META-INF/context.xml
-COPY ./wings-docker/config/default/portal.properties /etc/wings/portal.properties
 
 WORKDIR /usr/local/tomcat
