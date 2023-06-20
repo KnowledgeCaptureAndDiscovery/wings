@@ -45,6 +45,8 @@ tmp/
 *~.nib
 local.properties
 .settings/
+.portal/settings/
+.planner/settings/
 .loadpath
 .recommenders
 
