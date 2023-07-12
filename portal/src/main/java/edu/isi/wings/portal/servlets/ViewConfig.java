@@ -36,7 +36,7 @@ import edu.isi.wings.portal.classes.config.Config;
  */
 public class ViewConfig extends HttpServlet {
   private static final long serialVersionUID = 1L;
-  
+
   /**
    * @see HttpServlet#HttpServlet()
    */
@@ -57,7 +57,7 @@ public class ViewConfig extends HttpServlet {
     props.put("internal_server", config.getServerUrl());
     props.put("storage", config.getStorageDirectory());
     props.put("dotpath", config.getDotFile());
-    props.put("ontology", config.getWorkflowOntologyUrl());
+    props.put("ontology", config.getOntologyConfig().getWorkflowOntologyUrl());
     props.put("planner", config.getPlannerConfig());
     out.println(json.toJson(props));
     out.close();

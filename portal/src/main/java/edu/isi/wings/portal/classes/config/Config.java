@@ -64,14 +64,9 @@ public class Config {
     private String logsDirectory;
     private String dotFile;
     private String serverUrl;
-    private String workflowOntologyUrl;
-    private String dataOntologyUrl;
-    private String componentOntologyUrl;
-    private String executionOntologyUrl;
-    private String resourceOntologyUrl;
-    private boolean deleteRunOutputs;
+    private OntologyConfig ontologyConfig;
 
-    private String ontdirurl = "http://www.wings-workflows.org/ontology";
+    private boolean deleteRunOutputs;
 
     private HashMap<String, ExeEngine> engines;
 
@@ -330,11 +325,8 @@ public class Config {
         this.serverUrl = serverConfig.getString("server");
         this.dotFile = serverConfig.getString("graphviz");
         this.clients = serverConfig.getString("clients");
-        this.dataOntologyUrl = serverConfig.getString("ontology.data");
-        this.componentOntologyUrl = serverConfig.getString("ontology.component");
-        this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
-        this.executionOntologyUrl = serverConfig.getString("ontology.execution");
-        this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
+        this.ontologyConfig = new OntologyConfig(serverConfig);
+
 
         if (serverConfig.containsKey("metaworkflows"))
             this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
@@ -542,24 +534,18 @@ public class Config {
         File loc1 = new File("/usr/bin/dot");
         File loc2 = new File("/usr/local/bin/dot");
         config.addProperty("graphviz", loc2.exists() ? loc2.getAbsolutePath() : loc1.getAbsolutePath());
-        config.addProperty("ontology.data", ontdirurl + "/data.owl");
-        config.addProperty("ontology.component", ontdirurl + "/component.owl");
-        config.addProperty("ontology.workflow", ontdirurl + "/workflow.owl");
-        config.addProperty("ontology.execution", ontdirurl + "/execution.owl");
-        config.addProperty("ontology.resource", ontdirurl + "/resource.owl");
+
+        OntologyConfig ontConfig = new OntologyConfig();
+        config.addProperty("ontology.data", ontConfig.getDataOntologyUrl());
+        config.addProperty("ontology.component", ontConfig.getComponentOntologyUrl());
+        config.addProperty("ontology.workflow", ontConfig.getWorkflowOntologyUrl());
+        config.addProperty("ontology.execution", ontConfig.getExecutionOntologyUrl());
+        config.addProperty("ontology.resource", ontConfig.getResourceOntologyUrl());
 
         this.addEngineConfig(config, new ExeEngine("Local",
                 LocalExecutionEngine.class.getCanonicalName(), ExeEngine.Type.BOTH));
         this.addEngineConfig(config, new ExeEngine("Distributed",
                 DistributedExecutionEngine.class.getCanonicalName(), ExeEngine.Type.BOTH));
-
-        /*
-         * this.addEngineConfig(config, new ExeEngine("OODT",
-         * OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-         * 
-         * this.addEngineConfig(config, new ExeEngine("Pegasus",
-         * PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-         */
 
         try {
             config.save(this.configFile);
@@ -588,15 +574,15 @@ public class Config {
             if (domain.isLegacy())
                 return props;
 
-            props.setProperty("ont.dir.url", this.ontdirurl);
             if (!domain.getUseSharedTripleStore())
                 props.setProperty("ont.dir.map",
                         "file:" + domain.getDomainDirectory() + File.separator + "ontology");
 
-            props.setProperty("ont.data.url", this.getDataOntologyUrl());
-            props.setProperty("ont.component.url", this.getComponentOntologyUrl());
-            props.setProperty("ont.workflow.url", this.getWorkflowOntologyUrl());
-            props.setProperty("ont.execution.url", this.getExecutionOntologyUrl());
+            props.setProperty("ont.dir.url", this.ontologyConfig.getOntologyDefaultUrl());
+            props.setProperty("ont.data.url", this.ontologyConfig.getDataOntologyUrl());
+            props.setProperty("ont.component.url", this.ontologyConfig.getComponentOntologyUrl());
+            props.setProperty("ont.workflow.url", this.ontologyConfig.getWorkflowOntologyUrl());
+            props.setProperty("ont.execution.url", this.ontologyConfig.getExecutionOntologyUrl());
             if (domain.getUseSharedTripleStore())
                 props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
 
@@ -609,11 +595,6 @@ public class Config {
         }
         props.setProperty("logs.dir", this.getLogsDirectory());
         props.setProperty("dot.path", this.getDotFile());
-
-        if (this.getResourceOntologyUrl() == null)
-            this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
-        props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
-
         props.setProperty("lib.resource.url",
                 this.getExportCommunityUrl() + "/resource/library.owl");
 
@@ -667,47 +648,6 @@ public class Config {
 
     public ExecutionMonitorAPI getDomainExecutionMonitor() {
         return ExecutionToolsFactory.createMonitor(this.getProperties());
-    }
-
-    // Getters and Setters
-    public String getWorkflowOntologyUrl() {
-        return this.workflowOntologyUrl;
-    }
-
-    public String getComponentOntologyUrl() {
-        return this.componentOntologyUrl;
-    }
-
-    public String getDataOntologyUrl() {
-        return this.dataOntologyUrl;
-    }
-
-    public void setWorkflowOntologyUrl(String workflowOntologyUrl) {
-        this.workflowOntologyUrl = workflowOntologyUrl;
-    }
-
-    public void setDataOntologyUrl(String dataOntologyUrl) {
-        this.dataOntologyUrl = dataOntologyUrl;
-    }
-
-    public void setComponentOntologyUrl(String componentOntologyUrl) {
-        this.componentOntologyUrl = componentOntologyUrl;
-    }
-
-    public String getExecutionOntologyUrl() {
-        return executionOntologyUrl;
-    }
-
-    public void setExecutionOntologyUrl(String executionOntologyUrl) {
-        this.executionOntologyUrl = executionOntologyUrl;
-    }
-
-    public String getResourceOntologyUrl() {
-        return resourceOntologyUrl;
-    }
-
-    public void setResourceOntologyUrl(String resourceOntologyUrl) {
-        this.resourceOntologyUrl = resourceOntologyUrl;
     }
 
     public String getConfigFile() {
@@ -923,4 +863,13 @@ public class Config {
     public Set<String> getEnginesList() {
         return this.engines.keySet();
     }
+
+    public OntologyConfig getOntologyConfig() {
+        return ontologyConfig;
+    }
+
+    public void setOntologyConfig(OntologyConfig ontologyConfig) {
+        this.ontologyConfig = ontologyConfig;
+    }
+
 }
