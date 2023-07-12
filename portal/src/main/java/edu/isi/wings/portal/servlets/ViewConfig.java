@@ -54,9 +54,9 @@ public class ViewConfig extends HttpServlet {
     Config config = new Config(request, null, null);
     Gson json = JsonHandler.createPrettyGson();
     HashMap<String, Object> props = new HashMap<String, Object>();
-    props.put("internal_server", config.getServerUrl());
+    props.put("internal_server", config.getMainConfig().getServerUrl());
     props.put("storage", config.getStorageDirectory());
-    props.put("dotpath", config.getDotFile());
+    props.put("dotpath", config.getMainConfig().getDotFile());
     props.put("ontology", config.getOntologyConfig().getWorkflowOntologyUrl());
     props.put("planner", config.getPlannerConfig());
     out.println(json.toJson(props));
