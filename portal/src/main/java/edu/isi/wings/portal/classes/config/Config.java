@@ -327,6 +327,7 @@ public class Config {
         this.clients = serverConfig.getString("clients");
         this.ontologyConfig = new OntologyConfig(serverConfig);
 
+
         if (serverConfig.containsKey("metaworkflows"))
             this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
 
@@ -546,14 +547,6 @@ public class Config {
         this.addEngineConfig(config, new ExeEngine("Distributed",
                 DistributedExecutionEngine.class.getCanonicalName(), ExeEngine.Type.BOTH));
 
-        /*
-         * this.addEngineConfig(config, new ExeEngine("OODT",
-         * OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-         *
-         * this.addEngineConfig(config, new ExeEngine("Pegasus",
-         * PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-         */
-
         try {
             config.save(this.configFile);
         } catch (Exception e) {
@@ -602,7 +595,6 @@ public class Config {
         }
         props.setProperty("logs.dir", this.getLogsDirectory());
         props.setProperty("dot.path", this.getDotFile());
-
         props.setProperty("lib.resource.url",
                 this.getExportCommunityUrl() + "/resource/library.owl");
 
@@ -879,4 +871,5 @@ public class Config {
     public void setOntologyConfig(OntologyConfig ontologyConfig) {
         this.ontologyConfig = ontologyConfig;
     }
+
 }
