@@ -24,59 +24,58 @@ import edu.isi.wings.portal.controllers.TemplateController;
 public class TemplateResource extends WingsResource {
   TemplateController tc;
 
-  @PathParam("edit")
-  String edit;
-  @PathParam("tell")
-  String tell;
+  @PathParam("edit") String edit;
+  @PathParam("tell") String tell;
 
-  HashMap<String, Boolean> options;
+  HashMap<String , Boolean> options;
   boolean editor;
   boolean tellme;
-
+  
   @PostConstruct
   public void init() {
     super.init();
-
+    
     this.editor = ("/edit".equals(edit));
     this.tellme = ("/tellme".equals(tell));
-
-    if (this.hasPermissions() && !this.isPage("intro"))
+    
+    if(this.hasPermissions() && !this.isPage("intro"))
       this.tc = new TemplateController(config);
 
     this.options = new HashMap<String, Boolean>();
     @SuppressWarnings("unchecked")
     Enumeration<String> pnames = request.getParameterNames();
-    while (pnames.hasMoreElements()) {
+    while(pnames.hasMoreElements()) {
       String pname = pnames.nextElement();
-      if (pname.matches("^hide_.*"))
+      if(pname.matches("^hide_.*"))
         this.options.put(pname, Boolean.parseBoolean(request.getParameter(pname)));
     }
   }
-
+  
   @PreDestroy
   public void destroy() {
     System.out.println("Template Resource Destroyed");
-    if (this.tc != null) {
+    if(this.tc != null) {
       this.tc.end();
     }
-  }
-
+  }  
+  
   @GET
   @Path("intro")
   public void getIntroduction() {
     String intropage = "Template";
-    if (!editor)
+    if(!editor) 
       intropage += "Browser";
-    else
+    else 
       intropage += "Editor" + (tellme ? "Tellme" : "");
     this.loadIntroduction(intropage);
   }
-
+  
+  
   @GET
   @Produces(MediaType.TEXT_HTML)
   public String getHTML(
       @QueryParam("template_id") final String template_id) {
-    if (this.tc != null) {
+    if(this.tc != null) {
       request.setAttribute("controller", this.tc);
       request.setAttribute("options", this.options);
       request.setAttribute("editor", this.editor);
@@ -85,16 +84,17 @@ public class TemplateResource extends WingsResource {
     }
     return null;
   }
+  
 
   @GET
   @Path("{template_name}.owl")
   @Produces(MediaType.TEXT_HTML)
   public String getTemplateHTML(
       @PathParam("template_name") String template_name) {
-    if (this.tc != null) {
-      config.setScriptPath(config.getScriptPath().replaceAll("/" + template_name + ".owl", ""));
+    if(this.tc != null) {
+      config.setScriptPath(config.getScriptPath().replaceAll("/"+template_name+".owl", ""));
       this.options.put("hide_selector", true);
-
+      
       request.setAttribute("controller", this.tc);
       request.setAttribute("options", this.options);
       request.setAttribute("editor", this.editor);
@@ -104,42 +104,42 @@ public class TemplateResource extends WingsResource {
     }
     return null;
   }
-
+  
   @GET
   @Path("getTemplatesListJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getTemplatesListJSON() {
-    if (this.tc != null)
+    if(this.tc != null)
       return this.tc.getTemplatesListJSON();
     return null;
   }
-
+  
   @GET
   @Path("getViewerJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getViewerJSON(
       @QueryParam("template_id") String template_id) {
-    if (this.tc != null)
+    if(this.tc != null)
       return this.tc.getViewerJSON(template_id);
     return null;
   }
-
+  
   @GET
   @Path("getInputsJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getInputsJSON(
       @QueryParam("template_id") String template_id) {
-    if (this.tc != null)
+    if(this.tc != null)
       return this.tc.getInputsJSON(template_id);
     return null;
   }
-
+  
   @GET
   @Path("getEditorJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getEditorJSON(
       @QueryParam("template_id") String template_id) {
-    if (this.tc != null)
+    if(this.tc != null)
       return this.tc.getEditorJSON(template_id);
     return null;
   }
@@ -148,8 +148,8 @@ public class TemplateResource extends WingsResource {
   @Path("layoutTemplate")
   @Produces(MediaType.APPLICATION_JSON)
   public String layoutTemplate(@JsonProperty("json") String json) {
-    String dotexe = config.getMainConfig().getDotFile();
-    if (this.tc != null)
+    String dotexe = config.getDotFile();
+    if(this.tc != null)
       try {
         return this.tc.layoutTemplate(json, dotexe);
       } catch (IOException e) {
@@ -165,29 +165,29 @@ public class TemplateResource extends WingsResource {
       @FormParam("template_id") String template_id,
       @FormParam("json") String json,
       @FormParam("constraints_json") String constraints_json) {
-    if (this.tc != null)
+    if(this.tc != null)
       return this.tc.saveTemplateJSON(template_id, json, constraints_json);
     return null;
   }
-
+  
   @POST
   @Path("newTemplate")
   @Produces(MediaType.TEXT_PLAIN)
   public String newTemplate(
       @FormParam("template_id") String template_id) {
-    if (this.tc != null) {
+    if(this.tc != null) {
       RunController.invalidateCachedAPIs();
       return this.tc.newTemplate(template_id);
     }
     return null;
   }
-
+  
   @POST
   @Path("deleteTemplate")
   @Produces(MediaType.TEXT_PLAIN)
   public String deleteTemplate(
       @FormParam("template_id") String template_id) {
-    if (this.tc != null && this.isOwner() && !config.isSandboxed()) {
+    if(this.tc != null && this.isOwner() && !config.isSandboxed()) {
       RunController.invalidateCachedAPIs();
       return this.tc.deleteTemplate(template_id);
     }

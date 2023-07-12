@@ -52,36 +52,19 @@ import edu.isi.wings.portal.classes.users.UsersDB;
 import edu.isi.wings.portal.controllers.DomainController;
 
 public class Config {
-    private static final String USER_HOME_KEY = "user.home";
-    public static final String MAIN_SERVER_URL_KEY = "server";
-    public static final String MAIN_GRAPHVIZ_KEY = "graphviz";
-    public static final String MAIN_CLIENTS_KEY = "clients";
-    public static final String EXECUTION_ENGINE_PROPERTIES = "execution.engine.properties.";
-    public static final String EXECUTION_ENGINE_TYPE = "execution.engine.type";
-    public static final String EXECUTION_ENGINE_IMPLEMENTATION = "execution.engine.implementation";
-    public static final String EXECUTION_ENGINE_1_NAME = "execution.engine(-1).name";
-    public static final String ONTOLOGY_RESOURCE_KEY = "ontology.resource";
-    public static final String ONTOLOGY_EXECUTION_KEY = "ontology.execution";
-    public static final String ONTOLOGY_WORKFLOW_KEY = "ontology.workflow";
-    public static final String ONTOLOGY_COMPONENT_KEY = "ontology.component";
-    public static final String ONTOLOGY_DATA_KEY = "ontology.data";
-    public static final String STORAGE_TDB_KEY = "storage.tdb";
-    public static final String STORAGE_LOCAL_KEY = "storage.local";
-
     // The Portal configuration properties file. Order of checking:
     // 1. Check "config.file" servlet context parameter
     // 2. Check ${user.home}/.wings/portal.properties if ${user.home} is present
     // 3. Check /etc/wings/portal.properties
     private String configFile;
 
-    // Configuration objects
-    private MainConfig mainConfig;
-    private OntologyConfig ontologyConfig;
-
     // The following are loaded from the config file
     private String storageDirectory;
     private String tdbDirectory;
     private String logsDirectory;
+    private String dotFile;
+    private String serverUrl;
+    private OntologyConfig ontologyConfig;
 
     private boolean deleteRunOutputs;
 
@@ -95,6 +78,9 @@ public class Config {
     private boolean isSandboxed = false;
 
     private PlannerConfig plannerConfig = new PlannerConfig();
+
+    // Comma separated list of spellbook client hosts
+    private String clients;
 
     // The following are set from the "request" variable
     private String viewerId;
@@ -258,8 +244,7 @@ public class Config {
         if (!this.checkUser(null))
             return;
 
-        this.exportUserUrl = this.mainConfig.getServerUrl() + contextRootPath + exportServletPath + "/"
-                + usersRelativeDir
+        this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
                 + "/" + userId;
         this.userDir = storageDirectory + File.separator + usersRelativeDir + File.separator + userId;
 
@@ -333,12 +318,15 @@ public class Config {
 
     private void initializePortalConfig(HttpServletRequest request) {
         this.contextRootPath = request.getContextPath();
-        PropertyListConfiguration serverConfig = getPortalConfiguration(request);
-        this.storageDirectory = serverConfig.getString(STORAGE_LOCAL_KEY);
-        this.tdbDirectory = serverConfig.getString(STORAGE_TDB_KEY);
 
-        this.mainConfig = new MainConfig(serverConfig);
+        PropertyListConfiguration serverConfig = getPortalConfiguration(request);
+        this.storageDirectory = serverConfig.getString("storage.local");
+        this.tdbDirectory = serverConfig.getString("storage.tdb");
+        this.serverUrl = serverConfig.getString("server");
+        this.dotFile = serverConfig.getString("graphviz");
+        this.clients = serverConfig.getString("clients");
         this.ontologyConfig = new OntologyConfig(serverConfig);
+
 
         if (serverConfig.containsKey("metaworkflows"))
             this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
@@ -377,7 +365,7 @@ public class Config {
         if (!logdir.exists() && !logdir.mkdirs())
             System.err.println("Cannot create logs directory : " + logdir.getAbsolutePath());
 
-        this.exportCommunityUrl = this.mainConfig.getServerUrl() + contextRootPath + exportServletPath + "/"
+        this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
                 + communityRelativeDir;
         this.communityPath = contextRootPath + "/" + usersRelativeDir + "/" + communityRelativeDir;
 
@@ -491,10 +479,9 @@ public class Config {
 
     public PropertyListConfiguration getPortalConfiguration(HttpServletRequest request) {
         ServletContext app = request.getSession().getServletContext();
-
         this.configFile = app.getInitParameter("config.file");
         if (this.configFile == null) {
-            String home = System.getProperty(USER_HOME_KEY);
+            String home = System.getProperty("user.home");
             if (home != null && !home.equals(""))
                 this.configFile = home + File.separator + ".wings"
                         + File.separator + "portal.properties";
@@ -525,28 +512,35 @@ public class Config {
     }
 
     private void createDefaultPortalConfig(HttpServletRequest request) {
+        String server = request.getScheme() + "://" + request.getServerName() + ":"
+                + request.getServerPort();
+        String storageDir = null;
+        String home = System.getProperty("user.home");
+        if (home != null && !home.equals(""))
+            storageDir = home + File.separator + ".wings" + File.separator + "storage";
+        else
+            storageDir = System.getProperty("java.io.tmpdir") +
+                    File.separator + "wings" + File.separator + "storage";
+
+        File storageDirFile = new File(storageDir);
+        if (!storageDirFile.exists() && !storageDirFile.mkdirs())
+            System.err.println("Cannot create storage directory: " + storageDir);
+
         PropertyListConfiguration config = new PropertyListConfiguration();
-        String storageDir = createDefaultStorageDirectory();
-        String defaultServer = obtainServerURL(request);
+        config.addProperty("storage.local", storageDir);
+        config.addProperty("storage.tdb", storageDir + File.separator + "TDB");
+        config.addProperty("server", server);
 
-        OntologyConfig defaultOntologyConfig = new OntologyConfig();
-        MainConfig defaultMainConfig = new MainConfig();
+        File loc1 = new File("/usr/bin/dot");
+        File loc2 = new File("/usr/local/bin/dot");
+        config.addProperty("graphviz", loc2.exists() ? loc2.getAbsolutePath() : loc1.getAbsolutePath());
 
-        // Main section configuration
-        defaultMainConfig.setServerUrl(defaultServer);
-        config.addProperty(MAIN_SERVER_URL_KEY, mainConfig.getServerUrl());
-        config.addProperty(MAIN_GRAPHVIZ_KEY, mainConfig.getDotFile());
-
-        // Storage section configuration
-        config.addProperty(STORAGE_LOCAL_KEY, storageDir);
-        config.addProperty(STORAGE_TDB_KEY, storageDir + File.separator + "TDB");
-
-        // Ontology section configuration
-        config.addProperty(ONTOLOGY_DATA_KEY, defaultOntologyConfig.getDataOntologyUrl());
-        config.addProperty(ONTOLOGY_COMPONENT_KEY, defaultOntologyConfig.getComponentOntologyUrl());
-        config.addProperty(ONTOLOGY_WORKFLOW_KEY, defaultOntologyConfig.getWorkflowOntologyUrl());
-        config.addProperty(ONTOLOGY_EXECUTION_KEY, defaultOntologyConfig.getExecutionOntologyUrl());
-        config.addProperty(ONTOLOGY_RESOURCE_KEY, defaultOntologyConfig.getResourceOntologyUrl());
+        OntologyConfig ontConfig = new OntologyConfig();
+        config.addProperty("ontology.data", ontConfig.getDataOntologyUrl());
+        config.addProperty("ontology.component", ontConfig.getComponentOntologyUrl());
+        config.addProperty("ontology.workflow", ontConfig.getWorkflowOntologyUrl());
+        config.addProperty("ontology.execution", ontConfig.getExecutionOntologyUrl());
+        config.addProperty("ontology.resource", ontConfig.getResourceOntologyUrl());
 
         this.addEngineConfig(config, new ExeEngine("Local",
                 LocalExecutionEngine.class.getCanonicalName(), ExeEngine.Type.BOTH));
@@ -561,11 +555,11 @@ public class Config {
     }
 
     private void addEngineConfig(PropertyListConfiguration config, ExeEngine engine) {
-        config.addProperty(EXECUTION_ENGINE_1_NAME, engine.getName());
-        config.addProperty(EXECUTION_ENGINE_IMPLEMENTATION, engine.getImplementation());
-        config.addProperty(EXECUTION_ENGINE_TYPE, engine.getType());
+        config.addProperty("execution.engine(-1).name", engine.getName());
+        config.addProperty("execution.engine.implementation", engine.getImplementation());
+        config.addProperty("execution.engine.type", engine.getType());
         for (Entry<Object, Object> entry : engine.getProperties().entrySet())
-            config.addProperty(EXECUTION_ENGINE_PROPERTIES + entry.getKey(), entry.getValue());
+            config.addProperty("execution.engine.properties." + entry.getKey(), entry.getValue());
     }
 
     public Properties getProperties() {
@@ -600,7 +594,7 @@ public class Config {
             props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
         }
         props.setProperty("logs.dir", this.getLogsDirectory());
-        props.setProperty("dot.path", this.getMainConfig().getDotFile());
+        props.setProperty("dot.path", this.getDotFile());
         props.setProperty("lib.resource.url",
                 this.getExportCommunityUrl() + "/resource/library.owl");
 
@@ -726,6 +720,14 @@ public class Config {
         this.exportUserUrl = exportUserUrl;
     }
 
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
+    }
+
     public String getCommunityPath() {
         return communityPath;
     }
@@ -818,12 +820,28 @@ public class Config {
         this.isSandboxed = isSandboxed;
     }
 
+    public String getDotFile() {
+        return dotFile;
+    }
+
+    public void setDotFile(String dotFile) {
+        this.dotFile = dotFile;
+    }
+
     public boolean isDeleteRunOutputs() {
         return deleteRunOutputs;
     }
 
     public void setDeleteRunOutputs(boolean deleteRunOutputs) {
         this.deleteRunOutputs = deleteRunOutputs;
+    }
+
+    public String getClients() {
+        return clients;
+    }
+
+    public void setClients(String clients) {
+        this.clients = clients;
     }
 
     public String getStorageDirectory() {
@@ -854,29 +872,4 @@ public class Config {
         this.ontologyConfig = ontologyConfig;
     }
 
-    public MainConfig getMainConfig() {
-        return mainConfig;
-    }
-
-    private static String createDefaultStorageDirectory() {
-        String storageDir = null;
-        String DEFAULT_WINGS_HIDDEN_STORAGE_DIR = ".wings" + File.separator + "storage";
-        String DEFAULT_WINGS_STORAGE_DIR = "wings" + File.separator + "storage";
-        String home = System.getProperty(USER_HOME_KEY);
-        if (home != null && !home.equals(""))
-            storageDir = home + File.separator + DEFAULT_WINGS_HIDDEN_STORAGE_DIR;
-        else
-            storageDir = System.getProperty("java.io.tmpdir") + DEFAULT_WINGS_STORAGE_DIR;
-
-        File storageDirFile = new File(storageDir);
-        if (!storageDirFile.exists() && !storageDirFile.mkdirs())
-            System.err.println("Cannot create storage directory: " + storageDir);
-        return storageDir;
-    }
-
-    private String obtainServerURL(HttpServletRequest request) {
-        String defaultServer = request.getScheme() + "://" + request.getServerName() + ":"
-                + request.getServerPort();
-        return defaultServer;
-    }
 }
