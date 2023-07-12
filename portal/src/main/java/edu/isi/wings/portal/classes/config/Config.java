@@ -83,10 +83,10 @@ public class Config {
     private boolean isSandboxed = false;
 
     private PlannerConfig plannerConfig = new PlannerConfig();
-    
+
     // Comma separated list of spellbook client hosts
     private String clients;
-    
+
     // The following are set from the "request" variable
     private String viewerId;
     private String userId;
@@ -123,22 +123,24 @@ public class Config {
         this.userDomainUrl = userDomainUrl;
     }
 
-    public Config() {}
-    
+    public Config() {
+    }
+
     public Config(HttpServletRequest request, String userid, String domain) {
-      // Initialize UserDatabase
-      this.initializeUserDatabase();
+        // Initialize UserDatabase
+        this.initializeUserDatabase();
 
-      // Initialize portal config
-      this.initializePortalConfig(request);
+        // Initialize portal config
+        this.initializePortalConfig(request);
 
-      // Initialize user config
-      this.initializeUserConfig(request, userid, domain);
-  }
+        // Initialize user config
+        this.initializeUserConfig(request, userid, domain);
+    }
 
     public void getPermissions() {
         // Check domain, user & viewerid
-        // Return Permissions (canRead=true/false, canWrite=true/false, canExecute=true/false)
+        // Return Permissions (canRead=true/false, canWrite=true/false,
+        // canExecute=true/false)
     }
 
     public boolean checkUser(HttpServletResponse response) {
@@ -165,7 +167,7 @@ public class Config {
     }
 
     public void showError(HttpServletRequest request,
-                          HttpServletResponse response, String message) {
+            HttpServletResponse response, String message) {
         try {
             response.setContentType("text/html");
             request.setAttribute("message", message);
@@ -177,12 +179,12 @@ public class Config {
     }
 
     public boolean checkDomain(HttpServletRequest request,
-                               HttpServletResponse response) {
+            HttpServletResponse response) {
         return this.checkDomain(request, response, true);
     }
 
     public boolean checkDomain(HttpServletRequest request,
-                               HttpServletResponse response, boolean show_error) {
+            HttpServletResponse response, boolean show_error) {
         if (!this.checkUser(response))
             return false;
 
@@ -209,7 +211,7 @@ public class Config {
                     && !this.viewerId.equals(this.userId)) {
                 // Check domain permissions
                 // TODO: Check read, write & execute permission based on input
-                //       For now: all or none permissions
+                // For now: all or none permissions
                 Permission perm = this.domain.getPermissionForUser(this.viewerId);
                 if (!perm.canRead()) {
                     if (show_error)
@@ -232,8 +234,8 @@ public class Config {
         this.scriptPath = request.getRequestURI();
 
         if (this.domainId != null)
-          this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
-              + "/" + this.getUserId() + "/" + this.getDomainId();
+            this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
+                    + "/" + this.getUserId() + "/" + this.getDomainId();
 
         this.sessionId = request.getSession().getId();
 
@@ -247,8 +249,8 @@ public class Config {
         if (!this.checkUser(null))
             return;
 
-        this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir 
-            + "/" + userId;
+        this.exportUserUrl = serverUrl + contextRootPath + exportServletPath + "/" + usersRelativeDir
+                + "/" + userId;
         this.userDir = storageDirectory + File.separator + usersRelativeDir + File.separator + userId;
 
         this.userPath = contextRootPath + "/" + usersRelativeDir + "/" + userId;
@@ -277,9 +279,9 @@ public class Config {
         }
 
         if (this.domain != null) {
-          this.domainId = this.domain.getDomainName();
-          this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
-                + "/" + this.getUserId() + "/" + this.domain.getDomainName();
+            this.domainId = this.domain.getDomainName();
+            this.userDomainUrl = this.contextRootPath + "/" + this.getUsersRelativeDir()
+                    + "/" + this.getUserId() + "/" + this.domain.getDomainName();
         }
     }
 
@@ -333,50 +335,48 @@ public class Config {
         this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
         this.executionOntologyUrl = serverConfig.getString("ontology.execution");
         this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
-        
-        if(serverConfig.containsKey("metaworkflows"))
-          this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
-        
-        if(serverConfig.containsKey("light-reasoner"))
-          plannerConfig.dataValidation = !serverConfig.getBoolean("light-reasoner");
-        
-        if(serverConfig.containsKey("planner.data-validation")) 
-          plannerConfig.dataValidation = serverConfig.getBoolean("planner.data-validation");
-        if(serverConfig.containsKey("planner.specialization")) 
-          plannerConfig.specialization = serverConfig.getBoolean("planner.specialization");
-        if(serverConfig.containsKey("planner.use-rules")) 
-          plannerConfig.useRules = serverConfig.getBoolean("planner.use-rules");
-        
-        if(serverConfig.containsKey("planner.max-queue-size")) 
-          plannerConfig.maxQueueSize = serverConfig.getInt("planner.max-queue-size", 1000);
+
+        if (serverConfig.containsKey("metaworkflows"))
+            this.hasMetaWorkflows = serverConfig.getBoolean("metaworkflows");
+
+        if (serverConfig.containsKey("light-reasoner"))
+            plannerConfig.dataValidation = !serverConfig.getBoolean("light-reasoner");
+
+        if (serverConfig.containsKey("planner.data-validation"))
+            plannerConfig.dataValidation = serverConfig.getBoolean("planner.data-validation");
+        if (serverConfig.containsKey("planner.specialization"))
+            plannerConfig.specialization = serverConfig.getBoolean("planner.specialization");
+        if (serverConfig.containsKey("planner.use-rules"))
+            plannerConfig.useRules = serverConfig.getBoolean("planner.use-rules");
+
+        if (serverConfig.containsKey("planner.max-queue-size"))
+            plannerConfig.maxQueueSize = serverConfig.getInt("planner.max-queue-size", 1000);
         else
-          plannerConfig.maxQueueSize = 1000;
-        if(serverConfig.containsKey("planner.parallelism")) 
-          plannerConfig.parallelism = serverConfig.getInt("planner.parallelism", 10);
+            plannerConfig.maxQueueSize = 1000;
+        if (serverConfig.containsKey("planner.parallelism"))
+            plannerConfig.parallelism = serverConfig.getInt("planner.parallelism", 10);
         else
-          plannerConfig.parallelism = 10;
-        
-        if(serverConfig.containsKey("storage.logs")) {
-          this.logsDirectory = serverConfig.getString("storage.logs");
+            plannerConfig.parallelism = 10;
+
+        if (serverConfig.containsKey("storage.logs")) {
+            this.logsDirectory = serverConfig.getString("storage.logs");
+        } else {
+            this.logsDirectory = this.storageDirectory + File.separator + "logs";
         }
-        else {
-          this.logsDirectory = this.storageDirectory + File.separator + "logs";
-        }
-        if(serverConfig.containsKey("storage.delete-run-outputs")) {
-          this.deleteRunOutputs = serverConfig.getBoolean("storage.delete-run-outputs");
-        }
-        else {
-          this.deleteRunOutputs = false;
+        if (serverConfig.containsKey("storage.delete-run-outputs")) {
+            this.deleteRunOutputs = serverConfig.getBoolean("storage.delete-run-outputs");
+        } else {
+            this.deleteRunOutputs = false;
         }
         // Create logsDir (if it doesn't exist)
         File logdir = new File(this.logsDirectory);
         if (!logdir.exists() && !logdir.mkdirs())
             System.err.println("Cannot create logs directory : " + logdir.getAbsolutePath());
-        
+
         this.exportCommunityUrl = serverUrl + contextRootPath + exportServletPath + "/"
-            + communityRelativeDir;
+                + communityRelativeDir;
         this.communityPath = contextRootPath + "/" + usersRelativeDir + "/" + communityRelativeDir;
-        
+
         this.communityDir = storageDirectory + File.separator
                 + communityRelativeDir;
         // Create communityDir (if it doesn't exist)
@@ -405,67 +405,66 @@ public class Config {
         }
 
         // Load publishing configuration
-          String publishUrl         = serverConfig.getString("publisher.url");
-          String publishExportName  = serverConfig.getString("publisher.name");
-          String tstorePublishUrl   = serverConfig.getString("publisher.triple-store.publish");
-          String tstoreQueryUrl     = serverConfig.getString("publisher.triple-store.query");
-          String domainsDir         = serverConfig.getString("publisher.triple-store.domains-directory");
-          String uploadUrl          = serverConfig.getString("publisher.upload-server.url");
-          String uploadUsername     = serverConfig.getString("publisher.upload-server.username");
-          String uploadPassword     = serverConfig.getString("publisher.upload-server.password");
-          String uploadDir          = serverConfig.getString("publisher.upload-server.directory");
-          String uploadHost         = serverConfig.getString("publisher.upload-server.host");
-          String uploadUserId       = serverConfig.getString("publisher.upload-server.userid");
-          String uploadKey          = serverConfig.getString("publisher.upload-server.private-key");
-          String sizeString         = serverConfig.getString("publisher.upload-server.max-upload-size");
+        String publishUrl = serverConfig.getString("publisher.url");
+        String publishExportName = serverConfig.getString("publisher.name");
+        String tstorePublishUrl = serverConfig.getString("publisher.triple-store.publish");
+        String tstoreQueryUrl = serverConfig.getString("publisher.triple-store.query");
+        String domainsDir = serverConfig.getString("publisher.triple-store.domains-directory");
+        String uploadUrl = serverConfig.getString("publisher.upload-server.url");
+        String uploadUsername = serverConfig.getString("publisher.upload-server.username");
+        String uploadPassword = serverConfig.getString("publisher.upload-server.password");
+        String uploadDir = serverConfig.getString("publisher.upload-server.directory");
+        String uploadHost = serverConfig.getString("publisher.upload-server.host");
+        String uploadUserId = serverConfig.getString("publisher.upload-server.userid");
+        String uploadKey = serverConfig.getString("publisher.upload-server.private-key");
+        String sizeString = serverConfig.getString("publisher.upload-server.max-upload-size");
 
-          this.publisher = new Publisher();
-          this.publisher.setUrl(publishUrl);
-          this.publisher.setExportName(publishExportName);
-          this.publisher.setDomainsDir(domainsDir);
-          this.publisher.setTstorePublishUrl(tstorePublishUrl);
-          this.publisher.setTstoreQueryUrl(tstoreQueryUrl);
+        this.publisher = new Publisher();
+        this.publisher.setUrl(publishUrl);
+        this.publisher.setExportName(publishExportName);
+        this.publisher.setDomainsDir(domainsDir);
+        this.publisher.setTstorePublishUrl(tstorePublishUrl);
+        this.publisher.setTstoreQueryUrl(tstoreQueryUrl);
 
-
-          ServerDetails upserver = new ServerDetails();
-          upserver.setUrl(uploadUrl);
-          upserver.setUsername(uploadUsername);
-          upserver.setPassword(uploadPassword);
-          upserver.setHostUserId(uploadUserId);
-          upserver.setDirectory(uploadDir);
-          upserver.setHost(uploadHost);
-          upserver.setPrivateKey(uploadKey);
-          if(sizeString != null) {
+        ServerDetails upserver = new ServerDetails();
+        upserver.setUrl(uploadUrl);
+        upserver.setUsername(uploadUsername);
+        upserver.setPassword(uploadPassword);
+        upserver.setHostUserId(uploadUserId);
+        upserver.setDirectory(uploadDir);
+        upserver.setHost(uploadHost);
+        upserver.setPrivateKey(uploadKey);
+        if (sizeString != null) {
             long size = this.getSizeFromString(sizeString);
             upserver.setMaxUploadSize(size);
-          }
-          this.publisher.setUploadServer(upserver);
-    }
-    
-    private long getSizeFromString(String sizeString) {
-      long kb = 1024;
-      long mb = kb*kb;
-      long gb = kb*mb;
-      long tb = kb*gb;
-      
-      Pattern pat = Pattern.compile("(\\d+)\\s*([KkMmGgTt])[Bb]?");
-      Matcher mat = pat.matcher(sizeString);
-      if(mat.find()) {
-        long size=Long.parseLong(mat.group(1));
-        if(mat.groupCount() > 1) {
-          String units = mat.group(2).toLowerCase();
-          if(units.equals("k"))
-            return size*kb;
-          if(units.equals("m"))
-            return size*mb;
-          if(units.equals("g"))
-            return size*gb;
-          if(units.equals("t"))
-            return size*tb;          
         }
-        return size;
-      }
-      return 0;
+        this.publisher.setUploadServer(upserver);
+    }
+
+    private long getSizeFromString(String sizeString) {
+        long kb = 1024;
+        long mb = kb * kb;
+        long gb = kb * mb;
+        long tb = kb * gb;
+
+        Pattern pat = Pattern.compile("(\\d+)\\s*([KkMmGgTt])[Bb]?");
+        Matcher mat = pat.matcher(sizeString);
+        if (mat.find()) {
+            long size = Long.parseLong(mat.group(1));
+            if (mat.groupCount() > 1) {
+                String units = mat.group(2).toLowerCase();
+                if (units.equals("k"))
+                    return size * kb;
+                if (units.equals("m"))
+                    return size * mb;
+                if (units.equals("g"))
+                    return size * gb;
+                if (units.equals("t"))
+                    return size * tb;
+            }
+            return size;
+        }
+        return 0;
     }
 
     private void initializeUserDatabase() {
@@ -478,7 +477,7 @@ public class Config {
         String impl = node.getString("implementation");
         ExeEngine.Type type = ExeEngine.Type.valueOf(node.getString("type"));
         ExeEngine engine = new ExeEngine(name, impl, type);
-        for (Iterator it = node.getKeys("properties"); it.hasNext(); ) {
+        for (Iterator it = node.getKeys("properties"); it.hasNext();) {
             String key = (String) it.next();
             String value = node.getString(key);
             engine.addProperty(key.replace("properties.", ""), value);
@@ -530,7 +529,7 @@ public class Config {
         else
             storageDir = System.getProperty("java.io.tmpdir") +
                     File.separator + "wings" + File.separator + "storage";
-        
+
         File storageDirFile = new File(storageDir);
         if (!storageDirFile.exists() && !storageDirFile.mkdirs())
             System.err.println("Cannot create storage directory: " + storageDir);
@@ -554,11 +553,13 @@ public class Config {
         this.addEngineConfig(config, new ExeEngine("Distributed",
                 DistributedExecutionEngine.class.getCanonicalName(), ExeEngine.Type.BOTH));
 
-		/*this.addEngineConfig(config, new ExeEngine("OODT",
-				OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-
-		this.addEngineConfig(config, new ExeEngine("Pegasus", 
-				PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));*/
+        /*
+         * this.addEngineConfig(config, new ExeEngine("OODT",
+         * OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
+         * 
+         * this.addEngineConfig(config, new ExeEngine("Pegasus",
+         * PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
+         */
 
         try {
             config.save(this.configFile);
@@ -612,15 +613,15 @@ public class Config {
         if (this.getResourceOntologyUrl() == null)
             this.setResourceOntologyUrl(ontdirurl + "/resource.owl");
         props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
-        
+
         props.setProperty("lib.resource.url",
                 this.getExportCommunityUrl() + "/resource/library.owl");
 
         if (domain != null && !domain.getUseSharedTripleStore())
-          props.setProperty("lib.resource.map",
-              "file:" + domain.getDomainDirectory() + File.separator + "ontology" 
-                  + File.separator + "resource" + File.separator + "library.owl");
-        
+            props.setProperty("lib.resource.map",
+                    "file:" + domain.getDomainDirectory() + File.separator + "ontology"
+                            + File.separator + "resource" + File.separator + "library.owl");
+
         props.setProperty("lib.provenance.url",
                 this.getExportCommunityUrl() + "/provenance/library.owl");
 
@@ -766,15 +767,15 @@ public class Config {
     public void setAdminViewer(boolean isAdminViewer) {
         this.isAdminViewer = isAdminViewer;
     }
-    
+
     public boolean hasMetaWorkflows() {
-      return hasMetaWorkflows;
+        return hasMetaWorkflows;
     }
-  
+
     public void setMetaWorkflows(boolean hasMetaWorkflows) {
         this.hasMetaWorkflows = hasMetaWorkflows;
     }
-    
+
     public void setExportUserUrl(String exportUserUrl) {
         this.exportUserUrl = exportUserUrl;
     }
@@ -856,11 +857,11 @@ public class Config {
     }
 
     public String getLogsDirectory() {
-      return logsDirectory;
+        return logsDirectory;
     }
 
     public void setLogsDirectory(String logsDirectory) {
-      this.logsDirectory = logsDirectory;
+        this.logsDirectory = logsDirectory;
     }
 
     public String getSessionId() {
@@ -888,11 +889,11 @@ public class Config {
     }
 
     public boolean isDeleteRunOutputs() {
-      return deleteRunOutputs;
+        return deleteRunOutputs;
     }
 
     public void setDeleteRunOutputs(boolean deleteRunOutputs) {
-      this.deleteRunOutputs = deleteRunOutputs;
+        this.deleteRunOutputs = deleteRunOutputs;
     }
 
     public String getClients() {
@@ -902,7 +903,7 @@ public class Config {
     public void setClients(String clients) {
         this.clients = clients;
     }
-    
+
     public String getStorageDirectory() {
         return storageDirectory;
     }
@@ -912,15 +913,14 @@ public class Config {
     }
 
     public PlannerConfig getPlannerConfig() {
-      return plannerConfig;
+        return plannerConfig;
     }
 
     public void setPlannerConfig(PlannerConfig plannerConfig) {
-      this.plannerConfig = plannerConfig;
+        this.plannerConfig = plannerConfig;
     }
 
     public Set<String> getEnginesList() {
         return this.engines.keySet();
     }
 }
-
