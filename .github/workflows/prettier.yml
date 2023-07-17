@@ -18,11 +18,9 @@ jobs:
           # Make sure the actual branch is checked out when running on pull requests
           ref: ${{ github.head_ref }}
 
-      - name: Install Prettier Java plugin
-        run: npm install prettier-plugin-java
-
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
         with:
           # This part is also where you can pass other options, for example:
           prettier_options: --write **/**/*.java
+          prettier_plugins: prettier-plugin-java
