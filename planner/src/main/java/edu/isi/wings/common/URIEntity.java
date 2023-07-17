@@ -21,63 +21,55 @@ import java.io.Serializable;
 import java.net.URI;
 
 public class URIEntity implements Serializable, Comparable<URIEntity> {
-	private static final long serialVersionUID = 1L;
-	private URI id;
-	
-	public URIEntity() {}
 
-	public URIEntity(String id) {
-		setID(id);
-	}
+  private static final long serialVersionUID = 1L;
+  private URI id;
 
-	public String getID() {
-		if (id != null)
-			return id.toString();
-		else
-			return null;
-	}
+  public URIEntity() {}
 
-	public void setID(String id) {
-		try {
-			this.id = new URI(id).normalize();
-		} catch (Exception e) {
-			System.err.println(id + " Not a URI. Only URIs allowed for IDs");
-		}
-	}
-	
-	public String getURL() {
-		return this.getNamespace().replaceAll("#$", "");
-	}
+  public URIEntity(String id) {
+    setID(id);
+  }
 
-	public String getName() {
-		if (id != null)
-			return id.getFragment();
-		else
-			return null;
-	}
+  public String getID() {
+    if (id != null) return id.toString(); else return null;
+  }
 
-	public String getNamespace() {
-		if (id != null)
-			return id.getScheme() + ":" + id.getSchemeSpecificPart() + "#";
-		else
-			return null;
-	}
+  public void setID(String id) {
+    try {
+      this.id = new URI(id).normalize();
+    } catch (Exception e) {
+      System.err.println(id + " Not a URI. Only URIs allowed for IDs");
+    }
+  }
 
-	@Override
-	public String toString() {
-		return getName();
-	}
+  public String getURL() {
+    return this.getNamespace().replaceAll("#$", "");
+  }
 
-	@Override
-	public int hashCode() {
-		return this.getID().hashCode();
-	}
+  public String getName() {
+    if (id != null) return id.getFragment(); else return null;
+  }
+
+  public String getNamespace() {
+    if (id != null) return (
+      id.getScheme() + ":" + id.getSchemeSpecificPart() + "#"
+    ); else return null;
+  }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
+
+  @Override
+  public int hashCode() {
+    return this.getID().hashCode();
+  }
 
   @Override
   public int compareTo(URIEntity o) {
-    if(o != null)
-      return this.getID().compareTo(o.getID());
+    if (o != null) return this.getID().compareTo(o.getID());
     return 1;
   }
-
 }

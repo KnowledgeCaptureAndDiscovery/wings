@@ -17,84 +17,82 @@
 
 package edu.isi.wings.workflow.template.classes.sets;
 
+import edu.isi.wings.catalog.data.classes.metrics.Metrics;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.HashMap;
 
-import edu.isi.wings.catalog.data.classes.metrics.Metrics;
-
 /*
  * A Binding can contain just one URI or a set of URIs
- * 
+ *
  */
 public class Binding extends WingsSet implements Serializable {
-	private static final long serialVersionUID = 1L;
 
-	protected URI id; // Id of the Binding, for object bindings
-	protected String location; // Location of the file, for Data Bindings (only used sparingly)
-	protected Object value; // Value of the Binding, for Value Bindings
-	protected Metrics metrics = new Metrics();
-	
-	protected int version; // Version of the Binding, especially for component bindings
+  private static final long serialVersionUID = 1L;
 
-	protected HashMap<String, Object> data = new HashMap<String, Object>();
+  protected URI id; // Id of the Binding, for object bindings
+  protected String location; // Location of the file, for Data Bindings (only used sparingly)
+  protected Object value; // Value of the Binding, for Value Bindings
+  protected Metrics metrics = new Metrics();
 
-	public Binding() {
-	}
+  protected int version; // Version of the Binding, especially for component bindings
 
-	public Binding(String id) {
-		setID(id);
-		this.obj = this.id;
-	}
-	
-	public Binding(String id, int version) {
-	  setID(id);
-	  this.version = version;
-	  this.obj = "" + this.id + this.version;
-	}
+  protected HashMap<String, Object> data = new HashMap<String, Object>();
 
-	public Binding(Binding b) {
-		super(b);
-	}
+  public Binding() {}
 
-	public Binding(String[] ids) {
-		for (String id : ids) {
-			this.add(new Binding(id));
-		}
-	}
+  public Binding(String id) {
+    setID(id);
+    this.obj = this.id;
+  }
 
-	public String getID() {
-		if (id != null)
-			return id.toString();
-		return null;
-	}
+  public Binding(String id, int version) {
+    setID(id);
+    this.version = version;
+    this.obj = "" + this.id + this.version;
+  }
 
-	public void setID(String id) {
-		try {
-			this.id = new URI(id);
-			this.obj = this.id;
-		} catch (Exception e) {
-			System.err.println(id + " Not a URI. Only URIs allowed for Binding IDs");
-		}
-	}
+  public Binding(Binding b) {
+    super(b);
+  }
 
-	public Object getValue() {
-		return value;
-	}
+  public Binding(String[] ids) {
+    for (String id : ids) {
+      this.add(new Binding(id));
+    }
+  }
 
-	public void setValue(Object value) {
-		this.value = value;
-	}
+  public String getID() {
+    if (id != null) return id.toString();
+    return null;
+  }
 
-	public void setValue(Object[] values) {
-		for (Object val : values) {
-			Binding b = new Binding();
-			b.setValue(val);
-			this.add(b);
-		}
-	}
+  public void setID(String id) {
+    try {
+      this.id = new URI(id);
+      this.obj = this.id;
+    } catch (Exception e) {
+      System.err.println(id + " Not a URI. Only URIs allowed for Binding IDs");
+    }
+  }
 
-	public int getVersion() {
+  public Object getValue() {
+    return value;
+  }
+
+  public void setValue(Object value) {
+    this.value = value;
+  }
+
+  public void setValue(Object[] values) {
+    for (Object val : values) {
+      Binding b = new Binding();
+      b.setValue(val);
+      this.add(b);
+    }
+  }
+
+  public int getVersion() {
     return version;
   }
 
@@ -103,50 +101,49 @@ public class Binding extends WingsSet implements Serializable {
   }
 
   public String getName() {
-		if (id != null)
-			return id.getFragment();
-		return null;
-	}
+    if (id != null) return id.getFragment();
+    return null;
+  }
 
-	public String getNamespace() {
-		if (id != null)
-			return id.getScheme() + ":" + id.getSchemeSpecificPart() + "#";
-		return null;
-	}
+  public String getNamespace() {
+    if (id != null) return (
+      id.getScheme() + ":" + id.getSchemeSpecificPart() + "#"
+    );
+    return null;
+  }
 
-	public String toString() {
-		if (isSet())
-			return super.toString();
-		return getValue() != null ? getValue().toString() : getName();
-		// return (getValue() != null ? getValue().toString() : getName()) +
-		// (getData() != null ? "(" + getData().toString() + ")" : "");
-	}
+  public String toString() {
+    if (isSet()) return super.toString();
+    return getValue() != null ? getValue().toString() : getName();
+    // return (getValue() != null ? getValue().toString() : getName()) +
+    // (getData() != null ? "(" + getData().toString() + ")" : "");
+  }
 
-	public boolean isValueBinding() {
-		return (getValue() != null);
-	}
+  public boolean isValueBinding() {
+    return (getValue() != null);
+  }
 
-	public boolean isURIBinding() {
-		return (getID() != null);
-	}
+  public boolean isURIBinding() {
+    return (getID() != null);
+  }
 
-	public void setMetrics(Metrics metrics) {
-		this.metrics = metrics;
-	}
+  public void setMetrics(Metrics metrics) {
+    this.metrics = metrics;
+  }
 
-	public Metrics getMetrics() {
-		return this.metrics;
-	}
+  public Metrics getMetrics() {
+    return this.metrics;
+  }
 
-	public void setData(Object data) {
-		this.data.put("data", data);
-		super.obj = "" + this.id + this.data.toString();
-	}
+  public void setData(Object data) {
+    this.data.put("data", data);
+    super.obj = "" + this.id + this.data.toString();
+  }
 
-	public Object getData() {
-		return this.data.get("data");
-	}
-	
+  public Object getData() {
+    return this.data.get("data");
+  }
+
   public void setData(String key, Object data) {
     this.data.put(key, data);
     super.obj = "" + this.id + this.data.toString();
@@ -155,19 +152,18 @@ public class Binding extends WingsSet implements Serializable {
   public Object getData(String key) {
     return this.data.get(key);
   }
-  
+
   public void setLocation(String location) {
     this.location = location;
   }
 
   public String getLocation() {
     return this.location;
-  }  
+  }
+  /*
+   * public Binding clone() { Binding b = (Binding)super.clone(); if(isSet())
+   * { for(int i=0; i<this.size(); i++) { b.add(i,
+   * ((Binding)this.get(i)).clone()); } } return b; }
+   */
 
-	/*
-	 * public Binding clone() { Binding b = (Binding)super.clone(); if(isSet())
-	 * { for(int i=0; i<this.size(); i++) { b.add(i,
-	 * ((Binding)this.get(i)).clone()); } } return b; }
-	 */
-	  
 }

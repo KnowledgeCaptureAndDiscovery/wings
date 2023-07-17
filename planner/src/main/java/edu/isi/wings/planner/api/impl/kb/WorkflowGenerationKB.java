@@ -17,8 +17,6 @@
 
 package edu.isi.wings.planner.api.impl.kb;
 
-import org.apache.log4j.Logger;
-
 import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.kcap.ontapi.KBTriple;
@@ -67,11 +65,10 @@ import edu.isi.wings.workflow.template.classes.sets.PortBinding;
 import edu.isi.wings.workflow.template.classes.sets.PortBindingList;
 import edu.isi.wings.workflow.template.classes.sets.PortSetCreationRule;
 import edu.isi.wings.workflow.template.classes.sets.PortSetRuleHandler;
+import edu.isi.wings.workflow.template.classes.sets.SetCreationRule.SetType;
 import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.sets.WingsSet;
-import edu.isi.wings.workflow.template.classes.sets.SetCreationRule.SetType;
 import edu.isi.wings.workflow.template.classes.variables.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,327 +76,379 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 import java.util.TreeMap;
+import org.apache.log4j.Logger;
 
 /**
  * Name: WorkflowGenerationKB
  */
-public class WorkflowGenerationKB extends TransactionsJena 
-implements WorkflowGenerationAPI {
-	private Logger logger;
+public class WorkflowGenerationKB
+  extends TransactionsJena
+  implements WorkflowGenerationAPI {
 
-	public Seed currentSeed;
+  private Logger logger;
 
-	public DataReasoningAPI dc;
-	
-	public DataCreationAPI dcc;
+  public Seed currentSeed;
 
-	public ComponentReasoningAPI pc;
+  public DataReasoningAPI dc;
 
-	public ComponentReasoningAPI tc;
-	
-	public ComponentCreationAPI ccc;
-	
-	public ResourceAPI rc;
+  public DataCreationAPI dcc;
 
-	public ArrayList<String> explanations;
+  public ComponentReasoningAPI pc;
 
-	LogEvent curLogEvent;
+  public ComponentReasoningAPI tc;
 
-	public String request_id;
+  public ComponentCreationAPI ccc;
 
-	String dataNS;
-	String wNS;
-	String exPrefix;
+  public ResourceAPI rc;
 
-	Properties props;
-	
-	/**
-	 * base constructor
-	 * 
-	 * @param uriPrefix
-	 *            the uriPrefix
-	 * @param dc
-	 *            the dc
-	 * @param pc
-	 *            the pc
-	 * @param baseDirectory
-	 *            the base directory of the ontologies
-	 * @param templateLibraryDomain
-	 *            the domain of the template library
-	 */
+  public ArrayList<String> explanations;
 
-	public WorkflowGenerationKB(Properties props, DataReasoningAPI dc, DataCreationAPI dcc,
-	    ComponentReasoningAPI pc, ComponentCreationAPI ccc, ResourceAPI rc, String ldid) {
-		this.props = props;
-		this.request_id = ldid;
-		this.logger = Logger.getLogger(this.getClass().getName());
+  LogEvent curLogEvent;
 
-		this.dc = dc;
-		this.dcc = dcc;
-		this.pc = pc;
-		this.rc = rc;
-		this.ccc = ccc;
-		this.tc = new TemplateReasoningKB(this);
-		this.dataNS = props.getProperty("lib.domain.data.url") + "#";
-		this.wNS = props.getProperty("ont.workflow.url") + "#";
-		this.exPrefix = props.getProperty("domain.executions.dir.url");
-		this.explanations = new ArrayList<String>();
-	}
+  public String request_id;
 
+  String dataNS;
+  String wNS;
+  String exPrefix;
 
-	public Seed loadSeed(String seedid) {
-		Seed seed = TemplateFactory.getSeed(props, seedid);
-		seed.setID(seed.getID() + this.request_id);
-		return seed;
-	}
+  Properties props;
 
-	@Override
-	public Template loadTemplate(String templateid) {
-		Template template = TemplateFactory.getTemplate(props, templateid);
+  /**
+   * base constructor
+   *
+   * @param uriPrefix
+   *            the uriPrefix
+   * @param dc
+   *            the dc
+   * @param pc
+   *            the pc
+   * @param baseDirectory
+   *            the base directory of the ontologies
+   * @param templateLibraryDomain
+   *            the domain of the template library
+   */
 
-		return template;
-	}
+  public WorkflowGenerationKB(
+    Properties props,
+    DataReasoningAPI dc,
+    DataCreationAPI dcc,
+    ComponentReasoningAPI pc,
+    ComponentCreationAPI ccc,
+    ResourceAPI rc,
+    String ldid
+  ) {
+    this.props = props;
+    this.request_id = ldid;
+    this.logger = Logger.getLogger(this.getClass().getName());
 
-	@Override
-	public void useDataService(DataReasoningAPI dc, DataCreationAPI dcc) {
-		this.dc = dc;
-		this.dcc = dcc;
-	}
+    this.dc = dc;
+    this.dcc = dcc;
+    this.pc = pc;
+    this.rc = rc;
+    this.ccc = ccc;
+    this.tc = new TemplateReasoningKB(this);
+    this.dataNS = props.getProperty("lib.domain.data.url") + "#";
+    this.wNS = props.getProperty("ont.workflow.url") + "#";
+    this.exPrefix = props.getProperty("domain.executions.dir.url");
+    this.explanations = new ArrayList<String>();
+  }
 
-	@Override
-	public void useComponentService(ComponentReasoningAPI pc, ComponentCreationAPI ccc) {
-		this.pc = pc;
-		this.ccc = ccc;
-	}
+  public Seed loadSeed(String seedid) {
+    Seed seed = TemplateFactory.getSeed(props, seedid);
+    seed.setID(seed.getID() + this.request_id);
+    return seed;
+  }
 
-	@Override
-	public ArrayList<String> getExplanations() {
-		return this.explanations;
-	}
+  @Override
+  public Template loadTemplate(String templateid) {
+    Template template = TemplateFactory.getTemplate(props, templateid);
 
-	/**
-	 * Step 2
-	 * 
-	 * @param template
-	 *            a candiate template from step 1.
-	 * @return a list of specialized templates customized to seed constraints
-	 */
-	public ArrayList<Template> specializeTemplates(Template template) {
-		LogEvent event = getEvent(LogEvent.EVENT_WG_SPECIALIZE);
-		logger.info(event.createStartLogMsg().addWQ(LogEvent.TEMPLATE, "" + template));
-		
-		this.addExplanation("INFO: --------- Specializing the template ---------");
-		this.addExplanation("Template: " + template);
-		
-		ComponentReasoningAPI pc = this.pc;
+    return template;
+  }
 
-		ArrayList<Template> templates = new ArrayList<Template>();
-		ArrayList<Template> processedTemplates = new ArrayList<Template>();
-		// ArrayList<Template> rejectedTemplates = new ArrayList<Template>();
+  @Override
+  public void useDataService(DataReasoningAPI dc, DataCreationAPI dcc) {
+    this.dc = dc;
+    this.dcc = dcc;
+  }
 
-		HashMap<Template, ArrayList<String>> done = new HashMap<Template, ArrayList<String>>();
+  @Override
+  public void useComponentService(
+    ComponentReasoningAPI pc,
+    ComponentCreationAPI ccc
+  ) {
+    this.pc = pc;
+    this.ccc = ccc;
+  }
 
-		if (template == null)
-			return templates;
+  @Override
+  public ArrayList<String> getExplanations() {
+    return this.explanations;
+  }
 
-		Template tmp = template.createCopy();
-		tmp.setID(UuidGen.generateURIUuid((URIEntity)template));
-		templates.add(tmp);
+  /**
+   * Step 2
+   *
+   * @param template
+   *            a candiate template from step 1.
+   * @return a list of specialized templates customized to seed constraints
+   */
+  public ArrayList<Template> specializeTemplates(Template template) {
+    LogEvent event = getEvent(LogEvent.EVENT_WG_SPECIALIZE);
+    logger.info(
+      event.createStartLogMsg().addWQ(LogEvent.TEMPLATE, "" + template)
+    );
 
-		while (!templates.isEmpty()) {
-			logger.info(event.createLogMsg().addList(LogEvent.QUEUED_TEMPLATES, templates));
-			logger.info(event.createLogMsg().addList(LogEvent.SPECIALIZED_TEMPLATES_Q,
-					processedTemplates));
+    this.addExplanation("INFO: --------- Specializing the template ---------");
+    this.addExplanation("Template: " + template);
 
-			Template currentTemplate = templates.remove(0);
+    ComponentReasoningAPI pc = this.pc;
 
-			ArrayList<String> nodesDone = done.get(currentTemplate);
-			if (nodesDone == null) {
-				nodesDone = new ArrayList<String>();
-			}
+    ArrayList<Template> templates = new ArrayList<Template>();
+    ArrayList<Template> processedTemplates = new ArrayList<Template>();
+    // ArrayList<Template> rejectedTemplates = new ArrayList<Template>();
 
-			ArrayList<Link> links = new ArrayList<Link>();
-			Link[] linkArray = currentTemplate.getOutputLinks();
-			for (Link link : linkArray) {
-				links.add(link);
-			}
+    HashMap<Template, ArrayList<String>> done =
+      new HashMap<Template, ArrayList<String>>();
 
-			while (!links.isEmpty()) {
-				HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
+    if (template == null) return templates;
 
-				Link currentLink = links.remove(0);
-				if (currentLink.isInputLink()) 
-				  continue;
+    Template tmp = template.createCopy();
+    tmp.setID(UuidGen.generateURIUuid((URIEntity) template));
+    templates.add(tmp);
 
-				Node originNode = currentLink.getOriginNode();
+    while (!templates.isEmpty()) {
+      logger.info(
+        event.createLogMsg().addList(LogEvent.QUEUED_TEMPLATES, templates)
+      );
+      logger.info(
+        event
+          .createLogMsg()
+          .addList(LogEvent.SPECIALIZED_TEMPLATES_Q, processedTemplates)
+      );
 
-				roleMap.put(currentLink.getOriginPort().getRole(), currentLink.getVariable());
+      Template currentTemplate = templates.remove(0);
 
-				ArrayList<String> variableIds = new ArrayList<String>();
-				Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
+      ArrayList<String> nodesDone = done.get(currentTemplate);
+      if (nodesDone == null) {
+        nodesDone = new ArrayList<String>();
+      }
 
-				// Check that the node does not have any outputs to any unprocessed nodes
-				boolean comebacklater = false;
-				for (Link outputLink : outputLinks) {
-				  if(outputLink.getDestinationNode() != null &&
-				      !nodesDone.contains(outputLink.getDestinationNode().getID())) {
-				    comebacklater = true;
-				    break;
-				  }
-				}
-				if(comebacklater) {
-				  links.add(currentLink);
-				  continue;
-				}
-        
-				// Remove node's output links from processing queue
-				for (Link outputLink : outputLinks) {
-				  Variable variable = outputLink.getVariable();
-				  roleMap.put(outputLink.getOriginPort().getRole(), variable);
-				  variableIds.add(variable.getID());
-				  links.remove(outputLink);
-				}
-        
-				// Add node's input links to processing queue
-				Link[] inputLinks = currentTemplate.getInputLinks(originNode);
-				for (Link inputLink : inputLinks) {
-				  Variable variable = inputLink.getVariable();
-				  roleMap.put(inputLink.getDestinationPort().getRole(), variable);
-				  variableIds.add(variable.getID());
-				  links.add(inputLink);
-				}
-        
+      ArrayList<Link> links = new ArrayList<Link>();
+      Link[] linkArray = currentTemplate.getOutputLinks();
+      for (Link link : linkArray) {
+        links.add(link);
+      }
+
+      while (!links.isEmpty()) {
+        HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
+
+        Link currentLink = links.remove(0);
+        if (currentLink.isInputLink()) continue;
+
+        Node originNode = currentLink.getOriginNode();
+
+        roleMap.put(
+          currentLink.getOriginPort().getRole(),
+          currentLink.getVariable()
+        );
+
+        ArrayList<String> variableIds = new ArrayList<String>();
+        Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
+
+        // Check that the node does not have any outputs to any unprocessed nodes
+        boolean comebacklater = false;
+        for (Link outputLink : outputLinks) {
+          if (
+            outputLink.getDestinationNode() != null &&
+            !nodesDone.contains(outputLink.getDestinationNode().getID())
+          ) {
+            comebacklater = true;
+            break;
+          }
+        }
+        if (comebacklater) {
+          links.add(currentLink);
+          continue;
+        }
+
+        // Remove node's output links from processing queue
+        for (Link outputLink : outputLinks) {
+          Variable variable = outputLink.getVariable();
+          roleMap.put(outputLink.getOriginPort().getRole(), variable);
+          variableIds.add(variable.getID());
+          links.remove(outputLink);
+        }
+
+        // Add node's input links to processing queue
+        Link[] inputLinks = currentTemplate.getInputLinks(originNode);
+        for (Link inputLink : inputLinks) {
+          Variable variable = inputLink.getVariable();
+          roleMap.put(inputLink.getDestinationPort().getRole(), variable);
+          variableIds.add(variable.getID());
+          links.add(inputLink);
+        }
+
         // Skip if node has been processed already
         if (nodesDone.contains(originNode.getID())) {
           continue;
         }
-        
-				ArrayList<KBTriple> redBox = currentTemplate.getConstraintEngine()
-				    .getConstraints(variableIds);
 
-				ComponentVariable component = originNode.getComponentVariable();
-				if (component.isTemplate())
-				  pc = this.tc;
-				else
-				  pc = this.pc;
+        ArrayList<KBTriple> redBox = currentTemplate
+          .getConstraintEngine()
+          .getConstraints(variableIds);
 
-				ComponentPacket sentMapsComponentDetails = new ComponentPacket(component,
-				    roleMap, redBox);
+        ComponentVariable component = originNode.getComponentVariable();
+        if (component.isTemplate()) pc = this.tc; else pc = this.pc;
 
-				if (logger.isInfoEnabled()) {
-				  HashMap<String, Object> args = new HashMap<String, Object>();
-				  args.put("component", component);
-				  args.put("roleMap", roleMap);
-				  args.put("redBox", redBox);
-				  logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "2.1")
-				      .addMap(LogEvent.QUERY_ARGUMENTS, args));
-				}
+        ComponentPacket sentMapsComponentDetails = new ComponentPacket(
+          component,
+          roleMap,
+          redBox
+        );
 
-				this.addExplanation("INFO: Specialize and get input metadata for component: " 
-				    + component.getBinding());
-				//System.out.println("Specializing " + component.getBinding());
-				ArrayList<ComponentPacket> allcmrs = pc
-				    .specializeAndFindDataDetails(sentMapsComponentDetails);
+        if (logger.isInfoEnabled()) {
+          HashMap<String, Object> args = new HashMap<String, Object>();
+          args.put("component", component);
+          args.put("roleMap", roleMap);
+          args.put("redBox", redBox);
+          logger.info(
+            event
+              .createLogMsg()
+              .addWQ(LogEvent.QUERY_NUMBER, "2.1")
+              .addMap(LogEvent.QUERY_ARGUMENTS, args)
+          );
+        }
 
-				ArrayList<ComponentPacket> componentDetailsList = new ArrayList<ComponentPacket>();
-				for (ComponentPacket cmr : allcmrs) {
-				  this.addExplanations(cmr.getExplanations());
-				  if (!cmr.getInvalidFlag())
-				    componentDetailsList.add(cmr);
-				  else {
-				    // Template t = currentTemplate.createCopy();
-				    // rejectedTemplates.add(t);
-				  }
-				}
-				//System.out.println("- Returning "+componentDetailsList.size());
-        
-				if (componentDetailsList.isEmpty()) {
-				  logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "2.1")
-				      .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
-				  currentTemplate = null;
-				  break;
-				} else {
-				  if (logger.isInfoEnabled()) {
-				    ArrayList<ComponentVariable> components = new ArrayList<ComponentVariable>();
-				    for (ComponentPacket componentMapsAndRequirement : componentDetailsList) {
-				      components.add(componentMapsAndRequirement.getComponent());
-				    }
-				    logger.info(event
-				        .createLogMsg()
-				        .addWQ(LogEvent.QUERY_NUMBER, "2.1")
-				        .addList(LogEvent.QUERY_RESPONSE + ".components",
-				            components));
-				  }
+        this.addExplanation(
+            "INFO: Specialize and get input metadata for component: " +
+            component.getBinding()
+          );
+        //System.out.println("Specializing " + component.getBinding());
+        ArrayList<ComponentPacket> allcmrs = pc.specializeAndFindDataDetails(
+          sentMapsComponentDetails
+        );
 
-	        nodesDone.add(originNode.getID());
-	        done.put(currentTemplate, nodesDone);
-	        
-				  // note this is over the rest of the cmrs
-				  ComponentSetCreationRule crule = originNode.getComponentSetRule();
-				  if (crule == null || crule.getType() == SetType.WTYPE) {
-				    for (int i = 1; i < componentDetailsList.size(); i++) {
-				      ComponentPacket cmr = componentDetailsList.get(i);
-				      this.addExplanations(cmr.getExplanations());
-				      Template specializedTemplate = currentTemplate.createCopy();
-				      specializedTemplate.setID(
-				          UuidGen.generateURIUuid((URIEntity)currentTemplate));
-				      Node specializedNode = specializedTemplate.getNode(originNode
-				          .getID());
-				      boolean ok = this.modifyTemplate(specializedTemplate,
-				          specializedNode,
-				          new ComponentPacket[] { componentDetailsList.get(i) });
-				      if (ok) {
-				        templates.add(specializedTemplate);
-				      }
-				      done.put(specializedTemplate, new ArrayList<String>(nodesDone));
-				    }
-				    ComponentPacket firstCmr = componentDetailsList.get(0);
-				    boolean ok = this.modifyTemplate(currentTemplate, originNode,
-				        new ComponentPacket[] { firstCmr });
-				    if (!ok) {
-				      currentTemplate = null;
-				      break;
-				    }
-				  } else if (crule != null && crule.getType() == SetType.STYPE) {
-				    boolean ok = this.modifyTemplate(currentTemplate, originNode,
-				        componentDetailsList.toArray(new ComponentPacket[0]));
-				    if (!ok) {
-				      currentTemplate = null;
-				      break;
-				    }
-				  }
-				}
-			}
-			
-			if (currentTemplate != null) {
-        // If any new input/output variables have been created			  
-				currentTemplate.autoUpdateTemplateRoles(); 
-				currentTemplate.fillInDefaultSetCreationRules();
-				
-				processedTemplates.add(currentTemplate);
-			}
-		}
-		logger.info(event.createEndLogMsg().addWQ(LogEvent.TEMPLATE, "" + template));
-		return processedTemplates;
-	}
-	
-	/**
-	 * Get selectInputDataForVariables
-	 * 
+        ArrayList<ComponentPacket> componentDetailsList =
+          new ArrayList<ComponentPacket>();
+        for (ComponentPacket cmr : allcmrs) {
+          this.addExplanations(cmr.getExplanations());
+          if (!cmr.getInvalidFlag()) componentDetailsList.add(cmr); else {
+            // Template t = currentTemplate.createCopy();
+            // rejectedTemplates.add(t);
+          }
+        }
+        //System.out.println("- Returning "+componentDetailsList.size());
+
+        if (componentDetailsList.isEmpty()) {
+          logger.warn(
+            event
+              .createLogMsg()
+              .addWQ(LogEvent.QUERY_NUMBER, "2.1")
+              .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH)
+          );
+          currentTemplate = null;
+          break;
+        } else {
+          if (logger.isInfoEnabled()) {
+            ArrayList<ComponentVariable> components =
+              new ArrayList<ComponentVariable>();
+            for (ComponentPacket componentMapsAndRequirement : componentDetailsList) {
+              components.add(componentMapsAndRequirement.getComponent());
+            }
+            logger.info(
+              event
+                .createLogMsg()
+                .addWQ(LogEvent.QUERY_NUMBER, "2.1")
+                .addList(LogEvent.QUERY_RESPONSE + ".components", components)
+            );
+          }
+
+          nodesDone.add(originNode.getID());
+          done.put(currentTemplate, nodesDone);
+
+          // note this is over the rest of the cmrs
+          ComponentSetCreationRule crule = originNode.getComponentSetRule();
+          if (crule == null || crule.getType() == SetType.WTYPE) {
+            for (int i = 1; i < componentDetailsList.size(); i++) {
+              ComponentPacket cmr = componentDetailsList.get(i);
+              this.addExplanations(cmr.getExplanations());
+              Template specializedTemplate = currentTemplate.createCopy();
+              specializedTemplate.setID(
+                UuidGen.generateURIUuid((URIEntity) currentTemplate)
+              );
+              Node specializedNode = specializedTemplate.getNode(
+                originNode.getID()
+              );
+              boolean ok =
+                this.modifyTemplate(
+                    specializedTemplate,
+                    specializedNode,
+                    new ComponentPacket[] { componentDetailsList.get(i) }
+                  );
+              if (ok) {
+                templates.add(specializedTemplate);
+              }
+              done.put(specializedTemplate, new ArrayList<String>(nodesDone));
+            }
+            ComponentPacket firstCmr = componentDetailsList.get(0);
+            boolean ok =
+              this.modifyTemplate(
+                  currentTemplate,
+                  originNode,
+                  new ComponentPacket[] { firstCmr }
+                );
+            if (!ok) {
+              currentTemplate = null;
+              break;
+            }
+          } else if (crule != null && crule.getType() == SetType.STYPE) {
+            boolean ok =
+              this.modifyTemplate(
+                  currentTemplate,
+                  originNode,
+                  componentDetailsList.toArray(new ComponentPacket[0])
+                );
+            if (!ok) {
+              currentTemplate = null;
+              break;
+            }
+          }
+        }
+      }
+
+      if (currentTemplate != null) {
+        // If any new input/output variables have been created
+        currentTemplate.autoUpdateTemplateRoles();
+        currentTemplate.fillInDefaultSetCreationRules();
+
+        processedTemplates.add(currentTemplate);
+      }
+    }
+    logger.info(
+      event.createEndLogMsg().addWQ(LogEvent.TEMPLATE, "" + template)
+    );
+    return processedTemplates;
+  }
+
+  /**
+   * Get selectInputDataForVariables
+   *
    * @param specializedTemplate
    *            a specialized template
    * @param inputVariables
    *            input variables to query for
    * @return a list of partially specified variable bindings
-	 */
-	private ArrayList<VariableBindingsList> selectInputDataForVariables(
-	    Template specializedTemplate, ArrayList<Variable> inputVariables) {
-	  
-	  DataReasoningAPI dc = this.dc;
+   */
+  private ArrayList<VariableBindingsList> selectInputDataForVariables(
+    Template specializedTemplate,
+    ArrayList<Variable> inputVariables
+  ) {
+    DataReasoningAPI dc = this.dc;
     LogEvent event = this.curLogEvent;
     if (event == null) {
       event = this.getEvent(LogEvent.EVENT_WG_DATA_SELECTION);
-    }	  
+    }
 
     Variable[] variables = specializedTemplate.getVariables();
     ArrayList<String> blacklist = new ArrayList<String>(variables.length);
@@ -407,8 +456,7 @@ implements WorkflowGenerationAPI {
     for (Variable variable : variables) {
       blacklist.add(variable.getID());
       String ns = variable.getNamespace();
-      if(!variableNS.contains(ns))
-        variableNS.add(ns);
+      if (!variableNS.contains(ns)) variableNS.add(ns);
     }
 
     // Data Filtering properties
@@ -418,9 +466,12 @@ implements WorkflowGenerationAPI {
     ArrayList<String> inputVariableIds = new ArrayList<String>();
     ArrayList<String> nonCollectionIds = new ArrayList<String>();
 
-    HashMap<String, HashSet<String>> varUserBindings = new HashMap<String, HashSet<String>>();
-    HashMap<String, ArrayList<String>> varEquality = new HashMap<String, ArrayList<String>>();
-    HashMap<String, ArrayList<String>> varInequality = new HashMap<String, ArrayList<String>>();
+    HashMap<String, HashSet<String>> varUserBindings =
+      new HashMap<String, HashSet<String>>();
+    HashMap<String, ArrayList<String>> varEquality =
+      new HashMap<String, ArrayList<String>>();
+    HashMap<String, ArrayList<String>> varInequality =
+      new HashMap<String, ArrayList<String>>();
 
     for (Variable inputVariable : inputVariables) {
       if (inputVariable.isDataVariable()) {
@@ -428,8 +479,13 @@ implements WorkflowGenerationAPI {
         if (r.getDimensionality() == 0) {
           nonCollectionIds.add(inputVariable.getID());
         } else if (r.getDimensionality() > 1) {
-          this.addExplanation("ERROR No Support for " + r.getDimensionality()
-              + "-D Template Input roles (" + r.getName() + ")");
+          this.addExplanation(
+              "ERROR No Support for " +
+              r.getDimensionality() +
+              "-D Template Input roles (" +
+              r.getName() +
+              ")"
+            );
           continue;
         }
         String variableId = inputVariable.getID();
@@ -441,12 +497,14 @@ implements WorkflowGenerationAPI {
           HashSet<String> userBindings = new HashSet<String>();
           if (b.isSet()) {
             if (b.getMaxDimension() > 1) {
-              this.addExplanation("ERROR No Support for " + b.getMaxDimension()
-                  + "-D Input Data");
+              this.addExplanation(
+                  "ERROR No Support for " +
+                  b.getMaxDimension() +
+                  "-D Input Data"
+                );
               continue;
             }
-            for (WingsSet s : b)
-              userBindings.add(((Binding) s).getID());
+            for (WingsSet s : b) userBindings.add(((Binding) s).getID());
           } else {
             userBindings.add(b.getID());
           }
@@ -457,38 +515,34 @@ implements WorkflowGenerationAPI {
     Collections.sort(nonCollectionIds);
 
     ConstraintEngine engine = specializedTemplate.getConstraintEngine();
-    for (String id : blacklist)
-      engine.addBlacklistedId(id);
-    ArrayList<KBTriple> allInputConstraints = engine.getConstraints(inputVariableIds);
-    for (String id : blacklist)
-      engine.removeBlacklistedId(id);
+    for (String id : blacklist) engine.addBlacklistedId(id);
+    ArrayList<KBTriple> allInputConstraints = engine.getConstraints(
+      inputVariableIds
+    );
+    for (String id : blacklist) engine.removeBlacklistedId(id);
 
     ArrayList<KBTriple> inputConstraints = new ArrayList<KBTriple>();
     for (KBTriple t : allInputConstraints) {
-      if (t.getPredicate().getID()
-          .equals(this.wNS + "hasSameDataAs")) {
+      if (t.getPredicate().getID().equals(this.wNS + "hasSameDataAs")) {
         String var1 = t.getObject().getID();
         String var2 = t.getSubject().getID();
         ArrayList<String> equality1 = varEquality.get(var1);
         ArrayList<String> equality2 = varEquality.get(var2);
-        if (equality1 == null)
-          equality1 = new ArrayList<String>();
-        if (equality2 == null)
-          equality2 = new ArrayList<String>();
+        if (equality1 == null) equality1 = new ArrayList<String>();
+        if (equality2 == null) equality2 = new ArrayList<String>();
         equality1.add(var2);
         equality2.add(var1);
         varEquality.put(var1, equality1);
         varEquality.put(var2, equality2);
-      } else if (t.getPredicate().getID()
-          .equals(this.wNS + "hasDifferentDataFrom")) {
+      } else if (
+        t.getPredicate().getID().equals(this.wNS + "hasDifferentDataFrom")
+      ) {
         String var1 = t.getObject().getID();
         String var2 = t.getSubject().getID();
         ArrayList<String> inequality1 = varInequality.get(var1);
         ArrayList<String> inequality2 = varInequality.get(var2);
-        if (inequality1 == null)
-          inequality1 = new ArrayList<String>();
-        if (inequality2 == null)
-          inequality2 = new ArrayList<String>();
+        if (inequality1 == null) inequality1 = new ArrayList<String>();
+        if (inequality2 == null) inequality2 = new ArrayList<String>();
         inequality1.add(var2);
         inequality2.add(var1);
         varInequality.put(var1, inequality1);
@@ -498,158 +552,202 @@ implements WorkflowGenerationAPI {
       }
     }
 
-    logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "3.1")
-        .addList(LogEvent.QUERY_ARGUMENTS, inputConstraints));
+    logger.info(
+      event
+        .createLogMsg()
+        .addWQ(LogEvent.QUERY_NUMBER, "3.1")
+        .addList(LogEvent.QUERY_ARGUMENTS, inputConstraints)
+    );
 
-    this.addExplanation("Querying the DataReasoningAPI with the following constraints: <br/>"
-        + inputConstraints.toString().replaceAll(",", "<br/>"));
-    ArrayList<VariableBindingsList> partialList = dc.findDataSources(inputConstraints, variableNS);
+    this.addExplanation(
+        "Querying the DataReasoningAPI with the following constraints: <br/>" +
+        inputConstraints.toString().replaceAll(",", "<br/>")
+      );
+    ArrayList<VariableBindingsList> partialList = dc.findDataSources(
+      inputConstraints,
+      variableNS
+    );
 
-    if (partialList == null
-        || partialList.isEmpty()) {
-      logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "3.1")
-          .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
-      this.addExplanation("ERROR: The DataReasoningAPI did not return any matching datasets");
+    if (partialList == null || partialList.isEmpty()) {
+      logger.warn(
+        event
+          .createLogMsg()
+          .addWQ(LogEvent.QUERY_NUMBER, "3.1")
+          .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH)
+      );
+      this.addExplanation(
+          "ERROR: The DataReasoningAPI did not return any matching datasets"
+        );
       return null;
     } else {
-      logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "3.1")
-          .addList(LogEvent.QUERY_RESPONSE, partialList));
+      logger.info(
+        event
+          .createLogMsg()
+          .addWQ(LogEvent.QUERY_NUMBER, "3.1")
+          .addList(LogEvent.QUERY_RESPONSE, partialList)
+      );
 
       // Remove non-variable mappings
       partialList = removeNonVariableMappings(partialList, inputVariableIds);
-      
+
       // Filter Datasets
-      ArrayList<VariableBindingsList> filteredList = filterVariableDataObjectMappings(
-          partialList, inputVariableIds, varUserBindings,
-          varEquality, varInequality);
-      
-      if(filteredList.isEmpty()) {
-        logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "3.1")
-            .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
-        this.addExplanation("ERROR: The DataReasoningAPI did not return any matching datasets");
+      ArrayList<VariableBindingsList> filteredList =
+        filterVariableDataObjectMappings(
+          partialList,
+          inputVariableIds,
+          varUserBindings,
+          varEquality,
+          varInequality
+        );
+
+      if (filteredList.isEmpty()) {
+        logger.warn(
+          event
+            .createLogMsg()
+            .addWQ(LogEvent.QUERY_NUMBER, "3.1")
+            .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH)
+        );
+        this.addExplanation(
+            "ERROR: The DataReasoningAPI did not return any matching datasets"
+          );
       }
-      
+
       // Group Datasets
-      ArrayList<VariableBindingsList> groupedList = groupVariableDataObjectMappings(
-          filteredList, nonCollectionIds, inputVariableIds);
+      ArrayList<VariableBindingsList> groupedList =
+        groupVariableDataObjectMappings(
+          filteredList,
+          nonCollectionIds,
+          inputVariableIds
+        );
 
       return groupedList;
-    }    
-	}
+    }
+  }
 
-	/**
-	 * step 3
-	 * 
-	 * @param specializedTemplate
-	 *            a specialized template
-	 * @return a list of variable bindings (or null if no data objects)
-	 */
-	public VariableBindingsListSet selectInputDataObjects(Template specializedTemplate) {
-
-	  this.addExplanation("INFO: --------- Binding data for the template ---------");
+  /**
+   * step 3
+   *
+   * @param specializedTemplate
+   *            a specialized template
+   * @return a list of variable bindings (or null if no data objects)
+   */
+  public VariableBindingsListSet selectInputDataObjects(
+    Template specializedTemplate
+  ) {
+    this.addExplanation(
+        "INFO: --------- Binding data for the template ---------"
+      );
     this.addExplanation("Template: " + specializedTemplate);
-    
-		LogEvent event = this.curLogEvent;
-		if (event == null) {
-			event = this.getEvent(LogEvent.EVENT_WG_DATA_SELECTION);
-		}
-		logger.info(event.createLogMsg().addWQ(LogEvent.TEMPLATE, "" + specializedTemplate));
 
-		// Extract dependent variables
-    HashMap<String, HashSet<String>> varGroups = 
-        new HashMap<String, HashSet<String>>();
-		HashMap<String, HashSet<String>> varDeps = 
-		    new HashMap<String, HashSet<String>>();
-		HashMap<String, HashSet<String>> depVars =
-		    new HashMap<String, HashSet<String>>();
-		ArrayList<String> inputVariableIds = new ArrayList<String>();
-		
-		for(Variable variable : specializedTemplate.getInputVariables()) {
-		  if (variable.isDataVariable()) {
-  		  String vid = variable.getID();
-  		  inputVariableIds.add(vid);
-  		  
-  		  ArrayList<KBTriple> constraints = 
-  		      specializedTemplate.getConstraintEngine().getConstraints(vid);
-  	    
-  		  HashSet<String> vargroup = varGroups.get(vid);
-  		  if(vargroup == null)
-  		    vargroup = new HashSet<String>();
-  		  
-  		  varDeps.put(vid, new HashSet<String>());
-  		  for(KBTriple triple : constraints) {
-  		    if(!triple.getObject().isLiteral()) {
-  		      String objid = triple.getObject().getID();
-  		      if(triple.getPredicate().getNamespace().equals(this.wNS)) {
-  		        if(!triple.getPredicate().getName().equals("hasDataBinding") &&
-  		            !triple.getPredicate().getName().equals("hasParameterValue")) {
-  		          vargroup.add(objid);
-  		          vargroup.add(vid);
-  		        }
-  		      }
-  		      else if(objid.startsWith(triple.getSubject().getNamespace())) {
-  		        varDeps.get(vid).add(objid);
-  		        if(!depVars.containsKey(objid))
-  		          depVars.put(objid, new HashSet<String>());
-  		        depVars.get(objid).add(vid);
-  		      }
-  		    }
-  		  }
-  		  varGroups.put(vid, vargroup);
-		  }
-		}
-		
-		for(String vid : varGroups.keySet()) {
-		  if(varDeps.containsKey(vid)) {
-  		  for(String depId : varDeps.get(vid)) {
-  		    varGroups.get(vid).addAll(depVars.get(depId));
-  		  }
-		  }
-		}
+    LogEvent event = this.curLogEvent;
+    if (event == null) {
+      event = this.getEvent(LogEvent.EVENT_WG_DATA_SELECTION);
+    }
+    logger.info(
+      event.createLogMsg().addWQ(LogEvent.TEMPLATE, "" + specializedTemplate)
+    );
 
-		VariableBindingsListSet listsOfVariableDataObjectMappings = 
-        new VariableBindingsListSet();
-    
+    // Extract dependent variables
+    HashMap<String, HashSet<String>> varGroups =
+      new HashMap<String, HashSet<String>>();
+    HashMap<String, HashSet<String>> varDeps =
+      new HashMap<String, HashSet<String>>();
+    HashMap<String, HashSet<String>> depVars =
+      new HashMap<String, HashSet<String>>();
+    ArrayList<String> inputVariableIds = new ArrayList<String>();
+
+    for (Variable variable : specializedTemplate.getInputVariables()) {
+      if (variable.isDataVariable()) {
+        String vid = variable.getID();
+        inputVariableIds.add(vid);
+
+        ArrayList<KBTriple> constraints = specializedTemplate
+          .getConstraintEngine()
+          .getConstraints(vid);
+
+        HashSet<String> vargroup = varGroups.get(vid);
+        if (vargroup == null) vargroup = new HashSet<String>();
+
+        varDeps.put(vid, new HashSet<String>());
+        for (KBTriple triple : constraints) {
+          if (!triple.getObject().isLiteral()) {
+            String objid = triple.getObject().getID();
+            if (triple.getPredicate().getNamespace().equals(this.wNS)) {
+              if (
+                !triple.getPredicate().getName().equals("hasDataBinding") &&
+                !triple.getPredicate().getName().equals("hasParameterValue")
+              ) {
+                vargroup.add(objid);
+                vargroup.add(vid);
+              }
+            } else if (objid.startsWith(triple.getSubject().getNamespace())) {
+              varDeps.get(vid).add(objid);
+              if (!depVars.containsKey(objid)) depVars.put(
+                objid,
+                new HashSet<String>()
+              );
+              depVars.get(objid).add(vid);
+            }
+          }
+        }
+        varGroups.put(vid, vargroup);
+      }
+    }
+
+    for (String vid : varGroups.keySet()) {
+      if (varDeps.containsKey(vid)) {
+        for (String depId : varDeps.get(vid)) {
+          varGroups.get(vid).addAll(depVars.get(depId));
+        }
+      }
+    }
+
+    VariableBindingsListSet listsOfVariableDataObjectMappings =
+      new VariableBindingsListSet();
+
     HashMap<String, Boolean> varQueried = new HashMap<String, Boolean>();
-    
-    for(String vid : inputVariableIds) {
-      if(varQueried.containsKey(vid))
-        continue;
-      
+
+    for (String vid : inputVariableIds) {
+      if (varQueried.containsKey(vid)) continue;
+
       ArrayList<String> varids = new ArrayList<String>(varGroups.get(vid));
-      if(varids.isEmpty())
-        varids.add(vid);
+      if (varids.isEmpty()) varids.add(vid);
 
       ArrayList<Variable> variables = new ArrayList<Variable>();
-      for(String depvid : varids) {
+      for (String depvid : varids) {
         varQueried.put(depvid, true);
         variables.add(specializedTemplate.getVariable(depvid));
       }
-      
-      ArrayList<VariableBindingsList> list = this.selectInputDataForVariables(
-          specializedTemplate, variables);
-      
-      if(list == null) {
+
+      ArrayList<VariableBindingsList> list =
+        this.selectInputDataForVariables(specializedTemplate, variables);
+
+      if (list == null) {
         listsOfVariableDataObjectMappings = null;
         break;
       }
-      
-      listsOfVariableDataObjectMappings.add(list); 
-      //combineVariableDataObjectMappings(list, listsOfVariableDataObjectMappings);      
+
+      listsOfVariableDataObjectMappings.add(list);
+      //combineVariableDataObjectMappings(list, listsOfVariableDataObjectMappings);
     }
-    
+
     // Check the final dataset combination list
-		if (listsOfVariableDataObjectMappings != null && 
-		    !listsOfVariableDataObjectMappings.isEmpty()) {
-      this.addExplanation("INFO: The DataReasoningAPI returned " +
-          listsOfVariableDataObjectMappings.size() + " data combinations");
-		}
-		return listsOfVariableDataObjectMappings;
-	}
-	
-   /**
+    if (
+      listsOfVariableDataObjectMappings != null &&
+      !listsOfVariableDataObjectMappings.isEmpty()
+    ) {
+      this.addExplanation(
+          "INFO: The DataReasoningAPI returned " +
+          listsOfVariableDataObjectMappings.size() +
+          " data combinations"
+        );
+    }
+    return listsOfVariableDataObjectMappings;
+  }
+
+  /**
    * Bind the specialized template given the inputs binding list
-   * 
+   *
    * @param specializedTemplate
    *        the input specialized template
    * @param bindings
@@ -657,1588 +755,1826 @@ implements WorkflowGenerationAPI {
    * @return
    *        the bound template
    */
-	public Template bindTemplate(Template specializedTemplate, VariableBindingsList bindings) {
-		HashMap<String, ArrayList<String>> variableBindings = new HashMap<String, ArrayList<String>>();
-		
-		Template t = specializedTemplate.createCopy();
-		t.setID(UuidGen.generateURIUuid((URIEntity)t));
+  public Template bindTemplate(
+    Template specializedTemplate,
+    VariableBindingsList bindings
+  ) {
+    HashMap<String, ArrayList<String>> variableBindings =
+      new HashMap<String, ArrayList<String>>();
 
-		for (VariableBindings dvobinding : bindings) {
-			KBObject dv = dvobinding.getDataVariable();
-			ArrayList<KBObject> objs = dvobinding.getDataObjects();
+    Template t = specializedTemplate.createCopy();
+    t.setID(UuidGen.generateURIUuid((URIEntity) t));
 
-			Variable v = specializedTemplate.getVariable(dv.getID());
-			
-			// Ignore temporary variables (not input data variables)
-			if (v == null) {
-				t.getConstraintEngine().removeObjectAndConstraints(dv);
-				continue;
-			}
+    for (VariableBindings dvobinding : bindings) {
+      KBObject dv = dvobinding.getDataVariable();
+      ArrayList<KBObject> objs = dvobinding.getDataObjects();
 
-			ArrayList<String> tmp = variableBindings.get(v.getID());
-			if (tmp == null)
-				tmp = new ArrayList<String>();
+      Variable v = specializedTemplate.getVariable(dv.getID());
 
-			for (KBObject obj : objs)
-				tmp.add(obj.getID());
+      // Ignore temporary variables (not input data variables)
+      if (v == null) {
+        t.getConstraintEngine().removeObjectAndConstraints(dv);
+        continue;
+      }
 
-			variableBindings.put(v.getID(), tmp);
-		}
+      ArrayList<String> tmp = variableBindings.get(v.getID());
+      if (tmp == null) tmp = new ArrayList<String>();
 
-		Variable[] ivs = t.getInputVariables();
-		for (Variable iv : ivs) {
-			if (iv.isDataVariable()) {
-			  ArrayList<String> bindingIds = variableBindings.get(iv.getID());
-				if (bindingIds != null && !bindingIds.isEmpty()) {
-					Binding b = new Binding();
+      for (KBObject obj : objs) tmp.add(obj.getID());
 
-					Binding ivb = iv.getBinding();
-					if (ivb != null) {
+      variableBindings.put(v.getID(), tmp);
+    }
 
-						// Check the case where the template already has
-						// a binding
-						boolean ok = false;
-						if (!ivb.isSet()) {
-							if (bindingIds.contains(ivb.getID())) {
-								b = (Binding) SerializableObjectCloner.clone(ivb);
-								ok = true;
-							} else {
-								this.addExplanation("INFO " + ivb.getName() + " cannot be bound to "
-										+ iv.getID());
-							}
-						} else {
-							for (WingsSet s : ivb) {
-								Binding civb = (Binding)s;
-								if (bindingIds.contains(civb.getID())) {
-									b.add((Binding) SerializableObjectCloner.clone(civb));
-									ok = true;
-								} else {
-									this.addExplanation("INFO " + civb.getName()
-											+ " cannot be bound to "
-											+ iv.getID());
-								}
-							}
-						}
-						if (ok)
-							iv.setBinding(b);
-						else {
-              this.addExplanation("ERROR: " + iv.getName() + " has no data binding");								  
-							return null;
-						}
-					} else {
-						for (String bindingId : bindingIds)
-							b.add(new Binding(bindingId));
-						iv.setBinding(b);
-					}
-				} else {
-					return null;
-				}
-			}
-		}
-		return t;
-	}
+    Variable[] ivs = t.getInputVariables();
+    for (Variable iv : ivs) {
+      if (iv.isDataVariable()) {
+        ArrayList<String> bindingIds = variableBindings.get(iv.getID());
+        if (bindingIds != null && !bindingIds.isEmpty()) {
+          Binding b = new Binding();
 
-	/**
-	 * Step 4: 4.1 sets the data metrics for the partially instantiated
-	 * candidate instances
-	 * 
-	 * @param partialCandidateInstances
-	 *            a list of candidate instances with input data variables bound
-	 */
-	public void setDataMetricsForInputDataObjects(ArrayList<Template> partialCandidateInstances) {
-		HashMap<String, Metrics> dataObjectNameToDataMetricsMap = new HashMap<String, Metrics>();
-		LogEvent event = curLogEvent;
+          Binding ivb = iv.getBinding();
+          if (ivb != null) {
+            // Check the case where the template already has
+            // a binding
+            boolean ok = false;
+            if (!ivb.isSet()) {
+              if (bindingIds.contains(ivb.getID())) {
+                b = (Binding) SerializableObjectCloner.clone(ivb);
+                ok = true;
+              } else {
+                this.addExplanation(
+                    "INFO " +
+                    ivb.getName() +
+                    " cannot be bound to " +
+                    iv.getID()
+                  );
+              }
+            } else {
+              for (WingsSet s : ivb) {
+                Binding civb = (Binding) s;
+                if (bindingIds.contains(civb.getID())) {
+                  b.add((Binding) SerializableObjectCloner.clone(civb));
+                  ok = true;
+                } else {
+                  this.addExplanation(
+                      "INFO " +
+                      civb.getName() +
+                      " cannot be bound to " +
+                      iv.getID()
+                    );
+                }
+              }
+            }
+            if (ok) iv.setBinding(b); else {
+              this.addExplanation(
+                  "ERROR: " + iv.getName() + " has no data binding"
+                );
+              return null;
+            }
+          } else {
+            for (String bindingId : bindingIds) b.add(new Binding(bindingId));
+            iv.setBinding(b);
+          }
+        } else {
+          return null;
+        }
+      }
+    }
+    return t;
+  }
 
-		for (Template partialCandidateInstance : partialCandidateInstances) {
-			Variable[] inputVariables = partialCandidateInstance.getInputVariables();
-			for (Variable inputVariable : inputVariables) {
-				if (inputVariable.isDataVariable()) {
-					Binding binding = inputVariable.getBinding();
-					setBindingMetrics(binding, dataObjectNameToDataMetricsMap, event);
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Step 4
-	 * 
-	 * @param template
-	 *            a specialized template
-	 * @return configured candidate workflows with all paramter values set
-	 */
+  /**
+   * Step 4: 4.1 sets the data metrics for the partially instantiated
+   * candidate instances
+   *
+   * @param partialCandidateInstances
+   *            a list of candidate instances with input data variables bound
+   */
+  public void setDataMetricsForInputDataObjects(
+    ArrayList<Template> partialCandidateInstances
+  ) {
+    HashMap<String, Metrics> dataObjectNameToDataMetricsMap =
+      new HashMap<String, Metrics>();
+    LogEvent event = curLogEvent;
 
-	public ArrayList<Template> configureTemplates(Template template) {
-		LogEvent event = getEvent(LogEvent.EVENT_WG_CONFIGURE);
-		logger.info(event.createStartLogMsg().addWQ(LogEvent.TEMPLATE, "" + template));
-		
-		this.addExplanation("INFO: --------- Configuring the template ---------");
-		this.addExplanation("Template: " + template);
-		
-		ArrayList<Template> templates = new ArrayList<Template>();
-		ArrayList<Template> processedTemplates = new ArrayList<Template>();
+    for (Template partialCandidateInstance : partialCandidateInstances) {
+      Variable[] inputVariables = partialCandidateInstance.getInputVariables();
+      for (Variable inputVariable : inputVariables) {
+        if (inputVariable.isDataVariable()) {
+          Binding binding = inputVariable.getBinding();
+          setBindingMetrics(binding, dataObjectNameToDataMetricsMap, event);
+        }
+      }
+    }
+  }
 
-		HashMap<Template, ArrayList<String>> done = new HashMap<Template, ArrayList<String>>();
+  /**
+   * Step 4
+   *
+   * @param template
+   *            a specialized template
+   * @return configured candidate workflows with all paramter values set
+   */
 
-		Template t = template.createCopy();
-		t.setID(UuidGen.generateURIUuid((URIEntity)t));
-		templates.add(t);
+  public ArrayList<Template> configureTemplates(Template template) {
+    LogEvent event = getEvent(LogEvent.EVENT_WG_CONFIGURE);
+    logger.info(
+      event.createStartLogMsg().addWQ(LogEvent.TEMPLATE, "" + template)
+    );
 
-		// Configuration Step
-		while (!templates.isEmpty()) {
-			logger.info(event.createLogMsg().addList(LogEvent.QUEUED_TEMPLATES, templates));
-			logger.info(event.createLogMsg().addList(LogEvent.CONFIGURED_TEMPLATES_Q,
-					processedTemplates));
+    this.addExplanation("INFO: --------- Configuring the template ---------");
+    this.addExplanation("Template: " + template);
 
-			Template currentTemplate = templates.remove(0);
+    ArrayList<Template> templates = new ArrayList<Template>();
+    ArrayList<Template> processedTemplates = new ArrayList<Template>();
 
-			ArrayList<String> nodesDone = done.get(currentTemplate);
-			if (nodesDone == null) {
-				nodesDone = new ArrayList<String>();
-			}
+    HashMap<Template, ArrayList<String>> done =
+      new HashMap<Template, ArrayList<String>>();
 
-			ArrayList<Link> links = new ArrayList<Link>();
-			for (Link link : currentTemplate.getInputLinks()) {
-				links.add(link);
-			}
+    Template t = template.createCopy();
+    t.setID(UuidGen.generateURIUuid((URIEntity) t));
+    templates.add(t);
 
-			while (!links.isEmpty()) {
-				if (currentTemplate == null)
-					break;
+    // Configuration Step
+    while (!templates.isEmpty()) {
+      logger.info(
+        event.createLogMsg().addList(LogEvent.QUEUED_TEMPLATES, templates)
+      );
+      logger.info(
+        event
+          .createLogMsg()
+          .addList(LogEvent.CONFIGURED_TEMPLATES_Q, processedTemplates)
+      );
 
-				HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
+      Template currentTemplate = templates.remove(0);
 
-				Link currentLink = links.remove(0);
+      ArrayList<String> nodesDone = done.get(currentTemplate);
+      if (nodesDone == null) {
+        nodesDone = new ArrayList<String>();
+      }
 
-				if (!currentLink.isOutputLink()) {
-					roleMap.put(currentLink.getDestinationPort().getRole(),
-							currentLink.getVariable());
-					ArrayList<String> variableIds = new ArrayList<String>();
-					Node destNode = currentLink.getDestinationNode();
+      ArrayList<Link> links = new ArrayList<Link>();
+      for (Link link : currentTemplate.getInputLinks()) {
+        links.add(link);
+      }
 
-					// If this node hasn't been processed yet
-					if (!nodesDone.contains(destNode.getID())) {
+      while (!links.isEmpty()) {
+        if (currentTemplate == null) break;
 
-						Link[] inputLinks = currentTemplate.getInputLinks(destNode);
-						Link[] outputLinks = currentTemplate.getOutputLinks(destNode);
+        HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
 
-						// Check that all inputs have data bindings
-						boolean comebacklater = false;
-						for (Link inputLink : inputLinks) {
-							Variable invar = inputLink.getVariable();
-							if (invar.isDataVariable() && invar.getBinding() == null) {
-								comebacklater = true;
-								break;
-							}
-						}
-						if (comebacklater) {
-							links.add(currentLink);
-							continue;
-						}
+        Link currentLink = links.remove(0);
 
-						HashMap<String, String> prospectiveIds = new HashMap<String, String>();
-						HashMap<String, String> portVariableIds = new HashMap<String, String>();
-						HashMap<String, String> opPortVariableIds = new HashMap<String, String>();
+        if (!currentLink.isOutputLink()) {
+          roleMap.put(
+            currentLink.getDestinationPort().getRole(),
+            currentLink.getVariable()
+          );
+          ArrayList<String> variableIds = new ArrayList<String>();
+          Node destNode = currentLink.getDestinationNode();
 
-						// Add all output links to queue
-						// Set temporary output dataset id
-						for (Link outputLink : outputLinks) {
-							Variable variable = outputLink.getVariable();
-							if (variable.getBinding() == null) {
-								String prospectiveId = dataNS + UuidGen.generateAUuid("");
-								variable.setBinding(new Binding(prospectiveId));
-								prospectiveIds.put(variable.getID(), prospectiveId);
-							}
+          // If this node hasn't been processed yet
+          if (!nodesDone.contains(destNode.getID())) {
+            Link[] inputLinks = currentTemplate.getInputLinks(destNode);
+            Link[] outputLinks = currentTemplate.getOutputLinks(destNode);
 
-							roleMap.put(outputLink.getOriginPort().getRole(), variable);
-							variableIds.add(variable.getID());
-							links.add(outputLink);
-							portVariableIds.put(outputLink.getOriginPort().getID(),
-									variable.getID());
-							opPortVariableIds.put(outputLink.getOriginPort().getID(),
-									variable.getID());
-						}
+            // Check that all inputs have data bindings
+            boolean comebacklater = false;
+            for (Link inputLink : inputLinks) {
+              Variable invar = inputLink.getVariable();
+              if (invar.isDataVariable() && invar.getBinding() == null) {
+                comebacklater = true;
+                break;
+              }
+            }
+            if (comebacklater) {
+              links.add(currentLink);
+              continue;
+            }
 
-						// Remove all input links from queue
-						for (Link inputLink : inputLinks) {
-							Variable variable = inputLink.getVariable();
-							roleMap.put(inputLink.getDestinationPort().getRole(), variable);
-							variableIds.add(variable.getID());
-							links.remove(inputLink);
-							portVariableIds.put(inputLink.getDestinationPort().getID(),
-									variable.getID());
-						}
+            HashMap<String, String> prospectiveIds =
+              new HashMap<String, String>();
+            HashMap<String, String> portVariableIds =
+              new HashMap<String, String>();
+            HashMap<String, String> opPortVariableIds =
+              new HashMap<String, String>();
 
-						ArrayList<KBTriple> redBox = currentTemplate.getConstraintEngine()
-								.getConstraints(variableIds);
+            // Add all output links to queue
+            // Set temporary output dataset id
+            for (Link outputLink : outputLinks) {
+              Variable variable = outputLink.getVariable();
+              if (variable.getBinding() == null) {
+                String prospectiveId = dataNS + UuidGen.generateAUuid("");
+                variable.setBinding(new Binding(prospectiveId));
+                prospectiveIds.put(variable.getID(), prospectiveId);
+              }
 
-						ComponentVariable component = destNode.getComponentVariable();
+              roleMap.put(outputLink.getOriginPort().getRole(), variable);
+              variableIds.add(variable.getID());
+              links.add(outputLink);
+              portVariableIds.put(
+                outputLink.getOriginPort().getID(),
+                variable.getID()
+              );
+              opPortVariableIds.put(
+                outputLink.getOriginPort().getID(),
+                variable.getID()
+              );
+            }
 
-						// TODO: Check the port rules & variable bindings here
-						// - For now, ignore all parameters in port rules
-						// (add port-parameter-rules later)
-						// - Have to get constraints for bindings with the
-						// correct dimensionality here ? (or maybe PC will
-						// handle it from the metrics)
+            // Remove all input links from queue
+            for (Link inputLink : inputLinks) {
+              Variable variable = inputLink.getVariable();
+              roleMap.put(inputLink.getDestinationPort().getRole(), variable);
+              variableIds.add(variable.getID());
+              links.remove(inputLink);
+              portVariableIds.put(
+                inputLink.getDestinationPort().getID(),
+                variable.getID()
+              );
+            }
 
-						ComponentPacket cmr = new ComponentPacket(component, roleMap, redBox);
+            ArrayList<KBTriple> redBox = currentTemplate
+              .getConstraintEngine()
+              .getConstraints(variableIds);
 
-						PortBindingList ipblist = PortSetRuleHandler.normalizePortBindings(
-								destNode, currentTemplate);
+            ComponentVariable component = destNode.getComponentVariable();
 
-						// PortBindingList opblist = configureBindings(pblist);
-						// Recursively go through the whole pblist and create
-						// input/output maps and get parameter bindings for each
-						// portbinding
-						// - Maybe check rules at this point too in the future ?
+            // TODO: Check the port rules & variable bindings here
+            // - For now, ignore all parameters in port rules
+            // (add port-parameter-rules later)
+            // - Have to get constraints for bindings with the
+            // correct dimensionality here ? (or maybe PC will
+            // handle it from the metrics)
 
-						// constraints for these bindings needed or will the
-						// metrics be enough ?
-						// - should we translate metrics to rdf constraints ?
-						// - should we represent metrics as they are (strings)
-						// in the rdf ?
+            ComponentPacket cmr = new ComponentPacket(
+              component,
+              roleMap,
+              redBox
+            );
 
-						// Check that opblist is not empty
+            PortBindingList ipblist = PortSetRuleHandler.normalizePortBindings(
+              destNode,
+              currentTemplate
+            );
 
-						PortSetCreationRule prule = destNode.getPortSetRule();
-						nodesDone.add(destNode.getID());
+            // PortBindingList opblist = configureBindings(pblist);
+            // Recursively go through the whole pblist and create
+            // input/output maps and get parameter bindings for each
+            // portbinding
+            // - Maybe check rules at this point too in the future ?
 
-						if (ipblist.isEmpty() && ipblist.getPortBinding() == null) {
-							currentTemplate = null;
-							break;
-						}
+            // constraints for these bindings needed or will the
+            // metrics be enough ?
+            // - should we translate metrics to rdf constraints ?
+            // - should we represent metrics as they are (strings)
+            // in the rdf ?
 
-						if (prule.getType() == SetType.WTYPE) {
-							ipblist = PortSetRuleHandler.flattenPortBindingList(ipblist, 0);
+            // Check that opblist is not empty
 
-							for (int i = ipblist.size() - 1; i >= 0; i--) {
-								// Todo: Parallelize: have independent threads
-								// for each iteration
+            PortSetCreationRule prule = destNode.getPortSetRule();
+            nodesDone.add(destNode.getID());
 
-								PortBindingList ipb = ipblist.get(i);
+            if (ipblist.isEmpty() && ipblist.getPortBinding() == null) {
+              currentTemplate = null;
+              break;
+            }
 
-								Template configuredTemplate = currentTemplate;
-								ComponentVariable c = component;
-								Node n = destNode;
-								if (i > 0) {
-									configuredTemplate = currentTemplate.createCopy();
-									configuredTemplate.setID(
-											UuidGen.generateURIUuid((URIEntity)currentTemplate));
-									n = configuredTemplate.getNode(destNode.getID());
-									c = n.getComponentVariable();
-								}
+            if (prule.getType() == SetType.WTYPE) {
+              ipblist = PortSetRuleHandler.flattenPortBindingList(ipblist, 0);
 
-								// Clone cmr before sending ? We basically need
-								// to have separate variable bindings
-								ComponentPacket pcmr = cmr.clone();
-								pcmr.setComponent(c);
+              for (int i = ipblist.size() - 1; i >= 0; i--) {
+                // Todo: Parallelize: have independent threads
+                // for each iteration
 
-								PortBindingList pblist = configureBindings(ipb, destNode, n, c,
-										pcmr, event, prospectiveIds);
-								PortBinding pb = PortSetRuleHandler.deNormalizePortBindings(pblist);
+                PortBindingList ipb = ipblist.get(i);
 
-								if (pb == null) {
-									if (i == 0)
-										currentTemplate = null;
-									continue;
-								}
+                Template configuredTemplate = currentTemplate;
+                ComponentVariable c = component;
+                Node n = destNode;
+                if (i > 0) {
+                  configuredTemplate = currentTemplate.createCopy();
+                  configuredTemplate.setID(
+                    UuidGen.generateURIUuid((URIEntity) currentTemplate)
+                  );
+                  n = configuredTemplate.getNode(destNode.getID());
+                  c = n.getComponentVariable();
+                }
 
-								this.removeComponentBindingsWithNoData(c);
+                // Clone cmr before sending ? We basically need
+                // to have separate variable bindings
+                ComponentPacket pcmr = cmr.clone();
+                pcmr.setComponent(c);
 
-								// CHANGED: (6/6/2011)
-								// Extract bindings only for output variables or
-								// parameter variables
-								// Earlier we were doing this for all variables
-								for (Port p : pb.keySet()) {
-									Variable cv = configuredTemplate.getVariable(portVariableIds
-											.get(p.getID()));
-									if (cv.isParameterVariable()
-											|| opPortVariableIds.containsKey(p.getID())) {
-										Binding b = pb.get(p);
-										cv.setBinding(b);
-									}
-								}
+                PortBindingList pblist = configureBindings(
+                  ipb,
+                  destNode,
+                  n,
+                  c,
+                  pcmr,
+                  event,
+                  prospectiveIds
+                );
+                PortBinding pb = PortSetRuleHandler.deNormalizePortBindings(
+                  pblist
+                );
 
-								if (i > 0) {
-									templates.add(configuredTemplate);
-									done.put(configuredTemplate, new ArrayList<String>(nodesDone));
-								} else {
-									logger.info(event.createLogMsg().addWQ(LogEvent.MSG,
-											"Configured Template: " + currentTemplate));
-									done.put(currentTemplate, nodesDone);
-								}
+                if (pb == null) {
+                  if (i == 0) currentTemplate = null;
+                  continue;
+                }
 
-							}
+                this.removeComponentBindingsWithNoData(c);
 
-						} else if (prule.getType() == SetType.STYPE) {
-							PortBindingList pblist = configureBindings(ipblist, destNode, destNode,
-									component, cmr, event, prospectiveIds);
-							PortBinding pb = PortSetRuleHandler.deNormalizePortBindings(pblist);
+                // CHANGED: (6/6/2011)
+                // Extract bindings only for output variables or
+                // parameter variables
+                // Earlier we were doing this for all variables
+                for (Port p : pb.keySet()) {
+                  Variable cv = configuredTemplate.getVariable(
+                    portVariableIds.get(p.getID())
+                  );
+                  if (
+                    cv.isParameterVariable() ||
+                    opPortVariableIds.containsKey(p.getID())
+                  ) {
+                    Binding b = pb.get(p);
+                    cv.setBinding(b);
+                  }
+                }
 
-							if (pb == null) {
-								currentTemplate = null;
-								break;
-							}
+                if (i > 0) {
+                  templates.add(configuredTemplate);
+                  done.put(
+                    configuredTemplate,
+                    new ArrayList<String>(nodesDone)
+                  );
+                } else {
+                  logger.info(
+                    event
+                      .createLogMsg()
+                      .addWQ(
+                        LogEvent.MSG,
+                        "Configured Template: " + currentTemplate
+                      )
+                  );
+                  done.put(currentTemplate, nodesDone);
+                }
+              }
+            } else if (prule.getType() == SetType.STYPE) {
+              PortBindingList pblist = configureBindings(
+                ipblist,
+                destNode,
+                destNode,
+                component,
+                cmr,
+                event,
+                prospectiveIds
+              );
+              PortBinding pb = PortSetRuleHandler.deNormalizePortBindings(
+                pblist
+              );
 
-							this.removeComponentBindingsWithNoData(component);
+              if (pb == null) {
+                currentTemplate = null;
+                break;
+              }
 
-							// CHANGED: (6/6/2011)
-							// Extract bindings only for output variables or
-							// parameter variables
-							// Earlier we were doing this for all variables
-							for (Port p : pb.keySet()) {
-								Variable cv = currentTemplate.getVariable(portVariableIds.get(p
-										.getID()));
-								if (cv.isParameterVariable()
-										|| opPortVariableIds.containsKey(p.getID())) {
-									Binding b = pb.get(p);
-									cv.setBinding(b);
-								}
-							}
+              this.removeComponentBindingsWithNoData(component);
 
-							logger.info(event.createLogMsg().addWQ(LogEvent.MSG,
-									"Configured Template: " + currentTemplate));
-							done.put(currentTemplate, nodesDone);
-						}
+              // CHANGED: (6/6/2011)
+              // Extract bindings only for output variables or
+              // parameter variables
+              // Earlier we were doing this for all variables
+              for (Port p : pb.keySet()) {
+                Variable cv = currentTemplate.getVariable(
+                  portVariableIds.get(p.getID())
+                );
+                if (
+                  cv.isParameterVariable() ||
+                  opPortVariableIds.containsKey(p.getID())
+                ) {
+                  Binding b = pb.get(p);
+                  cv.setBinding(b);
+                }
+              }
 
-						// System.exit(0);
-					} else if (currentTemplate != null) {
-						Link[] outputLinks = currentTemplate.getOutputLinks(destNode);
-						for (Link ol : outputLinks) {
-							links.add(ol);
-						}
-					}
-				}
-			}
-			if (currentTemplate != null) {
-				// Check that all component bindings in the template
-				// have portbindings
-				/*boolean ok = true;
+              logger.info(
+                event
+                  .createLogMsg()
+                  .addWQ(
+                    LogEvent.MSG,
+                    "Configured Template: " + currentTemplate
+                  )
+              );
+              done.put(currentTemplate, nodesDone);
+            }
+            // System.exit(0);
+          } else if (currentTemplate != null) {
+            Link[] outputLinks = currentTemplate.getOutputLinks(destNode);
+            for (Link ol : outputLinks) {
+              links.add(ol);
+            }
+          }
+        }
+      }
+      if (currentTemplate != null) {
+        // Check that all component bindings in the template
+        // have portbindings
+        /*boolean ok = true;
 				for (Node n : currentTemplate.getNodes()) {
 					if (hasEmptyPortBindings(n.getComponentVariable().getBinding())) {
 						ok = false;
 						break;
 					}
 				}*/
-				
-				// Check in-out links to see that all the data that is
-				// produced, is actually consumed by a component on the other
-				// side of the link
-				// - If not, then remove the producer component
-				// - TODO: Should this be a configurable option ?
-				//if(removeProducersWithNoConsumers(currentTemplate))
-					processedTemplates.add(currentTemplate);
-			}
-		}
-		
-		// Run template rules (if any)
-		ArrayList<Template> configuredTemplates = new ArrayList<Template>(); 
-		for (Template instance : processedTemplates) {
-			if (instance.getRules() != null && instance.getRules().getRulesText() != null) {
-				// Check template invalidity
-				instance = instance.applyRules();
-				if (instance == null) {
-					logger.warn(event.createLogMsg().addWQ(
-							LogEvent.MSG,
-							"Invalid Workflow Instance " + instance
-									+ " : Template Rules not satisfied"));
-					continue;
-				}
-			}
-			configuredTemplates.add(instance);
-		}
 
-		logger.info(event.createEndLogMsg().addWQ(LogEvent.TEMPLATE, "" + template));
+        // Check in-out links to see that all the data that is
+        // produced, is actually consumed by a component on the other
+        // side of the link
+        // - If not, then remove the producer component
+        // - TODO: Should this be a configurable option ?
+        //if(removeProducersWithNoConsumers(currentTemplate))
+        processedTemplates.add(currentTemplate);
+      }
+    }
 
-		return configuredTemplates;
-	}
+    // Run template rules (if any)
+    ArrayList<Template> configuredTemplates = new ArrayList<Template>();
+    for (Template instance : processedTemplates) {
+      if (
+        instance.getRules() != null &&
+        instance.getRules().getRulesText() != null
+      ) {
+        // Check template invalidity
+        instance = instance.applyRules();
+        if (instance == null) {
+          logger.warn(
+            event
+              .createLogMsg()
+              .addWQ(
+                LogEvent.MSG,
+                "Invalid Workflow Instance " +
+                instance +
+                " : Template Rules not satisfied"
+              )
+          );
+          continue;
+        }
+      }
+      configuredTemplates.add(instance);
+    }
 
-	/**
-	 * Add inferences to a template without
-	 * - No specialization  or configuration
-	 */
-	public Template getInferredTemplate(Template template) {
-		ComponentReasoningAPI pc = this.pc;
-		this.addExplanation("INFO: --------- Getting an inferred template ---------");
-		
-		HashMap<Template, ArrayList<String>> done = new HashMap<Template, ArrayList<String>>();
+    logger.info(
+      event.createEndLogMsg().addWQ(LogEvent.TEMPLATE, "" + template)
+    );
 
-		Template currentTemplate = template.createCopy();
-		currentTemplate.setID(
-				UuidGen.generateURIUuid((URIEntity)template));
+    return configuredTemplates;
+  }
 
-		int MAXITERATIONS = 2; // Only 2 max iterations for now to keep it fast
+  /**
+   * Add inferences to a template without
+   * - No specialization  or configuration
+   */
+  public Template getInferredTemplate(Template template) {
+    ComponentReasoningAPI pc = this.pc;
+    this.addExplanation(
+        "INFO: --------- Getting an inferred template ---------"
+      );
 
-		// Keep Sweeping until we reach a stable state (to keep it simple, we're
-		// just checking that the number of constraints don't change)
-		int numConstraints = 0;
-		int iteration = 0;
-		while (true) {
-			// Get constraints for any bound datasets
-			// --------------------------------------
-			// Do this only on the initial iteration
-			if (iteration == 0) {
-				for (Link link : currentTemplate.getInputLinks()) {
-					Variable var = link.getVariable();
-					if (var.isDataVariable() && var.getBinding() != null) {
-						// -- If data bindings are set, then get constraint
-						// intersections
-						ConstraintEngine engine = currentTemplate.getConstraintEngine();
-						ArrayList<KBTriple> newConstraints = fetchDatasetConstraints(
-								var.getBinding(), var);
+    HashMap<Template, ArrayList<String>> done =
+      new HashMap<Template, ArrayList<String>>();
 
-						ArrayList<KBTriple> curConstraints = engine.getConstraints(var.getID());
-						for (KBTriple cons : curConstraints) {
-							for (KBTriple ncons : newConstraints) {
-								if (cons.getPredicate().getID()
-										.equals(ncons.getPredicate().getID())) {
-									if (!cons.getObject().isLiteral()) {
-									  if(ncons.getObject().isLiteral()
-									      || !ncons.getObject().getNamespace().equals(
-									          cons.getObject().getNamespace())
-									      ) {
-  										// If this value is already bound to a
-  										// variable.
-  										// - Then replace all occurences of the
-  										// variable with the value
-  										/*this.addExplanation("Setting ?"
+    Template currentTemplate = template.createCopy();
+    currentTemplate.setID(UuidGen.generateURIUuid((URIEntity) template));
+
+    int MAXITERATIONS = 2; // Only 2 max iterations for now to keep it fast
+
+    // Keep Sweeping until we reach a stable state (to keep it simple, we're
+    // just checking that the number of constraints don't change)
+    int numConstraints = 0;
+    int iteration = 0;
+    while (true) {
+      // Get constraints for any bound datasets
+      // --------------------------------------
+      // Do this only on the initial iteration
+      if (iteration == 0) {
+        for (Link link : currentTemplate.getInputLinks()) {
+          Variable var = link.getVariable();
+          if (var.isDataVariable() && var.getBinding() != null) {
+            // -- If data bindings are set, then get constraint
+            // intersections
+            ConstraintEngine engine = currentTemplate.getConstraintEngine();
+            ArrayList<KBTriple> newConstraints = fetchDatasetConstraints(
+              var.getBinding(),
+              var
+            );
+
+            ArrayList<KBTriple> curConstraints = engine.getConstraints(
+              var.getID()
+            );
+            for (KBTriple cons : curConstraints) {
+              for (KBTriple ncons : newConstraints) {
+                if (
+                  cons
+                    .getPredicate()
+                    .getID()
+                    .equals(ncons.getPredicate().getID())
+                ) {
+                  if (!cons.getObject().isLiteral()) {
+                    if (
+                      ncons.getObject().isLiteral() ||
+                      !ncons
+                        .getObject()
+                        .getNamespace()
+                        .equals(cons.getObject().getNamespace())
+                    ) {
+                      // If this value is already bound to a
+                      // variable.
+                      // - Then replace all occurences of the
+                      // variable with the value
+                      /*this.addExplanation("Setting ?"
   												+ cons.getObject().getName() + " " + " to "
   												+ ncons.getObject().getValue() + " because "
   												+ cons.getPredicate().getName() + " of "
   												+ var.getBinding().getName() + " is "
   												+ ncons.getObject().getValue());*/
-  										engine.replaceObjectInConstraints(cons.getObject(),
-  												ncons.getObject());
-									  }
-									}
-									else if (!cons.getObject().getValue()
-											.equals(ncons.getObject().getValue())) {
-										// If this is already bound to a value,
-										// then check that it is the same
-										this.addExplanation("ERROR: Expecting the "
-												+ cons.getPredicate().getName() + " of "
-												+ var.getBinding().getName() + " to be "
-												+ cons.getObject().getValue() + ", but it is "
-												+ ncons.getObject().getValue());
-										return null;
-									}
-								}
-							}
-						}
-						engine.addConstraints(newConstraints);
-					}
-				}
-			}
+                      engine.replaceObjectInConstraints(
+                        cons.getObject(),
+                        ncons.getObject()
+                      );
+                    }
+                  } else if (
+                    !cons
+                      .getObject()
+                      .getValue()
+                      .equals(ncons.getObject().getValue())
+                  ) {
+                    // If this is already bound to a value,
+                    // then check that it is the same
+                    this.addExplanation(
+                        "ERROR: Expecting the " +
+                        cons.getPredicate().getName() +
+                        " of " +
+                        var.getBinding().getName() +
+                        " to be " +
+                        cons.getObject().getValue() +
+                        ", but it is " +
+                        ncons.getObject().getValue()
+                      );
+                    return null;
+                  }
+                }
+              }
+            }
+            engine.addConstraints(newConstraints);
+          }
+        }
+      }
 
-			ArrayList<String> nodesDone = new ArrayList<String>();
-			ArrayList<Link> links = new ArrayList<Link>();
+      ArrayList<String> nodesDone = new ArrayList<String>();
+      ArrayList<Link> links = new ArrayList<Link>();
 
-			// Do a light forward sweep
-			// --------------------------------
-			ArrayList<Variable> processedVars = new ArrayList<Variable>();
-			for (Link link : currentTemplate.getInputLinks()) {
-				Variable var = link.getVariable();
-				processedVars.add(var);
-				links.add(link);
-			}
-			while (!links.isEmpty()) {
-				Link currentLink = links.remove(0);
-				if (currentLink.isOutputLink())
-					continue;
+      // Do a light forward sweep
+      // --------------------------------
+      ArrayList<Variable> processedVars = new ArrayList<Variable>();
+      for (Link link : currentTemplate.getInputLinks()) {
+        Variable var = link.getVariable();
+        processedVars.add(var);
+        links.add(link);
+      }
+      while (!links.isEmpty()) {
+        Link currentLink = links.remove(0);
+        if (currentLink.isOutputLink()) continue;
 
-				Node originNode = currentLink.getDestinationNode();
-				Link[] inputLinks = currentTemplate.getInputLinks(originNode);
+        Node originNode = currentLink.getDestinationNode();
+        Link[] inputLinks = currentTemplate.getInputLinks(originNode);
 
-				// Check that all inputs have been processed
-				boolean allinputs_processed = true;
-				for (Link inputLink : inputLinks) {
-					Variable variable = inputLink.getVariable();
-					if (!processedVars.contains(variable)) {
-						links.add(currentLink);
-						allinputs_processed = false;
-						break;
-					}
-				}
-				if (!allinputs_processed)
-					continue;
+        // Check that all inputs have been processed
+        boolean allinputs_processed = true;
+        for (Link inputLink : inputLinks) {
+          Variable variable = inputLink.getVariable();
+          if (!processedVars.contains(variable)) {
+            links.add(currentLink);
+            allinputs_processed = false;
+            break;
+          }
+        }
+        if (!allinputs_processed) continue;
 
-				HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
+        HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
 
-				ArrayList<String> variableIds = new ArrayList<String>();
+        ArrayList<String> variableIds = new ArrayList<String>();
 
-				for (Link inputLink : inputLinks) {
-					Variable variable = inputLink.getVariable();
-					roleMap.put(inputLink.getDestinationPort().getRole(), variable);
-					variableIds.add(variable.getID());
-					links.remove(inputLink);
-				}
+        for (Link inputLink : inputLinks) {
+          Variable variable = inputLink.getVariable();
+          roleMap.put(inputLink.getDestinationPort().getRole(), variable);
+          variableIds.add(variable.getID());
+          links.remove(inputLink);
+        }
 
-				Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
-				for (Link outputLink : outputLinks) {
-					Variable variable = outputLink.getVariable();
-					roleMap.put(outputLink.getOriginPort().getRole(), variable);
-					variableIds.add(variable.getID());
-					processedVars.add(variable);
-					links.add(outputLink);
-				}
+        Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
+        for (Link outputLink : outputLinks) {
+          Variable variable = outputLink.getVariable();
+          roleMap.put(outputLink.getOriginPort().getRole(), variable);
+          variableIds.add(variable.getID());
+          processedVars.add(variable);
+          links.add(outputLink);
+        }
 
-				if (nodesDone.contains(originNode.getID())) {
-					// continue;
-					// no op
-				} else {
-					ArrayList<KBTriple> redBox = currentTemplate.getConstraintEngine()
-							.getConstraints(variableIds);
+        if (nodesDone.contains(originNode.getID())) {
+          // continue;
+          // no op
+        } else {
+          ArrayList<KBTriple> redBox = currentTemplate
+            .getConstraintEngine()
+            .getConstraints(variableIds);
 
-					ComponentVariable component = originNode.getComponentVariable();
+          ComponentVariable component = originNode.getComponentVariable();
 
-					ComponentPacket sentMapsComponentDetails = new ComponentPacket(component,
-							roleMap, redBox);
-					ComponentPacket map = pc.findDataDetails(sentMapsComponentDetails);
+          ComponentPacket sentMapsComponentDetails = new ComponentPacket(
+            component,
+            roleMap,
+            redBox
+          );
+          ComponentPacket map = pc.findDataDetails(sentMapsComponentDetails);
 
-					if (map == null) {
-						currentTemplate = null;
-						break;
-					} else {
-						this.addExplanations(map.getExplanations());
-						if (map.isInvalid) {
-							currentTemplate = null;
-							break;
-						}
-						nodesDone.add(originNode.getID());
-						done.put(currentTemplate, nodesDone);
+          if (map == null) {
+            currentTemplate = null;
+            break;
+          } else {
+            this.addExplanations(map.getExplanations());
+            if (map.isInvalid) {
+              currentTemplate = null;
+              break;
+            }
+            nodesDone.add(originNode.getID());
+            done.put(currentTemplate, nodesDone);
 
-						currentTemplate.getConstraintEngine().addConstraints(map.getRequirements());
-						// this.modifyTemplate(currentTemplate, originNode, new
-						// ComponentDetails[] { map });
-					}
-				}
-			}
-			if (currentTemplate == null)
-				return null;
+            currentTemplate
+              .getConstraintEngine()
+              .addConstraints(map.getRequirements());
+            // this.modifyTemplate(currentTemplate, originNode, new
+            // ComponentDetails[] { map });
+          }
+        }
+      }
+      if (currentTemplate == null) return null;
 
-			// Do a light backward sweep
-			// --------------------------------
-			nodesDone.clear();
-			links.clear();
+      // Do a light backward sweep
+      // --------------------------------
+      nodesDone.clear();
+      links.clear();
 
-			for (Link link : currentTemplate.getOutputLinks())
-				links.add(link);
+      for (Link link : currentTemplate.getOutputLinks()) links.add(link);
 
-			while (!links.isEmpty()) {
-				HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
+      while (!links.isEmpty()) {
+        HashMap<Role, Variable> roleMap = new HashMap<Role, Variable>();
 
-				Link currentLink = links.remove(0);
-				if (currentLink.isInputLink()) {
-					// continue;
-					// no op
-				} else {
-					roleMap.put(currentLink.getOriginPort().getRole(), currentLink.getVariable());
-					ArrayList<String> variableIds = new ArrayList<String>();
-					Node originNode = currentLink.getOriginNode();
+        Link currentLink = links.remove(0);
+        if (currentLink.isInputLink()) {
+          // continue;
+          // no op
+        } else {
+          roleMap.put(
+            currentLink.getOriginPort().getRole(),
+            currentLink.getVariable()
+          );
+          ArrayList<String> variableIds = new ArrayList<String>();
+          Node originNode = currentLink.getOriginNode();
 
-					Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
-					for (Link outputLink : outputLinks) {
-						Variable variable = outputLink.getVariable();
-						roleMap.put(outputLink.getOriginPort().getRole(), variable);
-						variableIds.add(variable.getID());
-						links.remove(outputLink);
-					}
+          Link[] outputLinks = currentTemplate.getOutputLinks(originNode);
+          for (Link outputLink : outputLinks) {
+            Variable variable = outputLink.getVariable();
+            roleMap.put(outputLink.getOriginPort().getRole(), variable);
+            variableIds.add(variable.getID());
+            links.remove(outputLink);
+          }
 
-					Link[] inputLinks = currentTemplate.getInputLinks(originNode);
-					for (Link inputLink : inputLinks) {
-						Variable variable = inputLink.getVariable();
-						roleMap.put(inputLink.getDestinationPort().getRole(), variable);
-						variableIds.add(variable.getID());
-						links.add(inputLink);
-					}
+          Link[] inputLinks = currentTemplate.getInputLinks(originNode);
+          for (Link inputLink : inputLinks) {
+            Variable variable = inputLink.getVariable();
+            roleMap.put(inputLink.getDestinationPort().getRole(), variable);
+            variableIds.add(variable.getID());
+            links.add(inputLink);
+          }
 
-					if (nodesDone.contains(originNode.getID())) {
-						// continue;
-						// no op
-					} else {
-						ArrayList<KBTriple> redBox = currentTemplate.getConstraintEngine()
-								.getConstraints(variableIds);
+          if (nodesDone.contains(originNode.getID())) {
+            // continue;
+            // no op
+          } else {
+            ArrayList<KBTriple> redBox = currentTemplate
+              .getConstraintEngine()
+              .getConstraints(variableIds);
 
-						ComponentVariable component = originNode.getComponentVariable();
+            ComponentVariable component = originNode.getComponentVariable();
 
-						ComponentPacket sentMapsComponentDetails = new ComponentPacket(component,
-								roleMap, redBox);
-						ComponentPacket map = pc.findDataDetails(sentMapsComponentDetails);
+            ComponentPacket sentMapsComponentDetails = new ComponentPacket(
+              component,
+              roleMap,
+              redBox
+            );
+            ComponentPacket map = pc.findDataDetails(sentMapsComponentDetails);
 
-						if (map == null) {
-							currentTemplate = null;
-							break;
-						} else {
-							this.addExplanations(map.getExplanations());
-							if (map.isInvalid) {
-								currentTemplate = null;
-								break;
-							}
-							nodesDone.add(originNode.getID());
-							done.put(currentTemplate, nodesDone);
+            if (map == null) {
+              currentTemplate = null;
+              break;
+            } else {
+              this.addExplanations(map.getExplanations());
+              if (map.isInvalid) {
+                currentTemplate = null;
+                break;
+              }
+              nodesDone.add(originNode.getID());
+              done.put(currentTemplate, nodesDone);
 
-							currentTemplate.getConstraintEngine().addConstraints(
-									map.getRequirements());
-							// this.modifyTemplate(currentTemplate, originNode,
-							// new ComponentDetails[] { map });
-						}
-					}
-				}
-			}
+              currentTemplate
+                .getConstraintEngine()
+                .addConstraints(map.getRequirements());
+              // this.modifyTemplate(currentTemplate, originNode,
+              // new ComponentDetails[] { map });
+            }
+          }
+        }
+      }
 
-			if (currentTemplate == null)
-				return null;
+      if (currentTemplate == null) return null;
 
-			iteration++;
+      iteration++;
 
-			int newNumConstraints = currentTemplate.getConstraintEngine().getConstraints().size();
-			if (newNumConstraints == numConstraints)
-				break;
+      int newNumConstraints = currentTemplate
+        .getConstraintEngine()
+        .getConstraints()
+        .size();
+      if (newNumConstraints == numConstraints) break;
 
-			if (iteration == MAXITERATIONS)
-				break;
-			numConstraints = newNumConstraints;
-		}
+      if (iteration == MAXITERATIONS) break;
+      numConstraints = newNumConstraints;
+    }
 
-		return currentTemplate;
-	}
+    return currentTemplate;
+  }
 
-	
-	@Override
-	/**
-	 * Create an Execution Plan from the Expanded Template
-	 * @param template The Expanded Template
-	 * @return The Execution Plan
-	 */
-	public ExecutionPlan getExecutionPlan(Template template) {
-	  this.addExplanation("INFO: --------- Creating an execution plan ---------");
-	  
-		try {
-			String planid = UuidGen.generateURIUuid((URIEntity)template);
-			ExecutionPlan plan = PlanFactory.createExecutionPlan(planid, props);
+  @Override
+  /**
+   * Create an Execution Plan from the Expanded Template
+   * @param template The Expanded Template
+   * @return The Execution Plan
+   */
+  public ExecutionPlan getExecutionPlan(Template template) {
+    this.addExplanation("INFO: --------- Creating an execution plan ---------");
+
+    try {
+      String planid = UuidGen.generateURIUuid((URIEntity) template);
+      ExecutionPlan plan = PlanFactory.createExecutionPlan(planid, props);
 
       DataTree dtree = dcc.getDatatypeHierarchy();
       HashMap<String, String> dparents = dtree.getParents();
-      
-			HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
-			HashMap<ExecutionStep, Node> sensorNodeMap = new HashMap<ExecutionStep, Node>();
-			
-			for(Node n : template.getNodes()) {
-			  // If this is an inactive node
-			  if(n.isInactive()) {
-			    plan.setIsIncomplete(true);
-			    for(Variable v: template.getInputVariables(n)) {
-			      // This node is inactive due to an input having a breakpoint
-			      if(v.isBreakpoint()) {
-			        // Check that the input is an output of an active node
-			        boolean activeVariable = true;
-			        for(Link l: template.getLinks(v)) {
-			          if(l.getOriginNode() != null && l.getOriginNode().isInactive())
-			            activeVariable = false;
-			        }
-			        if(!activeVariable)
-			          continue;
-			        
-  		        // Check if this input datatype has a sensor.
-  		        String vtype = null;
-  		        for(KBTriple triple : template.getConstraintEngine().getConstraints(v.getID())) {
-  		          if(triple.getPredicate().getID().equals(KBUtils.RDF + "type")) {
-  		            vtype = triple.getObject().getID();
-  		          }
-  		        }
-  		        String sensorcid = null;
-  		        while(vtype != null && sensorcid == null) {
-  		          String scid = dcc.getTypeSensor(vtype);
-  		          if(scid == null) {
-  		            vtype = dparents.get(vtype);
-  		          } else {
-  		            sensorcid = scid;
-  		            break;
-  		          }
-  		        }
-  		        if(sensorcid != null) {
-  		          System.out.println("Need to run sensor: " + sensorcid + " for " + v.getName());
-  
+
+      HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
+      HashMap<ExecutionStep, Node> sensorNodeMap =
+        new HashMap<ExecutionStep, Node>();
+
+      for (Node n : template.getNodes()) {
+        // If this is an inactive node
+        if (n.isInactive()) {
+          plan.setIsIncomplete(true);
+          for (Variable v : template.getInputVariables(n)) {
+            // This node is inactive due to an input having a breakpoint
+            if (v.isBreakpoint()) {
+              // Check that the input is an output of an active node
+              boolean activeVariable = true;
+              for (Link l : template.getLinks(v)) {
+                if (
+                  l.getOriginNode() != null && l.getOriginNode().isInactive()
+                ) activeVariable = false;
+              }
+              if (!activeVariable) continue;
+
+              // Check if this input datatype has a sensor.
+              String vtype = null;
+              for (KBTriple triple : template
+                .getConstraintEngine()
+                .getConstraints(v.getID())) {
+                if (
+                  triple.getPredicate().getID().equals(KBUtils.RDF + "type")
+                ) {
+                  vtype = triple.getObject().getID();
+                }
+              }
+              String sensorcid = null;
+              while (vtype != null && sensorcid == null) {
+                String scid = dcc.getTypeSensor(vtype);
+                if (scid == null) {
+                  vtype = dparents.get(vtype);
+                } else {
+                  sensorcid = scid;
+                  break;
+                }
+              }
+              if (sensorcid != null) {
+                System.out.println(
+                  "Need to run sensor: " + sensorcid + " for " + v.getName()
+                );
+
                 // Create a sensor component variable with correct bindings
-  		          Component c = this.ccc.getComponent(sensorcid, true);
-  		          ComponentVariable cv = new ComponentVariable(c.getID());
-  		          cv.setBinding(new Binding(c.getID()));
-  		          
-  		          Binding bin = v.getBinding();
-  		          Binding bout = new Binding(bin.getID()+ ExecutionFile.metaExtension);
-  		          bout.setLocation(bin.getLocation() + ExecutionFile.metaExtension);
-  
-  		          LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<Role, Variable>();
-  		          ArrayList<ComponentRole> inroles = c.getInputs();
-  		          ArrayList<ComponentRole> outroles = c.getOutputs();
-  		          if(inroles.size() == 1 && outroles.size() == 1) {
-  		            Role irole = new Role(c.getID()+"_in");
-  		            Role orole = new Role(c.getID()+"_out");
-  		            irole.setRoleId(inroles.get(0).getRoleName());
-  		            orole.setRoleId(outroles.get(0).getRoleName());
-  		            Variable vin = new Variable(irole.getID(), VariableType.DATA);
-  		            Variable vout = new Variable(orole.getID(), VariableType.DATA);
+                Component c = this.ccc.getComponent(sensorcid, true);
+                ComponentVariable cv = new ComponentVariable(c.getID());
+                cv.setBinding(new Binding(c.getID()));
+
+                Binding bin = v.getBinding();
+                Binding bout = new Binding(
+                  bin.getID() + ExecutionFile.metaExtension
+                );
+                bout.setLocation(
+                  bin.getLocation() + ExecutionFile.metaExtension
+                );
+
+                LinkedHashMap<Role, Variable> roleMap =
+                  new LinkedHashMap<Role, Variable>();
+                ArrayList<ComponentRole> inroles = c.getInputs();
+                ArrayList<ComponentRole> outroles = c.getOutputs();
+                if (inroles.size() == 1 && outroles.size() == 1) {
+                  Role irole = new Role(c.getID() + "_in");
+                  Role orole = new Role(c.getID() + "_out");
+                  irole.setRoleId(inroles.get(0).getRoleName());
+                  orole.setRoleId(outroles.get(0).getRoleName());
+                  Variable vin = new Variable(irole.getID(), VariableType.DATA);
+                  Variable vout = new Variable(
+                    orole.getID(),
+                    VariableType.DATA
+                  );
                   vin.setBinding(bin);
                   vout.setBinding(bout);
-  		            roleMap.put(irole, vin);
-  		            roleMap.put(orole, vout);
-  		            
-  	               // Add this sensor component to the plan
-  	              ExecutionStep sensor_step = this.getExecutionStep(sensorcid + "_" + bin.getName(), cv, roleMap, n.getMachineIds());
-  	              plan.addExecutionStep(sensor_step);
-  	              sensorNodeMap.put(sensor_step, n);
-  		          }
-  		          else {
-                  System.err.println("Sensor component should have exactly 1 input and output");
-  		          }
-  		        }
-			      }
-			    }
-			    continue;
-			  }
-			  
-				LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<Role, Variable>();
-				for (Link outputLink : template.getOutputLinks(n)) {
-				  Role or = outputLink.getOriginPort().getRole();
-				  Role r = new Role(or.getID());
-				  r.setRoleId(or.getRoleId());
-					roleMap.put(r, outputLink.getVariable());
-				}
-				for (Link inputLink : template.getInputLinks(n)) {
+                  roleMap.put(irole, vin);
+                  roleMap.put(orole, vout);
+
+                  // Add this sensor component to the plan
+                  ExecutionStep sensor_step =
+                    this.getExecutionStep(
+                        sensorcid + "_" + bin.getName(),
+                        cv,
+                        roleMap,
+                        n.getMachineIds()
+                      );
+                  plan.addExecutionStep(sensor_step);
+                  sensorNodeMap.put(sensor_step, n);
+                } else {
+                  System.err.println(
+                    "Sensor component should have exactly 1 input and output"
+                  );
+                }
+              }
+            }
+          }
+          continue;
+        }
+
+        LinkedHashMap<Role, Variable> roleMap =
+          new LinkedHashMap<Role, Variable>();
+        for (Link outputLink : template.getOutputLinks(n)) {
+          Role or = outputLink.getOriginPort().getRole();
+          Role r = new Role(or.getID());
+          r.setRoleId(or.getRoleId());
+          roleMap.put(r, outputLink.getVariable());
+        }
+        for (Link inputLink : template.getInputLinks(n)) {
           Role dr = inputLink.getDestinationPort().getRole();
           Role r = new Role(dr.getID());
           r.setRoleId(dr.getRoleId());
-					roleMap.put(r, inputLink.getVariable());
-				}
-				ExecutionStep step = this.getExecutionStep(n.getID(), n.getComponentVariable(), roleMap, n.getMachineIds());
-				step.setSkip(n.isSkip());
-				
-				plan.addExecutionStep(step);
-				nodeMap.put(n,  step);
-			}
-			
-			// Add Parent Steps
-			for(Node n : template.getNodes()) {
-			  if(n.isInactive())
-			    continue;
-				ExecutionStep step = nodeMap.get(n);
-				if(step != null) {
-				  ArrayList<Node> parentNodes = this.getParentNodes(n, template);
-  				for(Node originNode : parentNodes) {
-  					ExecutionStep parentStep = nodeMap.get(originNode);
-  					if(parentStep != null)
-  					  step.addParentStep(parentStep);
-  				}
-				}
-			}
-			// Add Parent steps for Sensors
-			for(ExecutionStep sensor_step: sensorNodeMap.keySet()) {
-        for(Node parent_node: this.getParentNodes(sensorNodeMap.get(sensor_step), template)) {
+          roleMap.put(r, inputLink.getVariable());
+        }
+        ExecutionStep step =
+          this.getExecutionStep(
+              n.getID(),
+              n.getComponentVariable(),
+              roleMap,
+              n.getMachineIds()
+            );
+        step.setSkip(n.isSkip());
+
+        plan.addExecutionStep(step);
+        nodeMap.put(n, step);
+      }
+
+      // Add Parent Steps
+      for (Node n : template.getNodes()) {
+        if (n.isInactive()) continue;
+        ExecutionStep step = nodeMap.get(n);
+        if (step != null) {
+          ArrayList<Node> parentNodes = this.getParentNodes(n, template);
+          for (Node originNode : parentNodes) {
+            ExecutionStep parentStep = nodeMap.get(originNode);
+            if (parentStep != null) step.addParentStep(parentStep);
+          }
+        }
+      }
+      // Add Parent steps for Sensors
+      for (ExecutionStep sensor_step : sensorNodeMap.keySet()) {
+        for (Node parent_node : this.getParentNodes(
+            sensorNodeMap.get(sensor_step),
+            template
+          )) {
           ExecutionStep parent_step = nodeMap.get(parent_node);
           sensor_step.addParentStep(parent_step);
         }
-			}
-			
-			return plan;
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	private ArrayList<Node> getParentNodes(Node node, Template template) {
-	  ArrayList<Node> list = new ArrayList<Node>();
-	  for(Link l : template.getInputLinks(node)) {
-	    Node originNode = l.getOriginNode();
-	    if(originNode != null) {
-  	    if(originNode.isSkip()) {
-  	      list.addAll(this.getParentNodes(originNode, template));
-  	    }
-  	    else {
-  	      list.add(originNode);
-  	    }
-	    }
-	  }
-	  return list;
-	}
-	
-	private ExecutionStep getExecutionStep(String sid, ComponentVariable c, 
-	    LinkedHashMap<Role, Variable> roleMap, ArrayList<String> machineIds) {
+      }
+
+      return plan;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  private ArrayList<Node> getParentNodes(Node node, Template template) {
+    ArrayList<Node> list = new ArrayList<Node>();
+    for (Link l : template.getInputLinks(node)) {
+      Node originNode = l.getOriginNode();
+      if (originNode != null) {
+        if (originNode.isSkip()) {
+          list.addAll(this.getParentNodes(originNode, template));
+        } else {
+          list.add(originNode);
+        }
+      }
+    }
+    return list;
+  }
+
+  private ExecutionStep getExecutionStep(
+    String sid,
+    ComponentVariable c,
+    LinkedHashMap<Role, Variable> roleMap,
+    ArrayList<String> machineIds
+  ) {
     ExecutionStep step = PlanFactory.createExecutionStep(sid, props);
     step.setMachineIds(machineIds);
     // TODO: Plan should save internally using runOn/canRunOn
 
-    ComponentPacket mapsComponentDetails = new ComponentPacket(c, roleMap, new ArrayList<KBTriple>());
+    ComponentPacket mapsComponentDetails = new ComponentPacket(
+      c,
+      roleMap,
+      new ArrayList<KBTriple>()
+    );
 
     // Query 4.5
-    ComponentInvocation invocation = this.pc.getComponentInvocation(mapsComponentDetails);
+    ComponentInvocation invocation =
+      this.pc.getComponentInvocation(mapsComponentDetails);
 
-    if(invocation == null) {
-      System.err.println("Cannot create invocation for "+c.getBinding());
+    if (invocation == null) {
+      System.err.println("Cannot create invocation for " + c.getBinding());
       return null;
     }
-    
+
     ExecutionCode code = new ExecutionCode(invocation.getComponentId());
     code.setLocation(invocation.getComponentLocation());
     code.setCodeDirectory(invocation.getComponentDirectory());
     step.setCodeBinding(code);
-    
-    HashMap<String, ArrayList<Object>> argMaps = new HashMap<String, ArrayList<Object>>(); 
-    for(ComponentInvocation.Argument arg : invocation.getArguments()) {
+
+    HashMap<String, ArrayList<Object>> argMaps =
+      new HashMap<String, ArrayList<Object>>();
+    for (ComponentInvocation.Argument arg : invocation.getArguments()) {
       ArrayList<Object> cur = argMaps.get(arg.getName());
-      if(cur == null)
-        cur = new ArrayList<Object>();
-      if(arg.getValue() instanceof Binding) {
-        Binding b = (Binding)arg.getValue();
+      if (cur == null) cur = new ArrayList<Object>();
+      if (arg.getValue() instanceof Binding) {
+        Binding b = (Binding) arg.getValue();
         String varid = arg.getVariableid();
         ExecutionFile file = new ExecutionFile(varid);
-        
+
         String location = dc.getDataLocation(b.getID());
-        if(location == null) {
+        if (location == null) {
           location = dc.getDefaultDataLocation(b.getID());
         }
         file.setLocation(location);
         file.setBinding(b.getName());
-        if(arg.isInput())
-          step.addInputFile(file);
-        else
-          step.addOutputFile(file);
+        if (arg.isInput()) step.addInputFile(file); else step.addOutputFile(
+          file
+        );
         cur.add(file);
-      }
-      else {
+      } else {
         cur.add(arg.getValue().toString());
       }
       argMaps.put(arg.getName(), cur);
     }
     step.setInvocationArguments(argMaps);
     return step;
-	}
-	
-	/**
-	 * Return an Expanded template
-	 * (i.e. a template with all component and data collections expanded)
-	 * Note this template differs slightly from other templates in the following ways:
-	 * 		- No collections at all (component or data)
-	 * 		- There can be more than one link to a port (i.e. expansion of a collection as an input to that port)
-	 */
-	@SuppressWarnings("unchecked")
-  public Template getExpandedTemplate(Template template) {
-	  this.addExplanation("INFO: --------- Expanding the template into a workflow instance ---------");
-	  
-		Template curt = new TemplateKB((TemplateKB)template);
-		curt.setID(UuidGen.generateURIUuid((URIEntity)template));
-		// Convert to execution prefix id
-		curt.setID(this.exPrefix + "/" + curt.getName() + ".owl#" + curt.getName());
-		
-		String ns = curt.getNamespace();
-				
-		int jobCounter = 0;
-		ArrayList<Node> nodesDone = new ArrayList<Node>();
-		HashMap<String, Variable> newVariables = new HashMap<String, Variable>();
-		
-		// Investigate input links
-		ArrayList<Link> investigateLinks = new ArrayList<Link>();
-		for (Link link : template.getInputLinks()) {
-			investigateLinks.add(link);
-		}
-		while (!investigateLinks.isEmpty()) {
-			Link currentLink = investigateLinks.remove(0);
-			if (!currentLink.isOutputLink()) {
-				Node destNode = currentLink.getDestinationNode();
-				
-				if (!nodesDone.contains(destNode)) {
-					// Check all input links to this node have been already processed
-					// If not, re-add back to queue
-					Link[] inputLinks = template.getInputLinks(destNode);
-					boolean all_inputs_processed = true;
-					for (Link inputLink : inputLinks) {
-						if(inputLink.getOriginNode() != null && !nodesDone.contains(inputLink.getOriginNode())) {
-							all_inputs_processed = false;
-							break;
-						}
-					}
-					if(!all_inputs_processed) {
-						investigateLinks.add(currentLink);
-						continue;
-					}
-					nodesDone.add(destNode);
-					ComponentVariable component = destNode.getComponentVariable();
-			     
-					boolean compCollection = false;
-					// Expand the component bindings into multiple nodes
-					ArrayList<Binding> cbindings = new ArrayList<Binding>();
-					cbindings.add(component.getBinding());
-					while (!cbindings.isEmpty()) {
-						Binding cbinding = cbindings.remove(0);
-						if (cbinding.isSet()) {
-						  if(cbinding.size() > 1) {
-						    compCollection = true;
-						  }
-							for (WingsSet s : cbinding) {
-								cbindings.add((Binding) s);
-							}
-						} else {
-							ComponentVariable c = new ComponentVariable(ns+cbinding.getName());
-							c.setConcrete(true);
-							c.setBinding(new Binding(cbinding.getID(), cbinding.getVersion()));
-							//c.setBinding(new Binding(ns + cbinding.getName()));
-							
-							// Create a new Node
-							Node newNode = curt.addNode(c);
-							newNode.setDerivedFrom(destNode.getID());
-							
-							//newNode.addComponentSetRule(destNode.getComponentSetRule());
-							//newNode.addPortSetRule(destNode.getPortSetRule());
-							newNode.setComment(destNode.getComment());
+  }
 
-							newNode.setMachineIds((ArrayList<String>)
-							    cbinding.getData("machineIds"));
-							
-							// Get data bindings for this component binding
-							PortBindingList pb = (PortBindingList) cbinding.getData();
-							
-							// Check all input links to this node
-							for (Link inputLink : inputLinks) {
-								Variable variable = inputLink.getVariable();
-								
-								Port oldport = inputLink.getDestinationPort();
-								String portid = ns + oldport.getName() + "_" + 
-								    String.format("%04d", jobCounter);
-								
-								Port newPort = newNode.findInputPort(portid);
-								// Create a new port
-								if(newPort == null) {
-									newPort = new Port(portid);
-									Role r = new Role(ns + oldport.getRole().getName());
-									r.setDimensionality(0);
-									r.setRoleId(oldport.getRole().getRoleId());
-									r.setType(oldport.getRole().getType());
-									newPort.setRole(r);
-									newNode.addInputPort(newPort);
-								}							
-								
-								// Get port bindings
-								Binding xb = getPortBinding(pb.getPortBinding(), inputLink.getDestinationPort());
-								
-								// Check if we've already created a variable for this binding 
-								// (or it's sub-bindings in case the variable binding is a collection)
-								ArrayList<Binding> queue = new ArrayList<Binding>();
-								queue.add(xb);
-								boolean dataCollection = false;
-								while(!queue.isEmpty()) {
-									Binding cb = queue.remove(0);
-									if(cb == null)
-									  continue;
-									// Expanding collections into multiple variables
-									if(cb.isSet()) {
-									  if(cb.size() > 1)
-									    dataCollection = true;
-										for(WingsSet sb : cb) {
-											queue.add((Binding)sb);
-										}
-										continue;
-									}
-									
-	                if(variable.isBreakpoint()) {
-	                  ExecutionFile file = new ExecutionFile(cb.getID());
-	                  String loc = dc.getDataLocation(cb.getID());
-	                  if(loc == null)
-	                    loc = dc.getDefaultDataLocation(cb.getID());
-	                  file.setLocation(loc);
-	                  file.loadMetadataFromLocation();
-	                  // If there is no metadata for a breakpoint
-	                  // Then mark the destination as inactive
-	                  if(file.getMetadata().isEmpty() && destNode != null)
-	                    newNode.setInactive(true);
-	                  //System.out.println(cb.getName()+"="+file.getMetadata());
-	                }
-                  
-									String varkey = cb.isValueBinding() ? variable.getName() : "";
-									varkey += cb.toString();
-									
-									Variable newVariable = newVariables.get(varkey);
-									if(newVariable != null) {
-										// Variable exists. Get it's links and modify them
-										Link[] curlinks = curt.getLinks(newVariable);
-										// If current link has no destination
-										// - Modify link to point to the new node as destination
-										// Else, add new links
-										for(Link l : curlinks) {
-		                  // If origin in inactive, set destination as inactive
-		                  if(l.getOriginNode() != null &&
-		                      l.getOriginNode().isInactive()) {
-		                    newNode.setInactive(true);
-		                  }
-											if(l.getDestinationNode() == null) {
-												l.setDestinationNode(newNode);
-												l.setDestinationPort(newPort);
-												curt.updateLinkDetails(l);
-											}
-											else {
-												Link curl = curt.getLink(l.getOriginNode(), newNode,  l.getOriginPort(), newPort);
-												if(curl == null || !newVariable.equals(curl.getVariable())) 
-													curt.addLink(l.getOriginNode(), newNode, l.getOriginPort(), newPort, newVariable);
-											}
-										}
-									}
-									else {
-										// Input Variable doesn't exist. Create a new variable and link
-										newVariable = curt.addVariable(ns + variable.getName(), 
-										    variable.getVariableType(),
-										    dataCollection || compCollection);
-										newVariable.setBinding(cb);
-										newVariable.setDerivedFrom(variable.getID());
-										newVariable.setBreakpoint(variable.isBreakpoint());
-										newVariables.put(varkey, newVariable);
-										
-										// Add new input link
-										curt.addLink(null, newNode, null, newPort, newVariable);
-										
-										// Add Binding metrics as constraints
-										curt.getConstraintEngine().addConstraints(
-												this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
-										
+  /**
+   * Return an Expanded template
+   * (i.e. a template with all component and data collections expanded)
+   * Note this template differs slightly from other templates in the following ways:
+   * 		- No collections at all (component or data)
+   * 		- There can be more than one link to a port (i.e. expansion of a collection as an input to that port)
+   */
+  @SuppressWarnings("unchecked")
+  public Template getExpandedTemplate(Template template) {
+    this.addExplanation(
+        "INFO: --------- Expanding the template into a workflow instance ---------"
+      );
+
+    Template curt = new TemplateKB((TemplateKB) template);
+    curt.setID(UuidGen.generateURIUuid((URIEntity) template));
+    // Convert to execution prefix id
+    curt.setID(this.exPrefix + "/" + curt.getName() + ".owl#" + curt.getName());
+
+    String ns = curt.getNamespace();
+
+    int jobCounter = 0;
+    ArrayList<Node> nodesDone = new ArrayList<Node>();
+    HashMap<String, Variable> newVariables = new HashMap<String, Variable>();
+
+    // Investigate input links
+    ArrayList<Link> investigateLinks = new ArrayList<Link>();
+    for (Link link : template.getInputLinks()) {
+      investigateLinks.add(link);
+    }
+    while (!investigateLinks.isEmpty()) {
+      Link currentLink = investigateLinks.remove(0);
+      if (!currentLink.isOutputLink()) {
+        Node destNode = currentLink.getDestinationNode();
+
+        if (!nodesDone.contains(destNode)) {
+          // Check all input links to this node have been already processed
+          // If not, re-add back to queue
+          Link[] inputLinks = template.getInputLinks(destNode);
+          boolean all_inputs_processed = true;
+          for (Link inputLink : inputLinks) {
+            if (
+              inputLink.getOriginNode() != null &&
+              !nodesDone.contains(inputLink.getOriginNode())
+            ) {
+              all_inputs_processed = false;
+              break;
+            }
+          }
+          if (!all_inputs_processed) {
+            investigateLinks.add(currentLink);
+            continue;
+          }
+          nodesDone.add(destNode);
+          ComponentVariable component = destNode.getComponentVariable();
+
+          boolean compCollection = false;
+          // Expand the component bindings into multiple nodes
+          ArrayList<Binding> cbindings = new ArrayList<Binding>();
+          cbindings.add(component.getBinding());
+          while (!cbindings.isEmpty()) {
+            Binding cbinding = cbindings.remove(0);
+            if (cbinding.isSet()) {
+              if (cbinding.size() > 1) {
+                compCollection = true;
+              }
+              for (WingsSet s : cbinding) {
+                cbindings.add((Binding) s);
+              }
+            } else {
+              ComponentVariable c = new ComponentVariable(
+                ns + cbinding.getName()
+              );
+              c.setConcrete(true);
+              c.setBinding(
+                new Binding(cbinding.getID(), cbinding.getVersion())
+              );
+              //c.setBinding(new Binding(ns + cbinding.getName()));
+
+              // Create a new Node
+              Node newNode = curt.addNode(c);
+              newNode.setDerivedFrom(destNode.getID());
+
+              //newNode.addComponentSetRule(destNode.getComponentSetRule());
+              //newNode.addPortSetRule(destNode.getPortSetRule());
+              newNode.setComment(destNode.getComment());
+
+              newNode.setMachineIds(
+                (ArrayList<String>) cbinding.getData("machineIds")
+              );
+
+              // Get data bindings for this component binding
+              PortBindingList pb = (PortBindingList) cbinding.getData();
+
+              // Check all input links to this node
+              for (Link inputLink : inputLinks) {
+                Variable variable = inputLink.getVariable();
+
+                Port oldport = inputLink.getDestinationPort();
+                String portid =
+                  ns +
+                  oldport.getName() +
+                  "_" +
+                  String.format("%04d", jobCounter);
+
+                Port newPort = newNode.findInputPort(portid);
+                // Create a new port
+                if (newPort == null) {
+                  newPort = new Port(portid);
+                  Role r = new Role(ns + oldport.getRole().getName());
+                  r.setDimensionality(0);
+                  r.setRoleId(oldport.getRole().getRoleId());
+                  r.setType(oldport.getRole().getType());
+                  newPort.setRole(r);
+                  newNode.addInputPort(newPort);
+                }
+
+                // Get port bindings
+                Binding xb = getPortBinding(
+                  pb.getPortBinding(),
+                  inputLink.getDestinationPort()
+                );
+
+                // Check if we've already created a variable for this binding
+                // (or it's sub-bindings in case the variable binding is a collection)
+                ArrayList<Binding> queue = new ArrayList<Binding>();
+                queue.add(xb);
+                boolean dataCollection = false;
+                while (!queue.isEmpty()) {
+                  Binding cb = queue.remove(0);
+                  if (cb == null) continue;
+                  // Expanding collections into multiple variables
+                  if (cb.isSet()) {
+                    if (cb.size() > 1) dataCollection = true;
+                    for (WingsSet sb : cb) {
+                      queue.add((Binding) sb);
+                    }
+                    continue;
+                  }
+
+                  if (variable.isBreakpoint()) {
+                    ExecutionFile file = new ExecutionFile(cb.getID());
+                    String loc = dc.getDataLocation(cb.getID());
+                    if (loc == null) loc =
+                      dc.getDefaultDataLocation(cb.getID());
+                    file.setLocation(loc);
+                    file.loadMetadataFromLocation();
+                    // If there is no metadata for a breakpoint
+                    // Then mark the destination as inactive
+                    if (
+                      file.getMetadata().isEmpty() && destNode != null
+                    ) newNode.setInactive(true);
+                    //System.out.println(cb.getName()+"="+file.getMetadata());
+                  }
+
+                  String varkey = cb.isValueBinding() ? variable.getName() : "";
+                  varkey += cb.toString();
+
+                  Variable newVariable = newVariables.get(varkey);
+                  if (newVariable != null) {
+                    // Variable exists. Get it's links and modify them
+                    Link[] curlinks = curt.getLinks(newVariable);
+                    // If current link has no destination
+                    // - Modify link to point to the new node as destination
+                    // Else, add new links
+                    for (Link l : curlinks) {
+                      // If origin in inactive, set destination as inactive
+                      if (
+                        l.getOriginNode() != null &&
+                        l.getOriginNode().isInactive()
+                      ) {
+                        newNode.setInactive(true);
+                      }
+                      if (l.getDestinationNode() == null) {
+                        l.setDestinationNode(newNode);
+                        l.setDestinationPort(newPort);
+                        curt.updateLinkDetails(l);
+                      } else {
+                        Link curl = curt.getLink(
+                          l.getOriginNode(),
+                          newNode,
+                          l.getOriginPort(),
+                          newPort
+                        );
+                        if (
+                          curl == null ||
+                          !newVariable.equals(curl.getVariable())
+                        ) curt.addLink(
+                          l.getOriginNode(),
+                          newNode,
+                          l.getOriginPort(),
+                          newPort,
+                          newVariable
+                        );
+                      }
+                    }
+                  } else {
+                    // Input Variable doesn't exist. Create a new variable and link
+                    newVariable =
+                      curt.addVariable(
+                        ns + variable.getName(),
+                        variable.getVariableType(),
+                        dataCollection || compCollection
+                      );
+                    newVariable.setBinding(cb);
+                    newVariable.setDerivedFrom(variable.getID());
+                    newVariable.setBreakpoint(variable.isBreakpoint());
+                    newVariables.put(varkey, newVariable);
+
+                    // Add new input link
+                    curt.addLink(null, newNode, null, newPort, newVariable);
+
+                    // Add Binding metrics as constraints
+                    curt
+                      .getConstraintEngine()
+                      .addConstraints(
+                        this.convertMetricsToTriples(
+                            cb.getMetrics(),
+                            newVariable.getID()
+                          )
+                      );
+
                     // Remove original variable constraints
-                    for(KBTriple t : curt.getConstraintEngine().getConstraints(variable.getID())) {
+                    for (KBTriple t : curt
+                      .getConstraintEngine()
+                      .getConstraints(variable.getID())) {
                       curt.getConstraintEngine().removeConstraint(t);
                     }
                   }
-								}
-							}
+                }
+              }
 
-              if(cbinding.getData("skip") != null && (Boolean) cbinding.getData("skip") == true) {
+              if (
+                cbinding.getData("skip") != null &&
+                (Boolean) cbinding.getData("skip") == true
+              ) {
                 newNode.setSkip(true);
-              } 
-              
-							// Get outputs from this node
-							Link[] outputLinks = template.getOutputLinks(destNode);
-							for (Link outputLink : outputLinks) {
-								Variable variable = outputLink.getVariable();
-								
-								Port oldport = outputLink.getOriginPort();
-								String portid = ns + oldport.getName() + "_" + 
-                    String.format("%04d", jobCounter);
-								Port newPort = newNode.findOutputPort(portid);
-								// Create a new port
-								if(newPort == null) {
-									newPort = new Port(portid);
-									Role r = new Role(ns + oldport.getRole().getName());
-									r.setDimensionality(0);
-									r.setRoleId(oldport.getRole().getRoleId());
-									r.setType(oldport.getRole().getType());
-									newPort.setRole(r);
-									newNode.addOutputPort(newPort);
-								}
-								
-								// Get port bindings
-								Binding xb = getPortBinding(pb.getPortBinding(), outputLink.getOriginPort());
+              }
 
-								// Add links for all non-collection variable bindings
-								ArrayList<Binding> queue = new ArrayList<Binding>();
-								queue.add(xb);
-								boolean dataCollection = false;
-								while(!queue.isEmpty()) {
-									Binding cb = queue.remove(0);
-									if(cb == null)
-										continue;
-									if(cb.isSet()) {
-									  if(cb.size() > 1)
-									    dataCollection = true;
-										for(WingsSet sb : cb)
-											queue.add((Binding)sb);
-										continue;
-									}
+              // Get outputs from this node
+              Link[] outputLinks = template.getOutputLinks(destNode);
+              for (Link outputLink : outputLinks) {
+                Variable variable = outputLink.getVariable();
 
-									// Check for existing variable
-									String varkey = cb.isValueBinding() ? variable.getName() : "";
-									varkey += cb.toString();
-									
-									Variable newVariable = newVariables.get(varkey);
-									boolean createNewOutputVariable = false;
-									if (newVariable == null) {
-									  createNewOutputVariable = true;
-									}
-									else {
-									  Link[] curlinks = curt.getLinks(newVariable);
-                    // If this link has destination as the current node 
-									  // (i.e. cyclic link, then create a new variable)
-                    for(Link l : curlinks) {
-                      if(l.getDestinationNode() != null &&
-                          l.getDestinationNode().getID().equals(newNode.getID())) {
+                Port oldport = outputLink.getOriginPort();
+                String portid =
+                  ns +
+                  oldport.getName() +
+                  "_" +
+                  String.format("%04d", jobCounter);
+                Port newPort = newNode.findOutputPort(portid);
+                // Create a new port
+                if (newPort == null) {
+                  newPort = new Port(portid);
+                  Role r = new Role(ns + oldport.getRole().getName());
+                  r.setDimensionality(0);
+                  r.setRoleId(oldport.getRole().getRoleId());
+                  r.setType(oldport.getRole().getType());
+                  newPort.setRole(r);
+                  newNode.addOutputPort(newPort);
+                }
+
+                // Get port bindings
+                Binding xb = getPortBinding(
+                  pb.getPortBinding(),
+                  outputLink.getOriginPort()
+                );
+
+                // Add links for all non-collection variable bindings
+                ArrayList<Binding> queue = new ArrayList<Binding>();
+                queue.add(xb);
+                boolean dataCollection = false;
+                while (!queue.isEmpty()) {
+                  Binding cb = queue.remove(0);
+                  if (cb == null) continue;
+                  if (cb.isSet()) {
+                    if (cb.size() > 1) dataCollection = true;
+                    for (WingsSet sb : cb) queue.add((Binding) sb);
+                    continue;
+                  }
+
+                  // Check for existing variable
+                  String varkey = cb.isValueBinding() ? variable.getName() : "";
+                  varkey += cb.toString();
+
+                  Variable newVariable = newVariables.get(varkey);
+                  boolean createNewOutputVariable = false;
+                  if (newVariable == null) {
+                    createNewOutputVariable = true;
+                  } else {
+                    Link[] curlinks = curt.getLinks(newVariable);
+                    // If this link has destination as the current node
+                    // (i.e. cyclic link, then create a new variable)
+                    for (Link l : curlinks) {
+                      if (
+                        l.getDestinationNode() != null &&
+                        l.getDestinationNode().getID().equals(newNode.getID())
+                      ) {
                         createNewOutputVariable = true;
                       }
                     }
-									}
-									
-									if(createNewOutputVariable) {
-										// Create a new variable
-										newVariable = curt.addVariable(ns + variable.getName(), 
-										    variable.getVariableType(),
-										    compCollection || dataCollection);
-										newVariable.setBinding(cb);
-										// TODO: Set the output data binding to the compatible input if newNode skip is true
-										newVariable.setDerivedFrom(variable.getID());
-										newVariable.setBreakpoint(variable.isBreakpoint());
-										newVariables.put(varkey, newVariable);
-									}
-									
-									// Add new output link
-									curt.addLink(newNode, null, newPort, null, newVariable);
-
-									// Add Binding metrics as constraints
-									curt.getConstraintEngine().addConstraints(
-											this.convertMetricsToTriples(cb.getMetrics(), newVariable.getID()));
-
-                  // Remove original variable constraints
-                  for(KBTriple t : curt.getConstraintEngine().getConstraints(variable.getID())) {
-                    curt.getConstraintEngine().removeConstraint(t);
                   }
 
-								}
+                  if (createNewOutputVariable) {
+                    // Create a new variable
+                    newVariable =
+                      curt.addVariable(
+                        ns + variable.getName(),
+                        variable.getVariableType(),
+                        compCollection || dataCollection
+                      );
+                    newVariable.setBinding(cb);
+                    // TODO: Set the output data binding to the compatible input if newNode skip is true
+                    newVariable.setDerivedFrom(variable.getID());
+                    newVariable.setBreakpoint(variable.isBreakpoint());
+                    newVariables.put(varkey, newVariable);
+                  }
 
-								// Add outputLink to Navigate and investigate further
-								if(!investigateLinks.contains(outputLink))
-									investigateLinks.add(outputLink);
-							}
+                  // Add new output link
+                  curt.addLink(newNode, null, newPort, null, newVariable);
 
-							jobCounter++;
-						}
-					}
-				}
-			}
-		}
-		
-		return curt;
-	}
-	
+                  // Add Binding metrics as constraints
+                  curt
+                    .getConstraintEngine()
+                    .addConstraints(
+                      this.convertMetricsToTriples(
+                          cb.getMetrics(),
+                          newVariable.getID()
+                        )
+                    );
 
-	/*
-	 * 
-	 * Private Helper functions below
-	 * 
-	 */
-	
-	@SuppressWarnings("unused")
-	private boolean hasEmptyPortBindings(Binding cb) {
-		ArrayList<Binding> cbindings = new ArrayList<Binding>();
-		cbindings.add(cb);
-		while (!cbindings.isEmpty()) {
-			Binding cbinding = cbindings.remove(0);
-			if (cbinding.isSet()) {
-				for (WingsSet s : cbinding) {
-					cbindings.add((Binding)s);
-				}
-			} else {
-				// Get data bindings for this component binding
-				PortBindingList pb = (PortBindingList) cbinding.getData();
-				if(pb.isEmpty())
-					return true;
-			}
-		}
-		return false;
-	}
-	
-	private Binding getPortBinding(PortBinding pb, Port port) {
-		for (Port p : pb.keySet()) {
-			if (p.getID().equals(port.getID()))
-				return pb.get(p);
-		}
-		return null;
-	}
+                  // Remove original variable constraints
+                  for (KBTriple t : curt
+                    .getConstraintEngine()
+                    .getConstraints(variable.getID())) {
+                    curt.getConstraintEngine().removeConstraint(t);
+                  }
+                }
 
-	private void addExplanations(HashSet<String> exp) {
-	  this.explanations.addAll(exp);
-	}
+                // Add outputLink to Navigate and investigate further
+                if (
+                  !investigateLinks.contains(outputLink)
+                ) investigateLinks.add(outputLink);
+              }
 
-	private void addExplanation(String exp) {
-		this.explanations.add(exp);
-	}
-	
-	
-	/**
-	 * modifies the template by replacing abstract component (if any) with a
-	 * concrete component and adds constraints. Note: For component sets: Union
-	 * the variables, and intersect the constraints
-	 * 
-	 * @param template
-	 *            the template to modify
-	 * @param node
-	 *            the node to modify
-	 * @param cmrs
-	 *            an array of ComponentMapAndRequirements (the component,
-	 *            roleMap, outputMaps, and constraints)
-	 */
-	private boolean modifyTemplate(Template template, Node node, ComponentPacket[] cmrs) {
+              jobCounter++;
+            }
+          }
+        }
+      }
+    }
 
-		Node tNode = template.getNode(node.getID());
+    return curt;
+  }
 
-		HashSet<String> curbindingIds = new HashSet<String>();
-		if (tNode.getComponentVariable().getBinding() != null)
-			for (WingsSet b : tNode.getComponentVariable().getBinding()) {
-				curbindingIds.add(((Binding) b).getID());
-			}
+  /*
+   *
+   * Private Helper functions below
+   *
+   */
 
-		// Combine all cmrs into one cmr:
-		// -- union of variables (maps), and intersection of their constraints
-		// (redboxes)
+  @SuppressWarnings("unused")
+  private boolean hasEmptyPortBindings(Binding cb) {
+    ArrayList<Binding> cbindings = new ArrayList<Binding>();
+    cbindings.add(cb);
+    while (!cbindings.isEmpty()) {
+      Binding cbinding = cbindings.remove(0);
+      if (cbinding.isSet()) {
+        for (WingsSet s : cbinding) {
+          cbindings.add((Binding) s);
+        }
+      } else {
+        // Get data bindings for this component binding
+        PortBindingList pb = (PortBindingList) cbinding.getData();
+        if (pb.isEmpty()) return true;
+      }
+    }
+    return false;
+  }
 
-		HashMap<String, Variable> uMap = new HashMap<String, Variable>();
-		HashMap<String, Boolean> inputRoles = new HashMap<String, Boolean>();
+  private Binding getPortBinding(PortBinding pb, Port port) {
+    for (Port p : pb.keySet()) {
+      if (p.getID().equals(port.getID())) return pb.get(p);
+    }
+    return null;
+  }
 
-		ArrayList<KBTriple> uRedbox = new ArrayList<KBTriple>();
-		Binding uBinding = null;
+  private void addExplanations(HashSet<String> exp) {
+    this.explanations.addAll(exp);
+  }
 
-		int i = 0;
-		for (ComponentPacket cmr : cmrs) {
-			ComponentVariable component = cmr.getComponent();
+  private void addExplanation(String exp) {
+    this.explanations.add(exp);
+  }
 
-			// FIXME: Handle Template Bindings ?
-			if (!curbindingIds.isEmpty() && !curbindingIds.contains(component.getBinding().getID()))
-				continue;
-			if (!component.isTemplate()) {
-				if (uBinding == null)
-					uBinding = new Binding();
-				uBinding.add(new Binding(component.getBinding().getID(), component.getBinding().getVersion()));
-			} else {
-				if (uBinding == null)
-					uBinding = new ValueBinding();
-				uBinding.add(new ValueBinding(component.getTemplate()));
-			}
+  /**
+   * modifies the template by replacing abstract component (if any) with a
+   * concrete component and adds constraints. Note: For component sets: Union
+   * the variables, and intersect the constraints
+   *
+   * @param template
+   *            the template to modify
+   * @param node
+   *            the node to modify
+   * @param cmrs
+   *            an array of ComponentMapAndRequirements (the component,
+   *            roleMap, outputMaps, and constraints)
+   */
+  private boolean modifyTemplate(
+    Template template,
+    Node node,
+    ComponentPacket[] cmrs
+  ) {
+    Node tNode = template.getNode(node.getID());
 
-			HashMap<String, Variable> map = cmr.getStringRoleMaps();
-			uMap.putAll(map);
+    HashSet<String> curbindingIds = new HashSet<String>();
+    if (
+      tNode.getComponentVariable().getBinding() != null
+    ) for (WingsSet b : tNode.getComponentVariable().getBinding()) {
+      curbindingIds.add(((Binding) b).getID());
+    }
 
-			for (Role r : cmr.getRoleMap().keySet()) {
-				inputRoles.put(r.getRoleId(), cmr.isInputRole(r.getRoleId()));
-			}
+    // Combine all cmrs into one cmr:
+    // -- union of variables (maps), and intersection of their constraints
+    // (redboxes)
 
-			if (i > 0) {
-				// TODO: Mark variables that are not common (?)
-			}
+    HashMap<String, Variable> uMap = new HashMap<String, Variable>();
+    HashMap<String, Boolean> inputRoles = new HashMap<String, Boolean>();
 
-			ArrayList<KBTriple> redbox = cmr.getRequirements();
-			ArrayList<String> redboxStr = new ArrayList<String>();
-			for (KBTriple kbTriple : redbox) {
-				redboxStr.add(kbTriple.fullForm());
-			}
+    ArrayList<KBTriple> uRedbox = new ArrayList<KBTriple>();
+    Binding uBinding = null;
 
-			if (i == 0) {
-				uRedbox.addAll(redbox);
-			} else {
-				for (KBTriple kbTriple : new ArrayList<KBTriple>(uRedbox)) {
-					if (!redboxStr.contains(kbTriple.fullForm())) {
-						uRedbox.remove(kbTriple);
-					}
-				}
-			}
-			i++;
-		}
-		if (uBinding == null)
-			return false;
+    int i = 0;
+    for (ComponentPacket cmr : cmrs) {
+      ComponentVariable component = cmr.getComponent();
 
-		tNode.getComponentVariable().setBinding(uBinding);
-		tNode.getComponentVariable().setConcrete(true);
+      // FIXME: Handle Template Bindings ?
+      if (
+        !curbindingIds.isEmpty() &&
+        !curbindingIds.contains(component.getBinding().getID())
+      ) continue;
+      if (!component.isTemplate()) {
+        if (uBinding == null) uBinding = new Binding();
+        uBinding.add(
+          new Binding(
+            component.getBinding().getID(),
+            component.getBinding().getVersion()
+          )
+        );
+      } else {
+        if (uBinding == null) uBinding = new ValueBinding();
+        uBinding.add(new ValueBinding(component.getTemplate()));
+      }
 
-		HashMap<String, String> idChanged = new HashMap<String, String>();
+      HashMap<String, Variable> map = cmr.getStringRoleMaps();
+      uMap.putAll(map);
 
-		// Specialize Link ComponentParams, & Create New Links if there are any
-		// *New* variables introduced
-		HashMap<String, Role> nodeRoles = new HashMap<String, Role>();
-		for (Port p : node.getInputPorts())
-			nodeRoles.put(p.getRole().getRoleId(), p.getRole());
-		for (Port p : node.getOutputPorts())
-			nodeRoles.put(p.getRole().getRoleId(), p.getRole());
+      for (Role r : cmr.getRoleMap().keySet()) {
+        inputRoles.put(r.getRoleId(), cmr.isInputRole(r.getRoleId()));
+      }
 
-		for (String sRoleId : uMap.keySet()) {
-			Variable svar = uMap.get(sRoleId);
-			Role r = nodeRoles.get(sRoleId);
-			if (r == null) {
-				// If new argument found, then create a new Link
-				
-				boolean isInput = inputRoles.get(sRoleId);
-				
-				// Create a new variable
-				String varid = node.getNamespace() + svar.getName();
-				Variable var = template.addVariable(varid, svar.getVariableType());
-				idChanged.put(svar.getID(), varid);
+      if (i > 0) {
+        // TODO: Mark variables that are not common (?)
+      }
 
-				// Create a new Port
-				int count = 1;
-				String ptype = isInput ? "ip" : "op";
-				String p_prefix = node.getID() + "_" + sRoleId + "_" + ptype;
-				while ((isInput && node.findInputPort(p_prefix + count) != null)
-						|| (!isInput && node.findOutputPort(p_prefix + count) != null)) {
-					count++;
-				}
-				Port p = new Port(p_prefix + count);
-				
-				// Create a new role for the port
-				r = new Role(p.getID() + "_role");
-				r.setRoleId(sRoleId);
-				p.setRole(r);
+      ArrayList<KBTriple> redbox = cmr.getRequirements();
+      ArrayList<String> redboxStr = new ArrayList<String>();
+      for (KBTriple kbTriple : redbox) {
+        redboxStr.add(kbTriple.fullForm());
+      }
 
-				// Create a new Link
-				if (isInput)
-					template.addLink(null, node, null, p, var);
-				else
-					template.addLink(node, null, p, null, var);
-				
-			} else {
-				// If a variable already exists for this argument/role
-				// Copy over data object binding to existing variable
-				Variable itvar = template.getVariable(svar.getID());
-				if (itvar != null) {
-					itvar.setBinding(svar.getBinding());
-				}
-				else {
-					// This isn't good
-					System.err.println("Unknown variable in template !");
-				}
-			}
-		}
-		// End for (String scp : uMap.keySet())
+      if (i == 0) {
+        uRedbox.addAll(redbox);
+      } else {
+        for (KBTriple kbTriple : new ArrayList<KBTriple>(uRedbox)) {
+          if (!redboxStr.contains(kbTriple.fullForm())) {
+            uRedbox.remove(kbTriple);
+          }
+        }
+      }
+      i++;
+    }
+    if (uBinding == null) return false;
 
-		ArrayList<KBTriple> newRedBox = new ArrayList<KBTriple>();
-		for (KBTriple kbTriple : uRedbox) {
-			if (idChanged.containsKey(kbTriple.getSubject().getID())) {
-				String newid = idChanged.get(kbTriple.getSubject().getID());
-				kbTriple.setSubject(template.getConstraintEngine().getResource(newid));
-			}
-			if (idChanged.containsKey(kbTriple.getObject().getID())) {
-				String newid = idChanged.get(kbTriple.getObject().getID());
-				kbTriple.setObject(template.getConstraintEngine().getResource(newid));
-			}
-			newRedBox.add(kbTriple);
-		}
+    tNode.getComponentVariable().setBinding(uBinding);
+    tNode.getComponentVariable().setConcrete(true);
 
-		template.getConstraintEngine().addConstraints(newRedBox);
-		return true;
-	}
+    HashMap<String, String> idChanged = new HashMap<String, String>();
 
-	private LogEvent getEvent(String evid) {
-		return new LogEvent(evid, "Wings", LogEvent.REQUEST_ID, this.request_id);
-	}
+    // Specialize Link ComponentParams, & Create New Links if there are any
+    // *New* variables introduced
+    HashMap<String, Role> nodeRoles = new HashMap<String, Role>();
+    for (Port p : node.getInputPorts()) nodeRoles.put(
+      p.getRole().getRoleId(),
+      p.getRole()
+    );
+    for (Port p : node.getOutputPorts()) nodeRoles.put(
+      p.getRole().getRoleId(),
+      p.getRole()
+    );
 
-	/**
-	 * Helper function to Group variable object bindings by the variable ids
-	 * passed in
-	 * 
-	 * @param listOfVariableObjectBindings
-	 *            the list of variable object bindings received from the Data
-	 *            Catalog
-	 * @param groupByVarIds
-	 *            list of variable ids that the bindings should be grouped by
-	 * 
-	 * @return the list of variable object bindings grouped by groupByIds
-	 */
+    for (String sRoleId : uMap.keySet()) {
+      Variable svar = uMap.get(sRoleId);
+      Role r = nodeRoles.get(sRoleId);
+      if (r == null) {
+        // If new argument found, then create a new Link
 
-	private ArrayList<VariableBindingsList> groupVariableDataObjectMappings(
-			ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings,
-			ArrayList<String> groupByVarIds, ArrayList<String> variableIds) {
-		HashMap<String, VariableBindingsList> bindingsByGroupByVarIds = new HashMap<String, VariableBindingsList>();
+        boolean isInput = inputRoles.get(sRoleId);
 
-		for (VariableBindingsList mapping : listsOfVariableDataObjectMappings) {
-			HashMap<String, ArrayList<KBObject>> varBindings = new HashMap<String, ArrayList<KBObject>>();
-			for (VariableBindings dvobinding : mapping) {
-				KBObject dv = dvobinding.getDataVariable();
-				ArrayList<KBObject> objs = new ArrayList<KBObject>(dvobinding.getDataObjects());
-				varBindings.put(dv.getID(), objs);
-			}
-			String groupKey = "";
-			for (String varId : groupByVarIds) {
-				groupKey += varBindings.get(varId) + "|";
-			}
+        // Create a new variable
+        String varid = node.getNamespace() + svar.getName();
+        Variable var = template.addVariable(varid, svar.getVariableType());
+        idChanged.put(svar.getID(), varid);
 
-			VariableBindingsList om = bindingsByGroupByVarIds.get(groupKey);
-			if (om == null) {
-				om = mapping;
-			} else {
-				for (VariableBindings dvobinding : om) {
-					KBObject dv = dvobinding.getDataVariable();
-					ArrayList<KBObject> objs = new ArrayList<KBObject>(dvobinding.getDataObjects());
-					if (variableIds.contains(dv.getID()) && !groupByVarIds.contains(dv.getID())) {
-						objs.addAll(varBindings.get(dv.getID()));
-					}
-					varBindings.put(dv.getID(), objs);
-					dvobinding.setDataObjects(objs);
-				}
-			}
-			bindingsByGroupByVarIds.put(groupKey, om);
-		}
-		ArrayList<VariableBindingsList> groupedList = new ArrayList<VariableBindingsList>();
-		for (VariableBindingsList vals : bindingsByGroupByVarIds.values()) {
-			groupedList.add(vals);
-		}
-		return groupedList;
-	}
+        // Create a new Port
+        int count = 1;
+        String ptype = isInput ? "ip" : "op";
+        String p_prefix = node.getID() + "_" + sRoleId + "_" + ptype;
+        while (
+          (isInput && node.findInputPort(p_prefix + count) != null) ||
+          (!isInput && node.findOutputPort(p_prefix + count) != null)
+        ) {
+          count++;
+        }
+        Port p = new Port(p_prefix + count);
 
-  
+        // Create a new role for the port
+        r = new Role(p.getID() + "_role");
+        r.setRoleId(sRoleId);
+        p.setRole(r);
+
+        // Create a new Link
+        if (isInput) template.addLink(
+          null,
+          node,
+          null,
+          p,
+          var
+        ); else template.addLink(node, null, p, null, var);
+      } else {
+        // If a variable already exists for this argument/role
+        // Copy over data object binding to existing variable
+        Variable itvar = template.getVariable(svar.getID());
+        if (itvar != null) {
+          itvar.setBinding(svar.getBinding());
+        } else {
+          // This isn't good
+          System.err.println("Unknown variable in template !");
+        }
+      }
+    }
+    // End for (String scp : uMap.keySet())
+
+    ArrayList<KBTriple> newRedBox = new ArrayList<KBTriple>();
+    for (KBTriple kbTriple : uRedbox) {
+      if (idChanged.containsKey(kbTriple.getSubject().getID())) {
+        String newid = idChanged.get(kbTriple.getSubject().getID());
+        kbTriple.setSubject(template.getConstraintEngine().getResource(newid));
+      }
+      if (idChanged.containsKey(kbTriple.getObject().getID())) {
+        String newid = idChanged.get(kbTriple.getObject().getID());
+        kbTriple.setObject(template.getConstraintEngine().getResource(newid));
+      }
+      newRedBox.add(kbTriple);
+    }
+
+    template.getConstraintEngine().addConstraints(newRedBox);
+    return true;
+  }
+
+  private LogEvent getEvent(String evid) {
+    return new LogEvent(evid, "Wings", LogEvent.REQUEST_ID, this.request_id);
+  }
+
+  /**
+   * Helper function to Group variable object bindings by the variable ids
+   * passed in
+   *
+   * @param listOfVariableObjectBindings
+   *            the list of variable object bindings received from the Data
+   *            Catalog
+   * @param groupByVarIds
+   *            list of variable ids that the bindings should be grouped by
+   *
+   * @return the list of variable object bindings grouped by groupByIds
+   */
+
+  private ArrayList<VariableBindingsList> groupVariableDataObjectMappings(
+    ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings,
+    ArrayList<String> groupByVarIds,
+    ArrayList<String> variableIds
+  ) {
+    HashMap<String, VariableBindingsList> bindingsByGroupByVarIds =
+      new HashMap<String, VariableBindingsList>();
+
+    for (VariableBindingsList mapping : listsOfVariableDataObjectMappings) {
+      HashMap<String, ArrayList<KBObject>> varBindings =
+        new HashMap<String, ArrayList<KBObject>>();
+      for (VariableBindings dvobinding : mapping) {
+        KBObject dv = dvobinding.getDataVariable();
+        ArrayList<KBObject> objs = new ArrayList<KBObject>(
+          dvobinding.getDataObjects()
+        );
+        varBindings.put(dv.getID(), objs);
+      }
+      String groupKey = "";
+      for (String varId : groupByVarIds) {
+        groupKey += varBindings.get(varId) + "|";
+      }
+
+      VariableBindingsList om = bindingsByGroupByVarIds.get(groupKey);
+      if (om == null) {
+        om = mapping;
+      } else {
+        for (VariableBindings dvobinding : om) {
+          KBObject dv = dvobinding.getDataVariable();
+          ArrayList<KBObject> objs = new ArrayList<KBObject>(
+            dvobinding.getDataObjects()
+          );
+          if (
+            variableIds.contains(dv.getID()) &&
+            !groupByVarIds.contains(dv.getID())
+          ) {
+            objs.addAll(varBindings.get(dv.getID()));
+          }
+          varBindings.put(dv.getID(), objs);
+          dvobinding.setDataObjects(objs);
+        }
+      }
+      bindingsByGroupByVarIds.put(groupKey, om);
+    }
+    ArrayList<VariableBindingsList> groupedList =
+      new ArrayList<VariableBindingsList>();
+    for (VariableBindingsList vals : bindingsByGroupByVarIds.values()) {
+      groupedList.add(vals);
+    }
+    return groupedList;
+  }
+
   /**
    * Helper function to remove non-variable bindings
-   * 
+   *
    * @param listOfVariableObjectBindings
    *            the list of variable object bindings received from the Data
    *            Catalog
    * @param variableIds
    *            list of variable ids that the bindings keep in the mapping
-   * 
+   *
    * @return the list of variable object bindings with non-variable mappings removed
    */
   private ArrayList<VariableBindingsList> removeNonVariableMappings(
-      ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings,
-      ArrayList<String> variableIds) {
+    ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings,
+    ArrayList<String> variableIds
+  ) {
+    ArrayList<VariableBindingsList> newlist =
+      new ArrayList<VariableBindingsList>();
 
-    ArrayList<VariableBindingsList> newlist = new ArrayList<VariableBindingsList>();
-    
     for (VariableBindingsList mapping : listsOfVariableDataObjectMappings) {
       VariableBindingsList newmap = new VariableBindingsList();
       for (VariableBindings vb : mapping) {
-        if(variableIds.contains(vb.getDataVariable().getID())) 
-            newmap.add(vb);
+        if (variableIds.contains(vb.getDataVariable().getID())) newmap.add(vb);
       }
       newlist.add(newmap);
     }
     return newlist;
   }
-  
-	/**
-	 * Helper function to Filter variable object bindings by any explicit
-	 * binding constraint specified in the template
-	 * 
-	 * @param listOfVariableObjectBindings
-	 *            the list of variable object bindings received from the Data
-	 *            Catalog
-	 * @param groupByVarIds
-	 *            list of variable ids that the bindings should be grouped by
-	 * 
-	 * @return the list of variable object bindings grouped by groupByIds
-	 */
 
-	private ArrayList<VariableBindingsList> filterVariableDataObjectMappings(
-			ArrayList<VariableBindingsList> fullList, ArrayList<String> variableIds,
-			HashMap<String, HashSet<String>> userBindings,
-			HashMap<String, ArrayList<String>> varEquality,
-			HashMap<String, ArrayList<String>> varInequality) {
-		ArrayList<VariableBindingsList> filteredList = new ArrayList<VariableBindingsList>();
+  /**
+   * Helper function to Filter variable object bindings by any explicit
+   * binding constraint specified in the template
+   *
+   * @param listOfVariableObjectBindings
+   *            the list of variable object bindings received from the Data
+   *            Catalog
+   * @param groupByVarIds
+   *            list of variable ids that the bindings should be grouped by
+   *
+   * @return the list of variable object bindings grouped by groupByIds
+   */
 
-		for (VariableBindingsList mapping : fullList) {
-			HashMap<String, String> varBindings = new HashMap<String, String>();
-			for (VariableBindings dvobinding : mapping) {
-				KBObject dv = dvobinding.getDataVariable();
-				ArrayList<KBObject> objs = dvobinding.getDataObjects();
-				for (KBObject obj : objs)
-					varBindings.put(dv.getID(), obj.getID());
-			}
+  private ArrayList<VariableBindingsList> filterVariableDataObjectMappings(
+    ArrayList<VariableBindingsList> fullList,
+    ArrayList<String> variableIds,
+    HashMap<String, HashSet<String>> userBindings,
+    HashMap<String, ArrayList<String>> varEquality,
+    HashMap<String, ArrayList<String>> varInequality
+  ) {
+    ArrayList<VariableBindingsList> filteredList =
+      new ArrayList<VariableBindingsList>();
 
-			boolean ok = true;
-			for (String dvid : variableIds) {
-				String dvB = varBindings.get(dvid);
+    for (VariableBindingsList mapping : fullList) {
+      HashMap<String, String> varBindings = new HashMap<String, String>();
+      for (VariableBindings dvobinding : mapping) {
+        KBObject dv = dvobinding.getDataVariable();
+        ArrayList<KBObject> objs = dvobinding.getDataObjects();
+        for (KBObject obj : objs) varBindings.put(dv.getID(), obj.getID());
+      }
 
-				// Check that the dc provided bindings follow any user defined
-				// databinding constraints
-				HashSet<String> udvB = userBindings.get(dvid);
-				if (udvB != null) {
-					if (!udvB.contains(dvB)) {
-						ok = false;
-						break;
-					}
-				}
+      boolean ok = true;
+      for (String dvid : variableIds) {
+        String dvB = varBindings.get(dvid);
 
-				// Check that the dc provided bindings follow any varEquality
-				// and varInequality constraints
-				ArrayList<String> eqvars = varEquality.get(dvid);
-				if (eqvars != null) {
-					for (String eqv : eqvars) {
-						if (!dvB.equals(varBindings.get(eqv))) {
-							ok = false;
-							break;
-						}
-					}
-					if (!ok)
-						break;
-				}
-				ArrayList<String> ineqvars = varInequality.get(dvid);
-				if (ineqvars != null) {
-					for (String ineqv : ineqvars) {
-						if (dvB.equals(varBindings.get(ineqv))) {
-							ok = false;
-							break;
-						}
-					}
-					if (!ok)
-						break;
-				}
-			}
-			if (ok)
-				filteredList.add(mapping);
-		}
-		return filteredList;
-	}
+        // Check that the dc provided bindings follow any user defined
+        // databinding constraints
+        HashSet<String> udvB = userBindings.get(dvid);
+        if (udvB != null) {
+          if (!udvB.contains(dvB)) {
+            ok = false;
+            break;
+          }
+        }
 
+        // Check that the dc provided bindings follow any varEquality
+        // and varInequality constraints
+        ArrayList<String> eqvars = varEquality.get(dvid);
+        if (eqvars != null) {
+          for (String eqv : eqvars) {
+            if (!dvB.equals(varBindings.get(eqv))) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) break;
+        }
+        ArrayList<String> ineqvars = varInequality.get(dvid);
+        if (ineqvars != null) {
+          for (String ineqv : ineqvars) {
+            if (dvB.equals(varBindings.get(ineqv))) {
+              ok = false;
+              break;
+            }
+          }
+          if (!ok) break;
+        }
+      }
+      if (ok) filteredList.add(mapping);
+    }
+    return filteredList;
+  }
 
-	private void setBindingMetrics(Binding binding, HashMap<String, Metrics> metricsMap,
-			LogEvent event) {
-		if (binding == null)
-			return;
+  private void setBindingMetrics(
+    Binding binding,
+    HashMap<String, Metrics> metricsMap,
+    LogEvent event
+  ) {
+    if (binding == null) return;
 
-		if (binding.isSet()) {
-			for (WingsSet b : binding) {
-				setBindingMetrics((Binding) b, metricsMap, event);
-			}
-			return;
-		}
+    if (binding.isSet()) {
+      for (WingsSet b : binding) {
+        setBindingMetrics((Binding) b, metricsMap, event);
+      }
+      return;
+    }
 
-		if (!binding.getID().startsWith(this.dataNS))
-			return;
+    if (!binding.getID().startsWith(this.dataNS)) return;
 
-		String dataObjectName = binding.getName();
-		Metrics metrics = metricsMap.get(dataObjectName);
-		if (metrics == null) {
-			String dataObjectId = binding.getID();
-			if (event != null)
-				logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.1")
-						.addWQ(LogEvent.QUERY_ARGUMENTS, dataObjectId));
-			
-      this.addExplanation("INFO: Fetching metadata for " + binding.getName());			
-			metrics = dc.findDataMetricsForDataObject(dataObjectId);
-			
-			if (metrics != null) {
-				metricsMap.put(dataObjectName, metrics);
-				if (event != null)
-					logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.1")
-							.addWQ(LogEvent.QUERY_RESPONSE, "<metrics not shown>"));
-			} else if (event != null) {
-				logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.1")
-						.addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
-				
-				this.addExplanation("ERROR: No metadata for " + binding.getName());  				
-			}
-		}
-		binding.setMetrics(metrics);
-	}
+    String dataObjectName = binding.getName();
+    Metrics metrics = metricsMap.get(dataObjectName);
+    if (metrics == null) {
+      String dataObjectId = binding.getID();
+      if (event != null) logger.info(
+        event
+          .createLogMsg()
+          .addWQ(LogEvent.QUERY_NUMBER, "4.1")
+          .addWQ(LogEvent.QUERY_ARGUMENTS, dataObjectId)
+      );
 
-	private KBObject fetchVariableTypeFromCMR(Variable v, ComponentPacket cmr) {
-		KBObject vtype = null;
-		for (KBTriple t : cmr.getRequirements()) {
-			if (t.getSubject().getID().equals(v.getID())
-					&& t.getPredicate().getName().equals("type")) {
-				KBObject tobj = t.getObject();
-				if (vtype == null)
-					vtype = tobj;
-				else if (dc.checkDatatypeSubsumption(vtype.toString(), tobj.toString())) {
-					vtype = tobj;
-				}
-			}
-		}
-		return vtype;
-	}
+      this.addExplanation("INFO: Fetching metadata for " + binding.getName());
+      metrics = dc.findDataMetricsForDataObject(dataObjectId);
 
-	// TODO: Add Another function for comparison purposes, where the components
-	// are evaluated last
-	// -- i.e. innermost loop
+      if (metrics != null) {
+        metricsMap.put(dataObjectName, metrics);
+        if (event != null) logger.info(
+          event
+            .createLogMsg()
+            .addWQ(LogEvent.QUERY_NUMBER, "4.1")
+            .addWQ(LogEvent.QUERY_RESPONSE, "<metrics not shown>")
+        );
+      } else if (event != null) {
+        logger.warn(
+          event
+            .createLogMsg()
+            .addWQ(LogEvent.QUERY_NUMBER, "4.1")
+            .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH)
+        );
 
-	/*private class configureParallel implements Callable<PortBindingList> {
+        this.addExplanation("ERROR: No metadata for " + binding.getName());
+      }
+    }
+    binding.setMetrics(metrics);
+  }
+
+  private KBObject fetchVariableTypeFromCMR(Variable v, ComponentPacket cmr) {
+    KBObject vtype = null;
+    for (KBTriple t : cmr.getRequirements()) {
+      if (
+        t.getSubject().getID().equals(v.getID()) &&
+        t.getPredicate().getName().equals("type")
+      ) {
+        KBObject tobj = t.getObject();
+        if (vtype == null) vtype = tobj; else if (
+          dc.checkDatatypeSubsumption(vtype.toString(), tobj.toString())
+        ) {
+          vtype = tobj;
+        }
+      }
+    }
+    return vtype;
+  }
+
+  // TODO: Add Another function for comparison purposes, where the components
+  // are evaluated last
+  // -- i.e. innermost loop
+
+  /*private class configureParallel implements Callable<PortBindingList> {
 	  WorkflowGenerationKB wg;
 	  PortBindingList ipblist;
 	  Node origNode;
@@ -2267,67 +2603,81 @@ implements WorkflowGenerationAPI {
           event, prospectiveIds);
     }
 	}*/
-	
-	/*
-	 * Helper function - Takes input portbindinglist - Returns output
-	 * portbindinglist
-	 * 
-	 * Currently ignores variable constraint forward propagation - relies on
-	 * binding metrics forward propagation
-	 * 
-	 * Handles component sets inside newNode
-	 * 
-	 * TODO: Handle multiple parameters and parameter SetCreationRules
-	 * 
-	 * TODO: Handle extra ports for specialized components (whether bindings
-	 * exist for them or not)
-	 */
-	public PortBindingList configureBindings(PortBindingList ipblist, Node origNode, Node newNode,
-			ComponentVariable component, ComponentPacket cmr, LogEvent event,
-			HashMap<String, String> prospectiveIds) {
 
-		PortBindingList pblist = new PortBindingList();
+  /*
+   * Helper function - Takes input portbindinglist - Returns output
+   * portbindinglist
+   *
+   * Currently ignores variable constraint forward propagation - relies on
+   * binding metrics forward propagation
+   *
+   * Handles component sets inside newNode
+   *
+   * TODO: Handle multiple parameters and parameter SetCreationRules
+   *
+   * TODO: Handle extra ports for specialized components (whether bindings
+   * exist for them or not)
+   */
+  public PortBindingList configureBindings(
+    PortBindingList ipblist,
+    Node origNode,
+    Node newNode,
+    ComponentVariable component,
+    ComponentPacket cmr,
+    LogEvent event,
+    HashMap<String, String> prospectiveIds
+  ) {
+    PortBindingList pblist = new PortBindingList();
 
-		// Handle the input port binding list
-		if (ipblist.isList()) {
-			// For all elements in the port binding list
-			// - add a new component binding (component instantiation)
-			// - call configureBindings
-			// - add the returned output binding list to our own output
-			// binding list
+    // Handle the input port binding list
+    if (ipblist.isList()) {
+      // For all elements in the port binding list
+      // - add a new component binding (component instantiation)
+      // - call configureBindings
+      // - add the returned output binding list to our own output
+      // binding list
       Binding listb = new Binding();
       Binding origB = component.getBinding();
-      
-	    /*ExecutorService executor = Executors.newFixedThreadPool(10);
+
+      /*ExecutorService executor = Executors.newFixedThreadPool(10);
 	    CompletionService<PortBindingList> completionService = 
 	          new ExecutorCompletionService<PortBindingList>(executor);
 	    ArrayList<Future<PortBindingList>> futures = new ArrayList<Future<PortBindingList>>();
 			ArrayList<ComponentVariable> components = new ArrayList<ComponentVariable>();*/
-			
-			for (PortBindingList ipbl : ipblist) {
-				/*ComponentPacket pcmr = cmr.clone();
+
+      for (PortBindingList ipbl : ipblist) {
+        /*ComponentPacket pcmr = cmr.clone();
 				ComponentVariable tempcomponent = new ComponentVariable(component.getID());
 				pcmr.setComponent(tempcomponent);
 				tempcomponent.setBinding(origB);
 				components.add(tempcomponent);*/
-				component.setBinding(origB);
-				cmr.setComponent(component);
-				
-				// Do this in parallel
-				/*Callable<PortBindingList> worker = new configureParallel(this, 
+        component.setBinding(origB);
+        cmr.setComponent(component);
+
+        // Do this in parallel
+        /*Callable<PortBindingList> worker = new configureParallel(this, 
 				    ipbl, origNode, newNode, tempcomponent, pcmr, event, prospectiveIds);
 	      futures.add(completionService.submit(worker));*/
-	      
-	      PortBindingList opbl = this.configureBindings(ipbl, origNode, newNode, component, 
-	          cmr, event, prospectiveIds);
-	      if ((opbl.isList() && !opbl.isEmpty())
-            || (!opbl.isList() && opbl.getPortBinding() != null)) {
+
+        PortBindingList opbl =
+          this.configureBindings(
+              ipbl,
+              origNode,
+              newNode,
+              component,
+              cmr,
+              event,
+              prospectiveIds
+            );
+        if (
+          (opbl.isList() && !opbl.isEmpty()) ||
+          (!opbl.isList() && opbl.getPortBinding() != null)
+        ) {
           pblist.add(opbl);
           listb.add(component.getBinding());
         }
-
-			}
-	    /*System.out.println(" ------------Total : "+ipblist.size()+"-------------- ");
+      }
+      /*System.out.println(" ------------Total : "+ipblist.size()+"-------------- ");
 
 			int received = 0;
 			boolean errors = false;
@@ -2361,503 +2711,551 @@ implements WorkflowGenerationAPI {
 			    }
 			  }
 			}*/
-			
-			component.setBinding(listb);
-		} else {
-			// if(component.getBinding() == null) return opblist;
 
-			// For all component bindings
-			int len = component.getBinding().size();
+      component.setBinding(listb);
+    } else {
+      // if(component.getBinding() == null) return opblist;
 
-			Binding allCB = component.getBinding();
-			if(!allCB.isSet()) {
-			  allCB = new Binding();
-			  allCB.add(component.getBinding());
-			}
-			
-			component.setBinding(new Binding());
+      // For all component bindings
+      int len = component.getBinding().size();
 
-			for (WingsSet cbs : allCB) {
-				PortBindingList cpblist = new PortBindingList();
-				Binding compBinding = (Binding) cbs;
+      Binding allCB = component.getBinding();
+      if (!allCB.isSet()) {
+        allCB = new Binding();
+        allCB.add(component.getBinding());
+      }
 
-				Binding cb;
-				if (!component.isTemplate())
-					cb = new Binding(compBinding.getID(), compBinding.getVersion());
-				else
-					cb = new ValueBinding((Template) compBinding.getValue());
+      component.setBinding(new Binding());
 
-				ComponentVariable c;
-				if (component.isTemplate())
-					c = new ComponentVariable(component.getTemplate());
-				else {
-					c = new ComponentVariable(component.getID());
-					c.setBinding(new Binding(compBinding.getID(), compBinding.getVersion()));
-				}
-				c.setBinding(cb);
+      for (WingsSet cbs : allCB) {
+        PortBindingList cpblist = new PortBindingList();
+        Binding compBinding = (Binding) cbs;
 
-				ComponentPacket ccmr = (ComponentPacket) SerializableObjectCloner.clone(cmr); //cmr.clone();
-				ccmr.setRequirements(cmr.getRequirements());
-				ccmr.setComponent(c);
+        Binding cb;
+        if (!component.isTemplate()) cb =
+          new Binding(compBinding.getID(), compBinding.getVersion()); else cb =
+          new ValueBinding((Template) compBinding.getValue());
 
-				PortBinding pb = ipblist.getPortBinding();
-				HashMap<String, Boolean> inputRoles = new HashMap<String, Boolean>();
-				for (Port p : pb.keySet()) {
-					inputRoles.put(p.getRole().getRoleId(), true);
-				}
+        ComponentVariable c;
+        if (component.isTemplate()) c =
+          new ComponentVariable(component.getTemplate()); else {
+          c = new ComponentVariable(component.getID());
+          c.setBinding(
+            new Binding(compBinding.getID(), compBinding.getVersion())
+          );
+        }
+        c.setBinding(cb);
 
-				// Create new Ports
-				HashMap<String, Port> new_sRolePortMap = new HashMap<String, Port>();
-				for (Port p : newNode.getInputPorts())
-					new_sRolePortMap.put(p.getRole().getRoleId(), p);
-				for (Port p : newNode.getOutputPorts())
-					new_sRolePortMap.put(p.getRole().getRoleId(), p);
+        ComponentPacket ccmr = (ComponentPacket) SerializableObjectCloner.clone(
+          cmr
+        ); //cmr.clone();
+        ccmr.setRequirements(cmr.getRequirements());
+        ccmr.setComponent(c);
 
-				HashMap<String, Port> old_sRolePortMap = new HashMap<String, Port>();
-				for (Port p : origNode.getInputPorts())
-					old_sRolePortMap.put(p.getRole().getRoleId(), p);
-				for (Port p : origNode.getOutputPorts())
-					old_sRolePortMap.put(p.getRole().getRoleId(), p);
+        PortBinding pb = ipblist.getPortBinding();
+        HashMap<String, Boolean> inputRoles = new HashMap<String, Boolean>();
+        for (Port p : pb.keySet()) {
+          inputRoles.put(p.getRole().getRoleId(), true);
+        }
 
-				// Create/modify the roleMap
-				HashMap<Role, Variable> roleMap = ccmr.getRoleMap();
-				for (Role r : roleMap.keySet()) {
-					// The new node's input variable binding is now set to
-					// the portBinding of the old node's port
-					// (The portBindings are split up when collections are
-					// created)
-					if (inputRoles.containsKey(r.getRoleId()))
-						roleMap.get(r).setBinding(pb.get(old_sRolePortMap.get(r.getRoleId())));
-				}
+        // Create new Ports
+        HashMap<String, Port> new_sRolePortMap = new HashMap<String, Port>();
+        for (Port p : newNode.getInputPorts()) new_sRolePortMap.put(
+          p.getRole().getRoleId(),
+          p
+        );
+        for (Port p : newNode.getOutputPorts()) new_sRolePortMap.put(
+          p.getRole().getRoleId(),
+          p
+        );
 
-				if (logger.isInfoEnabled()) {
-					HashMap<String, Object> args = new HashMap<String, Object>();
-					args.put("component", ccmr.getComponent());
-					args.put("roleMap", ccmr.getRoleMap());
-					logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.2")
-							.addMap(LogEvent.QUERY_ARGUMENTS, args));
-				}
+        HashMap<String, Port> old_sRolePortMap = new HashMap<String, Port>();
+        for (Port p : origNode.getInputPorts()) old_sRolePortMap.put(
+          p.getRole().getRoleId(),
+          p
+        );
+        for (Port p : origNode.getOutputPorts()) old_sRolePortMap.put(
+          p.getRole().getRoleId(),
+          p
+        );
 
-				ComponentReasoningAPI pc = this.pc;
-				if (ccmr.getComponent().isTemplate())
-					pc = this.tc;
-        
-        this.addExplanation("INFO: Getting output data predictions for " + 
-            ccmr.getComponent().getBinding());
-        
-				// No new roles introduced by the forward sweep call
-				ArrayList<ComponentPacket> allcmrs = pc.findOutputDataPredictedDescriptions(ccmr);
-        
-				ArrayList<ComponentPacket> rcmr = new ArrayList<ComponentPacket>();
+        // Create/modify the roleMap
+        HashMap<Role, Variable> roleMap = ccmr.getRoleMap();
+        for (Role r : roleMap.keySet()) {
+          // The new node's input variable binding is now set to
+          // the portBinding of the old node's port
+          // (The portBindings are split up when collections are
+          // created)
+          if (inputRoles.containsKey(r.getRoleId())) roleMap
+            .get(r)
+            .setBinding(pb.get(old_sRolePortMap.get(r.getRoleId())));
+        }
+
+        if (logger.isInfoEnabled()) {
+          HashMap<String, Object> args = new HashMap<String, Object>();
+          args.put("component", ccmr.getComponent());
+          args.put("roleMap", ccmr.getRoleMap());
+          logger.info(
+            event
+              .createLogMsg()
+              .addWQ(LogEvent.QUERY_NUMBER, "4.2")
+              .addMap(LogEvent.QUERY_ARGUMENTS, args)
+          );
+        }
+
+        ComponentReasoningAPI pc = this.pc;
+        if (ccmr.getComponent().isTemplate()) pc = this.tc;
+
+        this.addExplanation(
+            "INFO: Getting output data predictions for " +
+            ccmr.getComponent().getBinding()
+          );
+
+        // No new roles introduced by the forward sweep call
+        ArrayList<ComponentPacket> allcmrs =
+          pc.findOutputDataPredictedDescriptions(ccmr);
+
+        ArrayList<ComponentPacket> rcmr = new ArrayList<ComponentPacket>();
         for (ComponentPacket acmr : allcmrs) {
           this.addExplanations(acmr.getExplanations());
-          if (!acmr.getInvalidFlag())
-            rcmr.add(acmr);
-          else {
+          if (!acmr.getInvalidFlag()) rcmr.add(acmr); else {
             // Do something with the invalid components
           }
         }
 
-				if (rcmr.isEmpty()) {
-					logger.warn(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.2")
-							.addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH));
-					this.addExplanation("INFO: invalid configuration");
-					continue;
-				} else {
-					logger.info(event
-							.createLogMsg()
-							.addWQ(LogEvent.QUERY_NUMBER, "4.2")
-							.addWQ(LogEvent.QUERY_RESPONSE,
-									"Returned " + rcmr.size() + " responses"));
+        if (rcmr.isEmpty()) {
+          logger.warn(
+            event
+              .createLogMsg()
+              .addWQ(LogEvent.QUERY_NUMBER, "4.2")
+              .addWQ(LogEvent.QUERY_RESPONSE, LogEvent.NO_MATCH)
+          );
+          this.addExplanation("INFO: invalid configuration");
+          continue;
+        } else {
+          logger.info(
+            event
+              .createLogMsg()
+              .addWQ(LogEvent.QUERY_NUMBER, "4.2")
+              .addWQ(
+                LogEvent.QUERY_RESPONSE,
+                "Returned " + rcmr.size() + " responses"
+              )
+          );
 
-					// FIXME: Handle parameter sets properly ! (use rules too !)
+          // FIXME: Handle parameter sets properly ! (use rules too !)
 
-					// Handle multiple return values
-					for (int i = 0; i < rcmr.size(); i++) {
-						ComponentPacket m = rcmr.get(i);
+          // Handle multiple return values
+          for (int i = 0; i < rcmr.size(); i++) {
+            ComponentPacket m = rcmr.get(i);
 
-						ArrayList<String> machineIds = 
-						    this.rc.getMatchingMachineIds(
-						        m.getComponent().getRequirements());
-						if(machineIds.size() == 0) {
-						  this.addExplanation("ERROR: Could not find a suitable machine "+
-						      "to run "+m.getComponent().getName());
-						  continue;
-						}
+            ArrayList<String> machineIds =
+              this.rc.getMatchingMachineIds(m.getComponent().getRequirements());
+            if (machineIds.size() == 0) {
+              this.addExplanation(
+                  "ERROR: Could not find a suitable machine " +
+                  "to run " +
+                  m.getComponent().getName()
+                );
+              continue;
+            }
             cb.setData("machineIds", machineIds);
 
-						PortBinding newpb = new PortBinding();
-						// PortBinding opb = new PortBinding();
-						HashMap<Role, Variable> mRoleMap = m.getRoleMap();
-						HashMap<String, Variable> msRoleMap = m.getStringRoleMaps();
-						for (Role r : mRoleMap.keySet()) {
-							if(m.isInputRole(r.getRoleId())) {
-								Variable v = mRoleMap.get(r);
-								newpb.put(new_sRolePortMap.get(r.getRoleId()), v.getBinding());
-							}
-						}
-						String sortedInputs = getInputRoleStr(newpb, ccmr.getComponent());
+            PortBinding newpb = new PortBinding();
+            // PortBinding opb = new PortBinding();
+            HashMap<Role, Variable> mRoleMap = m.getRoleMap();
+            HashMap<String, Variable> msRoleMap = m.getStringRoleMaps();
+            for (Role r : mRoleMap.keySet()) {
+              if (m.isInputRole(r.getRoleId())) {
+                Variable v = mRoleMap.get(r);
+                newpb.put(new_sRolePortMap.get(r.getRoleId()), v.getBinding());
+              }
+            }
+            String sortedInputs = getInputRoleStr(newpb, ccmr.getComponent());
 
-						for (Role r : mRoleMap.keySet()) {
-							// Set binding for outputs
-							if(!m.isInputRole(r.getRoleId())) {
-								Variable v = mRoleMap.get(r);
+            for (Role r : mRoleMap.keySet()) {
+              // Set binding for outputs
+              if (!m.isInputRole(r.getRoleId())) {
+                Variable v = mRoleMap.get(r);
 
-								Binding b = v.getBinding();
-								if(b == null)
-								  continue;
-								
-								newpb.put(new_sRolePortMap.get(r.getRoleId()), b);
-								// opb.put(newRolePort.get(r.getRoleId()), b);
+                Binding b = v.getBinding();
+                if (b == null) continue;
 
-								// Rename outputs
-								ArrayList<Binding> dbs = new ArrayList<Binding>();
-								HashMap<String, String> indices = new HashMap<String, String>(); 
-								dbs.add(b);
-								while (!dbs.isEmpty()) {
-									Binding db = dbs.remove(0);
-									String sfx = indices.get(db.getID());
-									sfx = sfx != null ? sfx : "";
-									if (db.isSet()) {
-										int ind = 1;
-										for (WingsSet s : db) {
-											Binding sb = (Binding) s;
-											sb.setID(db.getID() + "-" + ind);
-											dbs.add(sb);
-											indices.put(sb.getID(), sfx + "-" +ind);
-											ind++;
-										}
-									} else {
-									  if (m.getNoOperationFlag()) {
-									    // If this is a no-op, pass through the input binding to the output
-									    HashMap<String, String> iovars = m.getNoOperationIOPassthrough();
-								      String iroleid = iovars.get(r.getRoleId());
-								      if(iroleid != null) {
-								        Variable invar = msRoleMap.get(iroleid);
-								        db.setID(invar.getBinding().getID());
-								      }
-									  }
-									  else {
-  										KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
-  										Binding ds = createNewBinding(v, db, vtype, r,
-  												sortedInputs, event);
-  										//dc.getDataLocation(ds.getID());
-  										db.setID(ds.getID() + sfx);
-									  }
-  										
-										// For each output, fetch actual metrics from .met file 
-										// and override predicted metrics
-										Metrics newm = this.dc.fetchDataMetricsForDataObject(db.getID());
-					          logger.info(event
-					              .createLogMsg()
-					              .addWQ(LogEvent.QUERY_NUMBER, "4.x")
-					              .addWQ(LogEvent.QUERY_RESPONSE,
-					                  "Returned " + newm));
-										db.getMetrics().getMetrics().putAll(newm.getMetrics());
-									}
-								}
-							}
-						}
-						if (rcmr.size() == 1 && i == 0) {
-							// Return the portbindings
-							cpblist = new PortBindingList(newpb);
+                newpb.put(new_sRolePortMap.get(r.getRoleId()), b);
+                // opb.put(newRolePort.get(r.getRoleId()), b);
 
-							// Associate the port binding with this particular
-							// component binding
-							cb.setData(cpblist);
-						} else {
-							PortBindingList cbl = (PortBindingList) compBinding.getData();
-							if (cbl == null)
-								cbl = new PortBindingList();
-							PortBindingList tmp = new PortBindingList(newpb);
-							cbl.add(tmp);
-							cpblist.add(tmp);
-							cb.setData(cbl);
-						}
+                // Rename outputs
+                ArrayList<Binding> dbs = new ArrayList<Binding>();
+                HashMap<String, String> indices = new HashMap<String, String>();
+                dbs.add(b);
+                while (!dbs.isEmpty()) {
+                  Binding db = dbs.remove(0);
+                  String sfx = indices.get(db.getID());
+                  sfx = sfx != null ? sfx : "";
+                  if (db.isSet()) {
+                    int ind = 1;
+                    for (WingsSet s : db) {
+                      Binding sb = (Binding) s;
+                      sb.setID(db.getID() + "-" + ind);
+                      dbs.add(sb);
+                      indices.put(sb.getID(), sfx + "-" + ind);
+                      ind++;
+                    }
+                  } else {
+                    if (m.getNoOperationFlag()) {
+                      // If this is a no-op, pass through the input binding to the output
+                      HashMap<String, String> iovars =
+                        m.getNoOperationIOPassthrough();
+                      String iroleid = iovars.get(r.getRoleId());
+                      if (iroleid != null) {
+                        Variable invar = msRoleMap.get(iroleid);
+                        db.setID(invar.getBinding().getID());
+                      }
+                    } else {
+                      KBObject vtype = fetchVariableTypeFromCMR(v, ccmr);
+                      Binding ds = createNewBinding(
+                        v,
+                        db,
+                        vtype,
+                        r,
+                        sortedInputs,
+                        event
+                      );
+                      //dc.getDataLocation(ds.getID());
+                      db.setID(ds.getID() + sfx);
+                    }
+
+                    // For each output, fetch actual metrics from .met file
+                    // and override predicted metrics
+                    Metrics newm =
+                      this.dc.fetchDataMetricsForDataObject(db.getID());
+                    logger.info(
+                      event
+                        .createLogMsg()
+                        .addWQ(LogEvent.QUERY_NUMBER, "4.x")
+                        .addWQ(LogEvent.QUERY_RESPONSE, "Returned " + newm)
+                    );
+                    db.getMetrics().getMetrics().putAll(newm.getMetrics());
+                  }
+                }
+              }
+            }
+            if (rcmr.size() == 1 && i == 0) {
+              // Return the portbindings
+              cpblist = new PortBindingList(newpb);
+
+              // Associate the port binding with this particular
+              // component binding
+              cb.setData(cpblist);
+            } else {
+              PortBindingList cbl = (PortBindingList) compBinding.getData();
+              if (cbl == null) cbl = new PortBindingList();
+              PortBindingList tmp = new PortBindingList(newpb);
+              cbl.add(tmp);
+              cpblist.add(tmp);
+              cb.setData(cbl);
+            }
             // Mark the component to be skipped in further operations
-						cb.setData("skip", m.getNoOperationFlag());
-            
-						component.getBinding().add(cb);
-					}
-				}
-				if (len > 1) {
-					if (!cpblist.isEmpty() || (cpblist.getPortBinding() != null))
-						pblist.add(cpblist);
-				} else {
-					pblist = cpblist;
+            cb.setData("skip", m.getNoOperationFlag());
 
-					if (component.getBinding().size() == 1)
-						component.setBinding((Binding) component.getBinding().get(0));
-				}
-			}
-		}
+            component.getBinding().add(cb);
+          }
+        }
+        if (len > 1) {
+          if (
+            !cpblist.isEmpty() || (cpblist.getPortBinding() != null)
+          ) pblist.add(cpblist);
+        } else {
+          pblist = cpblist;
 
-		return pblist;
-	}
+          if (component.getBinding().size() == 1) component.setBinding(
+            (Binding) component.getBinding().get(0)
+          );
+        }
+      }
+    }
 
-	private void removeComponentBindingsWithNoData(ComponentVariable c) {
-		HashMap<Binding, Binding> parentOf = new HashMap<Binding, Binding>();
-		ArrayList<Binding> ocbs = new ArrayList<Binding>();
-		ocbs.add(c.getBinding());
+    return pblist;
+  }
 
-		while (!ocbs.isEmpty()) {
-			Binding ocb = ocbs.remove(0);
+  private void removeComponentBindingsWithNoData(ComponentVariable c) {
+    HashMap<Binding, Binding> parentOf = new HashMap<Binding, Binding>();
+    ArrayList<Binding> ocbs = new ArrayList<Binding>();
+    ocbs.add(c.getBinding());
 
-			if (ocb.isSet()) {
-				for (WingsSet os : ocb) {
-					Binding osb = (Binding) os;
-					ocbs.add(osb);
-					parentOf.put(osb, ocb);
-				}
-			} else {
-				PortBindingList opblist = (PortBindingList) ocb.getData();
-				if (opblist == null)
-					parentOf.get(ocb).remove(ocb);
-			}
-		}
-	}
+    while (!ocbs.isEmpty()) {
+      Binding ocb = ocbs.remove(0);
 
-	// Do a multi-dimensional binding dependency deletion (not completely
-	// necessary, but useful for efficiency)
-	@SuppressWarnings("unused")
+      if (ocb.isSet()) {
+        for (WingsSet os : ocb) {
+          Binding osb = (Binding) os;
+          ocbs.add(osb);
+          parentOf.put(osb, ocb);
+        }
+      } else {
+        PortBindingList opblist = (PortBindingList) ocb.getData();
+        if (opblist == null) parentOf.get(ocb).remove(ocb);
+      }
+    }
+  }
+
+  // Do a multi-dimensional binding dependency deletion (not completely
+  // necessary, but useful for efficiency)
+  @SuppressWarnings("unused")
   private boolean removeProducersWithNoConsumers(Template template) {
-		ArrayList<String> nodesDone = new ArrayList<String>();
+    ArrayList<String> nodesDone = new ArrayList<String>();
 
-		ArrayList<Link> links = new ArrayList<Link>();
-		for (Link link : template.getOutputLinks()) {
-			links.add(link);
-		}
+    ArrayList<Link> links = new ArrayList<Link>();
+    for (Link link : template.getOutputLinks()) {
+      links.add(link);
+    }
 
-		while (!links.isEmpty()) {
-			Link l = links.remove(0);
-			if (l.isInputLink())
-				continue;
+    while (!links.isEmpty()) {
+      Link l = links.remove(0);
+      if (l.isInputLink()) continue;
 
-			Node on = l.getOriginNode();
-			if (nodesDone.contains(on.getID()))
-				continue;
-			nodesDone.add(on.getID());
+      Node on = l.getOriginNode();
+      if (nodesDone.contains(on.getID())) continue;
+      nodesDone.add(on.getID());
 
-			if (l.isInOutLink()) {
-				Node dn = l.getDestinationNode();
-				ComponentVariable oc = on.getComponentVariable();
-				ComponentVariable dc = dn.getComponentVariable();
+      if (l.isInOutLink()) {
+        Node dn = l.getDestinationNode();
+        ComponentVariable oc = on.getComponentVariable();
+        ComponentVariable dc = dn.getComponentVariable();
 
-				ArrayList<Binding> ocbs = new ArrayList<Binding>();
-				ocbs.add(oc.getBinding());
+        ArrayList<Binding> ocbs = new ArrayList<Binding>();
+        ocbs.add(oc.getBinding());
 
-				HashMap<Binding, Binding> parentb = new HashMap<Binding, Binding>();
+        HashMap<Binding, Binding> parentb = new HashMap<Binding, Binding>();
 
-				Port op = l.getOriginPort();
-				//Port dp = l.getDestinationPort();
-				//Get all destination ports that are fed the same variable
-				Link[] all_links = template.getLinks(on, dn);
-				ArrayList<Port> dps = new ArrayList<Port>();
-				for(Link link: all_links) {
-				  if(link.getVariable().getID().equals(l.getVariable().getID()))
-				    dps.add(link.getDestinationPort());
-				}
+        Port op = l.getOriginPort();
+        //Port dp = l.getDestinationPort();
+        //Get all destination ports that are fed the same variable
+        Link[] all_links = template.getLinks(on, dn);
+        ArrayList<Port> dps = new ArrayList<Port>();
+        for (Link link : all_links) {
+          if (
+            link.getVariable().getID().equals(l.getVariable().getID())
+          ) dps.add(link.getDestinationPort());
+        }
 
-				while (!ocbs.isEmpty()) {
-					Binding ocb = ocbs.remove(0);
-					Binding oxb = null;
-					
-					if (ocb.isSet()) {
-						for (WingsSet os : ocb) {
-							Binding osb = (Binding) os;
-							ocbs.add(osb);
-							parentb.put(osb, ocb);
-						}
-					} else {
-						boolean ok = false;
-						PortBindingList opblist = (PortBindingList) ocb.getData();
+        while (!ocbs.isEmpty()) {
+          Binding ocb = ocbs.remove(0);
+          Binding oxb = null;
 
-						if (opblist != null) {
-							PortBinding opb = opblist.getPortBinding();
-							oxb = opb.getById(op.getID());
-							if (oxb == null)
-								continue;
+          if (ocb.isSet()) {
+            for (WingsSet os : ocb) {
+              Binding osb = (Binding) os;
+              ocbs.add(osb);
+              parentb.put(osb, ocb);
+            }
+          } else {
+            boolean ok = false;
+            PortBindingList opblist = (PortBindingList) ocb.getData();
 
-							// For each port-binding in dcb, check that there
-							// exists a corresponding port-binding in ocb
-							// - If not, then that ocb item must be deleted
-							
-							ArrayList<Binding> dcbs = new ArrayList<Binding>();
-							dcbs.add(dc.getBinding());
+            if (opblist != null) {
+              PortBinding opb = opblist.getPortBinding();
+              oxb = opb.getById(op.getID());
+              if (oxb == null) continue;
 
-							while (!dcbs.isEmpty()) {
-								Binding dcb = dcbs.remove(0);
-								if (dcb.isSet()) {
-									for (WingsSet ds : dcb) {
-										Binding dsb = (Binding) ds;
-										dcbs.add(dsb);
-									}
-								} else {
-									PortBindingList dpblist = (PortBindingList) dcb.getData();
-									PortBinding dpb = dpblist.getPortBinding();
-									for(Port dp : dps) {
-  									Binding dxb = dpb.getById(dp.getID());
-  
-  									// Currently, just assuming that all higher
-  									// dimension data is consumed
-  									if (oxb.getMaxDimension() > dxb.getMaxDimension()) {
-  										ok = true;
-  										break;
-  									}
-  
-  									ArrayList<Binding> dxbs = new ArrayList<Binding>();
-  									dxbs.add(dxb);
-  
-  									while (!dxbs.isEmpty()) {
-  										dxb = dxbs.remove(0);
-  										if (dxb.isSet()
-  												&& dxb.getMaxDimension() > oxb.getMaxDimension()) {
-  											for (WingsSet ds : dxb)
-  												dxbs.add((Binding) ds);
-  										} else {
-  											if (dxb != null
-  													&& dxb.toString().equals(oxb.toString())) {
-  												ok = true;
-  												break;
-  											}
-  										}
-  									}
-									}
-									if (ok)
-										break;
-								}
-							}
-						} else {
-							this.addExplanation("ERROR " + ocb + " has no PortBinding !");
-						}
-						if (!ok) {
-							Binding parent = parentb.get(ocb);
-							Binding child = ocb;
-							while (parent != null) {
-								Binding grandparent = parentb.get(parent);
-								parent.remove(child);
-								parentb.put(parent, grandparent);
-								if (parent.isEmpty()) {
-									child = parent;
-									parent = grandparent;
-								} else {
-									break;
-								}
-							}
-						}
-					}
-				}
-        if (oc.getBinding() == null)
-          return false;
-				if (oc.getBinding().isSet() && oc.getBinding().isEmpty())
-					return false;
-			}
+              // For each port-binding in dcb, check that there
+              // exists a corresponding port-binding in ocb
+              // - If not, then that ocb item must be deleted
 
-			for (Link ln : template.getInputLinks(on))
-				links.add(ln);
-		}
-		return true;
-	}
+              ArrayList<Binding> dcbs = new ArrayList<Binding>();
+              dcbs.add(dc.getBinding());
 
-	private ArrayList<KBTriple> convertMetricsToTriples(Metrics metrics, String varId) {
-		OntFactory ontfac = new OntFactory(OntFactory.JENA);
-		KBAPI tkb = ontfac.getKB(OntSpec.PLAIN);
+              while (!dcbs.isEmpty()) {
+                Binding dcb = dcbs.remove(0);
+                if (dcb.isSet()) {
+                  for (WingsSet ds : dcb) {
+                    Binding dsb = (Binding) ds;
+                    dcbs.add(dsb);
+                  }
+                } else {
+                  PortBindingList dpblist = (PortBindingList) dcb.getData();
+                  PortBinding dpb = dpblist.getPortBinding();
+                  for (Port dp : dps) {
+                    Binding dxb = dpb.getById(dp.getID());
 
-		ArrayList<KBTriple> constraints = new ArrayList<KBTriple>();
-		KBObject varObject = tkb.getResource(varId);
+                    // Currently, just assuming that all higher
+                    // dimension data is consumed
+                    if (oxb.getMaxDimension() > dxb.getMaxDimension()) {
+                      ok = true;
+                      break;
+                    }
 
-		HashMap<String, ArrayList<Metric>> propm = metrics.getMetrics();
-		for (String propid : propm.keySet()) {
-			for(Metric m : propm.get(propid)) {
-  			KBObject prop = tkb.getResource(propid);
-  			KBObject val = null;
-  			if (m.getType() == Metric.LITERAL && m.getValue() != null) {
-  				if(m.getDatatype() != null)
-  					val = tkb.createXSDLiteral(m.getValueAsString(), m.getDatatype());
-  				else
-  					val = tkb.createLiteral(m.getValue());
-  			}
-  			else if (m.getType() == Metric.URI)
-  				val = tkb.getResource(m.getValueAsString());
-  			constraints.add(tkb.addTriple(varObject, prop, val));
-			}
-		}
+                    ArrayList<Binding> dxbs = new ArrayList<Binding>();
+                    dxbs.add(dxb);
 
-		return constraints;
-	}
+                    while (!dxbs.isEmpty()) {
+                      dxb = dxbs.remove(0);
+                      if (
+                        dxb.isSet() &&
+                        dxb.getMaxDimension() > oxb.getMaxDimension()
+                      ) {
+                        for (WingsSet ds : dxb) dxbs.add((Binding) ds);
+                      } else {
+                        if (
+                          dxb != null && dxb.toString().equals(oxb.toString())
+                        ) {
+                          ok = true;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  if (ok) break;
+                }
+              }
+            } else {
+              this.addExplanation("ERROR " + ocb + " has no PortBinding !");
+            }
+            if (!ok) {
+              Binding parent = parentb.get(ocb);
+              Binding child = ocb;
+              while (parent != null) {
+                Binding grandparent = parentb.get(parent);
+                parent.remove(child);
+                parentb.put(parent, grandparent);
+                if (parent.isEmpty()) {
+                  child = parent;
+                  parent = grandparent;
+                } else {
+                  break;
+                }
+              }
+            }
+          }
+        }
+        if (oc.getBinding() == null) return false;
+        if (oc.getBinding().isSet() && oc.getBinding().isEmpty()) return false;
+      }
 
-	private ArrayList<KBTriple> fetchDatasetConstraints(Binding b, Variable v) {
-		ArrayList<KBTriple> constraints = new ArrayList<KBTriple>();
+      for (Link ln : template.getInputLinks(on)) links.add(ln);
+    }
+    return true;
+  }
 
-		ArrayList<Binding> dbs = new ArrayList<Binding>();
-		dbs.add(b);
-		int i = 0;
-		while (!dbs.isEmpty()) {
-			Binding db = dbs.remove(0);
-			if (db.isSet()) {
-				for (WingsSet s : db) {
-					Binding sb = (Binding) s;
-					dbs.add(sb);
-				}
-			} else {
-				Metrics metrics = dc.findDataMetricsForDataObject(db.getID());
-				ArrayList<KBTriple> redbox = this.convertMetricsToTriples(metrics, v.getID());
-				ArrayList<String> redboxStr = new ArrayList<String>();
-				for (KBTriple kbTriple : redbox) {
-					redboxStr.add(kbTriple.fullForm());
-				}
-				if (i == 0) {
-					constraints.addAll(redbox);
-				} else {
-					for (KBTriple con : new ArrayList<KBTriple>(constraints)) {
-						if (!redboxStr.contains(con.fullForm())) {
-							constraints.remove(con);
-						}
-					}
-				}
-				i++;
-			}
-		}
-		return constraints;
-	}
+  private ArrayList<KBTriple> convertMetricsToTriples(
+    Metrics metrics,
+    String varId
+  ) {
+    OntFactory ontfac = new OntFactory(OntFactory.JENA);
+    KBAPI tkb = ontfac.getKB(OntSpec.PLAIN);
 
-	private Binding createNewBinding(Variable v, Binding db, KBObject vtype, Role param,
-			String prefix, LogEvent event) {
-		//String key = prefix + param.getRoleId() + db.getName();
-		String key = prefix + param.getRoleId();
+    ArrayList<KBTriple> constraints = new ArrayList<KBTriple>();
+    KBObject varObject = tkb.getResource(varId);
 
-		// Q4.3a Here
-		logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.3")
-				.addWQ(LogEvent.QUERY_ARGUMENTS, key));
+    HashMap<String, ArrayList<Metric>> propm = metrics.getMetrics();
+    for (String propid : propm.keySet()) {
+      for (Metric m : propm.get(propid)) {
+        KBObject prop = tkb.getResource(propid);
+        KBObject val = null;
+        if (m.getType() == Metric.LITERAL && m.getValue() != null) {
+          if (m.getDatatype() != null) val =
+            tkb.createXSDLiteral(
+              m.getValueAsString(),
+              m.getDatatype()
+            ); else val = tkb.createLiteral(m.getValue());
+        } else if (m.getType() == Metric.URI) val =
+          tkb.getResource(m.getValueAsString());
+        constraints.add(tkb.addTriple(varObject, prop, val));
+      }
+    }
 
-		String id = dc.createDataIDFromKey(key, v.getName());
+    return constraints;
+  }
 
-		String opid = null;
-		if (db != null && vtype != null && db.getMetrics() != null)
-			opid = dc.createDataIDFromMetrics(id, vtype.getID(), db.getMetrics());
+  private ArrayList<KBTriple> fetchDatasetConstraints(Binding b, Variable v) {
+    ArrayList<KBTriple> constraints = new ArrayList<KBTriple>();
 
-		if (opid == null)
-			opid = id;
+    ArrayList<Binding> dbs = new ArrayList<Binding>();
+    dbs.add(b);
+    int i = 0;
+    while (!dbs.isEmpty()) {
+      Binding db = dbs.remove(0);
+      if (db.isSet()) {
+        for (WingsSet s : db) {
+          Binding sb = (Binding) s;
+          dbs.add(sb);
+        }
+      } else {
+        Metrics metrics = dc.findDataMetricsForDataObject(db.getID());
+        ArrayList<KBTriple> redbox =
+          this.convertMetricsToTriples(metrics, v.getID());
+        ArrayList<String> redboxStr = new ArrayList<String>();
+        for (KBTriple kbTriple : redbox) {
+          redboxStr.add(kbTriple.fullForm());
+        }
+        if (i == 0) {
+          constraints.addAll(redbox);
+        } else {
+          for (KBTriple con : new ArrayList<KBTriple>(constraints)) {
+            if (!redboxStr.contains(con.fullForm())) {
+              constraints.remove(con);
+            }
+          }
+        }
+        i++;
+      }
+    }
+    return constraints;
+  }
 
-		logger.info(event.createLogMsg().addWQ(LogEvent.QUERY_NUMBER, "4.3")
-				.addWQ(LogEvent.QUERY_RESPONSE, opid));
+  private Binding createNewBinding(
+    Variable v,
+    Binding db,
+    KBObject vtype,
+    Role param,
+    String prefix,
+    LogEvent event
+  ) {
+    //String key = prefix + param.getRoleId() + db.getName();
+    String key = prefix + param.getRoleId();
 
-		return new Binding(dataNS + opid);
-	}
+    // Q4.3a Here
+    logger.info(
+      event
+        .createLogMsg()
+        .addWQ(LogEvent.QUERY_NUMBER, "4.3")
+        .addWQ(LogEvent.QUERY_ARGUMENTS, key)
+    );
 
-	private String getInputRoleStr(PortBinding pb, ComponentVariable c) {
-		// Create a hashmap of input (role + ":"+ dsid/param)
-		// - to uniquely identify the outputs
-		TreeMap<String, String> iRoleVals = new TreeMap<String, String>();
+    String id = dc.createDataIDFromKey(key, v.getName());
 
-		for (Port p : pb.keySet()) {
-			iRoleVals.put(p.getRole().getName(), pb.get(p).toString());
-		}
-		String sortedInputs = (c.isTemplate() ? c.getID() : c.getBinding().getName()) 
-		    + ":" + c.getBinding().getVersion() + ":" ;
-		for (String irole : iRoleVals.keySet()) {
-			sortedInputs += irole + ":" + iRoleVals.get(irole) + ",";
-		}
-		return sortedInputs;
-	}
+    String opid = null;
+    if (db != null && vtype != null && db.getMetrics() != null) opid =
+      dc.createDataIDFromMetrics(id, vtype.getID(), db.getMetrics());
+
+    if (opid == null) opid = id;
+
+    logger.info(
+      event
+        .createLogMsg()
+        .addWQ(LogEvent.QUERY_NUMBER, "4.3")
+        .addWQ(LogEvent.QUERY_RESPONSE, opid)
+    );
+
+    return new Binding(dataNS + opid);
+  }
+
+  private String getInputRoleStr(PortBinding pb, ComponentVariable c) {
+    // Create a hashmap of input (role + ":"+ dsid/param)
+    // - to uniquely identify the outputs
+    TreeMap<String, String> iRoleVals = new TreeMap<String, String>();
+
+    for (Port p : pb.keySet()) {
+      iRoleVals.put(p.getRole().getName(), pb.get(p).toString());
+    }
+    String sortedInputs =
+      (c.isTemplate() ? c.getID() : c.getBinding().getName()) +
+      ":" +
+      c.getBinding().getVersion() +
+      ":";
+    for (String irole : iRoleVals.keySet()) {
+      sortedInputs += irole + ":" + iRoleVals.get(irole) + ",";
+    }
+    return sortedInputs;
+  }
 }

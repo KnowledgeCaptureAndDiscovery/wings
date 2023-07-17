@@ -17,57 +17,65 @@
 
 package edu.isi.wings.catalog.component.api;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.classes.Component;
 import edu.isi.wings.catalog.component.classes.ComponentTree;
+import java.util.ArrayList;
 
 public interface ComponentCreationAPI extends TransactionsAPI {
-	// Query
-	ComponentTree getComponentHierarchy(boolean details);
+  // Query
+  ComponentTree getComponentHierarchy(boolean details);
 
-	Component getComponent(String cid, boolean details);
+  Component getComponent(String cid, boolean details);
 
-	String getComponentLocation(String cid);
-	
-	String getDefaultComponentLocation(String cid);
+  String getComponentLocation(String cid);
 
-	String getComponentHolderId(String cid);
-	
-	ArrayList<String> getParentComponentTypes(String cid);
-	
-	// Update
-	boolean addComponent(Component comp, String pholderid);
-	
-	boolean addComponentHolder(String holderid, String pholderid, boolean is_concrete);
+  String getDefaultComponentLocation(String cid);
 
-	boolean updateComponent(Component newcomp);
-	
-	boolean renameComponent(String oldid, String newid);
+  String getComponentHolderId(String cid);
 
-	boolean removeComponent(String cid, boolean remove_holder, boolean unlink, boolean remove_children);
-	
-	boolean removeComponentHolder(String holderid, boolean is_concrete);
-	
-	boolean moveChildComponentsTo(String oldid, String newid);
-	
-	boolean setComponentLocation(String cid, String location);
-	
-	boolean setComponentVersion(String cid, int version);
-	
-	boolean incrementComponentVersion(String id);
-	
-	// Saving
-	boolean save();
-	
-	boolean delete();
-	
-	// Copy from another API (Advisable to give the same implementation of the API here)
-	void copyFrom(ComponentCreationAPI dc);
-	
-	 // Get/Set external data catalog to copy from
-	ComponentCreationAPI getExternalCatalog();
-  
+  ArrayList<String> getParentComponentTypes(String cid);
+
+  // Update
+  boolean addComponent(Component comp, String pholderid);
+
+  boolean addComponentHolder(
+    String holderid,
+    String pholderid,
+    boolean is_concrete
+  );
+
+  boolean updateComponent(Component newcomp);
+
+  boolean renameComponent(String oldid, String newid);
+
+  boolean removeComponent(
+    String cid,
+    boolean remove_holder,
+    boolean unlink,
+    boolean remove_children
+  );
+
+  boolean removeComponentHolder(String holderid, boolean is_concrete);
+
+  boolean moveChildComponentsTo(String oldid, String newid);
+
+  boolean setComponentLocation(String cid, String location);
+
+  boolean setComponentVersion(String cid, int version);
+
+  boolean incrementComponentVersion(String id);
+
+  // Saving
+  boolean save();
+
+  boolean delete();
+
+  // Copy from another API (Advisable to give the same implementation of the API here)
+  void copyFrom(ComponentCreationAPI dc);
+
+  // Get/Set external data catalog to copy from
+  ComponentCreationAPI getExternalCatalog();
+
   void setExternalCatalog(ComponentCreationAPI dc);
 }

@@ -22,15 +22,14 @@ import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import edu.isi.wings.execution.engine.classes.RuntimeStep;
 
 public interface ExecutionLoggerAPI extends TransactionsAPI {
-	
-	void startLogging(RuntimePlan plan);
-	
-	void updateRuntimeInfo(RuntimePlan plan);
-	
-	void updateRuntimeInfo(RuntimeStep step);
-  
-	// Save/Delete
-	boolean save();
-	
-	boolean delete();
+  void startLogging(RuntimePlan plan);
+
+  void updateRuntimeInfo(RuntimePlan plan);
+
+  void updateRuntimeInfo(RuntimeStep step);
+
+  // Save/Delete
+  boolean save();
+
+  boolean delete();
 }

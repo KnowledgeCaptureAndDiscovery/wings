@@ -1,10 +1,10 @@
 package edu.isi.wings.portal.resources;
 
+import edu.isi.wings.portal.classes.config.Config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -15,50 +15,63 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriInfo;
 
-import edu.isi.wings.portal.classes.config.Config;
-
 public class WingsResource {
 
-  @Context HttpServletRequest request;
-  @Context HttpServletResponse response;
-  @Context ServletContext context;
-  @Context UriInfo uriInfo;
-  
-  @PathParam("user") String user;
-  @PathParam("domain") String domain;
-  
+  @Context
+  HttpServletRequest request;
+
+  @Context
+  HttpServletResponse response;
+
+  @Context
+  ServletContext context;
+
+  @Context
+  UriInfo uriInfo;
+
+  @PathParam("user")
+  String user;
+
+  @PathParam("domain")
+  String domain;
+
   Config config;
-  
+
   @PostConstruct
   public void init() {
     this.config = new Config(request, this.user, this.domain);
   }
-  
+
   protected String callViewer(String viewer) {
-    return this.getPage("/jsp/viewers/"+viewer+".jsp");
+    return this.getPage("/jsp/viewers/" + viewer + ".jsp");
   }
-  
+
   protected boolean loadIntroduction(String page) {
     try {
-      response.sendRedirect(request.getContextPath() +
-          "/html/intros/"+page+".html");
+      response.sendRedirect(
+        request.getContextPath() + "/html/intros/" + page + ".html"
+      );
       return true;
     } catch (IOException e) {
       e.printStackTrace();
       return false;
     }
   }
-  
+
   private String getPage(String page) {
-    HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(response) {
+    HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(
+      response
+    ) {
       private final StringWriter sw = new StringWriter();
+
       @Override
       public PrintWriter getWriter() throws IOException {
-          return new PrintWriter(sw);
+        return new PrintWriter(sw);
       }
+
       @Override
       public String toString() {
-          return sw.toString();
+        return sw.toString();
       }
     };
     try {
@@ -68,22 +81,22 @@ public class WingsResource {
       e.printStackTrace();
     }
     return null;
-  }  
-  
+  }
+
   protected boolean isPage(String lastsegment) {
     List<PathSegment> segments = uriInfo.getPathSegments();
-    if(segments.size() > 0 && 
-        lastsegment.equals(segments.get(segments.size()-1).toString()))
-      return true;
-    return false;   
+    if (
+      segments.size() > 0 &&
+      lastsegment.equals(segments.get(segments.size() - 1).toString())
+    ) return true;
+    return false;
   }
-  
+
   protected boolean hasPermissions() {
     return config.checkDomain(request, response);
   }
-  
+
   protected boolean isOwner() {
-    return this.config.getViewerId().equals(this.config.getUserId());    
+    return this.config.getViewerId().equals(this.config.getUserId());
   }
-  
 }

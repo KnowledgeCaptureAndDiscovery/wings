@@ -21,37 +21,38 @@ import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement
 import edu.isi.wings.workflow.template.api.Template;
 
 public class ComponentVariable extends Variable {
-	private static final long serialVersionUID = 1L;
 
-	private boolean isConcrete;
-	private Template template;
-	private ComponentRequirement requirements;
+  private static final long serialVersionUID = 1L;
 
-	public ComponentVariable(String id) {
-		super(id, VariableType.COMPONENT);
-	}
+  private boolean isConcrete;
+  private Template template;
+  private ComponentRequirement requirements;
 
-	public ComponentVariable(Template t) {
-		super(t.getID(), VariableType.COMPONENT);
-		this.template = t;
-	}
+  public ComponentVariable(String id) {
+    super(id, VariableType.COMPONENT);
+  }
 
-	public void setConcrete(boolean isConcrete) {
-		this.isConcrete = isConcrete;
-	}
+  public ComponentVariable(Template t) {
+    super(t.getID(), VariableType.COMPONENT);
+    this.template = t;
+  }
 
-	public boolean isConcrete() {
-		return this.isConcrete;
-		// return (binding != null)
-	}
+  public void setConcrete(boolean isConcrete) {
+    this.isConcrete = isConcrete;
+  }
 
-	public Template getTemplate() {
-		return this.template;
-	}
+  public boolean isConcrete() {
+    return this.isConcrete;
+    // return (binding != null)
+  }
 
-	public boolean isTemplate() {
-		return (this.template != null);
-	}
+  public Template getTemplate() {
+    return this.template;
+  }
+
+  public boolean isTemplate() {
+    return (this.template != null);
+  }
 
   public ComponentRequirement getRequirements() {
     return requirements;

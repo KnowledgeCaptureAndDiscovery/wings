@@ -18,40 +18,41 @@
 package edu.isi.wings.catalog.data.classes;
 
 public class MetadataValue {
-	public final static int OBJECT = 1;
-	public final static int DATATYPE = 2;
 
-	String propertyId;
-	Object value;
-	int type;
+  public static final int OBJECT = 1;
+  public static final int DATATYPE = 2;
 
-	public MetadataValue(String propertyId, Object value, int type) {
-		this.propertyId = propertyId;
-		this.value = value;
-		this.type = type;
-	}
+  String propertyId;
+  Object value;
+  int type;
 
-	public String getPropertyId() {
-		return propertyId;
-	}
+  public MetadataValue(String propertyId, Object value, int type) {
+    this.propertyId = propertyId;
+    this.value = value;
+    this.type = type;
+  }
 
-	public void setPropertyId(String propertyId) {
-		this.propertyId = propertyId;
-	}
+  public String getPropertyId() {
+    return propertyId;
+  }
 
-	public Object getValue() {
-		return value;
-	}
+  public void setPropertyId(String propertyId) {
+    this.propertyId = propertyId;
+  }
 
-	public void setValue(Object value) {
-		this.value = value;
-	}
+  public Object getValue() {
+    return value;
+  }
 
-	public int getType() {
-		return type;
-	}
+  public void setValue(Object value) {
+    this.value = value;
+  }
 
-	public void setType(int type) {
-		this.type = type;
-	}
+  public int getType() {
+    return type;
+  }
+
+  public void setType(int type) {
+    this.type = type;
+  }
 }

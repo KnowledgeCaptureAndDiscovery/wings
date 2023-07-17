@@ -17,22 +17,22 @@
 
 package edu.isi.wings.catalog.component.classes;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.rules.KBRule;
 import edu.isi.kcap.ontapi.rules.KBRuleList;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
 import edu.isi.wings.common.URIEntity;
+import java.util.ArrayList;
 
 public class Component extends URIEntity {
+
   private static final long serialVersionUID = 1L;
 
   public static int ABSTRACT = 1;
   public static int CONCRETE = 2;
 
   private String rulesText; // Not used directly, just for transferring info
-                            // from Client
-  
+  // from Client
+
   int type;
   int version;
   ArrayList<ComponentRole> inputs;
@@ -63,7 +63,7 @@ public class Component extends URIEntity {
   public void setType(int type) {
     this.type = type;
   }
-  
+
   public int getVersion() {
     return version;
   }
@@ -73,9 +73,8 @@ public class Component extends URIEntity {
   }
 
   public String getRulesText() {
-    if(rulesText != null)
-      return rulesText;
-    if(rules != null) {
+    if (rulesText != null) return rulesText;
+    if (rules != null) {
       return String.join("\n", rules);
     }
     return null;
@@ -110,17 +109,17 @@ public class Component extends URIEntity {
   public void setRules(ArrayList<String> rules) {
     this.rules = rules;
   }
-  
+
   public ArrayList<String> getInheritedRules() {
     return this.inheritedRules;
   }
-  
+
   public void setInheritedRules(KBRuleList rules) {
     for (KBRule rule : rules.getRules()) {
       this.inheritedRules.add(rule.toShortString());
     }
   }
-  
+
   public boolean hasRules() {
     return (this.rules.size() + this.inheritedRules.size()) > 0;
   }
@@ -145,7 +144,9 @@ public class Component extends URIEntity {
     return requirement;
   }
 
-  public void setComponentRequirement(ComponentRequirement componentRequirement) {
+  public void setComponentRequirement(
+    ComponentRequirement componentRequirement
+  ) {
     this.requirement = componentRequirement;
   }
 
@@ -164,7 +165,7 @@ public class Component extends URIEntity {
   public String getSource() {
     return source;
   }
-  
+
   public boolean isConcrete() {
     return this.type == CONCRETE;
   }

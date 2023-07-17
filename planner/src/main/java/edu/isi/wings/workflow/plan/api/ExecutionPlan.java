@@ -17,41 +17,38 @@
 
 package edu.isi.wings.workflow.plan.api;
 
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.workflow.plan.api.impl.pplan.PPlan;
+import java.util.ArrayList;
 
 @JsonDeserialize(as = PPlan.class)
 public interface ExecutionPlan extends TransactionsAPI {
-	
-	// ID functions
-	public void setID(String id);
-	
-	public String getID();
-	
-	public String getNamespace();
-	
-	public String getName();
-	
-	public String getURL();
-	
-	// Step functions
-	public void addExecutionStep(ExecutionStep step);
-	
-	public ArrayList<ExecutionStep> getAllExecutionSteps();
-	
-	// Interleaving planning / execution
-	public boolean isIncomplete();
-	
-	public void setIsIncomplete(boolean incomplete);
-	
-	// Save
-	public boolean save();
-	
-	public boolean saveAs(String newid);
-	
-	public String serialize();
+  // ID functions
+  public void setID(String id);
+
+  public String getID();
+
+  public String getNamespace();
+
+  public String getName();
+
+  public String getURL();
+
+  // Step functions
+  public void addExecutionStep(ExecutionStep step);
+
+  public ArrayList<ExecutionStep> getAllExecutionSteps();
+
+  // Interleaving planning / execution
+  public boolean isIncomplete();
+
+  public void setIsIncomplete(boolean incomplete);
+
+  // Save
+  public boolean save();
+
+  public boolean saveAs(String newid);
+
+  public String serialize();
 }

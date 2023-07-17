@@ -17,132 +17,131 @@
 
 package edu.isi.wings.workflow.plan.api.impl.pplan;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
-
 import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Properties;
 
 public class PPlanStep extends URIEntity implements ExecutionStep {
-	private static final long serialVersionUID = 1L;
-	
-	transient Properties props;
-	ArrayList<ExecutionStep> parentSteps;
-	ArrayList<ExecutionFile> inputFiles;
-	ArrayList<ExecutionFile> outputFiles;
-	ArrayList<String> machineIds;
-	boolean skip = false;
-	
-	HashMap<String, ArrayList<Object>> argumentNameValueMap;
-	
-	String invocationLine;
-	String customData;
-	ExecutionCode codeBinding;
 
-	public PPlanStep() {
-	  super();
-	}
-	
-	public PPlanStep(String id, Properties props) {
-		super(id);
-		this.props = props;
-		
-		inputFiles = new ArrayList<ExecutionFile>();
-		outputFiles = new ArrayList<ExecutionFile>();
-		parentSteps = new ArrayList<ExecutionStep>();
-		machineIds = new ArrayList<String>();
-		argumentNameValueMap = new HashMap<String, ArrayList<Object>>();
-	}
+  private static final long serialVersionUID = 1L;
 
-	public void addInvocationLine(String s) {
-		this.invocationLine = s;
-	}
+  transient Properties props;
+  ArrayList<ExecutionStep> parentSteps;
+  ArrayList<ExecutionFile> inputFiles;
+  ArrayList<ExecutionFile> outputFiles;
+  ArrayList<String> machineIds;
+  boolean skip = false;
 
-	public void addCustomData(String data) {
-		this.customData = data;
-	}
+  HashMap<String, ArrayList<Object>> argumentNameValueMap;
 
-	public void setCodeBinding(ExecutionCode code) {
-		this.codeBinding = code;
-	}
+  String invocationLine;
+  String customData;
+  ExecutionCode codeBinding;
 
-	public String getCustomData() {
-		return this.customData;
-	}
+  public PPlanStep() {
+    super();
+  }
 
-	public String getInvocationLine() {
-		return this.invocationLine;
-	}
+  public PPlanStep(String id, Properties props) {
+    super(id);
+    this.props = props;
 
-	@Override
-	public ExecutionCode getCodeBinding() {
-		return this.codeBinding;
-	}
+    inputFiles = new ArrayList<ExecutionFile>();
+    outputFiles = new ArrayList<ExecutionFile>();
+    parentSteps = new ArrayList<ExecutionStep>();
+    machineIds = new ArrayList<String>();
+    argumentNameValueMap = new HashMap<String, ArrayList<Object>>();
+  }
 
-	@Override
-	public void addParentStep(ExecutionStep step) {
-		this.parentSteps.add(step);
-	}
+  public void addInvocationLine(String s) {
+    this.invocationLine = s;
+  }
 
-	@Override
-	public ArrayList<ExecutionStep> getParentSteps() {
-		return this.parentSteps;
-	}
+  public void addCustomData(String data) {
+    this.customData = data;
+  }
 
-	@Override
-	public HashMap<String, ArrayList<Object>> getInvocationArguments() {
-		return this.argumentNameValueMap;
-	}
-	
-	@Override
-	public String getInvocationArgumentString() {
-		String str = "";
-		for(String argname : this.argumentNameValueMap.keySet()) {
-			str += argname+" ";
-			for(Object val : this.argumentNameValueMap.get(argname)) {
-				if(val instanceof String)
-					str += val;
-				else if(val instanceof ExecutionFile) {
-					ExecutionFile f = (ExecutionFile)val;
-					if(f.getLocation() != null)
-						str += f.getLocation();
-					else
-						str += f.getBinding();
-				}
-				str += " ";
-			}
-		}
-		return str;
-	}
+  public void setCodeBinding(ExecutionCode code) {
+    this.codeBinding = code;
+  }
 
-	@Override
-	public void setInvocationArguments(HashMap<String, ArrayList<Object>> argumentMap) {
-		this.argumentNameValueMap = argumentMap;
-		
-	}
+  public String getCustomData() {
+    return this.customData;
+  }
 
-	@Override
-	public ArrayList<ExecutionFile> getInputFiles() {
-		return this.inputFiles;
-	}
+  public String getInvocationLine() {
+    return this.invocationLine;
+  }
 
-	@Override
-	public void addInputFile(ExecutionFile file) {
-		this.inputFiles.add(file);
-	}
+  @Override
+  public ExecutionCode getCodeBinding() {
+    return this.codeBinding;
+  }
 
-	@Override
-	public ArrayList<ExecutionFile> getOutputFiles() {
-		return this.outputFiles;
-	}
+  @Override
+  public void addParentStep(ExecutionStep step) {
+    this.parentSteps.add(step);
+  }
 
-	@Override
-	public void addOutputFile(ExecutionFile file) {
-		this.outputFiles.add(file);
-	}
+  @Override
+  public ArrayList<ExecutionStep> getParentSteps() {
+    return this.parentSteps;
+  }
+
+  @Override
+  public HashMap<String, ArrayList<Object>> getInvocationArguments() {
+    return this.argumentNameValueMap;
+  }
+
+  @Override
+  public String getInvocationArgumentString() {
+    String str = "";
+    for (String argname : this.argumentNameValueMap.keySet()) {
+      str += argname + " ";
+      for (Object val : this.argumentNameValueMap.get(argname)) {
+        if (val instanceof String) str += val; else if (
+          val instanceof ExecutionFile
+        ) {
+          ExecutionFile f = (ExecutionFile) val;
+          if (f.getLocation() != null) str += f.getLocation(); else str +=
+            f.getBinding();
+        }
+        str += " ";
+      }
+    }
+    return str;
+  }
+
+  @Override
+  public void setInvocationArguments(
+    HashMap<String, ArrayList<Object>> argumentMap
+  ) {
+    this.argumentNameValueMap = argumentMap;
+  }
+
+  @Override
+  public ArrayList<ExecutionFile> getInputFiles() {
+    return this.inputFiles;
+  }
+
+  @Override
+  public void addInputFile(ExecutionFile file) {
+    this.inputFiles.add(file);
+  }
+
+  @Override
+  public ArrayList<ExecutionFile> getOutputFiles() {
+    return this.outputFiles;
+  }
+
+  @Override
+  public void addOutputFile(ExecutionFile file) {
+    this.outputFiles.add(file);
+  }
 
   @Override
   public ArrayList<String> getMachineIds() {
@@ -158,7 +157,9 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
     return argumentNameValueMap;
   }
 
-  public void setArgumentNameValueMap(HashMap<String, ArrayList<Object>> argumentNameValueMap) {
+  public void setArgumentNameValueMap(
+    HashMap<String, ArrayList<Object>> argumentNameValueMap
+  ) {
     this.argumentNameValueMap = argumentNameValueMap;
   }
 

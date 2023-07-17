@@ -17,29 +17,27 @@
 
 package edu.isi.wings.execution.tools.api.impl.kb;
 
-import java.util.Properties;
-
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
+import java.util.Properties;
 
-public class ExecutionResourceKB 
-implements ExecutionResourceAPI {
+public class ExecutionResourceKB implements ExecutionResourceAPI {
+
   ResourceAPI api;
   String storageFolder;
-  
+
   public ExecutionResourceKB(Properties props) {
     this.api = ResourceFactory.getAPI(props);
   }
-  
+
   @Override
   public Machine getMachine(String machineId) {
     try {
       this.api.start_read();
       return this.api.getMachine(machineId);
-    }
-    finally {
+    } finally {
       this.api.end();
     }
   }
@@ -53,5 +51,4 @@ implements ExecutionResourceAPI {
   public String getLocalStorageFolder() {
     return this.storageFolder;
   }
-
 }

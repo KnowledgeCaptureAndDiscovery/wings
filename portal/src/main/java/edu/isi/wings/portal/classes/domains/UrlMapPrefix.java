@@ -18,27 +18,28 @@
 package edu.isi.wings.portal.classes.domains;
 
 public class UrlMapPrefix {
-	String url;
-	String mapping;
 
-	public UrlMapPrefix(String url, String mapping) {
-		this.setUrl(url);
-		this.setMapping(mapping);
-	}
+  String url;
+  String mapping;
 
-	public String getUrl() {
-		return url.toString();
-	}
+  public UrlMapPrefix(String url, String mapping) {
+    this.setUrl(url);
+    this.setMapping(mapping);
+  }
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
+  public String getUrl() {
+    return url.toString();
+  }
 
-	public String getMapping() {
-		return mapping.toString();
-	}
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-	public void setMapping(String mapping) {
-		this.mapping = mapping;
-	}
+  public String getMapping() {
+    return mapping.toString();
+  }
+
+  public void setMapping(String mapping) {
+    this.mapping = mapping;
+  }
 }

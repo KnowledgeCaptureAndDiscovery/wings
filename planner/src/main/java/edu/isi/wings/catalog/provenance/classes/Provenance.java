@@ -20,6 +20,7 @@ package edu.isi.wings.catalog.provenance.classes;
 import java.util.ArrayList;
 
 public class Provenance {
+
   private String objectId;
   private ArrayList<ProvActivity> activities;
 

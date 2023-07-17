@@ -17,42 +17,42 @@
 
 package edu.isi.wings.workflow.template.api;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+import edu.isi.wings.workflow.template.classes.ConstraintProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
-import edu.isi.wings.workflow.template.classes.ConstraintProperty;
-
 public interface TemplateCreationAPI extends TransactionsAPI {
-	// Query
-	ArrayList<String> getTemplateList();
-	
-	Template getTemplate(String tplid);
-	
-	ArrayList<ConstraintProperty> getAllConstraintProperties();
-	
-	public HashMap<String, ArrayList<String>> getTemplatesContainingComponents(String[] cids);
+  // Query
+  ArrayList<String> getTemplateList();
 
-	// Creation
-	
-	Template createTemplate(String tplid);
-	
-	boolean registerTemplate(Template tpl);
-	
-	boolean registerTemplateAs(Template tpl, String newid);
-	
-	boolean deregisterTemplate(Template tpl);
-	
-	// Versioning
-	
-	boolean incrementTemplateVersion(String tplid);
+  Template getTemplate(String tplid);
 
-	// Transactions
-	boolean delete();
-	
-	boolean save();
-	
-	// Copy from another API (Advisable to give the same implementation of the API here)
-	void copyFrom(TemplateCreationAPI tc);
-	
+  ArrayList<ConstraintProperty> getAllConstraintProperties();
+
+  public HashMap<String, ArrayList<String>> getTemplatesContainingComponents(
+    String[] cids
+  );
+
+  // Creation
+
+  Template createTemplate(String tplid);
+
+  boolean registerTemplate(Template tpl);
+
+  boolean registerTemplateAs(Template tpl, String newid);
+
+  boolean deregisterTemplate(Template tpl);
+
+  // Versioning
+
+  boolean incrementTemplateVersion(String tplid);
+
+  // Transactions
+  boolean delete();
+
+  boolean save();
+
+  // Copy from another API (Advisable to give the same implementation of the API here)
+  void copyFrom(TemplateCreationAPI tc);
 }

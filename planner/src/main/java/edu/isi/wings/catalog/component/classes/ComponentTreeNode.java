@@ -20,31 +20,32 @@ package edu.isi.wings.catalog.component.classes;
 import java.util.ArrayList;
 
 public class ComponentTreeNode {
-	ComponentHolder cls;
-	private ArrayList<ComponentTreeNode> children;
 
-	public ComponentTreeNode(ComponentHolder cls) {
-		this.cls = cls;
-		this.children = new ArrayList<ComponentTreeNode>();
-	}
+  ComponentHolder cls;
+  private ArrayList<ComponentTreeNode> children;
 
-	public ComponentHolder getCls() {
-		return cls;
-	}
+  public ComponentTreeNode(ComponentHolder cls) {
+    this.cls = cls;
+    this.children = new ArrayList<ComponentTreeNode>();
+  }
 
-	public void setCls(ComponentHolder cls) {
-		this.cls = cls;
-	}
+  public ComponentHolder getCls() {
+    return cls;
+  }
 
-	public ArrayList<ComponentTreeNode> getChildren() {
-		return this.children;
-	}
+  public void setCls(ComponentHolder cls) {
+    this.cls = cls;
+  }
 
-	public void addChild(ComponentTreeNode node) {
-		this.children.add(node);
-	}
+  public ArrayList<ComponentTreeNode> getChildren() {
+    return this.children;
+  }
 
-	public void removeChild(ComponentTreeNode node) {
-		this.children.remove(node);
-	}
+  public void addChild(ComponentTreeNode node) {
+    this.children.add(node);
+  }
+
+  public void removeChild(ComponentTreeNode node) {
+    this.children.remove(node);
+  }
 }

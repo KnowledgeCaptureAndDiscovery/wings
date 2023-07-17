@@ -17,9 +17,6 @@
 
 package edu.isi.wings.workflow.template.api.impl.kb;
 
-import java.util.ArrayList;
-import java.util.Properties;
-
 import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.kcap.ontapi.OntSpec;
@@ -28,150 +25,149 @@ import edu.isi.wings.workflow.template.api.Seed;
 import edu.isi.wings.workflow.template.classes.Metadata;
 import edu.isi.wings.workflow.template.classes.Rules;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
+import java.util.ArrayList;
+import java.util.Properties;
 
 public class SeedKB extends TemplateKB implements Seed {
-	private static final long serialVersionUID = 1L;
 
-	transient protected KBAPI r_kb;
-	transient protected KBAPI t_kb;
+  private static final long serialVersionUID = 1L;
 
-	transient protected ConstraintEngine r_constraintEngine;
-	transient protected ConstraintEngine t_constraintEngine;
+  protected transient KBAPI r_kb;
+  protected transient KBAPI t_kb;
 
-	String templateURL;
+  protected transient ConstraintEngine r_constraintEngine;
+  protected transient ConstraintEngine t_constraintEngine;
 
-	protected Metadata seedMeta;
-	protected Rules seedRules;
+  String templateURL;
 
-	// Loading an existing seed
-	public SeedKB(Properties props, String seedid) {
-		super(seedid);
-		this.props = props;
-		super.initVariables(props);
-		super.initializeKB(props, true);
+  protected Metadata seedMeta;
+  protected Rules seedRules;
 
-		this.templateURL = this.findTemplateUrl();
-		try {
-			this.kb.importFrom(ontologyFactory.getKB(this.templateURL, OntSpec.PLAIN));
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+  // Loading an existing seed
+  public SeedKB(Properties props, String seedid) {
+    super(seedid);
+    this.props = props;
+    super.initVariables(props);
+    super.initializeKB(props, true);
 
-		// Read in the template
-		super.readTemplate();
+    this.templateURL = this.findTemplateUrl();
+    try {
+      this.kb.importFrom(
+          ontologyFactory.getKB(this.templateURL, OntSpec.PLAIN)
+        );
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-		// Initialize the local seed kbs
-		initializeLocalKBs();
-		initializeEngines();
+    // Read in the template
+    super.readTemplate();
 
-//		this.seedMeta = readMetadata(r_kb, this.getUrl());
-//		this.metadata = readMetadata(kb, templateURL);
-//
-//		this.seedRules = readRules(r_kb, this.getUrl());
-//		this.rules = readRules(kb, templateURL);
-	}
+    // Initialize the local seed kbs
+    initializeLocalKBs();
+    initializeEngines();
+    //		this.seedMeta = readMetadata(r_kb, this.getUrl());
+    //		this.metadata = readMetadata(kb, templateURL);
+    //
+    //		this.seedRules = readRules(r_kb, this.getUrl());
+    //		this.rules = readRules(kb, templateURL);
+  }
 
-	// Creation of a blank seed
-	public SeedKB(Properties props, String seedid, String templateid) {
-		super(props, templateid);
-		this.templateURL = this.getURL();
-		this.setID(seedid);
-		
-		// Plain kb initialize (no need to read anything here)
-		this.r_kb = ontologyFactory.getKB(OntSpec.PLAIN);
-		this.t_kb = ontologyFactory.getKB(OntSpec.PLAIN);
-		this.t_kb.importFrom(this.kb);
-		
-		initializeEngines();
+  // Creation of a blank seed
+  public SeedKB(Properties props, String seedid, String templateid) {
+    super(props, templateid);
+    this.templateURL = this.getURL();
+    this.setID(seedid);
 
-		this.seedMeta = new Metadata();
-		this.seedRules = new Rules();
-	}
+    // Plain kb initialize (no need to read anything here)
+    this.r_kb = ontologyFactory.getKB(OntSpec.PLAIN);
+    this.t_kb = ontologyFactory.getKB(OntSpec.PLAIN);
+    this.t_kb.importFrom(this.kb);
 
-	
-	@Override
-	public void reloadSeedFromEngine() {
-		this.kb.importFrom(r_kb);
-		super.readTemplate();
-	}
-	
-	private void initializeLocalKBs() {
-		try {
-			r_kb = ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
-			r_kb.useRawModel();
-			t_kb = ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
-			t_kb.useBaseModel();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    initializeEngines();
 
-	private void initializeEngines() {
-		this.r_constraintEngine = new ConstraintEngineKB(r_kb, this.wflowns);
-		// this.r_constraintEngine.addBlacklistedNamespace(uriPrefix + "/" +
-		// domain + "/seeds/");
-		// this.r_constraintEngine.addBlacklistedNamespace(uriPrefix + "/" +
-		// domain + "/");
-		this.t_constraintEngine = new ConstraintEngineKB(t_kb, this.wflowns);
-	}
+    this.seedMeta = new Metadata();
+    this.seedRules = new Rules();
+  }
 
-	public ConstraintEngine getSeedConstraintEngine() {
-		return this.r_constraintEngine;
-	}
+  @Override
+  public void reloadSeedFromEngine() {
+    this.kb.importFrom(r_kb);
+    super.readTemplate();
+  }
 
-	public ConstraintEngine getTemplateConstraintEngine() {
-		return this.t_constraintEngine;
-	}
-	
-	private String findTemplateUrl() {
-		for (String importurl : kb.getImports(this.getURL())) {
-			if (!importurl.equals(this.onturl))
-				return importurl;
-		}
-		return null;
-	}
+  private void initializeLocalKBs() {
+    try {
+      r_kb = ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
+      r_kb.useRawModel();
+      t_kb = ontologyFactory.getKB(this.getURL(), OntSpec.PLAIN);
+      t_kb.useBaseModel();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-	public String getInternalRepresentation() {
-		// return r_kb.toN3(this.url);
-		return r_kb.toAbbrevRdf(false, this.getURL());
-	}
+  private void initializeEngines() {
+    this.r_constraintEngine = new ConstraintEngineKB(r_kb, this.wflowns);
+    // this.r_constraintEngine.addBlacklistedNamespace(uriPrefix + "/" +
+    // domain + "/seeds/");
+    // this.r_constraintEngine.addBlacklistedNamespace(uriPrefix + "/" +
+    // domain + "/");
+    this.t_constraintEngine = new ConstraintEngineKB(t_kb, this.wflowns);
+  }
 
-	public String serialize() {
-		// Create a plain new KB
-		KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
+  public ConstraintEngine getSeedConstraintEngine() {
+    return this.r_constraintEngine;
+  }
 
-		// Add template import
-		tkb.createImport("", this.templateURL);
+  public ConstraintEngine getTemplateConstraintEngine() {
+    return this.t_constraintEngine;
+  }
 
-		ArrayList<String> varids = new ArrayList<String>();
-		for (Variable v : getVariables())
-			varids.add(v.getID());
-		for (KBTriple t : this.r_constraintEngine.getConstraints(varids)) {
-			tkb.addTriple(t);
-		}
-		// writeMetadataDescription(tkb, seedMeta);
-		// writeRules(tkb, seedRules);
+  private String findTemplateUrl() {
+    for (String importurl : kb.getImports(this.getURL())) {
+      if (!importurl.equals(this.onturl)) return importurl;
+    }
+    return null;
+  }
 
-		// Return RDF representation
-		// return tapi.toN3(this.url);
-		return tkb.toAbbrevRdf(false, this.getURL());
-	}
+  public String getInternalRepresentation() {
+    // return r_kb.toN3(this.url);
+    return r_kb.toAbbrevRdf(false, this.getURL());
+  }
 
-	public String deriveTemplateRepresentation() {
-		KBAPI tkb = kb;
-		kb = t_kb;
-		String rdf = super.serialize();
-		kb = tkb;
-		return rdf;
-	}
+  public String serialize() {
+    // Create a plain new KB
+    KBAPI tkb = ontologyFactory.getKB(OntSpec.PLAIN);
 
-	public Metadata getSeedMetadata() {
-		return this.seedMeta;
-	}
+    // Add template import
+    tkb.createImport("", this.templateURL);
 
-	public Rules getSeedRules() {
-		return this.seedRules;
-	}
+    ArrayList<String> varids = new ArrayList<String>();
+    for (Variable v : getVariables()) varids.add(v.getID());
+    for (KBTriple t : this.r_constraintEngine.getConstraints(varids)) {
+      tkb.addTriple(t);
+    }
+    // writeMetadataDescription(tkb, seedMeta);
+    // writeRules(tkb, seedRules);
+
+    // Return RDF representation
+    // return tapi.toN3(this.url);
+    return tkb.toAbbrevRdf(false, this.getURL());
+  }
+
+  public String deriveTemplateRepresentation() {
+    KBAPI tkb = kb;
+    kb = t_kb;
+    String rdf = super.serialize();
+    kb = tkb;
+    return rdf;
+  }
+
+  public Metadata getSeedMetadata() {
+    return this.seedMeta;
+  }
+
+  public Rules getSeedRules() {
+    return this.seedRules;
+  }
 }

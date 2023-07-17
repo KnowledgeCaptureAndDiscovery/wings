@@ -20,30 +20,31 @@ package edu.isi.wings.catalog.component.classes;
 import java.util.ArrayList;
 
 public class ComponentInvocation {
-	String componentId;
-	String componentLocation;
-	String componentDirectory;
-	ArrayList<Argument> arguments;
 
-	public ComponentInvocation() {
-		this.arguments = new ArrayList<Argument>();
-	}
+  String componentId;
+  String componentLocation;
+  String componentDirectory;
+  ArrayList<Argument> arguments;
 
-	public String getComponentId() {
-		return componentId;
-	}
+  public ComponentInvocation() {
+    this.arguments = new ArrayList<Argument>();
+  }
 
-	public void setComponentId(String componentId) {
-		this.componentId = componentId;
-	}
+  public String getComponentId() {
+    return componentId;
+  }
 
-	public String getComponentLocation() {
-		return componentLocation;
-	}
+  public void setComponentId(String componentId) {
+    this.componentId = componentId;
+  }
 
-	public void setComponentLocation(String componentLocation) {
-		this.componentLocation = componentLocation;
-	}
+  public String getComponentLocation() {
+    return componentLocation;
+  }
+
+  public void setComponentLocation(String componentLocation) {
+    this.componentLocation = componentLocation;
+  }
 
   public String getComponentDirectory() {
     return componentDirectory;
@@ -53,65 +54,71 @@ public class ComponentInvocation {
     this.componentDirectory = componentDirectory;
   }
 
-	public ArrayList<Argument> getArguments() {
-		return arguments;
-	}
+  public ArrayList<Argument> getArguments() {
+    return arguments;
+  }
 
-	public void setArguments(ArrayList<Argument> arguments) {
-		this.arguments = arguments;
-	}
+  public void setArguments(ArrayList<Argument> arguments) {
+    this.arguments = arguments;
+  }
 
-	public void addArgument(Argument arg) {
-		this.arguments.add(arg);
-	}
+  public void addArgument(Argument arg) {
+    this.arguments.add(arg);
+  }
 
-	public void addArgument(String name, Object value, String varid, boolean isInput) {
-		this.arguments.add(new Argument(name, value, varid, isInput));
-	}
-	
-	public class Argument {
-		String name;
-		String variableid;
-		Object value;
-		boolean isInput;
+  public void addArgument(
+    String name,
+    Object value,
+    String varid,
+    boolean isInput
+  ) {
+    this.arguments.add(new Argument(name, value, varid, isInput));
+  }
 
-		public Argument(String name, Object value, String varid, boolean isInput) {
-			this.name = name;
-			this.value = value;
-			this.variableid = varid;
-			this.isInput = isInput;
-		}
+  public class Argument {
 
-		public String getName() {
-			return name;
-		}
+    String name;
+    String variableid;
+    Object value;
+    boolean isInput;
 
-		public void setName(String name) {
-			this.name = name;
-		}
+    public Argument(String name, Object value, String varid, boolean isInput) {
+      this.name = name;
+      this.value = value;
+      this.variableid = varid;
+      this.isInput = isInput;
+    }
 
-		public Object getValue() {
-			return value;
-		}
+    public String getName() {
+      return name;
+    }
 
-		public void setValue(Object value) {
-			this.value = value;
-		}
+    public void setName(String name) {
+      this.name = name;
+    }
 
-		public boolean isInput() {
-			return isInput;
-		}
+    public Object getValue() {
+      return value;
+    }
 
-		public void setInput(boolean isInput) {
-			this.isInput = isInput;
-		}
+    public void setValue(Object value) {
+      this.value = value;
+    }
 
-		public String getVariableid() {
-		    return variableid;
-		}
+    public boolean isInput() {
+      return isInput;
+    }
 
-		public void setVariableid(String variableid) {
-		    this.variableid = variableid;
-		}
-	}
+    public void setInput(boolean isInput) {
+      this.isInput = isInput;
+    }
+
+    public String getVariableid() {
+      return variableid;
+    }
+
+    public void setVariableid(String variableid) {
+      this.variableid = variableid;
+    }
+  }
 }

@@ -18,6 +18,7 @@
 package edu.isi.wings.catalog.resource.classes;
 
 public class SoftwareEnvironment {
+
   private String variable;
   private String softwareGroupId;
 

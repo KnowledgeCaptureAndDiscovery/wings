@@ -48,12 +48,7 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import org.apache.commons.io.FileUtils;
-
-//OODT imports
-import org.apache.oodt.cas.workflow.structs.WorkflowTaskInstance;
-import org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration;
 import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
 import org.apache.oodt.cas.filemgr.datatransfer.RemoteDataTransferFactory;
 import org.apache.oodt.cas.filemgr.structs.Product;
@@ -63,11 +58,14 @@ import org.apache.oodt.cas.filemgr.structs.exceptions.CatalogException;
 import org.apache.oodt.cas.filemgr.structs.exceptions.RepositoryManagerException;
 import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
 import org.apache.oodt.cas.metadata.Metadata;
+import org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration;
+//OODT imports
+import org.apache.oodt.cas.workflow.structs.WorkflowTaskInstance;
 
 /**
  * @author Varun Ratnakar
  * @version $Revsion$
- * 
+ *
  *          <p>
  *          A Wings Task (http://www.wings-workflows.org)
  *          </p>
@@ -75,14 +73,13 @@ import org.apache.oodt.cas.metadata.Metadata;
 public class WingsTask implements WorkflowTaskInstance {
 
   /**
-   * 
+   *
    */
-  public WingsTask() {
-  }
+  public WingsTask() {}
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.apache.oodt.cas.workflow.structs.WorkflowTaskInstance#run(java.util
    * .Map, org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration)
@@ -111,17 +108,16 @@ public class WingsTask implements WorkflowTaskInstance {
     String logfile = props.getProperty("LOGFILE");
     String wlogfile = props.getProperty("W_LOGFILE");
     String tplid = wlogfile.replace(".log", "");
-    
+
     PrintStream wlogout = null;
     PrintStream logout = null;
 
     XmlRpcFileManagerClient fmclient = null;
     try {
-      fmclient = new XmlRpcFileManagerClient(new URL(
-          fmurl));
+      fmclient = new XmlRpcFileManagerClient(new URL(fmurl));
       DataTransfer dt = new RemoteDataTransferFactory().createDataTransfer();
       dt.setFileManagerUrl(new URL(fmurl));
-      
+
       // Check if outputs already exist in the file manager
       boolean outputs_already_present = true;
       for (String op : outputs) {
@@ -129,20 +125,17 @@ public class WingsTask implements WorkflowTaskInstance {
         Product prod = null;
         try {
           prod = fmclient.getProductById(prodid);
-        }
-        catch (Exception e) {}
-        if(prod == null) {
+        } catch (Exception e) {}
+        if (prod == null) {
           outputs_already_present = false;
         }
       }
       // If outputs already present, no need to execute
-      if(outputs_already_present)
-        return;
-      
+      if (outputs_already_present) return;
 
       File tmpdir = File.createTempFile("oodt-run-", "");
-      if (tmpdir.delete() && tmpdir.mkdirs())
-        jobdir = tmpdir.getAbsolutePath() + File.separator;
+      if (tmpdir.delete() && tmpdir.mkdirs()) jobdir =
+        tmpdir.getAbsolutePath() + File.separator;
 
       argstring = argstring.replace(origjobdir, jobdir);
 
@@ -151,8 +144,14 @@ public class WingsTask implements WorkflowTaskInstance {
 
       wlogout.println(jobid + " (" + tname + "): RUNNING");
       wlogout.close();
-      this.uploadProduct(wlogfile, wlogfile, "GenericFile", 
-          new File(jobdir + wlogfile), new Metadata(), fmclient);
+      this.uploadProduct(
+          wlogfile,
+          wlogfile,
+          "GenericFile",
+          new File(jobdir + wlogfile),
+          new Metadata(),
+          fmclient
+        );
 
       wlogout = new PrintStream(new FileOutputStream(jobdir + wlogfile, true));
       logout.println("[INFO]: Component Initializing");
@@ -177,16 +176,16 @@ public class WingsTask implements WorkflowTaskInstance {
       cprod.setProductReferences(fmclient.getProductReferences(cprod));
       dt.retrieveProduct(cprod, compdir);
       String scriptPath = null;
-      for(File czip : compdir.listFiles()) {
-        if(czip.getName().endsWith(".zip")) {
+      for (File czip : compdir.listFiles()) {
+        if (czip.getName().endsWith(".zip")) {
           this.unZipIt(czip.getAbsolutePath(), compdir.getAbsolutePath());
-          File tmpf = new File(compdir.getAbsolutePath() + File.separator + "run");
-          if(!tmpf.exists())
-            tmpf = new File(compdir.getAbsolutePath() + File.separator + "run.bat");
+          File tmpf = new File(
+            compdir.getAbsolutePath() + File.separator + "run"
+          );
+          if (!tmpf.exists()) tmpf =
+            new File(compdir.getAbsolutePath() + File.separator + "run.bat");
           scriptPath = tmpf.getAbsolutePath();
-        }
-        else
-          scriptPath = czip.getAbsolutePath();
+        } else scriptPath = czip.getAbsolutePath();
       }
       File scriptf = new File(scriptPath);
       scriptf.setExecutable(true);
@@ -213,26 +212,24 @@ public class WingsTask implements WorkflowTaskInstance {
       }
       process.waitFor();
       int exitStatus = process.exitValue();
-      if (exitStatus != 0)
-        throw new Exception(
-            "[ERROR] Component failed with a non-zero exit code");
+      if (exitStatus != 0) throw new Exception(
+        "[ERROR] Component failed with a non-zero exit code"
+      );
 
       // Ingest output files to file manager
       for (String op : outputs) {
         File f = new File(jobdir + op);
-        
+
         File metf = new File(jobdir + op + ".met");
         HashMap<String, String> cmeta = new HashMap<String, String>();
-        if(metf.exists()) {
-          for(Object ln : FileUtils.readLines(metf)) {
+        if (metf.exists()) {
+          for (Object ln : FileUtils.readLines(metf)) {
             String metline = (String) ln;
             String[] kv = metline.split("\\s*=\\s*");
-            if(kv.length == 2)
-              cmeta.put(kv[0], kv[1]);
+            if (kv.length == 2) cmeta.put(kv[0], kv[1]);
           }
         }
-        if (!f.exists())
-          throw new Exception("[ERROR] Missing Output " + op);
+        if (!f.exists()) throw new Exception("[ERROR] Missing Output " + op);
         if (f.exists()) {
           logout.println("[INFO] Putting Output into File Manager: " + op);
 
@@ -241,12 +238,12 @@ public class WingsTask implements WorkflowTaskInstance {
           Metadata meta = metadata.getSubMetadata(op);
           String prodtypeid = meta.getMetadata(typeid);
           meta.removeMetadata(typeid);
-          
+
           // Override metadata with custom metadata (if any)
-          for(String key : meta.getAllKeys()) {
+          for (String key : meta.getAllKeys()) {
             String[] nsname = key.split("#");
-            if(nsname.length == 2) {
-              if(cmeta.containsKey(nsname[1])) {
+            if (nsname.length == 2) {
+              if (cmeta.containsKey(nsname[1])) {
                 meta.removeMetadata(key);
                 meta.addMetadata(key, cmeta.get(nsname[1]));
               }
@@ -254,15 +251,21 @@ public class WingsTask implements WorkflowTaskInstance {
           }
 
           // Upload output to file manager
-          String prodid =  fmprefix + op;
+          String prodid = fmprefix + op;
           this.uploadProduct(prodid, op, prodtypeid, f, meta, fmclient);
         }
-        
+
         if (metf.exists()) {
           String metname = op + ".met";
           String prodid = fmprefix + metname;
-          this.uploadProduct(prodid, metname, "GenericFile", 
-              metf, new Metadata(), fmclient);
+          this.uploadProduct(
+              prodid,
+              metname,
+              "GenericFile",
+              metf,
+              new Metadata(),
+              fmclient
+            );
         }
       }
       logout.println("SUCCESS: Component finished successfully !");
@@ -279,12 +282,24 @@ public class WingsTask implements WorkflowTaskInstance {
       }
     }
     try {
-      if(fmclient != null) {
-        this.uploadProduct(wlogfile, wlogfile, "GenericFile", 
-            new File(jobdir + wlogfile), new Metadata(), fmclient);
+      if (fmclient != null) {
+        this.uploadProduct(
+            wlogfile,
+            wlogfile,
+            "GenericFile",
+            new File(jobdir + wlogfile),
+            new Metadata(),
+            fmclient
+          );
         String logid = tplid + "-" + logfile;
-        this.uploadProduct(logid, logid, "GenericFile", 
-            new File(jobdir + logfile), new Metadata(), fmclient);        
+        this.uploadProduct(
+            logid,
+            logid,
+            "GenericFile",
+            new File(jobdir + logfile),
+            new Metadata(),
+            fmclient
+          );
       }
     } catch (CatalogException e) {
       e.printStackTrace();
@@ -293,33 +308,43 @@ public class WingsTask implements WorkflowTaskInstance {
     }
   }
 
-  private void uploadProduct(String prodid, String prodname, String prodtypeid, 
-      File f, Metadata meta, XmlRpcFileManagerClient fmclient) 
-          throws CatalogException, RepositoryManagerException {
+  private void uploadProduct(
+    String prodid,
+    String prodname,
+    String prodtypeid,
+    File f,
+    Metadata meta,
+    XmlRpcFileManagerClient fmclient
+  ) throws CatalogException, RepositoryManagerException {
     ArrayList<Reference> refs = new ArrayList<Reference>();
     long filesize = f.length();
     refs.add(new Reference(f.toURI().toString(), "", filesize));
 
     Product prod = null;
-    try { prod = fmclient.getProductById(prodid); }
-    catch (Exception e) {}
-    if(prod != null)
-      fmclient.removeProduct(prod);
+    try {
+      prod = fmclient.getProductById(prodid);
+    } catch (Exception e) {}
+    if (prod != null) fmclient.removeProduct(prod);
 
     ProductType type = null;
     try {
       type = fmclient.getProductTypeById(prodtypeid);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       String desc = "";
       String ver = "org.apache.oodt.cas.filemgr.versioning.BasicVersioner";
       String repo = "file:///tmp";
       type = new ProductType(prodtypeid, prodtypeid, desc, repo, ver);
       fmclient.addProductType(type);
     }
-    
-    prod = new Product(prodname, type, 
-        Product.STRUCTURE_FLAT, Product.STATUS_TRANSFER, refs);
+
+    prod =
+      new Product(
+        prodname,
+        type,
+        Product.STRUCTURE_FLAT,
+        Product.STATUS_TRANSFER,
+        refs
+      );
     prod.setProductId(prodid);
 
     // Ingest new product
@@ -329,35 +354,35 @@ public class WingsTask implements WorkflowTaskInstance {
       e.printStackTrace();
     }
   }
-  
+
   private void unZipIt(String zipFile, String outputFolder) {
     byte[] buffer = new byte[1024];
-    try{
+    try {
       File folder = new File(outputFolder);
-      if(!folder.exists()){
+      if (!folder.exists()) {
         folder.mkdir();
       }
       ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
       ZipEntry ze = zis.getNextEntry();
 
-      while(ze!=null) {
+      while (ze != null) {
         String fileName = ze.getName();
         File newFile = new File(outputFolder + File.separator + fileName);
         new File(newFile.getParent()).mkdirs();
-        FileOutputStream fos = new FileOutputStream(newFile);             
+        FileOutputStream fos = new FileOutputStream(newFile);
         int len;
         while ((len = zis.read(buffer)) > 0) {
           fos.write(buffer, 0, len);
         }
-        fos.close();   
+        fos.close();
         ze = zis.getNextEntry();
       }
       zis.closeEntry();
       zis.close();
-    } catch(IOException ex){
-      ex.printStackTrace(); 
+    } catch (IOException ex) {
+      ex.printStackTrace();
     }
-  }    
+  }
 
   private ArrayList<String> fetchFromProps(Properties props, String argtype) {
     ArrayList<String> args = new ArrayList<String>();

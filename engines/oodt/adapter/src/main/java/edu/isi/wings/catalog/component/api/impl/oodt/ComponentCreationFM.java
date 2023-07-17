@@ -17,6 +17,17 @@
 
 package edu.isi.wings.catalog.component.api.impl.oodt;
 
+import edu.isi.kcap.ontapi.KBAPI;
+import edu.isi.kcap.ontapi.OntFactory;
+import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
+import edu.isi.wings.catalog.component.classes.Component;
+import edu.isi.wings.catalog.component.classes.ComponentHolder;
+import edu.isi.wings.catalog.component.classes.ComponentRole;
+import edu.isi.wings.catalog.component.classes.ComponentTree;
+import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
+import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
+import edu.isi.wings.common.URIEntity;
+import edu.isi.wings.util.oodt.CurationServiceAPI;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -28,7 +39,6 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.oodt.cas.filemgr.structs.Element;
 import org.apache.oodt.cas.filemgr.structs.Product;
@@ -40,19 +50,9 @@ import org.apache.oodt.cas.filemgr.structs.exceptions.RepositoryManagerException
 import org.apache.oodt.cas.filemgr.structs.exceptions.ValidationLayerException;
 import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
 import org.apache.oodt.cas.metadata.Metadata;
-import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
-import edu.isi.wings.catalog.component.classes.Component;
-import edu.isi.wings.catalog.component.classes.ComponentHolder;
-import edu.isi.wings.catalog.component.classes.ComponentRole;
-import edu.isi.wings.catalog.component.classes.ComponentTree;
-import edu.isi.wings.catalog.component.classes.ComponentTreeNode;
-import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
-import edu.isi.wings.common.URIEntity;
-import edu.isi.kcap.ontapi.KBAPI;
-import edu.isi.kcap.ontapi.OntFactory;
-import edu.isi.wings.util.oodt.CurationServiceAPI;
 
 public class ComponentCreationFM implements ComponentCreationAPI {
+
   XmlRpcFileManagerClient fmclient;
   CurationServiceAPI curatorApi;
   String policy;
@@ -68,8 +68,10 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
   OntFactory ontologyFactory;
 
-  private static HashMap<String, String> compHolders = new HashMap<String, String>();
-  private static HashMap<String, Metadata> compMeta = new HashMap<String, Metadata>();
+  private static HashMap<String, String> compHolders =
+    new HashMap<String, String>();
+  private static HashMap<String, Metadata> compMeta =
+    new HashMap<String, Metadata>();
 
   public ComponentCreationFM(Properties props) {
     this.fmurl = props.getProperty("oodt.fmurl");
@@ -83,16 +85,14 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
     ontologyFactory = new OntFactory(OntFactory.JENA);
     File f = new File(this.archivedir);
-    if(!f.exists()) f.mkdirs();
+    if (!f.exists()) f.mkdirs();
 
     try {
       this.curatorApi = new CurationServiceAPI(this.curatorurl, this.policy);
       this.fmclient = new XmlRpcFileManagerClient(new URL(this.fmurl));
-    } 
-    catch (MalformedURLException e) {
+    } catch (MalformedURLException e) {
       e.printStackTrace();
-    } 
-    catch (ConnectionException e) {
+    } catch (ConnectionException e) {
       e.printStackTrace();
     }
   }
@@ -102,17 +102,17 @@ public class ComponentCreationFM implements ComponentCreationAPI {
     String rootid = this.absurl + "#Component";
     ComponentHolder rootholder = new ComponentHolder(rootid);
     ComponentTreeNode rootnode = new ComponentTreeNode(rootholder);
-    HashMap<String, ComponentTreeNode> tnmap = new HashMap<String, ComponentTreeNode>();
+    HashMap<String, ComponentTreeNode> tnmap =
+      new HashMap<String, ComponentTreeNode>();
     HashMap<String, String> pmap = this.curatorApi.getParentTypeMap();
     try {
-      for(ProductType ptype : this.fmclient.getProductTypes()) {
+      for (ProductType ptype : this.fmclient.getProductTypes()) {
         String pid = ptype.getProductTypeId();
         String parentid = pmap.get(pid);
-        while(parentid != null && !parentid.equals(rootid)) {
+        while (parentid != null && !parentid.equals(rootid)) {
           parentid = pmap.get(parentid);
         }
-        if(parentid == null) 
-          continue;
+        if (parentid == null) continue;
         ComponentHolder pholder = new ComponentHolder(pid);
         ComponentTreeNode pnode = new ComponentTreeNode(pholder);
         for (Product p : this.fmclient.getProductsByProductType(ptype)) {
@@ -121,18 +121,17 @@ public class ComponentCreationFM implements ComponentCreationAPI {
         tnmap.put(ptype.getProductTypeId(), pnode);
         rootnode.addChild(pnode);
       }
-      for(String childid: pmap.keySet()) {
+      for (String childid : pmap.keySet()) {
         String parentid = pmap.get(childid);
         ComponentTreeNode ptn = tnmap.get(parentid);
         ComponentTreeNode ctn = tnmap.get(childid);
-        if(ptn != null && ctn != null) {
+        if (ptn != null && ctn != null) {
           rootnode.removeChild(ctn);
           ptn.addChild(ctn);
         }
       }
       return new ComponentTree(rootnode);
-    }
-    catch (CatalogException e) {
+    } catch (CatalogException e) {
       e.printStackTrace();
     } catch (RepositoryManagerException e) {
       e.printStackTrace();
@@ -145,20 +144,22 @@ public class ComponentCreationFM implements ComponentCreationAPI {
     try {
       Product prod = this.fmclient.getProductById(cid);
       Metadata meta = this.fmclient.getMetadata(prod);
-      int comptype = Component.ABSTRACT; 
+      int comptype = Component.ABSTRACT;
       String conc = meta.getMetadata("IsConcrete");
-      if(conc != null && conc.equals("true"))
-        comptype = Component.CONCRETE;
+      if (conc != null && conc.equals("true")) comptype = Component.CONCRETE;
       Component comp = new Component(cid, comptype);
-      for(String input : meta.getAllMetadata("Inputs"))
-        comp.addInput(this.getRoleFromString(input));
-      for(String output : meta.getAllMetadata("Outputs"))
-        comp.addOutput(this.getRoleFromString(output));
+      for (String input : meta.getAllMetadata("Inputs")) comp.addInput(
+        this.getRoleFromString(input)
+      );
+      for (String output : meta.getAllMetadata("Outputs")) comp.addOutput(
+        this.getRoleFromString(output)
+      );
       comp.setDocumentation(meta.getMetadata("Documentation"));
       comp.setRules(ontologyFactory.parseRules(meta.getMetadata("Rules")));
-      comp.setComponentRequirement(this.getRequirementFromString(
-          meta.getMetadata("Requirement")));
-      String loc = this.getComponentLocation(cid); 
+      comp.setComponentRequirement(
+        this.getRequirementFromString(meta.getMetadata("Requirement"))
+      );
+      String loc = this.getComponentLocation(cid);
       comp.setLocation(loc);
       return comp;
     } catch (CatalogException e) {
@@ -171,7 +172,7 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   public String getComponentLocation(String cid) {
     try {
       Product prod = this.fmclient.getProductById(cid);
-      for(Reference ref : this.fmclient.getProductReferences(prod)) {
+      for (Reference ref : this.fmclient.getProductReferences(prod)) {
         return ref.getDataStoreReference();
       }
     } catch (CatalogException e) {
@@ -196,21 +197,31 @@ public class ComponentCreationFM implements ComponentCreationAPI {
     Metadata meta = new Metadata();
     ArrayList<String> inputs = new ArrayList<String>();
     ArrayList<String> outputs = new ArrayList<String>();
-    for(ComponentRole role : comp.getInputs())
-      inputs.add(this.getRoleString(role));
-    for(ComponentRole role : comp.getOutputs())
-      outputs.add(this.getRoleString(role));
+    for (ComponentRole role : comp.getInputs()) inputs.add(
+      this.getRoleString(role)
+    );
+    for (ComponentRole role : comp.getOutputs()) outputs.add(
+      this.getRoleString(role)
+    );
     meta.addMetadata("Inputs", inputs);
     meta.addMetadata("Outputs", outputs);
-    meta.addMetadata("IsConcrete", 
-        (comp.getType() == Component.CONCRETE) ? "true" : "false");
-    if(comp.getDocumentation() != null)
-      meta.addMetadata("Documentation", comp.getDocumentation());
-    if(comp.getRules() != null)
-      meta.addMetadata("Rules", StringUtils.join(comp.getRules(), "\n"));
+    meta.addMetadata(
+      "IsConcrete",
+      (comp.getType() == Component.CONCRETE) ? "true" : "false"
+    );
+    if (comp.getDocumentation() != null) meta.addMetadata(
+      "Documentation",
+      comp.getDocumentation()
+    );
+    if (comp.getRules() != null) meta.addMetadata(
+      "Rules",
+      StringUtils.join(comp.getRules(), "\n")
+    );
     ComponentRequirement compreq = comp.getComponentRequirement();
-    if(compreq != null)
-      meta.addMetadata("Requirement", this.getRequirementString(compreq));
+    if (compreq != null) meta.addMetadata(
+      "Requirement",
+      this.getRequirementString(compreq)
+    );
 
     compHolders.put(comp.getID(), pholderid);
     compMeta.put(comp.getID(), meta);
@@ -220,14 +231,16 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   @Override
   public boolean addComponentHolder(String holderid, String pholderid) {
     String holdername = new URIEntity(holderid).getName();
-    String desc = "A product type for "+holdername+" component class";
+    String desc = "A product type for " + holdername + " component class";
     String ver = "org.apache.oodt.cas.filemgr.versioning.BasicVersioner";
-    String repo = "file://"+this.archivedir;
+    String repo = "file://" + this.archivedir;
     ProductType type = new ProductType(holderid, holderid, desc, repo, ver);
     try {
       this.fmclient.addProductType(type);
-      if(pholderid != null)
-        return this.curatorApi.addParentForProductType(type, pholderid);
+      if (pholderid != null) return this.curatorApi.addParentForProductType(
+          type,
+          pholderid
+        );
     } catch (RepositoryManagerException e) {
       e.printStackTrace();
     }
@@ -236,14 +249,14 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
   @Override
   public boolean updateComponent(Component comp) {
-    if(comp == null) return false;
-    
+    if (comp == null) return false;
+
     String locuri = this.getComponentLocation(comp.getID());
     // Remove existing component assertions and re-add the new component details
     boolean ok1 = this.removeComponent(comp.getID(), false, false);
     boolean ok2 = this.addComponent(comp, null);
     this.setComponentLocation(comp.getID(), locuri);
-    
+
     // TODO: If abstract, update all components defined in all libraries !
     return ok1 && ok2;
   }
@@ -255,8 +268,11 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   }
 
   @Override
-  public boolean removeComponent(String cid, boolean remove_holder,
-      boolean unlink) {
+  public boolean removeComponent(
+    String cid,
+    boolean remove_holder,
+    boolean unlink
+  ) {
     try {
       Product prod = this.fmclient.getProductById(cid);
       this.fmclient.removeProduct(prod);
@@ -271,7 +287,7 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   public boolean removeComponentHolder(String holderid) {
     try {
       ProductType type = this.fmclient.getProductTypeById(holderid);
-      for(Product prod : this.fmclient.getProductsByProductType(type)) {
+      for (Product prod : this.fmclient.getProductsByProductType(type)) {
         this.fmclient.removeProduct(prod);
       }
       return this.curatorApi.removeProductType(type);
@@ -285,25 +301,21 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
   @Override
   public boolean setComponentLocation(String cid, String locuri) {
-    if(locuri == null) {
+    if (locuri == null) {
       try {
         File f = File.createTempFile("dummy-", "-abstract");
         locuri = f.getAbsolutePath();
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         return false;
       }
     }
     File locf = new File(locuri);
     // Zip component directory (if it is a directory)
-    if(locf.isDirectory())
-      locf = this.zipDirectory(locf);    
-    if(locf == null || !locf.exists()) 
-      return false;
+    if (locf.isDirectory()) locf = this.zipDirectory(locf);
+    if (locf == null || !locf.exists()) return false;
 
     String holderid = compHolders.get(cid);
-    if(holderid == null)
-      return false;
+    if (holderid == null) return false;
 
     ProductType type;
     try {
@@ -318,8 +330,13 @@ public class ComponentCreationFM implements ComponentCreationAPI {
     long filesize = locf.length();
     refs.add(new Reference(locf.toURI().toString(), "", filesize));
 
-    Product prod = new Product(compname, type, 
-        Product.STRUCTURE_FLAT, Product.STATUS_TRANSFER, refs);
+    Product prod = new Product(
+      compname,
+      type,
+      Product.STRUCTURE_FLAT,
+      Product.STATUS_TRANSFER,
+      refs
+    );
     prod.setProductId(cid);
     try {
       Metadata meta = compMeta.get(cid);
@@ -359,12 +376,15 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   /*
    * Private functions
    */
-  private void initialSync(ComponentCreationAPI cc, ComponentTreeNode node, 
-      ComponentTreeNode parent) {
+  private void initialSync(
+    ComponentCreationAPI cc,
+    ComponentTreeNode node,
+    ComponentTreeNode parent
+  ) {
     // Replace top DataObject with local namespaced DataObject
     String holderid = node.getCls().getID();
-    if(holderid.equals(this.ccurl + "#Component"))
-      holderid = this.absurl + "#Component";
+    if (holderid.equals(this.ccurl + "#Component")) holderid =
+      this.absurl + "#Component";
 
     ProductType ptype = null;
     try {
@@ -375,30 +395,36 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
     if (ptype == null) {
       String pholderid = parent != null ? parent.getCls().getID() : null;
-      if(pholderid != null && pholderid.equals(this.ccurl + "#Component"))
-        pholderid = this.absurl + "#Component";
+      if (
+        pholderid != null && pholderid.equals(this.ccurl + "#Component")
+      ) pholderid = this.absurl + "#Component";
       this.addComponentHolder(holderid, pholderid);
       this.save();
 
-      if(holderid.equals(this.absurl + "#Component")) {
+      if (holderid.equals(this.absurl + "#Component")) {
         try {
           ptype = this.fmclient.getProductTypeById(holderid);
         } catch (RepositoryManagerException e1) {
           e1.printStackTrace();
         }
-        if(ptype == null)
-          return;
+        if (ptype == null) return;
 
-        String[] props = new String[] {"Inputs", "Outputs", "IsConcrete", 
-            "Documentation", "Requirement", "Rules"};
+        String[] props = new String[] {
+          "Inputs",
+          "Outputs",
+          "IsConcrete",
+          "Documentation",
+          "Requirement",
+          "Rules",
+        };
         // MD5 ? (Also add it for DataCreationFM)
         ArrayList<Element> elementList = new ArrayList<Element>();
-        for(String prop: props) {
+        for (String prop : props) {
           Element el = null;
           try {
             el = this.fmclient.getElementById(prop);
           } catch (ValidationLayerException e) {
-            el = new Element(prop, prop, "", "", "Element "+prop, "");
+            el = new Element(prop, prop, "", "", "Element " + prop, "");
             elementList.add(el);
           }
         }
@@ -428,21 +454,27 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
   private String getRoleString(ComponentRole role) {
     String sep = "|";
-    return role.getID() + sep + 
-        role.getRoleName() + sep + 
-        role.getPrefix() + sep +
-        role.getType() + sep + 
-        role.getDimensionality() + sep +
-        role.isParam() + sep +
-        role.getParamDefaultalue();
+    return (
+      role.getID() +
+      sep +
+      role.getRoleName() +
+      sep +
+      role.getPrefix() +
+      sep +
+      role.getType() +
+      sep +
+      role.getDimensionality() +
+      sep +
+      role.isParam() +
+      sep +
+      role.getParamDefaultalue()
+    );
   }
 
   private ComponentRole getRoleFromString(String str) {
-    if(str == null)
-      return null;
+    if (str == null) return null;
     String[] vals = str.split("\\|");
-    if(vals.length < 7)
-      return null;
+    if (vals.length < 7) return null;
     ComponentRole role = new ComponentRole(vals[0]);
     role.setRoleName(vals[1]);
     role.setPrefix(vals[2]);
@@ -455,25 +487,28 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
   private String getRequirementString(ComponentRequirement req) {
     String sep = "|";
-    return req.getMemoryGB() + sep + 
-        req.getStorageGB() + sep + 
-        req.isNeed64bit() + sep +
-        StringUtils.join(req.getSoftwareIds(), ",");
+    return (
+      req.getMemoryGB() +
+      sep +
+      req.getStorageGB() +
+      sep +
+      req.isNeed64bit() +
+      sep +
+      StringUtils.join(req.getSoftwareIds(), ",")
+    );
   }
 
   private ComponentRequirement getRequirementFromString(String str) {
-    if(str == null)
-      return null;
+    if (str == null) return null;
     String[] vals = str.split("\\|");
-    if(vals.length < 3)
-      return null;
+    if (vals.length < 3) return null;
     ComponentRequirement req = new ComponentRequirement();
     req.setMemoryGB(Float.parseFloat(vals[0]));
     req.setStorageGB(Float.parseFloat(vals[1]));
     req.setNeed64bit(Boolean.parseBoolean(vals[2]));
-    if(vals.length > 3)
-      for(String softwareId: vals[3].split(","))
-        req.addSoftwareId(softwareId);
+    if (vals.length > 3) for (String softwareId : vals[3].split(
+        ","
+      )) req.addSoftwareId(softwareId);
     return req;
   }
 
@@ -485,8 +520,7 @@ public class ComponentCreationFM implements ComponentCreationAPI {
       this.addDirToArchive(zos, srcFile);
       zos.close();
       return zipFile;
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
       ioe.printStackTrace();
     }
     return null;
@@ -554,7 +588,7 @@ public class ComponentCreationFM implements ComponentCreationAPI {
   @Override
   public void stop_batch_operation() {
     // TODO Auto-generated method stub
-    
+
   }
 
   @Override
@@ -568,5 +602,3 @@ public class ComponentCreationFM implements ComponentCreationAPI {
     return false;
   }
 }
-
-

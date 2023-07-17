@@ -17,60 +17,58 @@
 
 package edu.isi.wings.workflow.plan.api;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import edu.isi.wings.workflow.plan.api.impl.pplan.PPlanStep;
 import edu.isi.wings.workflow.plan.classes.ExecutionCode;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @JsonDeserialize(as = PPlanStep.class)
-public interface ExecutionStep {	
+public interface ExecutionStep {
+  public void setID(String id);
 
-	public void setID(String id);
-	
-	public String getID();
-	
-	public String getNamespace();
-	
-	public String getName();
-	
-	public String getURL();
-	
-	public boolean isSkipped();
-	
-	// Precondition/Parent Steps
-	public void addParentStep(ExecutionStep step);
-	
-	public ArrayList<ExecutionStep> getParentSteps();
-	
-	// Information to run the Step itself
-	public void setCodeBinding(ExecutionCode executable);
-	
-	public ExecutionCode getCodeBinding();
-	
-	public HashMap<String, ArrayList<Object>> getInvocationArguments();
-	
-	public String getInvocationArgumentString();
-	
-	public void setInvocationArguments(HashMap<String, ArrayList<Object>> argumentMap);
-	
-	// Input/Output information for staging inputs and ingesting outputs (if used)
-	public ArrayList<ExecutionFile> getInputFiles();
-	
-	public void addInputFile(ExecutionFile file);
-	
-	public ArrayList<ExecutionFile> getOutputFiles();
-	
-	public void addOutputFile(ExecutionFile file);
-	
-	// Machine information
-	public ArrayList<String> getMachineIds();
-	
-	public void setMachineIds(ArrayList<String> machineIds);
-	
-	public void setSkip(boolean skip);
-	
+  public String getID();
+
+  public String getNamespace();
+
+  public String getName();
+
+  public String getURL();
+
+  public boolean isSkipped();
+
+  // Precondition/Parent Steps
+  public void addParentStep(ExecutionStep step);
+
+  public ArrayList<ExecutionStep> getParentSteps();
+
+  // Information to run the Step itself
+  public void setCodeBinding(ExecutionCode executable);
+
+  public ExecutionCode getCodeBinding();
+
+  public HashMap<String, ArrayList<Object>> getInvocationArguments();
+
+  public String getInvocationArgumentString();
+
+  public void setInvocationArguments(
+    HashMap<String, ArrayList<Object>> argumentMap
+  );
+
+  // Input/Output information for staging inputs and ingesting outputs (if used)
+  public ArrayList<ExecutionFile> getInputFiles();
+
+  public void addInputFile(ExecutionFile file);
+
+  public ArrayList<ExecutionFile> getOutputFiles();
+
+  public void addOutputFile(ExecutionFile file);
+
+  // Machine information
+  public ArrayList<String> getMachineIds();
+
+  public void setMachineIds(ArrayList<String> machineIds);
+
+  public void setSkip(boolean skip);
 }

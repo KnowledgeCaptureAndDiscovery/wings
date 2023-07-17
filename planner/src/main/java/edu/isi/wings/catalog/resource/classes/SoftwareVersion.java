@@ -18,12 +18,13 @@
 package edu.isi.wings.catalog.resource.classes;
 
 public class SoftwareVersion extends Resource {
+
   private static final long serialVersionUID = -724942936669949377L;
-  
+
   private String softwareGroupId;
   private int versionNumber;
   private String versionText;
-  
+
   public SoftwareVersion(String id) {
     super(id);
   }

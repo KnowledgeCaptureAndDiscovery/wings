@@ -17,103 +17,100 @@
 
 package edu.isi.wings.catalog.data.classes;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.KBObject;
+import java.util.ArrayList;
 
 public class VariableBindings {
 
-	/**
-	 * dataVariable from the workflow namespace
-	 */
-	public KBObject dataVariable;
+  /**
+   * dataVariable from the workflow namespace
+   */
+  public KBObject dataVariable;
 
-	/**
-	 * dataObjects from the dc namespace
-	 */
-	public ArrayList<KBObject> dataObjects = new ArrayList<KBObject>();
+  /**
+   * dataObjects from the dc namespace
+   */
+  public ArrayList<KBObject> dataObjects = new ArrayList<KBObject>();
 
-	public VariableBindings() {
-	}
+  public VariableBindings() {}
 
-	/**
-	 * 
-	 * @param dataVariable
-	 *            data variable from the workflow namespace
-	 * @param dataObject
-	 *            data object from the dc namespace
-	 */
-	public VariableBindings(KBObject dataVariable, KBObject dataObject) {
-		this.dataVariable = dataVariable;
-		this.dataObjects.add(dataObject);
-	}
+  /**
+   *
+   * @param dataVariable
+   *            data variable from the workflow namespace
+   * @param dataObject
+   *            data object from the dc namespace
+   */
+  public VariableBindings(KBObject dataVariable, KBObject dataObject) {
+    this.dataVariable = dataVariable;
+    this.dataObjects.add(dataObject);
+  }
 
-	/**
-	 * returns an array list of kbojects <dataVariable dataObjects>
-	 * 
-	 * @return an array list of kbojects
-	 */
-	public ArrayList<KBObject> toArrayList() {
-		ArrayList<KBObject> result = new ArrayList<KBObject>(2);
-		result.add(this.getDataVariable());
-		result.addAll(this.getDataObjects());
-		return result;
-	}
+  /**
+   * returns an array list of kbojects <dataVariable dataObjects>
+   *
+   * @return an array list of kbojects
+   */
+  public ArrayList<KBObject> toArrayList() {
+    ArrayList<KBObject> result = new ArrayList<KBObject>(2);
+    result.add(this.getDataVariable());
+    result.addAll(this.getDataObjects());
+    return result;
+  }
 
-	/**
-	 * Getter for property 'dataVariable'.
-	 * 
-	 * @return Value for property 'dataVariable'.
-	 */
-	public KBObject getDataVariable() {
-		return dataVariable;
-	}
+  /**
+   * Getter for property 'dataVariable'.
+   *
+   * @return Value for property 'dataVariable'.
+   */
+  public KBObject getDataVariable() {
+    return dataVariable;
+  }
 
-	/**
-	 * Setter for property 'dataVariable'.
-	 * 
-	 * @param dataVariable
-	 *            Value to set for property 'dataVariable'.
-	 */
-	public void setDataVariable(KBObject dataVariable) {
-		this.dataVariable = dataVariable;
-	}
+  /**
+   * Setter for property 'dataVariable'.
+   *
+   * @param dataVariable
+   *            Value to set for property 'dataVariable'.
+   */
+  public void setDataVariable(KBObject dataVariable) {
+    this.dataVariable = dataVariable;
+  }
 
-	/**
-	 * Getter for property 'dataObjects'.
-	 * 
-	 * @return Value for property 'dataObjects'.
-	 */
-	public ArrayList<KBObject> getDataObjects() {
-		return dataObjects;
-	}
+  /**
+   * Getter for property 'dataObjects'.
+   *
+   * @return Value for property 'dataObjects'.
+   */
+  public ArrayList<KBObject> getDataObjects() {
+    return dataObjects;
+  }
 
-	/**
-	 * Setter for property 'dataObjects'.
-	 * 
-	 * @param dataObject
-	 *            Value to set for property 'dataObjects'.
-	 */
-	public void setDataObjects(ArrayList<KBObject> dataObjects) {
-		this.dataObjects = dataObjects;
-	}
+  /**
+   * Setter for property 'dataObjects'.
+   *
+   * @param dataObject
+   *            Value to set for property 'dataObjects'.
+   */
+  public void setDataObjects(ArrayList<KBObject> dataObjects) {
+    this.dataObjects = dataObjects;
+  }
 
-	/**
-	 * Added for property 'dataObjects'
-	 * 
-	 * @param dataObject
-	 *            Value to add for property 'dataObjects'
-	 */
-	public void addDataObject(KBObject dataObject) {
-		this.dataObjects.add(dataObject);
-	}
+  /**
+   * Added for property 'dataObjects'
+   *
+   * @param dataObject
+   *            Value to add for property 'dataObjects'
+   */
+  public void addDataObject(KBObject dataObject) {
+    this.dataObjects.add(dataObject);
+  }
 
-	public String toString() {
-		String str = "";
-		str += "( " + dataVariable.shortForm() + " : [ ";
-		for (KBObject dataObject : dataObjects)
-			str += dataObject.shortForm() + " ";
-		str += "] )";
-		return str;
-	}
+  public String toString() {
+    String str = "";
+    str += "( " + dataVariable.shortForm() + " : [ ";
+    for (KBObject dataObject : dataObjects) str += dataObject.shortForm() + " ";
+    str += "] )";
+    return str;
+  }
 }

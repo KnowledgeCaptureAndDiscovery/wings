@@ -21,58 +21,59 @@ import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.workflow.template.classes.sets.Binding;
 
 public class Variable extends URIEntity {
-	private static final long serialVersionUID = 1L;
 
-	private Binding binding;
-	private String comment;
-	private short type;
-	private boolean autofill;
-	private boolean breakpoint;
+  private static final long serialVersionUID = 1L;
 
-	private String derivedFrom;
-	
-	public Variable(String id, short type) {
-		super(id);
-		this.type = type;
-	}
+  private Binding binding;
+  private String comment;
+  private short type;
+  private boolean autofill;
+  private boolean breakpoint;
 
-	public void setVariableType(short type) {
-		this.type = type;
-	}
+  private String derivedFrom;
 
-	public short getVariableType() {
-		return this.type;
-	}
+  public Variable(String id, short type) {
+    super(id);
+    this.type = type;
+  }
 
-	public boolean isDataVariable() {
-		return type == VariableType.DATA;
-	}
+  public void setVariableType(short type) {
+    this.type = type;
+  }
 
-	public boolean isParameterVariable() {
-		return type == VariableType.PARAM;
-	}
+  public short getVariableType() {
+    return this.type;
+  }
 
-	public boolean isComponentVariable() {
-		return type == VariableType.COMPONENT;
-	}
+  public boolean isDataVariable() {
+    return type == VariableType.DATA;
+  }
 
-	public Binding getBinding() {
-		return this.binding;
-	}
+  public boolean isParameterVariable() {
+    return type == VariableType.PARAM;
+  }
 
-	public void setBinding(Binding binding) {
-		this.binding = binding;
-	}
+  public boolean isComponentVariable() {
+    return type == VariableType.COMPONENT;
+  }
 
-	public String getComment() {
-		return this.comment;
-	}
+  public Binding getBinding() {
+    return this.binding;
+  }
 
-	public void setComment(String str) {
-		this.comment = str;
-	}
+  public void setBinding(Binding binding) {
+    this.binding = binding;
+  }
 
-	public boolean isAutoFill() {
+  public String getComment() {
+    return this.comment;
+  }
+
+  public void setComment(String str) {
+    this.comment = str;
+  }
+
+  public boolean isAutoFill() {
     return autofill;
   }
 
@@ -89,8 +90,8 @@ public class Variable extends URIEntity {
   }
 
   public String toString() {
-		return getID() + (binding != null ? " (" + binding.toString() + ")" : "");
-	}
+    return getID() + (binding != null ? " (" + binding.toString() + ")" : "");
+  }
 
   public String getDerivedFrom() {
     return derivedFrom;

@@ -17,46 +17,47 @@
 
 package edu.isi.wings.portal.servlets;
 
+import edu.isi.wings.portal.classes.config.Config;
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import edu.isi.wings.portal.classes.config.Config;
-
 /**
  * Servlet exports graph in TDB
  */
 public class Login extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-	
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
-	public Login() {
-		super();
-	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		Config config = new Config(request, null, null);
-		
-		// Forward to the domains servlet
-		response.sendRedirect(config.getUserPath() + "/domains");
-	}
+  private static final long serialVersionUID = 1L;
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-	}
+  /**
+   * @see HttpServlet#HttpServlet()
+   */
+  public Login() {
+    super();
+  }
 
+  /**
+   * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+   *      response)
+   */
+  protected void doGet(
+    HttpServletRequest request,
+    HttpServletResponse response
+  ) throws ServletException, IOException {
+    Config config = new Config(request, null, null);
+
+    // Forward to the domains servlet
+    response.sendRedirect(config.getUserPath() + "/domains");
+  }
+
+  /**
+   * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+   *      response)
+   */
+  protected void doPost(
+    HttpServletRequest request,
+    HttpServletResponse response
+  ) throws ServletException, IOException {}
 }
