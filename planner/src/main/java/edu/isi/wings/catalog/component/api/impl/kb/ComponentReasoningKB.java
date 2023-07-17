@@ -1080,9 +1080,7 @@ public class ComponentReasoningKB
             );
             tkb.setPropertyValue(varobj, dmap.get("hasValue"), arg_value);
           }
-          if (
-            dmap.containsKey("hasBindingID")
-          ) tkb.addTriple( // Set the hasBindingID term
+          if (dmap.containsKey("hasBindingID")) tkb.addTriple( // Set the hasBindingID term
             varobj,
             dmap.get("hasBindingID"),
             tkb.createLiteral("Param" + arg.getName())
