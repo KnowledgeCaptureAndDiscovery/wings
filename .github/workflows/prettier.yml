@@ -19,7 +19,8 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Install Prettier Java plugin
-        run: npm install prettier-plugin-java --save-dev
+        run: npm install prettier-plugin-java
+
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
         with:
