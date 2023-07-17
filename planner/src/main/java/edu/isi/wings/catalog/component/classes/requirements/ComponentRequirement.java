@@ -20,6 +20,7 @@ package edu.isi.wings.catalog.component.classes.requirements;
 import java.util.ArrayList;
 
 public class ComponentRequirement {
+
   private float storageGB;
   private float memoryGB;
   private boolean need64bit;
@@ -62,10 +63,10 @@ public class ComponentRequirement {
   }
 
   public String toString() {
-    String str = "Softwares: "+this.softwareIds.toString()+"\n";
-    str += "MemoryGB: "+this.memoryGB+"\n";
-    str += "StorageGB: "+this.storageGB+"\n";
-    str += "Needs64bit: "+this.need64bit;
+    String str = "Softwares: " + this.softwareIds.toString() + "\n";
+    str += "MemoryGB: " + this.memoryGB + "\n";
+    str += "StorageGB: " + this.storageGB + "\n";
+    str += "Needs64bit: " + this.need64bit;
     return str;
   }
 }

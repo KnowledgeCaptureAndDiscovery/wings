@@ -17,19 +17,18 @@
 
 package edu.isi.wings.portal.controllers;
 
-import java.util.Properties;
-
+import com.google.gson.Gson;
 import edu.isi.wings.catalog.resource.ResourceFactory;
 import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
-import edu.isi.wings.portal.classes.config.Config;
 import edu.isi.wings.portal.classes.JsonHandler;
-
-import com.google.gson.Gson;
+import edu.isi.wings.portal.classes.config.Config;
+import java.util.Properties;
 
 public class ResourceController {
+
   public String rns;
   public String libns;
 
@@ -50,9 +49,9 @@ public class ResourceController {
     this.rns = (String) props.get("ont.resource.url") + "#";
     this.libns = (String) props.get("lib.resource.url") + "#";
   }
-  
+
   public void end() {
-    if(api != null) {
+    if (api != null) {
       api.end();
     }
   }
@@ -61,11 +60,11 @@ public class ResourceController {
   public String getAllSoftwareVersions() {
     return json.toJson(this.api.getAllSoftwareVersions());
   }
-  
+
   public String getAllSoftwareEnvironment() {
     return json.toJson(this.api.getAllSoftwareEnvironment());
   }
-  
+
   public String getMachineJSON(String resid) {
     return json.toJson(this.api.getMachine(resid));
   }
@@ -77,12 +76,11 @@ public class ResourceController {
   public String getSoftwareVersionJSON(String resid) {
     return json.toJson(this.api.getSoftwareVersion(resid));
   }
-  
+
   public String checkMachine(String resid) {
     Machine machine = this.api.getMachine(resid);
     return json.toJson(machine.getMachineDetails());
   }
-
 
   // Add
   public boolean addMachine(String resid) {
@@ -109,7 +107,10 @@ public class ResourceController {
   }
 
   public boolean saveSoftwareVersionJSON(String resid, String resvals_json) {
-    SoftwareVersion version = json.fromJson(resvals_json, SoftwareVersion.class);
+    SoftwareVersion version = json.fromJson(
+      resvals_json,
+      SoftwareVersion.class
+    );
     return this.api.saveSoftwareVersion(version);
   }
 

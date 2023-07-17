@@ -20,18 +20,19 @@ package edu.isi.wings.catalog.resource.classes;
 import java.util.ArrayList;
 
 public class Software extends Resource {
+
   private static final long serialVersionUID = 2206567086377827749L;
 
   private String name;
   private ArrayList<SoftwareVersion> versions;
   private ArrayList<String> environmentVariables;
-  
+
   public Software(String id) {
     super(id);
     this.environmentVariables = new ArrayList<String>();
     this.versions = new ArrayList<SoftwareVersion>();
   }
-  
+
   public String getName() {
     return name;
   }

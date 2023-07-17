@@ -17,23 +17,22 @@
 
 package edu.isi.wings.portal.controllers;
 
+import com.google.gson.Gson;
+import edu.isi.wings.catalog.provenance.ProvenanceFactory;
+import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
+import edu.isi.wings.portal.classes.JsonHandler;
+import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.users.User;
+import edu.isi.wings.portal.classes.users.UsersDB;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Properties;
-
 import org.apache.commons.io.FileUtils;
-import edu.isi.wings.catalog.provenance.ProvenanceFactory;
-import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
-import edu.isi.wings.portal.classes.config.Config;
-import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.users.User;
-import edu.isi.wings.portal.classes.users.UsersDB;
-
-import com.google.gson.Gson;
 
 @SuppressWarnings("unused")
 public class UserController {
+
   public Config config;
   public Properties props;
   public Gson json;
@@ -49,88 +48,77 @@ public class UserController {
   public String getUserJSON(String userid) {
     try {
       User user = api.getUser(userid);
-      if(user == null)
-        return null;
-      
-      if(user.getPassword() != null)
-        user.setPassword(user.getPassword().replaceAll(".", "*"));
+      if (user == null) return null;
+
+      if (user.getPassword() != null) user.setPassword(
+        user.getPassword().replaceAll(".", "*")
+      );
       return json.toJson(user);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return null;
   }
 
   public boolean saveUserJSON(String userid, String uservals_json) {
-    if (this.api == null)
-      return false;
+    if (this.api == null) return false;
 
     try {
       User user = json.fromJson(uservals_json, User.class);
       // Can only save your own information, or if the viewer is admin
-      if(!this.config.getViewerId().equals(user.getId())
-          && !this.config.isAdminViewer())
-        return false;
-      
+      if (
+        !this.config.getViewerId().equals(user.getId()) &&
+        !this.config.isAdminViewer()
+      ) return false;
+
       // If the password is all "*" (i.e. shadowed), then set to null
-      if(user.getPassword().matches("\\**"))
-        user.setPassword(null);
-      
+      if (user.getPassword().matches("\\**")) user.setPassword(null);
+
       // A non-admin user cannot set itself to be admin
-      if(!config.isAdminViewer())
-        user.setAdmin(false);
-      
-      return this.api.saveUser(user) 
-          && this.api.save();
-      
+      if (!config.isAdminViewer()) user.setAdmin(false);
+
+      return this.api.saveUser(user) && this.api.save();
     } catch (Exception e) {
       e.printStackTrace();
       return false;
     }
   }
-  
+
   public boolean addUser(String userid) {
     try {
       User user = api.getUser(userid);
-      if(user != null)
-        return false;
-      return this.api.addUser(userid, null, null)
-          && this.api.save();
-    }
-    catch (Exception e) {
+      if (user != null) return false;
+      return this.api.addUser(userid, null, null) && this.api.save();
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;
   }
-  
+
   public boolean removeUser(String userid) {
     try {
-      if(config.getViewerId().equals(userid))
-        return false;
+      if (config.getViewerId().equals(userid)) return false;
       User user = api.getUser(userid);
-      if(user == null)
-        return false;
-      
-      if(this.api.removeUser(userid)) {
+      if (user == null) return false;
+
+      if (this.api.removeUser(userid)) {
         // Remove user domains
         config.setUserId(userid);
         config.setViewerId(userid);
         DomainController dc = new DomainController(this.config);
-        for(String domain : dc.getDomainsList()) {
+        for (String domain : dc.getDomainsList()) {
           dc.deleteDomain(domain);
         }
         // Remove user directory
         FileUtils.deleteDirectory(new File(config.getUserDir()));
-        
+
         ProvenanceAPI prov = ProvenanceFactory.getAPI(config.getProperties());
         prov.removeUser(userid);
         prov.save();
-        
+
         return this.api.save();
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;

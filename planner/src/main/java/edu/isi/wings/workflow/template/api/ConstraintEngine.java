@@ -17,49 +17,56 @@
 
 package edu.isi.wings.workflow.template.api;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.KBObject;
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+import java.util.ArrayList;
 
 public interface ConstraintEngine extends TransactionsAPI {
-	public void setConstraints(ArrayList<KBTriple> constraints);
+  public void setConstraints(ArrayList<KBTriple> constraints);
 
-	public void addConstraints(ArrayList<KBTriple> constraints);
+  public void addConstraints(ArrayList<KBTriple> constraints);
 
-	public void removeConstraint(KBTriple constraint);
+  public void removeConstraint(KBTriple constraint);
 
-	public void removeObjectAndConstraints(KBObject obj);
+  public void removeObjectAndConstraints(KBObject obj);
 
-	public KBTriple createNewConstraint(String subjID, String predID, String objID);
+  public KBTriple createNewConstraint(
+    String subjID,
+    String predID,
+    String objID
+  );
 
-	public KBTriple createNewDataConstraint(String subjID, String predID, String obj, String type);
+  public KBTriple createNewDataConstraint(
+    String subjID,
+    String predID,
+    String obj,
+    String type
+  );
 
-	public KBObject getResource(String ID);
+  public KBObject getResource(String ID);
 
-	public boolean containsConstraint(KBTriple constraint);
+  public boolean containsConstraint(KBTriple constraint);
 
-	public ArrayList<KBTriple> getConstraints();
+  public ArrayList<KBTriple> getConstraints();
 
-	public ArrayList<KBTriple> getConstraints(String id);
+  public ArrayList<KBTriple> getConstraints(String id);
 
-	public ArrayList<KBTriple> getConstraints(ArrayList<String> ids);
+  public ArrayList<KBTriple> getConstraints(ArrayList<String> ids);
 
-	public void addBlacklistedId(String id);
+  public void addBlacklistedId(String id);
 
-	public void removeBlacklistedId(String id);
+  public void removeBlacklistedId(String id);
 
-	public void addBlacklistedNamespace(String ns);
+  public void addBlacklistedNamespace(String ns);
 
-	public void removeBlacklistedNamespace(String ns);
+  public void removeBlacklistedNamespace(String ns);
 
-	public void addWhitelistedNamespace(String ns);
+  public void addWhitelistedNamespace(String ns);
 
-	public void removeWhitelistedNamespace(String ns);
+  public void removeWhitelistedNamespace(String ns);
 
-	public void replaceSubjectInConstraints(KBObject subj, KBObject newSubj);
+  public void replaceSubjectInConstraints(KBObject subj, KBObject newSubj);
 
-	public void replaceObjectInConstraints(KBObject obj, KBObject newObj);
-
+  public void replaceObjectInConstraints(KBObject obj, KBObject newObj);
 }

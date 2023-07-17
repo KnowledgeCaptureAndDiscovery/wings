@@ -17,65 +17,72 @@
 
 package edu.isi.wings.catalog.data.classes;
 
+import edu.isi.wings.common.URIEntity;
 import java.util.ArrayList;
 
-import edu.isi.wings.common.URIEntity;
-
 public class MetadataProperty extends URIEntity {
-	private static final long serialVersionUID = 1L;
 
-	int type;
-	ArrayList<String> domains;
-	String range;
+  private static final long serialVersionUID = 1L;
 
-	public static int DATATYPE = 1;
-	public static int OBJECT = 2;
+  int type;
+  ArrayList<String> domains;
+  String range;
 
-	public MetadataProperty(String id, int type) {
-		super(id);
-		this.type = type;
-		this.domains = new ArrayList<String>();
-	}
+  public static int DATATYPE = 1;
+  public static int OBJECT = 2;
 
-	public void setType(int type) {
-		this.type = type;
-	}
+  public MetadataProperty(String id, int type) {
+    super(id);
+    this.type = type;
+    this.domains = new ArrayList<String>();
+  }
 
-	public int getType() {
-		return this.type;
-	}
+  public void setType(int type) {
+    this.type = type;
+  }
 
-	public boolean isDatatypeProperty() {
-		if (this.type == DATATYPE)
-			return true;
-		return false;
-	}
+  public int getType() {
+    return this.type;
+  }
 
-	public boolean isObjectProperty() {
-		if (this.type == OBJECT)
-			return true;
-		return false;
-	}
+  public boolean isDatatypeProperty() {
+    if (this.type == DATATYPE) return true;
+    return false;
+  }
 
-	public ArrayList<String> getDomains() {
-		return this.domains;
-	}
+  public boolean isObjectProperty() {
+    if (this.type == OBJECT) return true;
+    return false;
+  }
 
-	public String getRange() {
-		return this.range;
-	}
+  public ArrayList<String> getDomains() {
+    return this.domains;
+  }
 
-	public void addDomain(String id) {
-		this.domains.add(id);
-	}
+  public String getRange() {
+    return this.range;
+  }
 
-	public void setRange(String id) {
-		this.range = id;
-	}
+  public void addDomain(String id) {
+    this.domains.add(id);
+  }
 
-	public String toString() {
-		String str = "";
-		str += "\n" + getName() + "(" + type + ")\nDomains:" + domains + "\nRange:" + range + "\n";
-		return str;
-	}
+  public void setRange(String id) {
+    this.range = id;
+  }
+
+  public String toString() {
+    String str = "";
+    str +=
+      "\n" +
+      getName() +
+      "(" +
+      type +
+      ")\nDomains:" +
+      domains +
+      "\nRange:" +
+      range +
+      "\n";
+    return str;
+  }
 }

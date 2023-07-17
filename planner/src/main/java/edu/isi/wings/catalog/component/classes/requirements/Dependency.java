@@ -17,15 +17,17 @@
 
 package edu.isi.wings.catalog.component.classes.requirements;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.KBObject;
+import java.util.ArrayList;
 
 public class Dependency {
+
   public static enum Operator {
-    EQUAL, LESS_THAN, GREATER_THAN
-  };
+    EQUAL,
+    LESS_THAN,
+    GREATER_THAN,
+  }
 
   private ArrayList<String> propertyIdChain;
   private Object desiredValue;
@@ -53,27 +55,28 @@ public class Dependency {
     for (String propId : propertyIdChain) {
       KBObject prop = api.getProperty(propId);
       obj = api.getPropertyValue(obj, prop);
-      if (obj == null)
-        break;
+      if (obj == null) break;
     }
-    if(obj == null) return false;
-    if(!obj.isLiteral()) {
-      if(this.operator == Operator.EQUAL
-        && obj.getID().equals(this.desiredValue))
-        return true;
-    }
-    else {
-      if(this.operator == Operator.EQUAL
-          && obj.getValue().equals(this.desiredValue))
-        return true;
-      if(this.operator == Operator.GREATER_THAN
-          && Double.parseDouble(obj.getValueAsString()) > 
-              Double.parseDouble(this.desiredValue.toString()))
-        return true;
-      if(this.operator == Operator.LESS_THAN
-          && Double.parseDouble(obj.getValueAsString()) < 
-              Double.parseDouble(this.desiredValue.toString()))
-        return true;
+    if (obj == null) return false;
+    if (!obj.isLiteral()) {
+      if (
+        this.operator == Operator.EQUAL && obj.getID().equals(this.desiredValue)
+      ) return true;
+    } else {
+      if (
+        this.operator == Operator.EQUAL &&
+        obj.getValue().equals(this.desiredValue)
+      ) return true;
+      if (
+        this.operator == Operator.GREATER_THAN &&
+        Double.parseDouble(obj.getValueAsString()) >
+        Double.parseDouble(this.desiredValue.toString())
+      ) return true;
+      if (
+        this.operator == Operator.LESS_THAN &&
+        Double.parseDouble(obj.getValueAsString()) <
+        Double.parseDouble(this.desiredValue.toString())
+      ) return true;
     }
     return false;
   }

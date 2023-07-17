@@ -31,212 +31,212 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 
 public class StorageHandler {
-	public static Response streamFile(String location, ServletContext context) {
+
+  public static Response streamFile(String location, ServletContext context) {
     final File f = new File(location);
-    if(!f.exists())
-      return Response.status(Status.NOT_FOUND).build();
-    if(!f.canRead()) 
-      return Response.status(Status.FORBIDDEN).build();
-    
+    if (!f.exists()) return Response.status(Status.NOT_FOUND).build();
+    if (!f.canRead()) return Response.status(Status.FORBIDDEN).build();
+
     StreamingOutput stream = new StreamingOutput() {
       @Override
       public void write(OutputStream os) throws IOException {
         try {
-          if(f.isDirectory())
-            StorageHandler.streamDirectory(f, os);
-          else
-            StorageHandler.streamFile(f, os);
+          if (f.isDirectory()) StorageHandler.streamDirectory(
+            f,
+            os
+          ); else StorageHandler.streamFile(f, os);
         } catch (Exception e) {
           e.printStackTrace();
         }
       }
     };
-    
+
     String filename = f.getName();
     String mime = context.getMimeType(f.getAbsolutePath());
-    if(f.isDirectory()) {
+    if (f.isDirectory()) {
       filename += ".zip";
       mime = "application/zip";
     }
-    
-    return Response.ok(stream, mime)
-        .header("content-disposition", "attachment; filename = "+ filename)
-        .build();
-	}
 
-	public static String unzipFile(File f, String todirname, String toDirectory) {
-		File todir = new File(toDirectory);
-		if (!todir.exists())
-			todir.mkdirs();
+    return Response
+      .ok(stream, mime)
+      .header("content-disposition", "attachment; filename = " + filename)
+      .build();
+  }
 
-		try {
-			// Check if the zip file contains only one directory
-			ZipFile zfile = new ZipFile(f);
-			String topDir = null;
-			boolean isOneDir = true;
-			for (Enumeration<? extends ZipEntry> e = zfile.entries(); e.hasMoreElements();) {
-				ZipEntry ze = e.nextElement();
-				String name = ze.getName().replaceAll("/.+$", "");
-				name = name.replaceAll("/$", "");
-				// OSX Zips carry an extra __MACOSX directory. Ignore it
-				if(name.equals("__MACOSX")) 
-				  continue;
-				
-				if(topDir == null)
-					topDir = name;
-				else if(!topDir.equals(name)) {
-					isOneDir = false;
-					break;
-				}
-			}
-			zfile.close();
-			
-			// Delete existing directory (if any)
-			FileUtils.deleteDirectory(new File(toDirectory + File.separator + todirname));
+  public static String unzipFile(File f, String todirname, String toDirectory) {
+    File todir = new File(toDirectory);
+    if (!todir.exists()) todir.mkdirs();
 
-			// Unzip file(s) into toDirectory/todirname
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(f));
-			ZipEntry ze = zis.getNextEntry();
-			while (ze != null) {
-				String fileName = ze.getName();
+    try {
+      // Check if the zip file contains only one directory
+      ZipFile zfile = new ZipFile(f);
+      String topDir = null;
+      boolean isOneDir = true;
+      for (
+        Enumeration<? extends ZipEntry> e = zfile.entries();
+        e.hasMoreElements();
+      ) {
+        ZipEntry ze = e.nextElement();
+        String name = ze.getName().replaceAll("/.+$", "");
+        name = name.replaceAll("/$", "");
         // OSX Zips carry an extra __MACOSX directory. Ignore it
-				if(fileName.startsWith("__MACOSX")) {
-				  ze = zis.getNextEntry();
-				  continue;
-				}
-				
-        // Get relative file path translated to 'todirname'
-				if(isOneDir)
-					fileName = fileName.replaceFirst(topDir, todirname);
-				else
-					fileName = todirname + File.separator + fileName;
-				
-				// Create directories
-				File newFile = new File(toDirectory + File.separator + fileName);
-				if(ze.isDirectory())
-					newFile.mkdirs();
-				else
-					newFile.getParentFile().mkdirs();
-				
-				try {
-					// Copy file
-					FileOutputStream fos = new FileOutputStream(newFile);
-					IOUtils.copy(zis, fos);
-					fos.close();
-					
-					String mime = new Tika().detect(newFile);
-					if(mime.equals("application/x-sh") || mime.startsWith("text/"))
-					  FileUtils.writeLines(newFile, FileUtils.readLines(newFile));
+        if (name.equals("__MACOSX")) continue;
 
-					// Set all files as executable for now
-					newFile.setExecutable(true);
-				}
-				catch (FileNotFoundException fe) {
-					// Silently ignore
-					//fe.printStackTrace();
-				}
-				ze = zis.getNextEntry();
-			}
-			zis.closeEntry();
-			zis.close();
-			
-			return toDirectory + File.separator + todirname;
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	/*public static void copyDirectory(File src, File dest) throws IOException {
+        if (topDir == null) topDir = name; else if (!topDir.equals(name)) {
+          isOneDir = false;
+          break;
+        }
+      }
+      zfile.close();
+
+      // Delete existing directory (if any)
+      FileUtils.deleteDirectory(
+        new File(toDirectory + File.separator + todirname)
+      );
+
+      // Unzip file(s) into toDirectory/todirname
+      ZipInputStream zis = new ZipInputStream(new FileInputStream(f));
+      ZipEntry ze = zis.getNextEntry();
+      while (ze != null) {
+        String fileName = ze.getName();
+        // OSX Zips carry an extra __MACOSX directory. Ignore it
+        if (fileName.startsWith("__MACOSX")) {
+          ze = zis.getNextEntry();
+          continue;
+        }
+
+        // Get relative file path translated to 'todirname'
+        if (isOneDir) fileName =
+          fileName.replaceFirst(topDir, todirname); else fileName =
+          todirname + File.separator + fileName;
+
+        // Create directories
+        File newFile = new File(toDirectory + File.separator + fileName);
+        if (ze.isDirectory()) newFile.mkdirs(); else newFile
+          .getParentFile()
+          .mkdirs();
+
+        try {
+          // Copy file
+          FileOutputStream fos = new FileOutputStream(newFile);
+          IOUtils.copy(zis, fos);
+          fos.close();
+
+          String mime = new Tika().detect(newFile);
+          if (
+            mime.equals("application/x-sh") || mime.startsWith("text/")
+          ) FileUtils.writeLines(newFile, FileUtils.readLines(newFile));
+
+          // Set all files as executable for now
+          newFile.setExecutable(true);
+        } catch (FileNotFoundException fe) {
+          // Silently ignore
+          //fe.printStackTrace();
+        }
+        ze = zis.getNextEntry();
+      }
+      zis.closeEntry();
+      zis.close();
+
+      return toDirectory + File.separator + todirname;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /*public static void copyDirectory(File src, File dest) throws IOException {
 		if(!dest.exists())
 			dest.mkdirs();
 		EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 		Copy.TreeCopier tc = new Copy.TreeCopier(src.toPath(), dest.toPath());
 		Files.walkFileTree(src.toPath(), opts, Integer.MAX_VALUE, tc);
 	}*/
-    
-	private static void streamFile(File f, OutputStream os) {
-		try {
-			FileInputStream fin = new FileInputStream(f);
-			IOUtils.copyLarge(fin, os);
-			fin.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
-	private static void streamDirectory(File directory, OutputStream os) {
-	  try {
-	    // Start the ZipStream reader. Whatever is read is streamed to response
-	    PipedInputStream pis = new PipedInputStream(2048);
-	    ZipStreamer pipestreamer = new ZipStreamer(pis, os);
-	    pipestreamer.start();
+  private static void streamFile(File f, OutputStream os) {
+    try {
+      FileInputStream fin = new FileInputStream(f);
+      IOUtils.copyLarge(fin, os);
+      fin.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
-	    // Start Zipping folder and piping to the ZipStream reader
-	    PipedOutputStream pos = new PipedOutputStream(pis);
-	    ZipOutputStream zos = new ZipOutputStream(pos);
-	    StorageHandler.zipAndStream(directory, zos, directory.getName() + "/");
-	    zos.flush();
-	    zos.close();
-	  } catch (Exception e) {
-	    e.printStackTrace();
-	  }
-	}
-    
-	private static void zipAndStream(File dir, ZipOutputStream zos, String prefix) 
-	    throws Exception {
-	  byte bytes[] = new byte[2048];
-	  for (File file : dir.listFiles()) {
-	    if(file.isDirectory())
-	      StorageHandler.zipAndStream(file, zos, prefix + file.getName() + "/" );
-	    else {
-	      FileInputStream fis = new FileInputStream(file.getAbsolutePath());
-	      BufferedInputStream bis = new BufferedInputStream(fis);
-	      zos.putNextEntry(new ZipEntry(prefix + file.getName()));
-	      int bytesRead;
-	      while ((bytesRead = bis.read(bytes)) != -1) {
-	        zos.write(bytes, 0, bytesRead);
-	      }
-	      zos.closeEntry();
-	      bis.close();
-	      fis.close();
-	    }
-	  }
-	}
+  private static void streamDirectory(File directory, OutputStream os) {
+    try {
+      // Start the ZipStream reader. Whatever is read is streamed to response
+      PipedInputStream pis = new PipedInputStream(2048);
+      ZipStreamer pipestreamer = new ZipStreamer(pis, os);
+      pipestreamer.start();
+
+      // Start Zipping folder and piping to the ZipStream reader
+      PipedOutputStream pos = new PipedOutputStream(pis);
+      ZipOutputStream zos = new ZipOutputStream(pos);
+      StorageHandler.zipAndStream(directory, zos, directory.getName() + "/");
+      zos.flush();
+      zos.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static void zipAndStream(
+    File dir,
+    ZipOutputStream zos,
+    String prefix
+  ) throws Exception {
+    byte bytes[] = new byte[2048];
+    for (File file : dir.listFiles()) {
+      if (file.isDirectory()) StorageHandler.zipAndStream(
+        file,
+        zos,
+        prefix + file.getName() + "/"
+      ); else {
+        FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        zos.putNextEntry(new ZipEntry(prefix + file.getName()));
+        int bytesRead;
+        while ((bytesRead = bis.read(bytes)) != -1) {
+          zos.write(bytes, 0, bytesRead);
+        }
+        zos.closeEntry();
+        bis.close();
+        fis.close();
+      }
+    }
+  }
 }
 
 class ZipStreamer extends Thread {
-	public PipedInputStream pis;
-	public OutputStream os;
-	
-	public ZipStreamer(PipedInputStream pis, OutputStream os) {
-		super();
-		this.pis = pis;
-		this.os = os;
-	}
-	
-	public void run() {
-		try {
-			IOUtils.copyLarge(pis, os);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+
+  public PipedInputStream pis;
+  public OutputStream os;
+
+  public ZipStreamer(PipedInputStream pis, OutputStream os) {
+    super();
+    this.pis = pis;
+    this.os = os;
+  }
+
+  public void run() {
+    try {
+      IOUtils.copyLarge(pis, os);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 }
-
-
 /*class Copy { 
     static void copyFile(Path source, Path target) {
         CopyOption[] options = new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING };

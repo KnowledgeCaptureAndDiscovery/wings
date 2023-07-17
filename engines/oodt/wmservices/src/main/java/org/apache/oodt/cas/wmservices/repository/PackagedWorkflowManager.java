@@ -22,12 +22,8 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.apache.commons.io.FileUtils;
 import org.apache.oodt.cas.workflow.repository.PackagedWorkflowRepository;
 import org.apache.oodt.cas.workflow.structs.Graph;
@@ -38,36 +34,39 @@ import org.apache.oodt.cas.workflow.structs.WorkflowTask;
 import org.apache.oodt.cas.workflow.structs.WorkflowTaskConfiguration;
 import org.apache.oodt.cas.workflow.structs.exceptions.RepositoryException;
 import org.apache.oodt.commons.xml.XMLUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Helper class to handle PackagedWorkflowRepository workflows
- * 
+ *
  * @author vratnakar
  */
 public class PackagedWorkflowManager {
+
   private PackagedWorkflowRepository repo;
 
   /**
    * Constructor
-   * 
+   *
    * @param workflowDir
    *          directory where packaged workflows exist
    * @throws InstantiationException
    */
   @SuppressWarnings("unchecked")
-  public PackagedWorkflowManager()
-      throws InstantiationException {
+  public PackagedWorkflowManager() throws InstantiationException {
     this.repo = new PackagedWorkflowRepository(Collections.EMPTY_LIST);
   }
 
   /**
    * Add a workflow to the repository
-   * 
+   *
    * @param workflow
    *          a {@Link Workflow} to add into the repository
    * @throws RepositoryException
    */
-  public void addWorkflow(Workflow workflow, String workflowDir) throws RepositoryException {
+  public void addWorkflow(Workflow workflow, String workflowDir)
+    throws RepositoryException {
     this.loadTasksToRepo(workflow);
     String workflowId = this.repo.addWorkflow(workflow);
     String filePath = workflowDir + File.separator + workflowId + ".xml";
@@ -76,12 +75,13 @@ public class PackagedWorkflowManager {
 
   /**
    * Serialize a workflow
-   * 
+   *
    * @param workflow
    * @return XML representation of the workflow
    * @throws RepositoryException
    */
-  public String serializeWorkflow(Workflow workflow) throws RepositoryException {
+  public String serializeWorkflow(Workflow workflow)
+    throws RepositoryException {
     try {
       this.loadTasksToRepo(workflow);
       String workflowId = this.repo.addWorkflow(workflow);
@@ -91,14 +91,15 @@ public class PackagedWorkflowManager {
       f.delete();
       return workflowXML;
     } catch (Exception e) {
-      throw new RepositoryException("Failed to serialize workflow: "
-          + e.getMessage());
+      throw new RepositoryException(
+        "Failed to serialize workflow: " + e.getMessage()
+      );
     }
   }
 
   /**
    * Parse a workflow
-   * 
+   *
    * @param workflowID
    *          workflow id
    * @param workflowXML
@@ -107,17 +108,19 @@ public class PackagedWorkflowManager {
    * @throws RepositoryException
    */
   public Workflow parsePackagedWorkflow(String workflowID, String workflowXML)
-      throws RepositoryException {
+    throws RepositoryException {
     try {
       File tmpfile = File.createTempFile("tempworkflow-", "-packaged");
       FileUtils.writeStringToFile(tmpfile, workflowXML);
       PackagedWorkflowRepository tmprepo = new PackagedWorkflowRepository(
-          Collections.singletonList(tmpfile));
+        Collections.singletonList(tmpfile)
+      );
       tmpfile.delete();
       return tmprepo.getWorkflowById(workflowID);
     } catch (Exception e) {
-      throw new RepositoryException("Failed to parse workflow xml: "
-          + e.getMessage());
+      throw new RepositoryException(
+        "Failed to parse workflow xml: " + e.getMessage()
+      );
     }
   }
 
@@ -125,30 +128,31 @@ public class PackagedWorkflowManager {
 
   private void loadTasksToRepo(Workflow workflow) throws RepositoryException {
     for (WorkflowTask task : workflow.getTasks()) {
-      if (this.repo.getTaskById(task.getTaskId()) == null)
-        this.repo.addTask(task);
+      if (this.repo.getTaskById(task.getTaskId()) == null) this.repo.addTask(
+          task
+        );
     }
   }
 
   @SuppressWarnings("unchecked")
   private void saveWorkflow(String workflowId, String filePath)
-      throws RepositoryException {
+    throws RepositoryException {
     List<ParentChildWorkflow> pcwlist = new ArrayList<ParentChildWorkflow>();
     // Check if the workflow exists
-    ParentChildWorkflow pcw = (ParentChildWorkflow) repo
-        .getWorkflowById(workflowId);
+    ParentChildWorkflow pcw = (ParentChildWorkflow) repo.getWorkflowById(
+      workflowId
+    );
     if (pcw == null) {
       // Else check if this workflow Id is found in the event map
       // - It would be here if the top task is a parallel task
       pcwlist = repo.getWorkflowsForEvent(workflowId);
     }
 
-    if (pcw != null)
-      pcwlist.add(pcw);
+    if (pcw != null) pcwlist.add(pcw);
 
-    if (pcwlist.isEmpty())
-      throw new RepositoryException("Cannot find " + workflowId
-          + " in the repository");
+    if (pcwlist.isEmpty()) throw new RepositoryException(
+      "Cannot find " + workflowId + " in the repository"
+    );
 
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -163,17 +167,15 @@ public class PackagedWorkflowManager {
 
       // Create the workflow itself
       if (pcwlist.size() == 1) {
-        Element elem = this.addGraphToDocument(document, pcwlist.get(0)
-            .getGraph());
-        if (elem != null)
-          rootElem.appendChild(elem);
+        Element elem =
+          this.addGraphToDocument(document, pcwlist.get(0).getGraph());
+        if (elem != null) rootElem.appendChild(elem);
       } else {
         Element parallelElem = document.createElement("parallel");
         parallelElem.setAttribute("id", workflowId);
         for (ParentChildWorkflow cpcw : pcwlist) {
           Element elem = this.addGraphToDocument(document, cpcw.getGraph());
-          if (elem != null)
-            parallelElem.appendChild(elem);
+          if (elem != null) parallelElem.appendChild(elem);
         }
         rootElem.appendChild(parallelElem);
       }
@@ -181,15 +183,17 @@ public class PackagedWorkflowManager {
       for (Object obj : repo.getTasksByWorkflowId(workflowId)) {
         WorkflowTask task = (WorkflowTask) obj;
         Element elem = this.createTaskElement(document, task);
-        if (elem != null)
-          rootElem.appendChild(elem);
+        if (elem != null) rootElem.appendChild(elem);
       }
-      XMLUtils.writeXmlToStream(document, new FileOutputStream(new File(
-          filePath)));
+      XMLUtils.writeXmlToStream(
+        document,
+        new FileOutputStream(new File(filePath))
+      );
     } catch (Exception e) {
       e.printStackTrace();
-      throw new RepositoryException("Could not save workflow. "
-          + e.getMessage());
+      throw new RepositoryException(
+        "Could not save workflow. " + e.getMessage()
+      );
     }
   }
 
@@ -198,10 +202,12 @@ public class PackagedWorkflowManager {
     Element elem = null;
     if ("parallel".equals(exetype) || "sequential".equals(exetype)) {
       elem = document.createElement(exetype);
-      if (g.getModelId() != null && !g.getModelId().equals(""))
-        elem.setAttribute("id", g.getModelId());
-      if (g.getModelName() != null && !g.getModelName().equals(""))
-        elem.setAttribute("name", g.getModelName());
+      if (
+        g.getModelId() != null && !g.getModelId().equals("")
+      ) elem.setAttribute("id", g.getModelId());
+      if (
+        g.getModelName() != null && !g.getModelName().equals("")
+      ) elem.setAttribute("name", g.getModelName());
     } else if ("task".equals(exetype) || "condition".equals(exetype)) {
       elem = document.createElement(exetype);
       if (g.getModelIdRef() != null && !g.getModelIdRef().equals("")) {
@@ -249,8 +255,10 @@ public class PackagedWorkflowManager {
       taskElem.appendChild(conditionsElem);
     }
 
-    if (task.getRequiredMetFields() != null
-        && task.getRequiredMetFields().size() > 0) {
+    if (
+      task.getRequiredMetFields() != null &&
+      task.getRequiredMetFields().size() > 0
+    ) {
       Element reqMetFieldsElem = document.createElement("requiredMetFields");
       for (Object obj : task.getRequiredMetFields()) {
         String metField = (String) obj;

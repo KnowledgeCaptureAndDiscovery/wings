@@ -17,26 +17,24 @@
 
 package edu.isi.wings.portal.servlets;
 
+import com.google.gson.Gson;
+import edu.isi.wings.portal.classes.JsonHandler;
+import edu.isi.wings.portal.classes.config.Config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-
-import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
-
 /**
  * Servlet exports graph in TDB
  */
 public class ViewConfig extends HttpServlet {
+
   private static final long serialVersionUID = 1L;
-  
+
   /**
    * @see HttpServlet#HttpServlet()
    */
@@ -48,8 +46,10 @@ public class ViewConfig extends HttpServlet {
    * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
    *      response)
    */
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(
+    HttpServletRequest request,
+    HttpServletResponse response
+  ) throws ServletException, IOException {
     PrintWriter out = response.getWriter();
     Config config = new Config(request, null, null);
     Gson json = JsonHandler.createPrettyGson();
@@ -62,5 +62,4 @@ public class ViewConfig extends HttpServlet {
     out.println(json.toJson(props));
     out.close();
   }
-
 }

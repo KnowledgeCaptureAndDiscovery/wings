@@ -17,8 +17,6 @@
 
 package edu.isi.wings.planner.api;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.api.ComponentReasoningAPI;
@@ -29,32 +27,42 @@ import edu.isi.wings.catalog.data.classes.VariableBindingsListSet;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.template.api.Seed;
 import edu.isi.wings.workflow.template.api.Template;
+import java.util.ArrayList;
 
 public interface WorkflowGenerationAPI extends TransactionsAPI {
+  public void useDataService(DataReasoningAPI dc, DataCreationAPI dcc);
 
-	public void useDataService(DataReasoningAPI dc, DataCreationAPI dcc);
+  public void useComponentService(
+    ComponentReasoningAPI pc,
+    ComponentCreationAPI ccc
+  );
 
-	public void useComponentService(ComponentReasoningAPI pc, ComponentCreationAPI ccc);
+  public Seed loadSeed(String seedName);
 
-	public Seed loadSeed(String seedName);
+  public Template loadTemplate(String templateName);
 
-	public Template loadTemplate(String templateName);
+  public Template getInferredTemplate(Template template);
 
-	public Template getInferredTemplate(Template template);
+  public ArrayList<Template> specializeTemplates(Template template);
 
-	public ArrayList<Template> specializeTemplates(Template template);
+  public VariableBindingsListSet selectInputDataObjects(
+    Template specializedTemplate
+  );
 
-	public VariableBindingsListSet selectInputDataObjects(Template specializedTemplate);
-	
-	public Template bindTemplate(Template specializedTemplate, VariableBindingsList bindings);
+  public Template bindTemplate(
+    Template specializedTemplate,
+    VariableBindingsList bindings
+  );
 
-	public void setDataMetricsForInputDataObjects(ArrayList<Template> boundTemplates);
+  public void setDataMetricsForInputDataObjects(
+    ArrayList<Template> boundTemplates
+  );
 
-	public ArrayList<Template> configureTemplates(Template boundTemplate);
-	
-	public Template getExpandedTemplate(Template configuredTemplate);
+  public ArrayList<Template> configureTemplates(Template boundTemplate);
 
-	public ArrayList<String> getExplanations();
-	
-	public ExecutionPlan getExecutionPlan(Template template);
+  public Template getExpandedTemplate(Template configuredTemplate);
+
+  public ArrayList<String> getExplanations();
+
+  public ExecutionPlan getExecutionPlan(Template template);
 }

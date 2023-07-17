@@ -24,120 +24,113 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Metric implements Serializable {
-	private static final long serialVersionUID = 1L;
 
-	private int type;
-	private String datatype;
-	private Object value;
+  private static final long serialVersionUID = 1L;
 
-	public static int URI = 1;
-	public static int LITERAL = 2;
+  private int type;
+  private String datatype;
+  private Object value;
 
-	public Metric(int type, Object value) {
-		super();
-		this.type = type;
-		this.value = value;
-	}
-	
-	public Metric(int type, Object value, String datatype) {
-		super();
-		this.type = type;
-		this.value = value;
-		this.datatype = datatype;
-	}
+  public static int URI = 1;
+  public static int LITERAL = 2;
 
-	public int getType() {
-		return type;
-	}
+  public Metric(int type, Object value) {
+    super();
+    this.type = type;
+    this.value = value;
+  }
 
-	public void setType(int type) {
-		this.type = type;
-	}
+  public Metric(int type, Object value, String datatype) {
+    super();
+    this.type = type;
+    this.value = value;
+    this.datatype = datatype;
+  }
 
-	public Object getValue() {
-		return value;
-	}
-	
+  public int getType() {
+    return type;
+  }
+
+  public void setType(int type) {
+    this.type = type;
+  }
+
+  public Object getValue() {
+    return value;
+  }
+
   public String getValueAsString() {
-    if(this.value instanceof Date) {
-      if(this.datatype == null || this.datatype.endsWith("#dateTime")) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    if (this.value instanceof Date) {
+      if (this.datatype == null || this.datatype.endsWith("#dateTime")) {
+        SimpleDateFormat format = new SimpleDateFormat(
+          "yyyy-MM-dd'T'HH:mm:ssZ"
+        );
         return format.format(this.value);
-      }
-      else if (this.datatype.endsWith("#date")){
+      } else if (this.datatype.endsWith("#date")) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         return format.format(this.value);
       }
     }
-    if(this.value == null)
-      return null;
-    
-    return this.value.toString();
-  }	
+    if (this.value == null) return null;
 
-	public void setValue(Object value) {
-		this.value = value;
-	}
-	
+    return this.value.toString();
+  }
+
+  public void setValue(Object value) {
+    this.value = value;
+  }
+
   public void setValueFromString(String value) throws ParseException {
-    if(this.datatype != null) {
-      if(this.datatype.endsWith("#dateTime")) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    if (this.datatype != null) {
+      if (this.datatype.endsWith("#dateTime")) {
+        SimpleDateFormat format = new SimpleDateFormat(
+          "yyyy-MM-dd'T'HH:mm:ssZ"
+        );
         this.value = format.parse(value);
-      }
-      else if (this.datatype.endsWith("#date")){
+      } else if (this.datatype.endsWith("#date")) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         this.value = format.parse(value);
-      }
-      else if (this.datatype.endsWith("#float")) {
+      } else if (this.datatype.endsWith("#float")) {
         this.value = Float.parseFloat(value);
-      }
-      else if (this.datatype.endsWith("#int")) {
+      } else if (this.datatype.endsWith("#int")) {
         this.value = Integer.parseInt(value);
-      }
-      else if (this.datatype.endsWith("#boolean")) {
+      } else if (this.datatype.endsWith("#boolean")) {
         this.value = Boolean.parseBoolean(value);
-      }
-      else {
+      } else {
         this.value = value;
       }
-    }
-    else {
+    } else {
       this.value = value;
     }
-  } 	
+  }
 
-	public String getDatatype() {
-		return datatype;
-	}
+  public String getDatatype() {
+    return datatype;
+  }
 
-	public void setDatatype(String datatype) {
-		this.datatype = datatype;
-	}
+  public void setDatatype(String datatype) {
+    this.datatype = datatype;
+  }
 
-	public String toString() {
-		return this.value + "(" + this.type + ")";
-	}
-	
+  public String toString() {
+    return this.value + "(" + this.type + ")";
+  }
+
   /*
    * Serialize Date into appropriate values
    */
-  private void writeObject(java.io.ObjectOutputStream out)
-       throws IOException {
-    if (this.value != null &&
-        this.value instanceof Date) {
+  private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+    if (this.value != null && this.value instanceof Date) {
       this.value = this.getValueAsString();
     }
     out.defaultWriteObject();
   }
 
-  private void readObject(java.io.ObjectInputStream in) throws IOException,
-      ClassNotFoundException, ParseException {
+  private void readObject(java.io.ObjectInputStream in)
+    throws IOException, ClassNotFoundException, ParseException {
     in.defaultReadObject();
-    if (this.value != null
-        && this.value instanceof String) {
+    if (this.value != null && this.value instanceof String) {
       this.setValueFromString(this.value.toString());
     }
   }
-	
 }

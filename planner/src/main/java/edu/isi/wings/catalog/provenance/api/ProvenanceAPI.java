@@ -17,33 +17,35 @@
 
 package edu.isi.wings.catalog.provenance.api;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
+import java.util.ArrayList;
 
 public interface ProvenanceAPI extends TransactionsAPI {
   public Provenance getProvenance(String objectId);
 
   public ArrayList<ProvActivity> getAllUserActivities(String userId);
-  
+
   public boolean setProvenance(Provenance prov);
-  
+
   public boolean addProvenance(Provenance prov);
 
   public boolean removeProvenance(Provenance prov);
 
   public boolean removeAllProvenance(String objectId);
-  
+
   public boolean removeAllDomainProvenance(String domainURL);
-  
-  public boolean renameAllDomainProvenance(String oldDomainURL, String newDomainURL);
-  
+
+  public boolean renameAllDomainProvenance(
+    String oldDomainURL,
+    String newDomainURL
+  );
+
   public boolean removeUser(String userId);
-  
+
   // Save/Delete
   public boolean save();
-  
+
   public boolean delete();
 }

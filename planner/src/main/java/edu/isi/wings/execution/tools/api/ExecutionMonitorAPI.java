@@ -17,32 +17,41 @@
 
 package edu.isi.wings.execution.tools.api;
 
+import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
+import edu.isi.wings.execution.engine.classes.RuntimePlan;
 import java.util.ArrayList;
 import java.util.Date;
 
-import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
-import edu.isi.wings.execution.engine.classes.RuntimePlan;
-
 public interface ExecutionMonitorAPI extends TransactionsAPI {
-	// The RuntimePlan here is expected to not contain detail about all steps here
-	ArrayList<RuntimePlan> getRunList(String pattern, String status, int start, int limit, boolean fasterQuery);
+  // The RuntimePlan here is expected to not contain detail about all steps here
+  ArrayList<RuntimePlan> getRunList(
+    String pattern,
+    String status,
+    int start,
+    int limit,
+    boolean fasterQuery
+  );
 
-	ArrayList<RuntimePlan> getRunListSimple(String pattern, String status, int start, int limit, 
-	    Date started_after);
+  ArrayList<RuntimePlan> getRunListSimple(
+    String pattern,
+    String status,
+    int start,
+    int limit,
+    Date started_after
+  );
 
+  int getNumberOfRuns(String pattern, String status, Date started_after);
 
-	int getNumberOfRuns(String pattern, String status, Date started_after);
+  RuntimePlan getRunDetails(String runid);
 
-	RuntimePlan getRunDetails(String runid);
-	
-	boolean runExists(String runid);
-	
-	boolean deleteRun(String runid, boolean deleteOutputs);
-	
-	RuntimePlan rePlan(RuntimePlan planexe);
-	
-	// Save/Delete
-	boolean save();
-	
-	boolean delete();
+  boolean runExists(String runid);
+
+  boolean deleteRun(String runid, boolean deleteOutputs);
+
+  RuntimePlan rePlan(RuntimePlan planexe);
+
+  // Save/Delete
+  boolean save();
+
+  boolean delete();
 }

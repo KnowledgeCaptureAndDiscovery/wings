@@ -20,132 +20,120 @@ package edu.isi.wings.workflow.template.classes.sets;
 import java.util.ArrayList;
 
 public class WingsSet extends ArrayList<WingsSet> {
-	private static final long serialVersionUID = 1L;
-	protected Object obj;
 
-	public WingsSet() {
-		super();
-	}
+  private static final long serialVersionUID = 1L;
+  protected Object obj;
 
-	public WingsSet(WingsSet s) {
-		this.add(s);
-	}
+  public WingsSet() {
+    super();
+  }
 
-	public WingsSet(Object obj) {
-		this.obj = obj;
-	}
+  public WingsSet(WingsSet s) {
+    this.add(s);
+  }
 
-	public WingsSet(Object[] objs) {
-		for (Object t : objs) {
-			this.add(new WingsSet(t));
-		}
-	}
+  public WingsSet(Object obj) {
+    this.obj = obj;
+  }
 
-	public int getMaxDimension() {
-		if (!isSet())
-			return 0;
-		int dimension = 0;
-		for (WingsSet i : this) {
-			int idim = i.getMaxDimension() + 1;
-			if (dimension < idim)
-				dimension = idim;
-		}
-		return dimension;
-	}
+  public WingsSet(Object[] objs) {
+    for (Object t : objs) {
+      this.add(new WingsSet(t));
+    }
+  }
 
-	public int getMinDimension() {
-		if (!isSet())
-			return 0;
-		int dimension = 9999;
-		for (WingsSet i : this) {
-			int idim = i.getMinDimension() + 1;
-			if (dimension > idim)
-				dimension = idim;
-		}
-		return dimension;
-	}
+  public int getMaxDimension() {
+    if (!isSet()) return 0;
+    int dimension = 0;
+    for (WingsSet i : this) {
+      int idim = i.getMaxDimension() + 1;
+      if (dimension < idim) dimension = idim;
+    }
+    return dimension;
+  }
 
-	public void increaseMinDimensionTo(int toDimension) {
-		int increase = toDimension - getMinDimension();
-		increaseDimensionBy(increase);
-	}
+  public int getMinDimension() {
+    if (!isSet()) return 0;
+    int dimension = 9999;
+    for (WingsSet i : this) {
+      int idim = i.getMinDimension() + 1;
+      if (dimension > idim) dimension = idim;
+    }
+    return dimension;
+  }
 
-	public void increaseMaxDimensionTo(int toDimension) {
-		int increase = toDimension - getMaxDimension();
-		increaseDimensionBy(increase);
-	}
+  public void increaseMinDimensionTo(int toDimension) {
+    int increase = toDimension - getMinDimension();
+    increaseDimensionBy(increase);
+  }
 
-	public void increaseDimensionBy(int increase) {
-		for (int i = 0; i < increase; i++) {
-			WingsSet child = (WingsSet) this.clone();
-			this.clear();
-			this.add(child);
-		}
-	}
-	
-	public void reduceDimensionBy(int decrease) {
-	  for(int j=0; j<decrease; j++) {
-  	  WingsSet[] children = this.toArray(new WingsSet[0]);
-  	  for(int i=0; i<children.length; i++) {
-  	    WingsSet child = children[i];
-  	    if(child.getMaxDimension() == 1) {
-  	      this.remove(child);
-  	      this.addAll(child);
-  	    }
-  	    else {
-  	      child.reduceDimensionBy(1);
-  	    }
-  	  }
-	  }
-	}
+  public void increaseMaxDimensionTo(int toDimension) {
+    int increase = toDimension - getMaxDimension();
+    increaseDimensionBy(increase);
+  }
 
-	public void shift() {
-		if (!isSet())
-			return;
-		this.remove(0);
-	}
+  public void increaseDimensionBy(int increase) {
+    for (int i = 0; i < increase; i++) {
+      WingsSet child = (WingsSet) this.clone();
+      this.clear();
+      this.add(child);
+    }
+  }
 
-	public int getSize() {
-		return this.size();
-	}
+  public void reduceDimensionBy(int decrease) {
+    for (int j = 0; j < decrease; j++) {
+      WingsSet[] children = this.toArray(new WingsSet[0]);
+      for (int i = 0; i < children.length; i++) {
+        WingsSet child = children[i];
+        if (child.getMaxDimension() == 1) {
+          this.remove(child);
+          this.addAll(child);
+        } else {
+          child.reduceDimensionBy(1);
+        }
+      }
+    }
+  }
 
-	public boolean isSet() {
-	  return !isEmpty();
-	}
+  public void shift() {
+    if (!isSet()) return;
+    this.remove(0);
+  }
 
-	public Object getValue() {
-		if (!isSet())
-			return obj;
-		return null;
-	}
+  public int getSize() {
+    return this.size();
+  }
 
-	/*
-	 * Overrides
-	 */
-	public boolean add(WingsSet s) {
-		if (!this.contains(s))
-			return super.add(s);
-		return false;
-	}
+  public boolean isSet() {
+    return !isEmpty();
+  }
 
-	public int hashCode() {
-		if (isSet())
-			return super.hashCode();
-		else if (obj != null)
-			return obj.hashCode();
-		return 0;
-	}
+  public Object getValue() {
+    if (!isSet()) return obj;
+    return null;
+  }
 
-	public boolean equals(Object s) {
-		if (s != null && hashCode() == s.hashCode())
-			return true;
-		return false;
-	}
+  /*
+   * Overrides
+   */
+  public boolean add(WingsSet s) {
+    if (!this.contains(s)) return super.add(s);
+    return false;
+  }
 
-	public String toString() {
-		if (isSet())
-			return super.toString();
-		else
-			return getValue().toString();
-	}
+  public int hashCode() {
+    if (isSet()) return super.hashCode(); else if (
+      obj != null
+    ) return obj.hashCode();
+    return 0;
+  }
+
+  public boolean equals(Object s) {
+    if (s != null && hashCode() == s.hashCode()) return true;
+    return false;
+  }
+
+  public String toString() {
+    if (isSet()) return super.toString(); else return getValue().toString();
+  }
 }

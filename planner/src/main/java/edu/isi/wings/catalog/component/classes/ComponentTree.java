@@ -20,6 +20,7 @@ package edu.isi.wings.catalog.component.classes;
 import java.util.ArrayList;
 
 public class ComponentTree {
+
   ComponentTreeNode root;
 
   public ComponentTree(ComponentTreeNode root) {
@@ -55,8 +56,7 @@ public class ComponentTree {
     queue.add(root);
     while (!queue.isEmpty()) {
       ComponentTreeNode node = queue.remove(0);
-      if (node.getCls().getID().equals(classid))
-        return node;
+      if (node.getCls().getID().equals(classid)) return node;
       queue.addAll(node.getChildren());
     }
     return null;

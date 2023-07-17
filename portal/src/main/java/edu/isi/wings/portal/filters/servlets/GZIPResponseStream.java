@@ -1,10 +1,10 @@
 package edu.isi.wings.portal.filters.servlets;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * GZIPResponseStream
@@ -62,8 +62,7 @@ public class GZIPResponseStream extends ServletOutputStream {
       output.write(bytes);
       output.flush();
       output.close();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     closed = true;
@@ -134,6 +133,5 @@ public class GZIPResponseStream extends ServletOutputStream {
   /**
    * Reset the stream. Currently a no-op.
    */
-  public void reset() {
-  }
+  public void reset() {}
 }

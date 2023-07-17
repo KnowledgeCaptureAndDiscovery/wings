@@ -21,55 +21,55 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DataTree {
-	DataTreeNode root;
 
-	public DataTree(DataTreeNode root) {
-		this.root = root;
-	}
+  DataTreeNode root;
 
-	public DataTreeNode getRoot() {
-		return root;
-	}
+  public DataTree(DataTreeNode root) {
+    this.root = root;
+  }
 
-	public void setRoot(DataTreeNode root) {
-		this.root = root;
-	}
+  public DataTreeNode getRoot() {
+    return root;
+  }
 
-	public ArrayList<DataTreeNode> flatten() {
-		ArrayList<DataTreeNode> list = new ArrayList<DataTreeNode>();
-		ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
-		queue.add(root);
-		while (!queue.isEmpty()) {
-			DataTreeNode node = queue.remove(0);
-			list.add(node);
-			queue.addAll(node.getChildren());
-		}
-		return list;
-	}
+  public void setRoot(DataTreeNode root) {
+    this.root = root;
+  }
 
-	public DataTreeNode findNode(String nodeid) {
-		ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
-		queue.add(root);
-		while (!queue.isEmpty()) {
-			DataTreeNode node = queue.remove(0);
-			if (node.getItem().getID().equals(nodeid))
-				return node;
-			queue.addAll(node.getChildren());
-		}
-		return null;
-	}
-	
-	 public HashMap<String, String> getParents() {
-	    HashMap<String, String> parents = new HashMap<String, String>();
-	    ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
-	    queue.add(root);
-	    while (!queue.isEmpty()) {
-	      DataTreeNode node = queue.remove(0);
-	      for(DataTreeNode cnode: node.getChildren()) {
-	        parents.put(cnode.getItem().getID(), node.getItem().getID());
-	        queue.add(cnode);
-	      }
-	    }
-	    return parents;
-	  }
+  public ArrayList<DataTreeNode> flatten() {
+    ArrayList<DataTreeNode> list = new ArrayList<DataTreeNode>();
+    ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
+    queue.add(root);
+    while (!queue.isEmpty()) {
+      DataTreeNode node = queue.remove(0);
+      list.add(node);
+      queue.addAll(node.getChildren());
+    }
+    return list;
+  }
+
+  public DataTreeNode findNode(String nodeid) {
+    ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
+    queue.add(root);
+    while (!queue.isEmpty()) {
+      DataTreeNode node = queue.remove(0);
+      if (node.getItem().getID().equals(nodeid)) return node;
+      queue.addAll(node.getChildren());
+    }
+    return null;
+  }
+
+  public HashMap<String, String> getParents() {
+    HashMap<String, String> parents = new HashMap<String, String>();
+    ArrayList<DataTreeNode> queue = new ArrayList<DataTreeNode>();
+    queue.add(root);
+    while (!queue.isEmpty()) {
+      DataTreeNode node = queue.remove(0);
+      for (DataTreeNode cnode : node.getChildren()) {
+        parents.put(cnode.getItem().getID(), node.getItem().getID());
+        queue.add(cnode);
+      }
+    }
+    return parents;
+  }
 }

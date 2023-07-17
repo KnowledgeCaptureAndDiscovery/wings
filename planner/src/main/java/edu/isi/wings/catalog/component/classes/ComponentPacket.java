@@ -17,6 +17,10 @@
 
 package edu.isi.wings.catalog.component.classes;
 
+import edu.isi.kcap.ontapi.KBTriple;
+import edu.isi.wings.workflow.template.classes.Role;
+import edu.isi.wings.workflow.template.classes.sets.Binding;
+import edu.isi.wings.workflow.template.classes.variables.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,15 +28,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import edu.isi.kcap.ontapi.KBTriple;
-import edu.isi.wings.workflow.template.classes.Role;
-import edu.isi.wings.workflow.template.classes.sets.Binding;
-import edu.isi.wings.workflow.template.classes.variables.*;
-
 /**
  * Class used during workflow generation to pass component information to and
  * from the component catalog to the workflow planner
- * 
+ *
  * <ul>
  * <li>component : Component Variable
  * <li>roleMap : Component Input Role <=> Template Variable
@@ -41,211 +40,218 @@ import edu.isi.wings.workflow.template.classes.variables.*;
  * </ul>
  */
 public class ComponentPacket implements Serializable {
-	private static final long serialVersionUID = 1L;
-	
-  private ComponentVariable component;
-	private LinkedHashMap<Role, Variable> roleMap;
-	private ArrayList<KBTriple> requirements;
 
-	// Keep a reverse mapping
-	private LinkedHashMap<Variable, Role> variableMap;
-	// Reasoner explanations (provided by component catalog)
-	private HashSet<String> explanations;
-	// If the reasoner marked this ComponentDetails packet as invalid
-	public boolean isInvalid;
+  private static final long serialVersionUID = 1L;
+
+  private ComponentVariable component;
+  private LinkedHashMap<Role, Variable> roleMap;
+  private ArrayList<KBTriple> requirements;
+
+  // Keep a reverse mapping
+  private LinkedHashMap<Variable, Role> variableMap;
+  // Reasoner explanations (provided by component catalog)
+  private HashSet<String> explanations;
+  // If the reasoner marked this ComponentDetails packet as invalid
+  public boolean isInvalid;
   // If the reasoner marked this ComponentDetails packet as a No-operation (i.e. skip processing)
-  public boolean isNoOperation;	
+  public boolean isNoOperation;
   // Mapping of compatible output roles to input roles to pass through
   private HashMap<String, String> noOperationIOPassthrough;
-  
-	private ArrayList<String> inputRoles;
 
+  private ArrayList<String> inputRoles;
 
-	public ComponentPacket(ComponentVariable component, Map<Role, Variable> roleMap,
-			ArrayList<KBTriple> requirements) {
-		this.component = component;
-		this.roleMap = new LinkedHashMap<Role, Variable>(roleMap);
-		this.variableMap = createReverseMap(roleMap);
-		this.requirements = requirements;
-		this.explanations = new HashSet<String>();
-		this.inputRoles = new ArrayList<String>();
-		this.noOperationIOPassthrough = new HashMap<String, String>();
-		this.isInvalid = false;
-	}
+  public ComponentPacket(
+    ComponentVariable component,
+    Map<Role, Variable> roleMap,
+    ArrayList<KBTriple> requirements
+  ) {
+    this.component = component;
+    this.roleMap = new LinkedHashMap<Role, Variable>(roleMap);
+    this.variableMap = createReverseMap(roleMap);
+    this.requirements = requirements;
+    this.explanations = new HashSet<String>();
+    this.inputRoles = new ArrayList<String>();
+    this.noOperationIOPassthrough = new HashMap<String, String>();
+    this.isInvalid = false;
+  }
 
-	public LinkedHashMap<Variable, Role> createReverseMap(Map<Role, Variable> map) {
-		LinkedHashMap<Variable, Role> rmap = new LinkedHashMap<Variable, Role>();
-		for (Role cp : map.keySet()) {
-			rmap.put(map.get(cp), cp);
-		}
-		return rmap;
-	}
+  public LinkedHashMap<Variable, Role> createReverseMap(
+    Map<Role, Variable> map
+  ) {
+    LinkedHashMap<Variable, Role> rmap = new LinkedHashMap<Variable, Role>();
+    for (Role cp : map.keySet()) {
+      rmap.put(map.get(cp), cp);
+    }
+    return rmap;
+  }
 
-	public LinkedHashMap<Role, Variable> createMapFromReverseMap(Map<Variable, Role> rmap) {
-		LinkedHashMap<Role, Variable> map = new LinkedHashMap<Role, Variable>();
-		for (Variable cp : rmap.keySet()) {
-			map.put(rmap.get(cp), cp);
-		}
-		return map;
-	}
+  public LinkedHashMap<Role, Variable> createMapFromReverseMap(
+    Map<Variable, Role> rmap
+  ) {
+    LinkedHashMap<Role, Variable> map = new LinkedHashMap<Role, Variable>();
+    for (Variable cp : rmap.keySet()) {
+      map.put(rmap.get(cp), cp);
+    }
+    return map;
+  }
 
-	/**
-	 * Getter for property 'component'.
-	 * 
-	 * @return Value for property 'component'.
-	 */
-	public ComponentVariable getComponent() {
-		return component;
-	}
+  /**
+   * Getter for property 'component'.
+   *
+   * @return Value for property 'component'.
+   */
+  public ComponentVariable getComponent() {
+    return component;
+  }
 
-	/**
-	 * Setter for property 'component'.
-	 * 
-	 * @param component
-	 *            Value to set for property 'component'.
-	 */
-	public void setComponent(ComponentVariable component) {
-		this.component = component;
-	}
+  /**
+   * Setter for property 'component'.
+   *
+   * @param component
+   *            Value to set for property 'component'.
+   */
+  public void setComponent(ComponentVariable component) {
+    this.component = component;
+  }
 
-	/**
-	 * Getter for property 'roleMap'.
-	 * 
-	 * @return Value for property 'roleMap'.
-	 */
-	public LinkedHashMap<Role, Variable> getRoleMap() {
-		return roleMap;
-	}
+  /**
+   * Getter for property 'roleMap'.
+   *
+   * @return Value for property 'roleMap'.
+   */
+  public LinkedHashMap<Role, Variable> getRoleMap() {
+    return roleMap;
+  }
 
-	/**
-	 * Setter for property 'roleMap'.
-	 * 
-	 * @param roleMap
-	 *            Value to set for property 'roleMap'.
-	 */
-	public void setRoleMap(LinkedHashMap<Role, Variable> inputMaps) {
-		this.roleMap = inputMaps;
-		this.variableMap = createReverseMap(inputMaps);
-	}
+  /**
+   * Setter for property 'roleMap'.
+   *
+   * @param roleMap
+   *            Value to set for property 'roleMap'.
+   */
+  public void setRoleMap(LinkedHashMap<Role, Variable> inputMaps) {
+    this.roleMap = inputMaps;
+    this.variableMap = createReverseMap(inputMaps);
+  }
 
-	/**
-	 * Getter for property 'requirements'.
-	 * 
-	 * @return Value for property 'requirements'.
-	 */
-	public ArrayList<KBTriple> getRequirements() {
-		return requirements;
-	}
+  /**
+   * Getter for property 'requirements'.
+   *
+   * @return Value for property 'requirements'.
+   */
+  public ArrayList<KBTriple> getRequirements() {
+    return requirements;
+  }
 
-	/**
-	 * Setter for property 'requirements'.
-	 * 
-	 * @param requirements
-	 *            Value to set for property 'requirements'.
-	 */
-	public void setRequirements(ArrayList<KBTriple> requirements) {
-		this.requirements = requirements;
-	}
+  /**
+   * Setter for property 'requirements'.
+   *
+   * @param requirements
+   *            Value to set for property 'requirements'.
+   */
+  public void setRequirements(ArrayList<KBTriple> requirements) {
+    this.requirements = requirements;
+  }
 
-	/**
-	 * Get Variable <=> Input Role Mappings
-	 * 
-	 * @return A LinkedHashMap of Variable <=> Role objects
-	 */
-	public LinkedHashMap<Variable, Role> getVariableMap() {
-		return variableMap;
-	}
+  /**
+   * Get Variable <=> Input Role Mappings
+   *
+   * @return A LinkedHashMap of Variable <=> Role objects
+   */
+  public LinkedHashMap<Variable, Role> getVariableMap() {
+    return variableMap;
+  }
 
-	/**
-	 * Get Input Role ID <=> Variable Mappings
-	 * 
-	 * @return Mapping Role IDs to Variable
-	 */
-	public LinkedHashMap<String, Variable> getStringRoleMaps() {
-		LinkedHashMap<String, Variable> map = new LinkedHashMap<String, Variable>();
-		for (Role cp : roleMap.keySet()) {
-			map.put(cp.getRoleId(), roleMap.get(cp));
-		}
-		return map;
-	}
+  /**
+   * Get Input Role ID <=> Variable Mappings
+   *
+   * @return Mapping Role IDs to Variable
+   */
+  public LinkedHashMap<String, Variable> getStringRoleMaps() {
+    LinkedHashMap<String, Variable> map = new LinkedHashMap<String, Variable>();
+    for (Role cp : roleMap.keySet()) {
+      map.put(cp.getRoleId(), roleMap.get(cp));
+    }
+    return map;
+  }
 
-	/**
-	 * Get VarID <=> Input Role Mappings
-	 * 
-	 * @return Mapping Variable IDs to Roles
-	 */
-	public LinkedHashMap<String, Role> getStringVariableMap() {
-		LinkedHashMap<String, Role> map = new LinkedHashMap<String, Role>();
-		for (Variable var : variableMap.keySet()) {
-			map.put(var.getID(), variableMap.get(var));
-		}
-		return map;
-	}
+  /**
+   * Get VarID <=> Input Role Mappings
+   *
+   * @return Mapping Variable IDs to Roles
+   */
+  public LinkedHashMap<String, Role> getStringVariableMap() {
+    LinkedHashMap<String, Role> map = new LinkedHashMap<String, Role>();
+    for (Variable var : variableMap.keySet()) {
+      map.put(var.getID(), variableMap.get(var));
+    }
+    return map;
+  }
 
-	/**
-	 * Add Explanations
-	 * 
-	 * @param explanations
-	 *            The reasoning explaining the contents of this CMR (usually
-	 *            returned from the Catalog)
-	 */
-	public void addExplanations(HashSet<String> explanations) {
-		this.explanations.addAll(explanations);
-	}
+  /**
+   * Add Explanations
+   *
+   * @param explanations
+   *            The reasoning explaining the contents of this CMR (usually
+   *            returned from the Catalog)
+   */
+  public void addExplanations(HashSet<String> explanations) {
+    this.explanations.addAll(explanations);
+  }
 
-	public void addExplanations(String explanation) {
-		this.explanations.add(explanation);
-	}
+  public void addExplanations(String explanation) {
+    this.explanations.add(explanation);
+  }
 
-	/**
-	 * Set Roles to be inputs
-	 */
-	public void setInputRoles(ArrayList<String> roleid) {
-		this.inputRoles = roleid;
-	}
-	
-	public void addInputRole(String roleid) {
-		this.inputRoles.add(roleid);
-	}
+  /**
+   * Set Roles to be inputs
+   */
+  public void setInputRoles(ArrayList<String> roleid) {
+    this.inputRoles = roleid;
+  }
 
-	/**
-	 * Retrieve roles as input or output
-	 */
-	public boolean isInputRole(String roleid) {
-		return this.inputRoles.contains(roleid);
-	}
-	
-	/**
-	 * Get Explanations
-	 * 
-	 * @return The reasoning explaining the contents of this CMR (usually
-	 *         returned from the Catalog)
-	 */
-	public HashSet<String> getExplanations() {
-		return this.explanations;
-	}
+  public void addInputRole(String roleid) {
+    this.inputRoles.add(roleid);
+  }
 
-	/**
-	 * Set Invalid Flag
-	 * 
-	 * @param isInvalid
-	 *            Mark this CMR as invalid (i.e. not to be used)
-	 */
-	public void setInvalidFlag(boolean isInvalid) {
-		this.isInvalid = isInvalid;
-	}
+  /**
+   * Retrieve roles as input or output
+   */
+  public boolean isInputRole(String roleid) {
+    return this.inputRoles.contains(roleid);
+  }
 
-	/**
-	 * Get Invalid Flag
-	 * 
-	 * @return The reasoning explaining the contents of this CMR (usually
-	 *         returned from the Catalog)
-	 */
-	public boolean getInvalidFlag() {
-		return this.isInvalid;
-	}
+  /**
+   * Get Explanations
+   *
+   * @return The reasoning explaining the contents of this CMR (usually
+   *         returned from the Catalog)
+   */
+  public HashSet<String> getExplanations() {
+    return this.explanations;
+  }
 
-	public boolean getNoOperationFlag() {
+  /**
+   * Set Invalid Flag
+   *
+   * @param isInvalid
+   *            Mark this CMR as invalid (i.e. not to be used)
+   */
+  public void setInvalidFlag(boolean isInvalid) {
+    this.isInvalid = isInvalid;
+  }
+
+  /**
+   * Get Invalid Flag
+   *
+   * @return The reasoning explaining the contents of this CMR (usually
+   *         returned from the Catalog)
+   */
+  public boolean getInvalidFlag() {
+    return this.isInvalid;
+  }
+
+  public boolean getNoOperationFlag() {
     return isNoOperation;
   }
 
@@ -258,16 +264,24 @@ public class ComponentPacket implements Serializable {
   }
 
   public void addNoOperationIOPassthrough(String invar, String outvar) {
-    this.noOperationIOPassthrough.put(invar,  outvar);
+    this.noOperationIOPassthrough.put(invar, outvar);
   }
 
   @Override
-	public String toString() {
-		return "ComponentDetails{invalid=" + this.isInvalid 
-		    + ",component=" + component + ", roleMap=" + roleMap
-				+ ", requirements=" + requirements + '}';
-	}
-  
+  public String toString() {
+    return (
+      "ComponentDetails{invalid=" +
+      this.isInvalid +
+      ",component=" +
+      component +
+      ", roleMap=" +
+      roleMap +
+      ", requirements=" +
+      requirements +
+      '}'
+    );
+  }
+
   public ComponentPacket clone() {
     // Clone the packet
     // We just need to have separate variable bindings
@@ -278,12 +292,16 @@ public class ComponentPacket implements Serializable {
       Variable var = roleMap.get(r);
       Variable sendVar = new Variable(var.getID(), var.getVariableType());
       sendVar.setBreakpoint(var.isBreakpoint());
-      if (var.getBinding() != null)
-        sendVar.setBinding((Binding) var.getBinding().clone());
+      if (var.getBinding() != null) sendVar.setBinding(
+        (Binding) var.getBinding().clone()
+      );
       sendMap.put(r, sendVar);
     }
-    ComponentPacket pthis = new ComponentPacket(this.getComponent(), sendMap,
-        this.getRequirements());
+    ComponentPacket pthis = new ComponentPacket(
+      this.getComponent(),
+      sendMap,
+      this.getRequirements()
+    );
     pthis.addExplanations(this.getExplanations());
     pthis.setInvalidFlag(this.getInvalidFlag());
     return pthis;

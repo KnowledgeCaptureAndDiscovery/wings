@@ -2,10 +2,10 @@ package edu.isi.wings.portal.classes.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.apache.http.cookie.Cookie;
 
 public class TemplateBindings {
+
   String templateId;
   HashMap<String, ArrayList<String>> dataBindings;
   HashMap<String, String> componentBindings;
@@ -42,7 +42,9 @@ public class TemplateBindings {
     return parameterBindings;
   }
 
-  public void setParameterBindings(HashMap<String, ArrayList<Object>> parameterBindings) {
+  public void setParameterBindings(
+    HashMap<String, ArrayList<Object>> parameterBindings
+  ) {
     this.parameterBindings = parameterBindings;
   }
 

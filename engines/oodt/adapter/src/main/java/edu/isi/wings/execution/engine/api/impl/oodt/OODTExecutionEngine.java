@@ -17,19 +17,7 @@
 
 package edu.isi.wings.execution.engine.api.impl.oodt;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
-import org.apache.oodt.cas.filemgr.datatransfer.RemoteDataTransferFactory;
-import org.apache.oodt.cas.filemgr.structs.Product;
-import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
+import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
@@ -38,13 +26,26 @@ import edu.isi.wings.execution.engine.classes.RuntimeStep;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.execution.tools.api.ExecutionResourceAPI;
-import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.wings.workflow.plan.classes.ExecutionFile;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.io.FileUtils;
+import org.apache.oodt.cas.filemgr.datatransfer.DataTransfer;
+import org.apache.oodt.cas.filemgr.datatransfer.RemoteDataTransferFactory;
+import org.apache.oodt.cas.filemgr.structs.Product;
+import org.apache.oodt.cas.filemgr.system.XmlRpcFileManagerClient;
 
-public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEngine{
+public class OODTExecutionEngine
+  implements PlanExecutionEngine, StepExecutionEngine {
+
   Properties props;
   protected int maxParallel = 4;
 
@@ -94,17 +95,24 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
     String wmsurl = props.getProperty("oodt.wmsurl");
     String libns = props.getProperty("lib.domain.data.url") + "#";
 
-    String codedir = props.getProperty("lib.domain.code.storage") + File.separator;
-    String datadir = props.getProperty("lib.domain.data.storage") + File.separator;
-    
+    String codedir =
+      props.getProperty("lib.domain.code.storage") + File.separator;
+    String datadir =
+      props.getProperty("lib.domain.data.storage") + File.separator;
+
     // Get Variable metadata (predicted)
-    Template tmpl = TemplateFactory.getTemplate(props, exe.getExpandedTemplateID());
-    org.apache.oodt.cas.metadata.Metadata meta = 
+    Template tmpl = TemplateFactory.getTemplate(
+      props,
+      exe.getExpandedTemplateID()
+    );
+    org.apache.oodt.cas.metadata.Metadata meta =
+      new org.apache.oodt.cas.metadata.Metadata();
+    for (Variable var : tmpl.getVariables()) {
+      org.apache.oodt.cas.metadata.Metadata vmeta =
         new org.apache.oodt.cas.metadata.Metadata();
-    for(Variable var : tmpl.getVariables()) {
-      org.apache.oodt.cas.metadata.Metadata vmeta = 
-          new org.apache.oodt.cas.metadata.Metadata();
-      for(KBTriple t : tmpl.getConstraintEngine().getConstraints(var.getID())) {
+      for (KBTriple t : tmpl
+        .getConstraintEngine()
+        .getConstraints(var.getID())) {
         vmeta.addMetadata(t.getPredicate().getID(), t.getObject().toString());
       }
       meta.addMetadata(var.getBinding().getName(), vmeta);
@@ -114,18 +122,35 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
       File f = File.createTempFile("oodt-run-", "");
       if (f.delete() && f.mkdirs()) {
         this.jobdir = f.getAbsolutePath() + File.separator;
-        this.wlogfile = exe.getName()+".log";
-        this.adapter = new OODTWorkflowAdapter(wmurl, wmsurl, 
-            fmurl, libns,
-            codedir, datadir,
-            jobdir, wlogfile);
+        this.wlogfile = exe.getName() + ".log";
+        this.adapter =
+          new OODTWorkflowAdapter(
+            wmurl,
+            wmsurl,
+            fmurl,
+            libns,
+            codedir,
+            datadir,
+            jobdir,
+            wlogfile
+          );
         this.adapter.runWorkflow(exe, meta);
 
         // Start Monitoring thread
-        this.monitoringThread = new Thread(
-            new ExecutionMonitoringThread(this, exe, this.logger, this.monitor, 
-                this.jobdir, datadir, this.wlogfile, 
-                fmurl, libns));
+        this.monitoringThread =
+          new Thread(
+            new ExecutionMonitoringThread(
+              this,
+              exe,
+              this.logger,
+              this.monitor,
+              this.jobdir,
+              datadir,
+              this.wlogfile,
+              fmurl,
+              libns
+            )
+          );
         this.monitoringThread.start();
       }
     } catch (Exception e) {
@@ -142,9 +167,9 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
   @Override
   public void abort(RuntimePlan exe) {
     // Abort plan
-    if(this.monitoringThread != null &&
-        this.monitoringThread.isAlive())
-      this.monitoringThread.interrupt();
+    if (
+      this.monitoringThread != null && this.monitoringThread.isAlive()
+    ) this.monitoringThread.interrupt();
 
     this.adapter.stopWorkflow(exe);
   }
@@ -180,6 +205,7 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
   }
 
   class ExecutionMonitoringThread implements Runnable {
+
     RuntimePlan planexe;
     String jobdir;
     String datadir;
@@ -190,9 +216,17 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
     ExecutionLoggerAPI logger;
     ExecutionMonitorAPI monitor;
 
-    public ExecutionMonitoringThread(PlanExecutionEngine planEngine,
-        RuntimePlan planexe, ExecutionLoggerAPI logger, ExecutionMonitorAPI monitor,
-        String jobdir, String datadir, String wlogfile, String fmurl, String libns) {
+    public ExecutionMonitoringThread(
+      PlanExecutionEngine planEngine,
+      RuntimePlan planexe,
+      ExecutionLoggerAPI logger,
+      ExecutionMonitorAPI monitor,
+      String jobdir,
+      String datadir,
+      String wlogfile,
+      String fmurl,
+      String libns
+    ) {
       this.planEngine = planEngine;
       this.planexe = planexe;
       this.logger = logger;
@@ -208,11 +242,11 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
     public void run() {
       planexe.onStart(this.logger);
       try {
-        HashMap<String, RuntimeInfo.Status> jobstatus = 
-            new HashMap<String, RuntimeInfo.Status>();
-            
+        HashMap<String, RuntimeInfo.Status> jobstatus =
+          new HashMap<String, RuntimeInfo.Status>();
+
         int osleeptime = 1000;
-        int maxsleeptime = 4*osleeptime;
+        int maxsleeptime = 4 * osleeptime;
         int sleeptime = osleeptime;
 
         XmlRpcFileManagerClient fmclient = null;
@@ -221,38 +255,40 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
           fmclient = new XmlRpcFileManagerClient(new URL(fmurl));
           dt = new RemoteDataTransferFactory().createDataTransfer();
           dt.setFileManagerUrl(new URL(fmurl));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           e.printStackTrace();
           return;
         }
-        
+
         Product prod = null;
         int count = 0;
-        while(true) {
+        while (true) {
           try {
             prod = fmclient.getProductById(this.wlogfile);
             prod.setProductReferences(fmclient.getProductReferences(prod));
             break;
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             Thread.sleep(2000);
             count++;
-            if(count == 20)
-              return;
+            if (count == 20) return;
           }
         }
-          
-        Pattern pattern = Pattern.compile("^(Job\\d+)\\s+\\((.+)\\)\\s*:\\s+(.+)$");
-        while(true) {
+
+        Pattern pattern = Pattern.compile(
+          "^(Job\\d+)\\s+\\((.+)\\)\\s*:\\s+(.+)$"
+        );
+        while (true) {
           dt.retrieveProduct(prod, new File(jobdir));
-          
-          for(String line : FileUtils.readLines(
-              new File(this.jobdir + this.wlogfile))) {
+
+          for (String line : FileUtils.readLines(
+            new File(this.jobdir + this.wlogfile)
+          )) {
             Matcher mat = pattern.matcher(line);
-            if(mat.find()) {
+            if (mat.find()) {
               String jobname = mat.group(2);
-              RuntimeInfo.Status status = RuntimeInfo.Status.valueOf(mat.group(3));
+              RuntimeInfo.Status status = RuntimeInfo.Status.valueOf(
+                mat.group(3)
+              );
               jobstatus.put(jobname, status);
             }
           }
@@ -262,32 +298,38 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
           steps.addAll(planexe.getQueue().getRunningSteps());
 
           boolean shortsleep = false;
-          for(RuntimeStep stepexe : steps) {
+          for (RuntimeStep stepexe : steps) {
             String jobname = stepexe.getStep().getName();
-            if(jobstatus.containsKey(jobname)) {
-              if(stepexe.getRuntimeInfo().getStatus() == 
-                  RuntimeInfo.Status.QUEUED) {
+            if (jobstatus.containsKey(jobname)) {
+              if (
+                stepexe.getRuntimeInfo().getStatus() ==
+                RuntimeInfo.Status.QUEUED
+              ) {
                 stepexe.setRuntimePlan(planexe);
                 stepexe.onStart(logger);
                 shortsleep = true;
               }
 
               RuntimeInfo.Status status = jobstatus.get(jobname);
-              if(status == RuntimeInfo.Status.SUCCESS ||
-                  status == RuntimeInfo.Status.FAILURE) {
+              if (
+                status == RuntimeInfo.Status.SUCCESS ||
+                status == RuntimeInfo.Status.FAILURE
+              ) {
                 // Fetch log file
                 File f = new File(this.jobdir + jobname + ".log");
                 String log = "";
-                if(!f.exists()) {
+                if (!f.exists()) {
                   try {
                     Product logprod = fmclient.getProductById(
-                        planexe.getName() + "-" + f.getName());
-                    logprod.setProductReferences(fmclient.getProductReferences(logprod));
+                      planexe.getName() + "-" + f.getName()
+                    );
+                    logprod.setProductReferences(
+                      fmclient.getProductReferences(logprod)
+                    );
                     dt.retrieveProduct(logprod, new File(this.jobdir));
                     log = FileUtils.readFileToString(f);
                     fmclient.removeProduct(logprod);
-                  }
-                  catch (Exception e) {}
+                  } catch (Exception e) {}
                 }
                 stepexe.onEnd(logger, status, log);
                 shortsleep = true;
@@ -296,23 +338,26 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
           }
 
           // Retrieve output files (and metafiles)
-          for(RuntimeStep stepexe : planexe.getQueue().getFinishedSteps()) {
-            for(ExecutionFile file : stepexe.getStep().getOutputFiles()) {
+          for (RuntimeStep stepexe : planexe.getQueue().getFinishedSteps()) {
+            for (ExecutionFile file : stepexe.getStep().getOutputFiles()) {
               File f = new File(datadir + file.getName());
-              if(!f.exists()) {
+              if (!f.exists()) {
                 try {
                   String outprodid = this.libns + file.getBinding();
                   Product outprod = fmclient.getProductById(outprodid);
-                  outprod.setProductReferences(fmclient.getProductReferences(outprod));
+                  outprod.setProductReferences(
+                    fmclient.getProductReferences(outprod)
+                  );
                   dt.retrieveProduct(outprod, new File(datadir));
 
                   Product metprod = fmclient.getProductById(outprodid + ".met");
-                  if(metprod != null) {
-                    metprod.setProductReferences(fmclient.getProductReferences(metprod));
+                  if (metprod != null) {
+                    metprod.setProductReferences(
+                      fmclient.getProductReferences(metprod)
+                    );
                     dt.retrieveProduct(metprod, new File(datadir));
                   }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                   //e.printStackTrace();
                 }
               }
@@ -320,31 +365,33 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
           }
 
           steps = planexe.getQueue().getNextStepsToExecute();
-          if(steps.size() == 0) {
+          if (steps.size() == 0) {
             // Nothing to execute. Check if finished
-            if(planexe.getQueue().getRunningSteps().size() == 0) {
+            if (planexe.getQueue().getRunningSteps().size() == 0) {
               RuntimeInfo.Status status = RuntimeInfo.Status.FAILURE;
-              if(planexe.getQueue().getFinishedSteps().size() == 
-                  planexe.getQueue().getAllSteps().size()) {
-                if(planexe.getPlan().isIncomplete()) {
+              if (
+                planexe.getQueue().getFinishedSteps().size() ==
+                planexe.getQueue().getAllSteps().size()
+              ) {
+                if (planexe.getPlan().isIncomplete()) {
                   // If the plan is incomplete, then replan and continue
                   System.out.println("Replanning, and re-executing");
                   planexe = this.monitor.rePlan(planexe);
-                  if(planexe.getRuntimeInfo().getStatus() == 
-                      RuntimeInfo.Status.FAILURE) {
+                  if (
+                    planexe.getRuntimeInfo().getStatus() ==
+                    RuntimeInfo.Status.FAILURE
+                  ) {
                     status = RuntimeInfo.Status.FAILURE;
                     planexe.onEnd(this.logger, status, "Finished");
                     fmclient.removeProduct(prod);
                     break;
-                  }
-                  else {
+                  } else {
                     // Quit monitoring and run the new plan
                     fmclient.removeProduct(prod);
                     this.planEngine.execute(planexe);
                     break;
                   }
-                }
-                else {
+                } else {
                   status = RuntimeInfo.Status.SUCCESS;
                   planexe.onEnd(this.logger, status, "Finished");
                   fmclient.removeProduct(prod);
@@ -353,14 +400,19 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
               }
             }
           }
-          
-          sleeptime = shortsleep ? osleeptime : 
-            (sleeptime >= maxsleeptime ? maxsleeptime : sleeptime*2);
+
+          sleeptime =
+            shortsleep
+              ? osleeptime
+              : (sleeptime >= maxsleeptime ? maxsleeptime : sleeptime * 2);
           Thread.sleep(sleeptime);
         }
-      }
-      catch (Exception e) {
-        this.planexe.onEnd(this.logger, RuntimeInfo.Status.FAILURE, e.getMessage());
+      } catch (Exception e) {
+        this.planexe.onEnd(
+            this.logger,
+            RuntimeInfo.Status.FAILURE,
+            e.getMessage()
+          );
       }
     }
   }
@@ -368,8 +420,7 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
   @Override
   public void setExecutionMonitor(ExecutionMonitorAPI monitor) {
     this.monitor = monitor;
-    if (this.stepEngine != this)
-      this.stepEngine.setExecutionMonitor(monitor);
+    if (this.stepEngine != this) this.stepEngine.setExecutionMonitor(monitor);
   }
 
   @Override
@@ -380,13 +431,11 @@ public class OODTExecutionEngine implements PlanExecutionEngine, StepExecutionEn
   @Override
   public void setExecutionResource(ExecutionResourceAPI resource) {
     this.resource = resource;
-    if(this.stepEngine != this)
-      this.stepEngine.setExecutionResource(resource);
+    if (this.stepEngine != this) this.stepEngine.setExecutionResource(resource);
   }
 
   @Override
   public ExecutionResourceAPI getExecutionResource() {
     return this.resource;
   }
-
 }
