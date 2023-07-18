@@ -44,7 +44,7 @@ import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.util.CookieHandler;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
@@ -90,12 +90,12 @@ public class DataController {
   public RunController rc;
 
   public boolean loadExternal;
-  public Config config;
+  public ConfigLoader config;
   public Properties props;
 
   public Gson json;
 
-  public DataController(Config config, boolean load_external) {
+  public DataController(ConfigLoader config, boolean load_external) {
     this.config = config;
     this.loadExternal = load_external;
 

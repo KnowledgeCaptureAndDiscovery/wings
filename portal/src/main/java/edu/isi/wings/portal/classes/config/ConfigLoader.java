@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 
-public class Config {
+public class ConfigLoader {
 
   // The Portal configuration properties file. Order of checking:
   // 1. Check "config.file" servlet context parameter
@@ -121,9 +121,9 @@ public class Config {
     this.userDomainUrl = userDomainUrl;
   }
 
-  public Config() {}
+  public ConfigLoader() {}
 
-  public Config(HttpServletRequest request, String userid, String domain) {
+  public ConfigLoader(HttpServletRequest request, String userid, String domain) {
     // Initialize UserDatabase
     this.initializeUserDatabase();
 

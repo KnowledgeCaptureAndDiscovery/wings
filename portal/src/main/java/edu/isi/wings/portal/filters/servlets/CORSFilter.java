@@ -1,6 +1,6 @@
 package edu.isi.wings.portal.filters.servlets;
 
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -25,7 +25,7 @@ public class CORSFilter implements Filter {
     ServletResponse response,
     FilterChain chain
   ) throws IOException, ServletException {
-    Config config = new Config();
+    ConfigLoader config = new ConfigLoader();
     PropertyListConfiguration plist = config.getPortalConfiguration(
       (HttpServletRequest) request
     );

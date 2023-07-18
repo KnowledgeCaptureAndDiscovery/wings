@@ -24,7 +24,7 @@ import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.util.Properties;
 
 public class ResourceController {
@@ -34,11 +34,11 @@ public class ResourceController {
 
   public ResourceAPI api;
   public boolean isSandboxed;
-  public Config config;
+  public ConfigLoader config;
   public Properties props;
   public Gson json;
 
-  public ResourceController(Config config) {
+  public ResourceController(ConfigLoader config) {
     this.config = config;
     this.isSandboxed = config.isSandboxed();
     json = JsonHandler.createGson();

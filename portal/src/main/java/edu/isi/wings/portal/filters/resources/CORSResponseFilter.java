@@ -1,6 +1,6 @@
 package edu.isi.wings.portal.filters.resources;
 
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -19,7 +19,7 @@ public class CORSResponseFilter implements ContainerResponseFilter {
     ContainerRequestContext requestContext,
     ContainerResponseContext responseContext
   ) throws IOException {
-    Config config = new Config();
+    ConfigLoader config = new ConfigLoader();
     PropertyListConfiguration plist = config.getPortalConfiguration(request);
     String clients = plist.getString("clients");
     if (clients != null) {

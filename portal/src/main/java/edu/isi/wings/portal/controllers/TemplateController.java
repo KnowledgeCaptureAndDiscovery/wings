@@ -30,7 +30,7 @@ import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.catalog.provenance.classes.ProvActivity;
 import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
@@ -57,11 +57,11 @@ public class TemplateController {
   public TemplateCreationAPI tc;
   public ProvenanceAPI prov;
 
-  public Config config;
+  public ConfigLoader config;
   public Gson json;
   public Properties props;
 
-  public TemplateController(Config config) {
+  public TemplateController(ConfigLoader config) {
     this.config = config;
     this.json = JsonHandler.createTemplateGson();
     this.props = config.getProperties();

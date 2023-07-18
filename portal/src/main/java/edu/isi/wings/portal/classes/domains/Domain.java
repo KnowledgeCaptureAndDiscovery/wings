@@ -26,7 +26,7 @@ import edu.isi.wings.catalog.resource.api.ResourceAPI;
 import edu.isi.wings.common.kb.PropertiesHelper;
 import edu.isi.wings.execution.tools.ExecutionToolsFactory;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 import java.io.File;
@@ -133,7 +133,7 @@ public class Domain {
 
   public static Domain importLegacyDomain(
     String domName,
-    Config config,
+    ConfigLoader config,
     String legacyDomDir
   ) {
     // Get Legacy apis
@@ -208,7 +208,7 @@ public class Domain {
 
   public static Domain importDomain(
     String domName,
-    Config config,
+    ConfigLoader config,
     String importDomDir
   ) {
     String domurl;
@@ -293,7 +293,7 @@ public class Domain {
     return todom;
   }
 
-  public static File exportDomain(Domain fromdom, Config config) {
+  public static File exportDomain(Domain fromdom, ConfigLoader config) {
     Properties props = config.getProperties(fromdom);
     DataCreationAPI dc = DataFactory.getCreationAPI(props);
     ComponentCreationAPI cc = ComponentFactory.getCreationAPI(props);
@@ -387,7 +387,7 @@ public class Domain {
 
   public static boolean deleteDomain(
     Domain domain,
-    Config config,
+    ConfigLoader config,
     boolean deleteStorage
   ) {
     // Get new apis
@@ -416,7 +416,7 @@ public class Domain {
   public static Domain renameDomain(
     Domain domain,
     String newname,
-    Config config
+    ConfigLoader config
   ) {
     Properties props = config.getProperties(domain);
     DataCreationAPI dc = DataFactory.getCreationAPI(props);

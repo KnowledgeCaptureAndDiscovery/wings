@@ -41,7 +41,7 @@ import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.Template;
@@ -72,7 +72,7 @@ public class PlanController {
   private TemplateCreationAPI tc;
   private WorkflowGenerationAPI wg;
 
-  private Config config;
+  private ConfigLoader config;
 
   private Gson json;
   private Properties props;
@@ -84,7 +84,7 @@ public class PlanController {
   private String wflowns;
   private String resontns;
 
-  public PlanController(Config config) {
+  public PlanController(ConfigLoader config) {
     this.config = config;
     this.json = JsonHandler.createTemplateGson();
     this.props = config.getProperties();

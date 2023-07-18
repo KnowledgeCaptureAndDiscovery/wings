@@ -33,7 +33,7 @@ import edu.isi.wings.catalog.provenance.classes.Provenance;
 import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.workflow.template.TemplateFactory;
 import edu.isi.wings.workflow.template.api.TemplateCreationAPI;
 import java.io.File;
@@ -60,11 +60,11 @@ public class ComponentController {
   public boolean isSandboxed;
   public boolean loadExternal;
 
-  public Config config;
+  public ConfigLoader config;
   public Properties props;
   public Gson json;
 
-  public ComponentController(Config config, boolean loadExternal) {
+  public ComponentController(ConfigLoader config, boolean loadExternal) {
     this.config = config;
     this.isSandboxed = config.isSandboxed();
     json = JsonHandler.createComponentJson();
@@ -139,7 +139,7 @@ public class ComponentController {
       /*
       // TODO: Uncomment this, when :
        * - incrementTemplateVersion is implemented
-       * - this call is made asynchronous (otherwise it could take time, and will make editing components tedious) 
+       * - this call is made asynchronous (otherwise it could take time, and will make editing components tedious)
       ArrayList<String> types = this.cc.getParentComponentTypes(cid);
       types.add(0, cid);
       String[] cids = new String[types.size()];

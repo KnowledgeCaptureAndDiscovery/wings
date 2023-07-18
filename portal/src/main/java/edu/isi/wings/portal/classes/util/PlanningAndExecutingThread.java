@@ -7,7 +7,7 @@ import edu.isi.wings.common.URIEntity;
 import edu.isi.wings.common.UuidGen;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.template.api.Template;
 import edu.isi.wings.workflow.template.classes.sets.Binding;
@@ -21,12 +21,12 @@ import javax.servlet.ServletContext;
 class ExecutionThread implements Runnable {
 
   RuntimePlan rplan;
-  Config config;
+  ConfigLoader config;
   ServletContext context;
 
   public ExecutionThread(
     RuntimePlan rplan,
-    Config config,
+    ConfigLoader config,
     ServletContext context
   ) {
     this.rplan = rplan;
@@ -65,7 +65,7 @@ public class PlanningAndExecutingThread implements Runnable {
 
   String ex_prefix;
   String template_id;
-  Config config;
+  ConfigLoader config;
   TemplateBindings template_bindings;
   PlanningAPIBindings api_bindings;
   ExecutorService executor;
@@ -76,7 +76,7 @@ public class PlanningAndExecutingThread implements Runnable {
   public PlanningAndExecutingThread(
     String ex_prefix,
     String template_id,
-    Config config,
+    ConfigLoader config,
     int max_number_of_executions,
     TemplateBindings template_bindings,
     PlanningAPIBindings api_bindings,

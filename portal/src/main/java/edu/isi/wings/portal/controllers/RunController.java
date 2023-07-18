@@ -39,7 +39,7 @@ import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
@@ -75,7 +75,7 @@ import org.apache.http.impl.client.HttpClients;
 
 public class RunController {
 
-  public Config config;
+  public ConfigLoader config;
   public Gson json;
 
   public String dataUrl;
@@ -87,7 +87,7 @@ public class RunController {
   public static HashMap<String, PlanningAPIBindings> apiBindings =
     new HashMap<String, PlanningAPIBindings>();
 
-  public RunController(Config config) {
+  public RunController(ConfigLoader config) {
     this.config = config;
     this.json = JsonHandler.createRunGson();
     this.props = config.getProperties();

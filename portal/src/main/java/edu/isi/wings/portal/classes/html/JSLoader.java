@@ -19,7 +19,7 @@ package edu.isi.wings.portal.classes.html;
 
 import com.google.gson.Gson;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
@@ -92,7 +92,7 @@ public class JSLoader {
     "lib/plupload/plupload.full.min.js",
   };
 
-  public static void loadConfigurationJS(PrintWriter out, Config config) {
+  public static void loadConfigurationJS(PrintWriter out, ConfigLoader config) {
     HashMap<String, Object> jsvars = new HashMap<String, Object>();
     jsvars.put("DOMAIN_ID", config.getDomainId());
     jsvars.put("USER_ID", config.getUserId());
@@ -190,7 +190,7 @@ public class JSLoader {
     out.println("</script>");
   }
 
-  public static String getConfigurationJS(Config config) {
+  public static String getConfigurationJS(ConfigLoader config) {
     HashMap<String, Object> jsvars = new HashMap<String, Object>();
     jsvars.put("DOMAIN_ID", config.getDomainId());
     jsvars.put("USER_ID", config.getUserId());

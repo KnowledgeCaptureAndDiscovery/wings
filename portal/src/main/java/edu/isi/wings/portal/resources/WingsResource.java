@@ -1,6 +1,6 @@
 package edu.isi.wings.portal.resources;
 
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -35,11 +35,11 @@ public class WingsResource {
   @PathParam("domain")
   String domain;
 
-  Config config;
+  ConfigLoader config;
 
   @PostConstruct
   public void init() {
-    this.config = new Config(request, this.user, this.domain);
+    this.config = new ConfigLoader(request, this.user, this.domain);
   }
 
   protected String callViewer(String viewer) {
