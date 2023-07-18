@@ -54,11 +54,11 @@ public class ViewConfig extends HttpServlet {
     ConfigLoader config = new ConfigLoader(request, null, null);
     Gson json = JsonHandler.createPrettyGson();
     HashMap<String, Object> props = new HashMap<String, Object>();
-    props.put("internal_server", config.getServerUrl());
-    props.put("storage", config.getStorageDirectory());
-    props.put("dotpath", config.getDotFile());
-    props.put("ontology", config.getWorkflowOntologyUrl());
-    props.put("planner", config.getPlannerConfig());
+    props.put("internal_server", config.portalConfig.getServerUrl());
+    props.put("storage", config.portalConfig.getStorageDirectory());
+    props.put("dotpath", config.portalConfig.getDotFile());
+    props.put("ontology", config.portalConfig.getWorkflowOntologyUrl());
+    props.put("planner", config.portalConfig.getPlannerConfig());
     out.println(json.toJson(props));
     out.close();
   }

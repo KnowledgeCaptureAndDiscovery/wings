@@ -40,7 +40,7 @@ public class ResourceController {
 
   public ResourceController(ConfigLoader config) {
     this.config = config;
-    this.isSandboxed = config.isSandboxed();
+    this.isSandboxed = config.portalConfig.isSandboxed();
     json = JsonHandler.createGson();
     this.props = config.getProperties();
 

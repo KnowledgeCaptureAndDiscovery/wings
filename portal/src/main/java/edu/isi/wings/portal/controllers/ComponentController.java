@@ -66,7 +66,7 @@ public class ComponentController {
 
   public ComponentController(ConfigLoader config, boolean loadExternal) {
     this.config = config;
-    this.isSandboxed = config.isSandboxed();
+    this.isSandboxed = config.portalConfig.isSandboxed();
     json = JsonHandler.createComponentJson();
     this.props = config.getProperties();
 

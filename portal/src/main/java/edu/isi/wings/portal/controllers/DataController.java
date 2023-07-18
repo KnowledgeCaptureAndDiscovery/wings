@@ -266,9 +266,9 @@ public class DataController {
     String location = dc.getDataLocation(dataid);
     if (location != null) {
       File datafile = new File(location);
-      if (config.getPublisher() != null) {
+      if (config.portalConfig.getPublisher() != null) {
         return this.uploadFile(
-            config.getPublisher().getUploadServer(),
+            config.portalConfig.getPublisher().getUploadServer(),
             datafile
           );
       } else {
@@ -830,7 +830,7 @@ public class DataController {
 
       TemplateBindings tbindings = new TemplateBindings();
       tbindings.setCallbackUrl(
-        this.config.getServerUrl() +
+        this.config.portalConfig.getServerUrl() +
         this.config.getUserDomainUrl() +
         "/data/setMetadataFromSensorOutput?data_id=" +
         URLEncoder.encode(dataid, "UTF-8")

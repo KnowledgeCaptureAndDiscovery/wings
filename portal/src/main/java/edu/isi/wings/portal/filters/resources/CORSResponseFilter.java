@@ -20,7 +20,7 @@ public class CORSResponseFilter implements ContainerResponseFilter {
     ContainerResponseContext responseContext
   ) throws IOException {
     ConfigLoader config = new ConfigLoader();
-    PropertyListConfiguration plist = config.getPortalConfiguration(request);
+    PropertyListConfiguration plist = config.portalConfig.getPortalConfiguration(request);
     String clients = plist.getString("clients");
     if (clients != null) {
       MultivaluedMap<String, Object> headers = responseContext.getHeaders();

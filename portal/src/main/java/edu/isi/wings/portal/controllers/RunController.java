@@ -98,7 +98,7 @@ public class RunController {
       // System.out.println("Parallel:" + config.getPlannerConfig().getParallelism());
       executor =
         Executors.newFixedThreadPool(
-          config.getPlannerConfig().getParallelism()
+          config.portalConfig.getPlannerConfig().getParallelism()
         );
     }
   }
@@ -272,7 +272,7 @@ public class RunController {
   }
 
   private String getPublishedURL(String runid) {
-    Publisher publisher = config.getPublisher();
+    Publisher publisher = config.portalConfig.getPublisher();
     if (publisher == null) return null;
 
     /* TODO: Return already published url for the run id if possible */
@@ -326,7 +326,7 @@ public class RunController {
     for (int i = 0; i < list.size(); i++) {
       JsonElement el = list.get(i);
       String runid = el.getAsJsonObject().get("id").getAsString();
-      monitor.deleteRun(runid, config.isDeleteRunOutputs());
+      monitor.deleteRun(runid, config.portalConfig.isDeleteRunOutputs());
     }
 
     ret.put("success", true);
@@ -342,7 +342,7 @@ public class RunController {
     String runid = el.getAsJsonObject().get("id").getAsString();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     if (
-      !monitor.deleteRun(runid, config.isDeleteRunOutputs())
+      !monitor.deleteRun(runid, config.portalConfig.isDeleteRunOutputs())
     ) return json.toJson(ret);
     /*
      * if (monitor.runExists(runid)) {
@@ -401,7 +401,7 @@ public class RunController {
         ex_prefix,
         template_id,
         this.config,
-        config.getPlannerConfig().getMaxQueueSize(),
+        config.portalConfig.getPlannerConfig().getMaxQueueSize(),
         template_bindings,
         apis,
         executor,
@@ -632,7 +632,7 @@ public class RunController {
     } else try {
       // Mapper opmm = new Mapper();
 
-      Publisher publisher = config.getPublisher();
+      Publisher publisher = config.portalConfig.getPublisher();
 
       ServerDetails publishUrl = publisher.getUploadServer();
       String tstoreurl = publisher.getTstorePublishUrl();

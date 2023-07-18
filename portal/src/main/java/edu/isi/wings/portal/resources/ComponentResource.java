@@ -104,7 +104,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.saveComponentJSON(cid, json) &&
       this.cc.incrementWorkflowVersionContainingComponent(cid) &&
       this.cc.incrementComponentVersion(cid)
@@ -126,7 +126,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.addComponent(cid, parent_cid, parent_type, true)
     ) {
       RunController.invalidateCachedAPIs();
@@ -146,7 +146,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.addComponent(cid, parent_cid, parent_type, false)
     ) {
       RunController.invalidateCachedAPIs();
@@ -165,7 +165,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.addCategory(cid, parent_type)
     ) {
       RunController.invalidateCachedAPIs();
@@ -181,7 +181,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.delComponent(cid)
     ) {
       RunController.invalidateCachedAPIs();
@@ -202,7 +202,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.renameComponent(cid, parent_cid, parent_type, new_cid)
     ) {
       RunController.invalidateCachedAPIs();
@@ -223,7 +223,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.duplicateComponent(cid, parent_cid, parent_type, new_cid)
     ) {
       RunController.invalidateCachedAPIs();
@@ -239,7 +239,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.delCategory(cid)
     ) {
       RunController.invalidateCachedAPIs();
@@ -258,7 +258,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.setComponentLocation(cid, location) &&
       this.cc.incrementWorkflowVersionContainingComponent(cid) &&
       this.cc.incrementComponentVersion(cid)
@@ -276,7 +276,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.incrementComponentVersions()
     ) {
       RunController.invalidateCachedAPIs();
@@ -322,7 +322,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.addComponentDirectory(cid, path)
     ) return "OK";
     return null;
@@ -338,7 +338,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.addComponentFile(cid, path)
     ) return "OK";
     return null;
@@ -355,7 +355,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.saveComponentFile(cid, path, data) &&
       this.cc.incrementWorkflowVersionContainingComponent(cid) &&
       this.cc.incrementComponentVersion(cid)
@@ -373,7 +373,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.deleteComponentItem(cid, path)
     ) return "OK";
     return null;
@@ -390,7 +390,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.renameComponentItem(cid, path, newname) &&
       this.cc.incrementWorkflowVersionContainingComponent(cid) &&
       this.cc.incrementComponentVersion(cid)
@@ -408,7 +408,7 @@ public class ComponentResource extends WingsResource {
     if (
       this.cc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.cc.initializeComponentFiles(cid, lang) &&
       this.cc.incrementWorkflowVersionContainingComponent(cid) &&
       this.cc.incrementComponentVersion(cid)

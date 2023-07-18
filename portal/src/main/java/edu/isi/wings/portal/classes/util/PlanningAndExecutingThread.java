@@ -138,7 +138,7 @@ public class PlanningAndExecutingThread implements Runnable {
 
   private ArrayList<Template> getExpandedTemplates(Template seedtpl) {
     ArrayList<Template> candidates = new ArrayList<Template>();
-    if (!config.getPlannerConfig().useSpecialization()) {
+    if (!config.portalConfig.getPlannerConfig().useSpecialization()) {
       candidates.add(seedtpl);
     } else {
       Template itpl = api_bindings.wg.getInferredTemplate(seedtpl);
@@ -147,7 +147,7 @@ public class PlanningAndExecutingThread implements Runnable {
 
     ArrayList<Template> bts = new ArrayList<Template>();
 
-    if (!config.getPlannerConfig().useDataValidation()) bts = candidates; else {
+    if (!config.portalConfig.getPlannerConfig().useDataValidation()) bts = candidates; else {
       for (Template t : candidates) {
         // If template has no input data variables, skip
         if (t.getInputDataVariables().length == 0) {

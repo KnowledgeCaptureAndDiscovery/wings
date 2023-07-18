@@ -57,7 +57,7 @@ public class ExportGraph extends HttpServlet {
     //if(!config.checkDomain(request, response))
     //	return;
 
-    response.addHeader("Access-Control-Allow-Origin", config.getClients());
+    response.addHeader("Access-Control-Allow-Origin", config.portalConfig.getClients());
     response.addHeader("Access-Control-Allow-Credentials", "true");
     response.addHeader(
       "Access-Control-Allow-Methods",
@@ -69,10 +69,10 @@ public class ExportGraph extends HttpServlet {
     );
 
     String format = request.getParameter("format");
-    String uri = config.getServerUrl() + request.getRequestURI();
+    String uri = config.portalConfig.getServerUrl() + request.getRequestURI();
     OntFactory tdbfac = new OntFactory(
       OntFactory.JENA,
-      config.getTripleStoreDir()
+      config.portalConfig.getTripleStoreDir()
     );
     try {
       Pattern complibpat = Pattern.compile(".+\\/components\\/(.+)\\.owl");

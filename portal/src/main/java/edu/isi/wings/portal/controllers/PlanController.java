@@ -217,7 +217,7 @@ public class PlanController {
     ArrayList<Template> bts = new ArrayList<Template>();
     VariableBindingsListSet allbindingsets = new VariableBindingsListSet();
 
-    if (!config.getPlannerConfig().useDataValidation()) bts = candidates; else {
+    if (!config.portalConfig.getPlannerConfig().useDataValidation()) bts = candidates; else {
       for (Template t : candidates) {
         // If template has no input data variables, skip
         if (t.getInputDataVariables().length == 0) {
@@ -254,7 +254,7 @@ public class PlanController {
     System.out.println(bts);*/
 
     if (op.equals("getData")) {
-      if (!config.getPlannerConfig().useDataValidation()) printError(
+      if (!config.portalConfig.getPlannerConfig().useDataValidation()) printError(
         out
       ); else printDataBindingsJSON(allbindingsets, noexplain, out);
       return;

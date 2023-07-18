@@ -90,7 +90,7 @@ public class DomainController {
       ", selected: " +
       selected +
       ", engines: " +
-      json.toJson(config.getEnginesList()) +
+      json.toJson(config.portalConfig.getEnginesList()) +
       "}"
     );
   }
@@ -303,7 +303,7 @@ public class DomainController {
     if (dominfo == null) return false;
 
     Domain dom = new Domain(dominfo);
-    if (config.getEnginesList().contains(engine)) {
+    if (config.portalConfig.getEnginesList().contains(engine)) {
       dom.setPlanEngine(engine);
       dom.setStepEngine(engine);
     }

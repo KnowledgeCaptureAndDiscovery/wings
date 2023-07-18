@@ -20,8 +20,6 @@ package edu.isi.wings.portal.classes.config;
 import edu.isi.wings.execution.engine.ExecutionFactory;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.api.StepExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.distributed.DistributedExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
 import edu.isi.wings.execution.tools.ExecutionToolsFactory;
 import edu.isi.wings.execution.tools.api.ExecutionLoggerAPI;
 import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
@@ -35,55 +33,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.plist.PropertyListConfiguration;
 
 public class ConfigLoader {
-
-  // The Portal configuration properties file. Order of checking:
-  // 1. Check "config.file" servlet context parameter
-  // 2. Check ${user.home}/.wings/portal.properties if ${user.home} is present
-  // 3. Check /etc/wings/portal.properties
-  private String configFile;
-
-  // The following are loaded from the config file
-  private String storageDirectory;
-  private String tdbDirectory;
-  private String logsDirectory;
-  private String dotFile;
-  private String serverUrl;
-  private String workflowOntologyUrl;
-  private String dataOntologyUrl;
-  private String componentOntologyUrl;
-  private String executionOntologyUrl;
-  private String resourceOntologyUrl;
-  private boolean deleteRunOutputs;
-
-  private String ontdirurl = "http://www.wings-workflows.org/ontology";
-
-  private HashMap<String, ExeEngine> engines;
-
-  private Publisher publisher;
+  private static final String ONT_DIR_URL = "ont.dir.url";
+  private static final String ONT_DIR_MAP = "ont.dir.map";
+  public PortalConfig portalConfig = new PortalConfig();
+  private ArrayList<String> usersList;
+  private boolean isAdminViewer;
 
   // Some hardcoded values (TODO: override from config file)
-  private String usersRelativeDir = "users";
-  private String exportServletPath = "/export";
-  private boolean isSandboxed = false;
-
-  private PlannerConfig plannerConfig = new PlannerConfig();
-
-  // Comma separated list of spellbook client hosts
-  private String clients;
 
   // The following are set from the "request" variable
   private String viewerId;
@@ -93,17 +54,9 @@ public class ConfigLoader {
   private String scriptPath;
   private String[] scriptArguments;
 
-  private String communityRelativeDir = "common";
-  private String communityPath;
-  private String communityDir;
-  private String exportCommunityUrl;
-
   // This following are user/domain specific properties
   private String userPath;
   private String userDir;
-  private ArrayList<String> usersList;
-  private boolean isAdminViewer;
-  private boolean hasMetaWorkflows;
 
   private Domain domain;
   private String domainId;
@@ -113,25 +66,106 @@ public class ConfigLoader {
 
   private UsersDB userapi;
 
-  public String getUserDomainUrl() {
-    return userDomainUrl;
-  }
-
-  public void setUserDomainUrl(String userDomainUrl) {
-    this.userDomainUrl = userDomainUrl;
-  }
 
   public ConfigLoader() {}
 
   public ConfigLoader(HttpServletRequest request, String userid, String domain) {
     // Initialize UserDatabase
+    this.contextRootPath = request.getContextPath();
     this.initializeUserDatabase();
 
     // Initialize portal config
-    this.initializePortalConfig(request);
+    portalConfig.initializePortalConfig(request);
 
     // Initialize user config
     this.initializeUserConfig(request, userid, domain);
+  }
+
+  private void initializeUserDatabase() {
+    this.userapi = new UsersDB();
+  }
+
+  private void initializeUserConfig(
+    HttpServletRequest request,
+    String userid,
+    String domainid
+  ) {
+    this.userId = userid;
+    this.domainId = domainid;
+    this.viewerId = request.getRemoteUser();
+
+    // Set default script values
+    this.scriptPath = request.getRequestURI();
+
+    if (this.domainId != null) this.userDomainUrl =
+      this.contextRootPath +
+      "/" +
+      PortalConfig.USERS_RELATIVE_DIR +
+      "/" +
+      this.getUserId() +
+      "/" +
+      this.getDomainId();
+
+    this.sessionId = request.getSession().getId();
+
+    if (this.viewerId == null) return;
+
+    // If no userId specified, then set the viewer as the user
+    if (this.userId == null) this.userId = this.viewerId;
+
+    if (!this.checkUser(null)) return;
+
+    this.exportUserUrl =
+      portalConfig.serverUrl +
+      contextRootPath +
+      PortalConfig.EXPORT_SERVLET_PATH +
+      "/" +
+      PortalConfig.USERS_RELATIVE_DIR+
+      "/" +
+      userId;
+    this.userDir =
+      portalConfig.storageDirectory +
+      File.separator +
+      PortalConfig.USERS_RELATIVE_DIR+
+      File.separator +
+      userId;
+
+    this.userPath = contextRootPath + "/" + PortalConfig.USERS_RELATIVE_DIR + "/" + userId;
+
+    // Create userDir (if it doesn't exist)
+    File uf = new File(this.userDir);
+    if (!uf.exists() && !uf.mkdirs()) System.err.println(
+      "Cannot create user directory : " + uf.getAbsolutePath()
+    );
+
+    // Get domain and user list
+    DomainController dc = new DomainController(this);
+    this.domainsList = dc.getReadableDomainsList();
+    this.usersList = this.userapi.getUsersList();
+
+    // Get user's selected domain
+    this.domain = dc.getUserDomain();
+
+    // If the domain isn't a part of the readable domain list,
+    // then choose the first one
+    if (
+      this.domain == null || !domainsList.contains(this.domain.getDomainName())
+    ) {
+      if (domainsList.size() > 0) this.domain =
+        dc.getDomain(domainsList.get(0)); else this.domain = null;
+    }
+
+    if (this.domain != null) {
+      this.domainId = this.domain.getDomainName();
+      this.userDomainUrl =
+        this.contextRootPath +
+        "/" +
+        PortalConfig.USERS_RELATIVE_DIR +
+        "/" +
+        this.getUserId() +
+        "/" +
+        this.domain.getDomainName();
+    }
   }
 
   public void getPermissions() {
@@ -240,88 +274,6 @@ public class ConfigLoader {
     return true;
   }
 
-  private void initializeUserConfig(
-    HttpServletRequest request,
-    String userid,
-    String domainid
-  ) {
-    this.userId = userid;
-    this.domainId = domainid;
-    this.viewerId = request.getRemoteUser();
-
-    // Set default script values
-    this.scriptPath = request.getRequestURI();
-
-    if (this.domainId != null) this.userDomainUrl =
-      this.contextRootPath +
-      "/" +
-      this.getUsersRelativeDir() +
-      "/" +
-      this.getUserId() +
-      "/" +
-      this.getDomainId();
-
-    this.sessionId = request.getSession().getId();
-
-    if (this.viewerId == null) return;
-
-    // If no userId specified, then set the viewer as the user
-    if (this.userId == null) this.userId = this.viewerId;
-
-    if (!this.checkUser(null)) return;
-
-    this.exportUserUrl =
-      serverUrl +
-      contextRootPath +
-      exportServletPath +
-      "/" +
-      usersRelativeDir +
-      "/" +
-      userId;
-    this.userDir =
-      storageDirectory +
-      File.separator +
-      usersRelativeDir +
-      File.separator +
-      userId;
-
-    this.userPath = contextRootPath + "/" + usersRelativeDir + "/" + userId;
-
-    // Create userDir (if it doesn't exist)
-    File uf = new File(this.userDir);
-    if (!uf.exists() && !uf.mkdirs()) System.err.println(
-      "Cannot create user directory : " + uf.getAbsolutePath()
-    );
-
-    // Get domain and user list
-    DomainController dc = new DomainController(this);
-    this.domainsList = dc.getReadableDomainsList();
-    this.usersList = this.userapi.getUsersList();
-
-    // Get user's selected domain
-    this.domain = dc.getUserDomain();
-
-    // If the domain isn't a part of the readable domain list,
-    // then choose the first one
-    if (
-      this.domain == null || !domainsList.contains(this.domain.getDomainName())
-    ) {
-      if (domainsList.size() > 0) this.domain =
-        dc.getDomain(domainsList.get(0)); else this.domain = null;
-    }
-
-    if (this.domain != null) {
-      this.domainId = this.domain.getDomainName();
-      this.userDomainUrl =
-        this.contextRootPath +
-        "/" +
-        this.getUsersRelativeDir() +
-        "/" +
-        this.getUserId() +
-        "/" +
-        this.domain.getDomainName();
-    }
-  }
 
   public String getViewerId() {
     return viewerId;
@@ -355,343 +307,6 @@ public class ConfigLoader {
     return usersList;
   }
 
-  public Publisher getPublisher() {
-    return this.publisher;
-  }
-
-  private void initializePortalConfig(HttpServletRequest request) {
-    this.contextRootPath = request.getContextPath();
-
-    PropertyListConfiguration serverConfig = getPortalConfiguration(request);
-    this.storageDirectory = serverConfig.getString("storage.local");
-    this.tdbDirectory = serverConfig.getString("storage.tdb");
-    this.serverUrl = serverConfig.getString("server");
-    this.dotFile = serverConfig.getString("graphviz");
-    this.clients = serverConfig.getString("clients");
-    this.dataOntologyUrl = serverConfig.getString("ontology.data");
-    this.componentOntologyUrl = serverConfig.getString("ontology.component");
-    this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
-    this.executionOntologyUrl = serverConfig.getString("ontology.execution");
-    this.resourceOntologyUrl = serverConfig.getString("ontology.resource");
-
-    if (serverConfig.containsKey("metaworkflows")) this.hasMetaWorkflows =
-      serverConfig.getBoolean("metaworkflows");
-
-    if (
-      serverConfig.containsKey("light-reasoner")
-    ) plannerConfig.dataValidation = !serverConfig.getBoolean("light-reasoner");
-
-    if (
-      serverConfig.containsKey("planner.data-validation")
-    ) plannerConfig.dataValidation =
-      serverConfig.getBoolean("planner.data-validation");
-    if (
-      serverConfig.containsKey("planner.specialization")
-    ) plannerConfig.specialization =
-      serverConfig.getBoolean("planner.specialization");
-    if (serverConfig.containsKey("planner.use-rules")) plannerConfig.useRules =
-      serverConfig.getBoolean("planner.use-rules");
-
-    if (
-      serverConfig.containsKey("planner.max-queue-size")
-    ) plannerConfig.maxQueueSize =
-      serverConfig.getInt(
-        "planner.max-queue-size",
-        1000
-      ); else plannerConfig.maxQueueSize = 1000;
-    if (
-      serverConfig.containsKey("planner.parallelism")
-    ) plannerConfig.parallelism =
-      serverConfig.getInt(
-        "planner.parallelism",
-        10
-      ); else plannerConfig.parallelism = 10;
-
-    if (serverConfig.containsKey("storage.logs")) {
-      this.logsDirectory = serverConfig.getString("storage.logs");
-    } else {
-      this.logsDirectory = this.storageDirectory + File.separator + "logs";
-    }
-    if (serverConfig.containsKey("storage.delete-run-outputs")) {
-      this.deleteRunOutputs =
-        serverConfig.getBoolean("storage.delete-run-outputs");
-    } else {
-      this.deleteRunOutputs = false;
-    }
-    // Create logsDir (if it doesn't exist)
-    File logdir = new File(this.logsDirectory);
-    if (!logdir.exists() && !logdir.mkdirs()) System.err.println(
-      "Cannot create logs directory : " + logdir.getAbsolutePath()
-    );
-
-    this.exportCommunityUrl =
-      serverUrl +
-      contextRootPath +
-      exportServletPath +
-      "/" +
-      communityRelativeDir;
-    this.communityPath =
-      contextRootPath + "/" + usersRelativeDir + "/" + communityRelativeDir;
-
-    this.communityDir =
-      storageDirectory + File.separator + communityRelativeDir;
-    // Create communityDir (if it doesn't exist)
-    File uf = new File(this.communityDir);
-    if (!uf.exists() && !uf.mkdirs()) System.err.println(
-      "Cannot create community directory : " + uf.getAbsolutePath()
-    );
-
-    // Load engine configurations
-    this.engines = new HashMap<String, ExeEngine>();
-    List<HierarchicalConfiguration> enginenodes = serverConfig.configurationsAt(
-      "execution.engine"
-    );
-    for (HierarchicalConfiguration enode : enginenodes) {
-      ExeEngine engine = this.getExeEngine(enode);
-      this.engines.put(engine.getName(), engine);
-    }
-    // Add in the distributed engine if it doesn't already exist
-    if (!this.engines.containsKey("Distributed")) {
-      ExeEngine distengine = new ExeEngine(
-        "Distributed",
-        DistributedExecutionEngine.class.getCanonicalName(),
-        ExeEngine.Type.BOTH
-      );
-      this.engines.put(distengine.getName(), distengine);
-      this.addEngineConfig(serverConfig, distengine);
-      try {
-        serverConfig.save(this.configFile);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-
-    // Load publishing configuration
-    String publishUrl = serverConfig.getString("publisher.url");
-    String publishExportName = serverConfig.getString("publisher.name");
-    String tstorePublishUrl = serverConfig.getString(
-      "publisher.triple-store.publish"
-    );
-    String tstoreQueryUrl = serverConfig.getString(
-      "publisher.triple-store.query"
-    );
-    String domainsDir = serverConfig.getString(
-      "publisher.triple-store.domains-directory"
-    );
-    String uploadUrl = serverConfig.getString("publisher.upload-server.url");
-    String uploadUsername = serverConfig.getString(
-      "publisher.upload-server.username"
-    );
-    String uploadPassword = serverConfig.getString(
-      "publisher.upload-server.password"
-    );
-    String uploadDir = serverConfig.getString(
-      "publisher.upload-server.directory"
-    );
-    String uploadHost = serverConfig.getString("publisher.upload-server.host");
-    String uploadUserId = serverConfig.getString(
-      "publisher.upload-server.userid"
-    );
-    String uploadKey = serverConfig.getString(
-      "publisher.upload-server.private-key"
-    );
-    String sizeString = serverConfig.getString(
-      "publisher.upload-server.max-upload-size"
-    );
-
-    this.publisher = new Publisher();
-    this.publisher.setUrl(publishUrl);
-    this.publisher.setExportName(publishExportName);
-    this.publisher.setDomainsDir(domainsDir);
-    this.publisher.setTstorePublishUrl(tstorePublishUrl);
-    this.publisher.setTstoreQueryUrl(tstoreQueryUrl);
-
-    ServerDetails upserver = new ServerDetails();
-    upserver.setUrl(uploadUrl);
-    upserver.setUsername(uploadUsername);
-    upserver.setPassword(uploadPassword);
-    upserver.setHostUserId(uploadUserId);
-    upserver.setDirectory(uploadDir);
-    upserver.setHost(uploadHost);
-    upserver.setPrivateKey(uploadKey);
-    if (sizeString != null) {
-      long size = this.getSizeFromString(sizeString);
-      upserver.setMaxUploadSize(size);
-    }
-    this.publisher.setUploadServer(upserver);
-  }
-
-  private long getSizeFromString(String sizeString) {
-    long kb = 1024;
-    long mb = kb * kb;
-    long gb = kb * mb;
-    long tb = kb * gb;
-
-    Pattern pat = Pattern.compile("(\\d+)\\s*([KkMmGgTt])[Bb]?");
-    Matcher mat = pat.matcher(sizeString);
-    if (mat.find()) {
-      long size = Long.parseLong(mat.group(1));
-      if (mat.groupCount() > 1) {
-        String units = mat.group(2).toLowerCase();
-        if (units.equals("k")) return size * kb;
-        if (units.equals("m")) return size * mb;
-        if (units.equals("g")) return size * gb;
-        if (units.equals("t")) return size * tb;
-      }
-      return size;
-    }
-    return 0;
-  }
-
-  private void initializeUserDatabase() {
-    this.userapi = new UsersDB();
-  }
-
-  @SuppressWarnings("rawtypes")
-  private ExeEngine getExeEngine(HierarchicalConfiguration node) {
-    String name = node.getString("name");
-    String impl = node.getString("implementation");
-    ExeEngine.Type type = ExeEngine.Type.valueOf(node.getString("type"));
-    ExeEngine engine = new ExeEngine(name, impl, type);
-    for (Iterator it = node.getKeys("properties"); it.hasNext();) {
-      String key = (String) it.next();
-      String value = node.getString(key);
-      engine.addProperty(key.replace("properties.", ""), value);
-    }
-    return engine;
-  }
-
-  public PropertyListConfiguration getPortalConfiguration(
-    HttpServletRequest request
-  ) {
-    ServletContext app = request.getSession().getServletContext();
-    this.configFile = app.getInitParameter("config.file");
-    if (this.configFile == null) {
-      String home = System.getProperty("user.home");
-      if (home != null && !home.equals("")) this.configFile =
-        home +
-        File.separator +
-        ".wings" +
-        File.separator +
-        "portal.properties"; else this.configFile =
-        "/etc/wings/portal.properties";
-    }
-    // Create configFile if it doesn't exist (portal.properties)
-    File cfile = new File(this.configFile);
-    if (!cfile.exists()) {
-      File configDir = cfile.getParentFile();
-      if (!configDir.exists() && !configDir.mkdirs()) {
-        System.err.println(
-          "Cannot create config file directory : " + configDir
-        );
-        return null;
-      }
-      if (request != null) createDefaultPortalConfig(request);
-    }
-
-    // Load properties from configFile
-    PropertyListConfiguration props = new PropertyListConfiguration();
-    try {
-      props.load(this.configFile);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    }
-    return props;
-  }
-
-  private void createDefaultPortalConfig(HttpServletRequest request) {
-    String server =
-      request.getScheme() +
-      "://" +
-      request.getServerName() +
-      ":" +
-      request.getServerPort();
-    String storageDir = null;
-    String home = System.getProperty("user.home");
-    if (home != null && !home.equals("")) storageDir =
-      home +
-      File.separator +
-      ".wings" +
-      File.separator +
-      "storage"; else storageDir =
-      System.getProperty("java.io.tmpdir") +
-      File.separator +
-      "wings" +
-      File.separator +
-      "storage";
-
-    File storageDirFile = new File(storageDir);
-    if (
-      !storageDirFile.exists() && !storageDirFile.mkdirs()
-    ) System.err.println("Cannot create storage directory: " + storageDir);
-
-    PropertyListConfiguration config = new PropertyListConfiguration();
-    config.addProperty("storage.local", storageDir);
-    config.addProperty("storage.tdb", storageDir + File.separator + "TDB");
-    config.addProperty("server", server);
-
-    File loc1 = new File("/usr/bin/dot");
-    File loc2 = new File("/usr/local/bin/dot");
-    config.addProperty(
-      "graphviz",
-      loc2.exists() ? loc2.getAbsolutePath() : loc1.getAbsolutePath()
-    );
-    config.addProperty("ontology.data", ontdirurl + "/data.owl");
-    config.addProperty("ontology.component", ontdirurl + "/component.owl");
-    config.addProperty("ontology.workflow", ontdirurl + "/workflow.owl");
-    config.addProperty("ontology.execution", ontdirurl + "/execution.owl");
-    config.addProperty("ontology.resource", ontdirurl + "/resource.owl");
-
-    this.addEngineConfig(
-        config,
-        new ExeEngine(
-          "Local",
-          LocalExecutionEngine.class.getCanonicalName(),
-          ExeEngine.Type.BOTH
-        )
-      );
-    this.addEngineConfig(
-        config,
-        new ExeEngine(
-          "Distributed",
-          DistributedExecutionEngine.class.getCanonicalName(),
-          ExeEngine.Type.BOTH
-        )
-      );
-
-    /*
-     * this.addEngineConfig(config, new ExeEngine("OODT",
-     * OODTExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-     *
-     * this.addEngineConfig(config, new ExeEngine("Pegasus",
-     * PegasusExecutionEngine.class.getCanonicalName(), ExeEngine.Type.PLAN));
-     */
-
-    try {
-      config.save(this.configFile);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void addEngineConfig(
-    PropertyListConfiguration config,
-    ExeEngine engine
-  ) {
-    config.addProperty("execution.engine(-1).name", engine.getName());
-    config.addProperty(
-      "execution.engine.implementation",
-      engine.getImplementation()
-    );
-    config.addProperty("execution.engine.type", engine.getType());
-    for (Entry<Object, Object> entry : engine
-      .getProperties()
-      .entrySet()) config.addProperty(
-      "execution.engine.properties." + entry.getKey(),
-      entry.getValue()
-    );
-  }
 
   public Properties getProperties() {
     return this.getProperties(this.domain);
@@ -703,40 +318,46 @@ public class ConfigLoader {
     if (domain != null) {
       props = domain.getProperties();
       if (domain.isLegacy()) return props;
-
-      props.setProperty("ont.dir.url", this.ontdirurl);
+      props.setProperty(ONT_DIR_URL, PortalConfig.ONT_DIR_URL);
       if (!domain.getUseSharedTripleStore()) props.setProperty(
-        "ont.dir.map",
+        ONT_DIR_MAP,
         "file:" + domain.getDomainDirectory() + File.separator + "ontology"
       );
 
-      props.setProperty("ont.data.url", this.getDataOntologyUrl());
-      props.setProperty("ont.component.url", this.getComponentOntologyUrl());
-      props.setProperty("ont.workflow.url", this.getWorkflowOntologyUrl());
-      props.setProperty("ont.execution.url", this.getExecutionOntologyUrl());
-      if (domain.getUseSharedTripleStore()) props.setProperty(
-        "tdb.repository.dir",
-        this.getTripleStoreDir()
+      props.setProperty("ont.data.url", portalConfig.getDataOntologyUrl());
+      props.setProperty(
+        "ont.component.url",
+        portalConfig.getComponentOntologyUrl()
+      );
+      props.setProperty(
+        "ont.workflow.url",
+        portalConfig.getWorkflowOntologyUrl()
+      );
+      props.setProperty(
+        "ont.execution.url",
+        portalConfig.getExecutionOntologyUrl()
       );
 
+      if (domain.getUseSharedTripleStore()) props.setProperty(
+        "tdb.repository.dir",
+        portalConfig.getTdbDirectory()
+      );
+
+      HashMap<String, ExeEngine> engines = portalConfig.getEngines();
       ExeEngine pengine = engines.get(domain.getPlanEngine());
       ExeEngine sengine = engines.get(domain.getStepEngine());
       props.putAll(pengine.getProperties());
       props.putAll(sengine.getProperties());
     } else {
-      props.setProperty("tdb.repository.dir", this.getTripleStoreDir());
+      props.setProperty("tdb.repository.dir", portalConfig.getTdbDirectory());
     }
-    props.setProperty("logs.dir", this.getLogsDirectory());
-    props.setProperty("dot.path", this.getDotFile());
-
-    if (this.getResourceOntologyUrl() == null) this.setResourceOntologyUrl(
-        ontdirurl + "/resource.owl"
-      );
-    props.setProperty("ont.resource.url", this.getResourceOntologyUrl());
+    props.setProperty("logs.dir", portalConfig.getLogsDirectory());
+    props.setProperty("dot.path", portalConfig.getDotFile());
+    props.setProperty("ont.resource.url", portalConfig.getResourceOntologyUrl());
 
     props.setProperty(
       "lib.resource.url",
-      this.getExportCommunityUrl() + "/resource/library.owl"
+      this.portalConfig.getExportCommunityUrl() + "/resource/library.owl"
     );
 
     if (domain != null && !domain.getUseSharedTripleStore()) props.setProperty(
@@ -753,7 +374,7 @@ public class ConfigLoader {
 
     props.setProperty(
       "lib.provenance.url",
-      this.getExportCommunityUrl() + "/provenance/library.owl"
+      this.portalConfig.getExportCommunityUrl() + "/provenance/library.owl"
     );
 
     if (this.viewerId != null) props.setProperty("viewer.id", this.viewerId);
@@ -761,14 +382,14 @@ public class ConfigLoader {
 
     props.setProperty(
       "use_rules",
-      this.getPlannerConfig().useRules() ? "true" : "false"
+      portalConfig.plannerConfig.useRules() ? "true" : "false"
     );
     return props;
   }
 
   public PlanExecutionEngine getDomainExecutionEngine() {
-    ExeEngine pengine = engines.get(domain.getPlanEngine());
-    ExeEngine sengine = engines.get(domain.getStepEngine());
+    ExeEngine pengine = portalConfig.engines.get(domain.getPlanEngine());
+    ExeEngine sengine = portalConfig.engines.get(domain.getStepEngine());
     try {
       pengine.getProperties().putAll(this.getProperties());
       sengine.getProperties().putAll(this.getProperties());
@@ -791,7 +412,7 @@ public class ConfigLoader {
       ExecutionResourceAPI resource = ExecutionToolsFactory.getResourceAPI(
         this.getProperties()
       );
-      resource.setLocalStorageFolder(this.getStorageDirectory());
+      resource.setLocalStorageFolder(portalConfig.getStorageDirectory());
       pee.setStepExecutionEngine(see);
       pee.setExecutionLogger(logger);
       pee.setExecutionMonitor(monitor);
@@ -811,70 +432,6 @@ public class ConfigLoader {
     return ExecutionToolsFactory.createMonitor(this.getProperties());
   }
 
-  // Getters and Setters
-  public String getWorkflowOntologyUrl() {
-    return this.workflowOntologyUrl;
-  }
-
-  public String getComponentOntologyUrl() {
-    return this.componentOntologyUrl;
-  }
-
-  public String getDataOntologyUrl() {
-    return this.dataOntologyUrl;
-  }
-
-  public void setWorkflowOntologyUrl(String workflowOntologyUrl) {
-    this.workflowOntologyUrl = workflowOntologyUrl;
-  }
-
-  public void setDataOntologyUrl(String dataOntologyUrl) {
-    this.dataOntologyUrl = dataOntologyUrl;
-  }
-
-  public void setComponentOntologyUrl(String componentOntologyUrl) {
-    this.componentOntologyUrl = componentOntologyUrl;
-  }
-
-  public String getExecutionOntologyUrl() {
-    return executionOntologyUrl;
-  }
-
-  public void setExecutionOntologyUrl(String executionOntologyUrl) {
-    this.executionOntologyUrl = executionOntologyUrl;
-  }
-
-  public String getResourceOntologyUrl() {
-    return resourceOntologyUrl;
-  }
-
-  public void setResourceOntologyUrl(String resourceOntologyUrl) {
-    this.resourceOntologyUrl = resourceOntologyUrl;
-  }
-
-  public String getConfigFile() {
-    return configFile;
-  }
-
-  public void setConfigFile(String configFile) {
-    this.configFile = configFile;
-  }
-
-  public String getUsersRelativeDir() {
-    return usersRelativeDir;
-  }
-
-  public void setUsersRelativeDir(String usersRelativeDir) {
-    this.usersRelativeDir = usersRelativeDir;
-  }
-
-  public String getExportServletPath() {
-    return exportServletPath;
-  }
-
-  public void setExportServletPath(String exportServletPath) {
-    this.exportServletPath = exportServletPath;
-  }
 
   public String getUserId() {
     return userId;
@@ -910,48 +467,8 @@ public class ConfigLoader {
     this.isAdminViewer = isAdminViewer;
   }
 
-  public boolean hasMetaWorkflows() {
-    return hasMetaWorkflows;
-  }
-
-  public void setMetaWorkflows(boolean hasMetaWorkflows) {
-    this.hasMetaWorkflows = hasMetaWorkflows;
-  }
-
   public void setExportUserUrl(String exportUserUrl) {
     this.exportUserUrl = exportUserUrl;
-  }
-
-  public String getServerUrl() {
-    return serverUrl;
-  }
-
-  public void setServerUrl(String serverUrl) {
-    this.serverUrl = serverUrl;
-  }
-
-  public String getCommunityPath() {
-    return communityPath;
-  }
-
-  public void setCommunityPath(String communityPath) {
-    this.communityPath = communityPath;
-  }
-
-  public String getExportCommunityUrl() {
-    return exportCommunityUrl;
-  }
-
-  public void setExportCommunityUrl(String exportCommunityUrl) {
-    this.exportCommunityUrl = exportCommunityUrl;
-  }
-
-  public String getCommunityDir() {
-    return communityDir;
-  }
-
-  public void setCommunityDir(String communityDir) {
-    this.communityDir = communityDir;
   }
 
   public String getContextRootPath() {
@@ -990,22 +507,6 @@ public class ConfigLoader {
     this.userPath = userPath;
   }
 
-  public String getTripleStoreDir() {
-    return tdbDirectory;
-  }
-
-  public void setTripleStoreDir(String tripleStoreDir) {
-    this.tdbDirectory = tripleStoreDir;
-  }
-
-  public String getLogsDirectory() {
-    return logsDirectory;
-  }
-
-  public void setLogsDirectory(String logsDirectory) {
-    this.logsDirectory = logsDirectory;
-  }
-
   public String getSessionId() {
     return sessionId;
   }
@@ -1014,55 +515,12 @@ public class ConfigLoader {
     this.sessionId = sessionId;
   }
 
-  public boolean isSandboxed() {
-    return isSandboxed;
+  public String getUserDomainUrl() {
+    return userDomainUrl;
   }
 
-  public void setSandboxed(boolean isSandboxed) {
-    this.isSandboxed = isSandboxed;
+  public void setUserDomainUrl(String userDomainUrl) {
+    this.userDomainUrl = userDomainUrl;
   }
 
-  public String getDotFile() {
-    return dotFile;
-  }
-
-  public void setDotFile(String dotFile) {
-    this.dotFile = dotFile;
-  }
-
-  public boolean isDeleteRunOutputs() {
-    return deleteRunOutputs;
-  }
-
-  public void setDeleteRunOutputs(boolean deleteRunOutputs) {
-    this.deleteRunOutputs = deleteRunOutputs;
-  }
-
-  public String getClients() {
-    return clients;
-  }
-
-  public void setClients(String clients) {
-    this.clients = clients;
-  }
-
-  public String getStorageDirectory() {
-    return storageDirectory;
-  }
-
-  public void setStorageDirectory(String storageDirectory) {
-    this.storageDirectory = storageDirectory;
-  }
-
-  public PlannerConfig getPlannerConfig() {
-    return plannerConfig;
-  }
-
-  public void setPlannerConfig(PlannerConfig plannerConfig) {
-    this.plannerConfig = plannerConfig;
-  }
-
-  public Set<String> getEnginesList() {
-    return this.engines.keySet();
-  }
 }

@@ -26,7 +26,7 @@ public class CORSFilter implements Filter {
     FilterChain chain
   ) throws IOException, ServletException {
     ConfigLoader config = new ConfigLoader();
-    PropertyListConfiguration plist = config.getPortalConfiguration(
+    PropertyListConfiguration plist = config.portalConfig.getPortalConfiguration(
       (HttpServletRequest) request
     );
     HttpServletResponse res = (HttpServletResponse) response;
