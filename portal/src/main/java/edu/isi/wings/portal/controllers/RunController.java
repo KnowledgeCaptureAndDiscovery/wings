@@ -39,7 +39,7 @@ import edu.isi.wings.execution.tools.api.ExecutionMonitorAPI;
 import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.config.Publisher;
 import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
@@ -75,7 +75,7 @@ import org.apache.http.impl.client.HttpClients;
 
 public class RunController {
 
-  public Config config;
+  public ConfigLoader config;
   public Gson json;
 
   public String dataUrl;
@@ -87,7 +87,7 @@ public class RunController {
   public static HashMap<String, PlanningAPIBindings> apiBindings =
     new HashMap<String, PlanningAPIBindings>();
 
-  public RunController(Config config) {
+  public RunController(ConfigLoader config) {
     this.config = config;
     this.json = JsonHandler.createRunGson();
     this.props = config.getProperties();
@@ -98,7 +98,7 @@ public class RunController {
       // System.out.println("Parallel:" + config.getPlannerConfig().getParallelism());
       executor =
         Executors.newFixedThreadPool(
-          config.getPlannerConfig().getParallelism()
+          config.portalConfig.getPlannerConfig().getParallelism()
         );
     }
   }
@@ -272,7 +272,7 @@ public class RunController {
   }
 
   private String getPublishedURL(String runid) {
-    Publisher publisher = config.getPublisher();
+    Publisher publisher = config.portalConfig.getPublisher();
     if (publisher == null) return null;
 
     /* TODO: Return already published url for the run id if possible */
@@ -326,7 +326,7 @@ public class RunController {
     for (int i = 0; i < list.size(); i++) {
       JsonElement el = list.get(i);
       String runid = el.getAsJsonObject().get("id").getAsString();
-      monitor.deleteRun(runid, config.isDeleteRunOutputs());
+      monitor.deleteRun(runid, config.portalConfig.isDeleteRunOutputs());
     }
 
     ret.put("success", true);
@@ -342,7 +342,7 @@ public class RunController {
     String runid = el.getAsJsonObject().get("id").getAsString();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     if (
-      !monitor.deleteRun(runid, config.isDeleteRunOutputs())
+      !monitor.deleteRun(runid, config.portalConfig.isDeleteRunOutputs())
     ) return json.toJson(ret);
     /*
      * if (monitor.runExists(runid)) {
@@ -401,7 +401,7 @@ public class RunController {
         ex_prefix,
         template_id,
         this.config,
-        config.getPlannerConfig().getMaxQueueSize(),
+        config.portalConfig.getPlannerConfig().getMaxQueueSize(),
         template_bindings,
         apis,
         executor,
@@ -632,7 +632,7 @@ public class RunController {
     } else try {
       // Mapper opmm = new Mapper();
 
-      Publisher publisher = config.getPublisher();
+      Publisher publisher = config.portalConfig.getPublisher();
 
       ServerDetails publishUrl = publisher.getUploadServer();
       String tstoreurl = publisher.getTstorePublishUrl();

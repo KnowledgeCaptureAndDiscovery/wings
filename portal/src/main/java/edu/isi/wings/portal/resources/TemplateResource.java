@@ -142,7 +142,7 @@ public class TemplateResource extends WingsResource {
   @Path("layoutTemplate")
   @Produces(MediaType.APPLICATION_JSON)
   public String layoutTemplate(@JsonProperty("json") String json) {
-    String dotexe = config.getDotFile();
+    String dotexe = config.portalConfig.getDotFile();
     if (this.tc != null) try {
       return this.tc.layoutTemplate(json, dotexe);
     } catch (IOException e) {
@@ -182,7 +182,9 @@ public class TemplateResource extends WingsResource {
   @Path("deleteTemplate")
   @Produces(MediaType.TEXT_PLAIN)
   public String deleteTemplate(@FormParam("template_id") String template_id) {
-    if (this.tc != null && this.isOwner() && !config.isSandboxed()) {
+    if (
+      this.tc != null && this.isOwner() && !config.portalConfig.isSandboxed()
+    ) {
       RunController.invalidateCachedAPIs();
       return this.tc.deleteTemplate(template_id);
     }

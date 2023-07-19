@@ -4,14 +4,14 @@ import com.google.gson.Gson;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo;
 import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
 public class MetaworkflowController {
 
-  public Config config;
+  public ConfigLoader config;
 
   Gson json;
   Properties props;
@@ -19,7 +19,7 @@ public class MetaworkflowController {
   RunController rc;
   public String templateUrl;
 
-  public MetaworkflowController(Config config) {
+  public MetaworkflowController(ConfigLoader config) {
     this.config = config;
     json = JsonHandler.createGson();
     this.props = config.getProperties();

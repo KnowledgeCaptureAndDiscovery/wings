@@ -19,7 +19,7 @@ package edu.isi.wings.portal.classes.html;
 
 import com.google.gson.Gson;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
@@ -92,14 +92,14 @@ public class JSLoader {
     "lib/plupload/plupload.full.min.js",
   };
 
-  public static void loadConfigurationJS(PrintWriter out, Config config) {
+  public static void loadConfigurationJS(PrintWriter out, ConfigLoader config) {
     HashMap<String, Object> jsvars = new HashMap<String, Object>();
     jsvars.put("DOMAIN_ID", config.getDomainId());
     jsvars.put("USER_ID", config.getUserId());
     jsvars.put("VIEWER_ID", config.getViewerId());
 
     jsvars.put("CONTEXT_ROOT", config.getContextRootPath());
-    jsvars.put("COM_ROOT", config.getCommunityPath());
+    jsvars.put("COM_ROOT", config.portalConfig.getCommunityPath());
     jsvars.put("USER_ROOT", config.getUserPath());
     jsvars.put("USERDOM_ROOT", config.getUserDomainUrl());
     jsvars.put("SCRIPT_PATH", config.getScriptPath());
@@ -107,7 +107,7 @@ public class JSLoader {
     jsvars.put("DOMAINS", config.getDomainsList());
     jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
-    jsvars.put("METAWORKFLOWS", config.hasMetaWorkflows());
+    jsvars.put("METAWORKFLOWS", config.portalConfig.hasMetaWorkflows());
 
     JSLoader.showScriptKeyVals(out, jsvars);
   }
@@ -190,14 +190,14 @@ public class JSLoader {
     out.println("</script>");
   }
 
-  public static String getConfigurationJS(Config config) {
+  public static String getConfigurationJS(ConfigLoader config) {
     HashMap<String, Object> jsvars = new HashMap<String, Object>();
     jsvars.put("DOMAIN_ID", config.getDomainId());
     jsvars.put("USER_ID", config.getUserId());
     jsvars.put("VIEWER_ID", config.getViewerId());
 
     jsvars.put("CONTEXT_ROOT", config.getContextRootPath());
-    jsvars.put("COM_ROOT", config.getCommunityPath());
+    jsvars.put("COM_ROOT", config.portalConfig.getCommunityPath());
     jsvars.put("USER_ROOT", config.getUserPath());
     jsvars.put("USERDOM_ROOT", config.getUserDomainUrl());
     jsvars.put("SCRIPT_PATH", config.getScriptPath());
@@ -205,7 +205,7 @@ public class JSLoader {
     jsvars.put("DOMAINS", config.getDomainsList());
     jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
-    jsvars.put("METAWORKFLOWS", config.hasMetaWorkflows());
+    jsvars.put("METAWORKFLOWS", config.portalConfig.hasMetaWorkflows());
 
     return JSLoader.getScriptKeyVals(jsvars);
   }

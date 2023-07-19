@@ -18,7 +18,7 @@
 package edu.isi.wings.portal.servlets;
 
 import edu.isi.kcap.ontapi.util.SparqlAPI;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.controllers.DomainController;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class SparqlEndpoint extends HttpServlet {
   ) throws ServletException, IOException {
     this.out = new PrintStream(response.getOutputStream());
 
-    Config config = new Config(request, null, null);
+    ConfigLoader config = new ConfigLoader(request, null, null);
     String queryString = request.getParameter("query");
     String updateString = request.getParameter("update");
     if (queryString == null && updateString == null) {
@@ -93,8 +93,8 @@ public class SparqlEndpoint extends HttpServlet {
     HttpServletRequest request,
     HttpServletResponse response
   ) throws IOException {
-    Config config = new Config(request, null, null);
-    String tdbdir = config.getTripleStoreDir();
+    ConfigLoader config = new ConfigLoader(request, null, null);
+    String tdbdir = config.portalConfig.getTripleStoreDir();
     String format = request.getParameter("format");
 
     this.api = new SparqlAPI(tdbdir);
@@ -106,10 +106,10 @@ public class SparqlEndpoint extends HttpServlet {
     HttpServletRequest request,
     HttpServletResponse response
   ) throws IOException {
-    Config config = new Config(request, null, null);
+    ConfigLoader config = new ConfigLoader(request, null, null);
     if (!config.checkDomain(request, response)) return;
 
-    String tdbdir = config.getTripleStoreDir();
+    String tdbdir = config.portalConfig.getTripleStoreDir();
     this.api = new SparqlAPI(tdbdir);
 
     if (updateString.startsWith("__SERVER_RENAME:")) {
@@ -120,8 +120,8 @@ public class SparqlEndpoint extends HttpServlet {
     }
   }
 
-  private void updateServerURL(String newurl, Config config) {
-    String cururl = config.getServerUrl();
+  private void updateServerURL(String newurl, ConfigLoader config) {
+    String cururl = config.portalConfig.getServerUrl();
 
     // Update all graphs in the triple store
     this.api.updateGraphURLs(cururl, newurl, out);

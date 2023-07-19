@@ -6,7 +6,7 @@ import edu.isi.wings.catalog.component.classes.ComponentInvocation;
 import edu.isi.wings.catalog.component.classes.ComponentPacket;
 import edu.isi.wings.execution.engine.api.PlanExecutionEngine;
 import edu.isi.wings.execution.engine.classes.RuntimePlan;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.workflow.plan.PlanFactory;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
@@ -26,7 +26,7 @@ import org.apache.http.cookie.Cookie;
 public class ComponentExecutingThread implements Runnable {
 
   String cid;
-  Config config;
+  ConfigLoader config;
   HashMap<String, Binding> role_bindings;
   PlanningAPIBindings api_bindings;
   String callbackUrl;
@@ -34,7 +34,7 @@ public class ComponentExecutingThread implements Runnable {
 
   public ComponentExecutingThread(
     String cid,
-    Config config,
+    ConfigLoader config,
     HashMap<String, Binding> role_bindings,
     PlanningAPIBindings api_bindings,
     String callbackUrl,

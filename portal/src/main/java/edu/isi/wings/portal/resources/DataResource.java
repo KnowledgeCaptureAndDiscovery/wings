@@ -173,7 +173,9 @@ public class DataResource extends WingsResource {
     @FormParam("data_type") String data_type,
     @FormParam("props_json") String json
   ) {
-    if (this.dc != null && this.isOwner() && !config.isSandboxed()) {
+    if (
+      this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()
+    ) {
       RunController.invalidateCachedAPIs();
       return this.dc.saveDatatypeJSON(data_type, json);
     }
@@ -190,7 +192,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.addDatatype(parent_type, data_type)
     ) {
       RunController.invalidateCachedAPIs();
@@ -208,7 +210,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.delDatatypes(data_types)
     ) {
       RunController.invalidateCachedAPIs();
@@ -228,7 +230,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.moveDatatypeTo(data_type, from_parent_type, to_parent_type)
     ) {
       RunController.invalidateCachedAPIs();
@@ -248,7 +250,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.moveDataTo(data_id, from_parent_type, to_parent_type)
     ) {
       RunController.invalidateCachedAPIs();
@@ -267,7 +269,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.addDataForDatatype(data_id, data_type)
     ) {
       RunController.invalidateCachedAPIs();
@@ -283,7 +285,9 @@ public class DataResource extends WingsResource {
     @FormParam("data_url") String data_url,
     @FormParam("data_type") String data_type
   ) {
-    if (this.dc != null && this.isOwner() && !config.isSandboxed()) {
+    if (
+      this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()
+    ) {
       RunController.invalidateCachedAPIs();
       return this.dc.addRemoteDataForType(data_url, data_type);
     }
@@ -297,7 +301,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.delData(data_id)
     ) {
       RunController.invalidateCachedAPIs();
@@ -316,7 +320,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.renameData(data_id, newid)
     ) {
       RunController.invalidateCachedAPIs();
@@ -335,7 +339,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.renameDataType(data_type, newid)
     ) {
       RunController.invalidateCachedAPIs();
@@ -354,7 +358,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.setDataLocation(data_id, location)
     ) {
       RunController.invalidateCachedAPIs();
@@ -377,7 +381,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.addBatchData(
           data_type,
           data_ids,
@@ -400,7 +404,9 @@ public class DataResource extends WingsResource {
     @FormParam("newname") String newname,
     @FormParam("metadata_json") String json
   ) {
-    if (this.dc != null && this.isOwner() && !config.isSandboxed()) {
+    if (
+      this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()
+    ) {
       RunController.invalidateCachedAPIs();
       return this.dc.registerData(data_id, newname, json);
     }
@@ -419,7 +425,7 @@ public class DataResource extends WingsResource {
     if (
       this.dc != null &&
       this.isOwner() &&
-      !config.isSandboxed() &&
+      !config.portalConfig.isSandboxed() &&
       this.dc.importFromExternalCatalog(data_id, data_type, json, location)
     ) {
       RunController.invalidateCachedAPIs();

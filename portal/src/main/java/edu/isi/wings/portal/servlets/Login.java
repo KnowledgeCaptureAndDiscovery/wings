@@ -17,7 +17,7 @@
 
 package edu.isi.wings.portal.servlets;
 
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -46,7 +46,7 @@ public class Login extends HttpServlet {
     HttpServletRequest request,
     HttpServletResponse response
   ) throws ServletException, IOException {
-    Config config = new Config(request, null, null);
+    ConfigLoader config = new ConfigLoader(request, null, null);
 
     // Forward to the domains servlet
     response.sendRedirect(config.getUserPath() + "/domains");

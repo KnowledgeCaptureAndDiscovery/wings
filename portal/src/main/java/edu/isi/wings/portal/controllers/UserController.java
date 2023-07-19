@@ -21,7 +21,7 @@ import com.google.gson.Gson;
 import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.users.User;
 import edu.isi.wings.portal.classes.users.UsersDB;
 import java.io.File;
@@ -33,12 +33,12 @@ import org.apache.commons.io.FileUtils;
 @SuppressWarnings("unused")
 public class UserController {
 
-  public Config config;
+  public ConfigLoader config;
   public Properties props;
   public Gson json;
   public UsersDB api;
 
-  public UserController(Config config) {
+  public UserController(ConfigLoader config) {
     this.config = config;
     json = JsonHandler.createDataGson();
     this.props = config.getProperties();

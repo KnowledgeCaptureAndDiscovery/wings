@@ -19,7 +19,7 @@ package edu.isi.wings.portal.servlets;
 
 import com.google.gson.Gson;
 import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -51,14 +51,14 @@ public class ViewConfig extends HttpServlet {
     HttpServletResponse response
   ) throws ServletException, IOException {
     PrintWriter out = response.getWriter();
-    Config config = new Config(request, null, null);
+    ConfigLoader config = new ConfigLoader(request, null, null);
     Gson json = JsonHandler.createPrettyGson();
     HashMap<String, Object> props = new HashMap<String, Object>();
-    props.put("internal_server", config.getServerUrl());
-    props.put("storage", config.getStorageDirectory());
-    props.put("dotpath", config.getDotFile());
-    props.put("ontology", config.getWorkflowOntologyUrl());
-    props.put("planner", config.getPlannerConfig());
+    props.put("internal_server", config.portalConfig.getServerUrl());
+    props.put("storage", config.portalConfig.getStorageDirectory());
+    props.put("dotpath", config.portalConfig.getDotFile());
+    props.put("ontology", config.portalConfig.getWorkflowOntologyUrl());
+    props.put("planner", config.portalConfig.getPlannerConfig());
     out.println(json.toJson(props));
     out.close();
   }

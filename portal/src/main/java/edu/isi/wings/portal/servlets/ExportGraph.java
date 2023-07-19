@@ -20,7 +20,7 @@ package edu.isi.wings.portal.servlets;
 import edu.isi.kcap.ontapi.KBAPI;
 import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.kcap.ontapi.OntSpec;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.regex.Matcher;
@@ -53,11 +53,14 @@ public class ExportGraph extends HttpServlet {
     HttpServletResponse response
   ) throws ServletException, IOException {
     PrintWriter out = response.getWriter();
-    Config config = new Config(request, null, null);
+    ConfigLoader config = new ConfigLoader(request, null, null);
     //if(!config.checkDomain(request, response))
     //	return;
 
-    response.addHeader("Access-Control-Allow-Origin", config.getClients());
+    response.addHeader(
+      "Access-Control-Allow-Origin",
+      config.portalConfig.getClients()
+    );
     response.addHeader("Access-Control-Allow-Credentials", "true");
     response.addHeader(
       "Access-Control-Allow-Methods",
@@ -69,10 +72,10 @@ public class ExportGraph extends HttpServlet {
     );
 
     String format = request.getParameter("format");
-    String uri = config.getServerUrl() + request.getRequestURI();
+    String uri = config.portalConfig.getServerUrl() + request.getRequestURI();
     OntFactory tdbfac = new OntFactory(
       OntFactory.JENA,
-      config.getTripleStoreDir()
+      config.portalConfig.getTripleStoreDir()
     );
     try {
       Pattern complibpat = Pattern.compile(".+\\/components\\/(.+)\\.owl");

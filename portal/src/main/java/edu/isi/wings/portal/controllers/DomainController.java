@@ -24,7 +24,7 @@ import edu.isi.wings.catalog.provenance.ProvenanceFactory;
 import edu.isi.wings.catalog.provenance.api.ProvenanceAPI;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
-import edu.isi.wings.portal.classes.config.Config;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.domains.Domain;
 import edu.isi.wings.portal.classes.domains.DomainInfo;
 import edu.isi.wings.portal.classes.domains.Permission;
@@ -47,7 +47,7 @@ import org.apache.commons.io.FileUtils;
 
 public class DomainController {
 
-  public Config config;
+  public ConfigLoader config;
   public Gson json;
 
   private Domain domain;
@@ -57,7 +57,7 @@ public class DomainController {
   private String userdir;
   private String userConfigFile;
 
-  public DomainController(Config config) {
+  public DomainController(ConfigLoader config) {
     this.config = config;
     this.json = JsonHandler.createGson();
     this.user_domains = new HashMap<String, DomainInfo>();
@@ -90,7 +90,7 @@ public class DomainController {
       ", selected: " +
       selected +
       ", engines: " +
-      json.toJson(config.getEnginesList()) +
+      json.toJson(config.portalConfig.getEnginesList()) +
       "}"
     );
   }
@@ -303,7 +303,7 @@ public class DomainController {
     if (dominfo == null) return false;
 
     Domain dom = new Domain(dominfo);
-    if (config.getEnginesList().contains(engine)) {
+    if (config.portalConfig.getEnginesList().contains(engine)) {
       dom.setPlanEngine(engine);
       dom.setStepEngine(engine);
     }
