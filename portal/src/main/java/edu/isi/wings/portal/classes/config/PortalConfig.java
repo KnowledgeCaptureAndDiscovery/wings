@@ -1,22 +1,19 @@
 package edu.isi.wings.portal.classes.config;
 
+import edu.isi.wings.execution.engine.api.impl.distributed.DistributedExecutionEngine;
+import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
-
-import edu.isi.wings.execution.engine.api.impl.distributed.DistributedExecutionEngine;
-import edu.isi.wings.execution.engine.api.impl.local.LocalExecutionEngine;
 
 public class PortalConfig {
 
@@ -60,12 +57,16 @@ public class PortalConfig {
     this.dotFile = serverConfig.getString("graphviz");
     this.clients = serverConfig.getString("clients");
     this.dataOntologyUrl = serverConfig.getString("ontology.data");
-    this.componentOntologyUrl = serverConfig.containsKey("ontology.component") ? serverConfig.getString(
-      "ontology.component"
-    ) : componentOntologyUrl;
+    this.componentOntologyUrl =
+      serverConfig.containsKey("ontology.component")
+        ? serverConfig.getString("ontology.component")
+        : componentOntologyUrl;
     this.workflowOntologyUrl = serverConfig.getString("ontology.workflow");
     this.executionOntologyUrl = serverConfig.getString("ontology.execution");
-    this.resourceOntologyUrl = serverConfig.containsKey("ontology.resource") ? serverConfig.getString("ontology.resource") : resourceOntologyUrl;
+    this.resourceOntologyUrl =
+      serverConfig.containsKey("ontology.resource")
+        ? serverConfig.getString("ontology.resource")
+        : resourceOntologyUrl;
     if (serverConfig.containsKey("metaworkflows")) this.hasMetaWorkflows =
       serverConfig.getBoolean("metaworkflows");
 
@@ -123,7 +124,7 @@ public class PortalConfig {
       "/" +
       COMMUNITY_RELATIVE_DIR;
     this.communityPath =
-      contextRootPath + "/" + USERS_RELATIVE_DIR+ "/" + COMMUNITY_RELATIVE_DIR;
+      contextRootPath + "/" + USERS_RELATIVE_DIR + "/" + COMMUNITY_RELATIVE_DIR;
 
     this.communityDir =
       storageDirectory + File.separator + COMMUNITY_RELATIVE_DIR;
@@ -274,7 +275,6 @@ public class PortalConfig {
     return props;
   }
 
-
   private void createDefaultPortalConfig(HttpServletRequest request) {
     String server =
       request.getScheme() +
@@ -363,7 +363,6 @@ public class PortalConfig {
     }
     return engine;
   }
-
 
   private void addEngineConfig(
     PropertyListConfiguration config,
@@ -458,10 +457,10 @@ public class PortalConfig {
   public boolean hasMetaWorkflows() {
     return hasMetaWorkflows;
   }
+
   public String getTripleStoreDir() {
     return tdbDirectory;
   }
-
 
   public String getExportCommunityUrl() {
     return exportCommunityUrl;
@@ -475,7 +474,6 @@ public class PortalConfig {
     return communityDir;
   }
 
-
   public boolean isSandboxed() {
     return sandboxed;
   }
@@ -483,5 +481,4 @@ public class PortalConfig {
   public Set<String> getEnginesList() {
     return this.engines.keySet();
   }
-
 }

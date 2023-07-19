@@ -147,7 +147,8 @@ public class PlanningAndExecutingThread implements Runnable {
 
     ArrayList<Template> bts = new ArrayList<Template>();
 
-    if (!config.portalConfig.getPlannerConfig().useDataValidation()) bts = candidates; else {
+    if (!config.portalConfig.getPlannerConfig().useDataValidation()) bts =
+      candidates; else {
       for (Template t : candidates) {
         // If template has no input data variables, skip
         if (t.getInputDataVariables().length == 0) {

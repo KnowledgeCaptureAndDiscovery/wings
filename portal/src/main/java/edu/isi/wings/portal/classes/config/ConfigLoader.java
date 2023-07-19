@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class ConfigLoader {
+
   private static final String ONT_DIR_URL = "ont.dir.url";
   private static final String ONT_DIR_MAP = "ont.dir.map";
   public PortalConfig portalConfig = new PortalConfig();
@@ -66,10 +67,13 @@ public class ConfigLoader {
 
   private UsersDB userapi;
 
-
   public ConfigLoader() {}
 
-  public ConfigLoader(HttpServletRequest request, String userid, String domain) {
+  public ConfigLoader(
+    HttpServletRequest request,
+    String userid,
+    String domain
+  ) {
     // Initialize UserDatabase
     this.contextRootPath = request.getContextPath();
     this.initializeUserDatabase();
@@ -120,17 +124,18 @@ public class ConfigLoader {
       contextRootPath +
       PortalConfig.EXPORT_SERVLET_PATH +
       "/" +
-      PortalConfig.USERS_RELATIVE_DIR+
+      PortalConfig.USERS_RELATIVE_DIR +
       "/" +
       userId;
     this.userDir =
       portalConfig.storageDirectory +
       File.separator +
-      PortalConfig.USERS_RELATIVE_DIR+
+      PortalConfig.USERS_RELATIVE_DIR +
       File.separator +
       userId;
 
-    this.userPath = contextRootPath + "/" + PortalConfig.USERS_RELATIVE_DIR + "/" + userId;
+    this.userPath =
+      contextRootPath + "/" + PortalConfig.USERS_RELATIVE_DIR + "/" + userId;
 
     // Create userDir (if it doesn't exist)
     File uf = new File(this.userDir);
@@ -274,7 +279,6 @@ public class ConfigLoader {
     return true;
   }
 
-
   public String getViewerId() {
     return viewerId;
   }
@@ -306,7 +310,6 @@ public class ConfigLoader {
   public ArrayList<String> getUsersList() {
     return usersList;
   }
-
 
   public Properties getProperties() {
     return this.getProperties(this.domain);
@@ -353,7 +356,10 @@ public class ConfigLoader {
     }
     props.setProperty("logs.dir", portalConfig.getLogsDirectory());
     props.setProperty("dot.path", portalConfig.getDotFile());
-    props.setProperty("ont.resource.url", portalConfig.getResourceOntologyUrl());
+    props.setProperty(
+      "ont.resource.url",
+      portalConfig.getResourceOntologyUrl()
+    );
 
     props.setProperty(
       "lib.resource.url",
@@ -431,7 +437,6 @@ public class ConfigLoader {
   public ExecutionMonitorAPI getDomainExecutionMonitor() {
     return ExecutionToolsFactory.createMonitor(this.getProperties());
   }
-
 
   public String getUserId() {
     return userId;
@@ -522,5 +527,4 @@ public class ConfigLoader {
   public void setUserDomainUrl(String userDomainUrl) {
     this.userDomainUrl = userDomainUrl;
   }
-
 }

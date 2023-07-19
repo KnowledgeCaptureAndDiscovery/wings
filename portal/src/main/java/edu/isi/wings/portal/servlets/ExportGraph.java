@@ -57,7 +57,10 @@ public class ExportGraph extends HttpServlet {
     //if(!config.checkDomain(request, response))
     //	return;
 
-    response.addHeader("Access-Control-Allow-Origin", config.portalConfig.getClients());
+    response.addHeader(
+      "Access-Control-Allow-Origin",
+      config.portalConfig.getClients()
+    );
     response.addHeader("Access-Control-Allow-Credentials", "true");
     response.addHeader(
       "Access-Control-Allow-Methods",

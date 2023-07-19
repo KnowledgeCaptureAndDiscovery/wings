@@ -182,7 +182,9 @@ public class TemplateResource extends WingsResource {
   @Path("deleteTemplate")
   @Produces(MediaType.TEXT_PLAIN)
   public String deleteTemplate(@FormParam("template_id") String template_id) {
-    if (this.tc != null && this.isOwner() && !config.portalConfig.isSandboxed()) {
+    if (
+      this.tc != null && this.isOwner() && !config.portalConfig.isSandboxed()
+    ) {
       RunController.invalidateCachedAPIs();
       return this.tc.deleteTemplate(template_id);
     }
