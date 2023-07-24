@@ -345,10 +345,10 @@ public class ConfigLoader {
         storageConfig.getTdbDirectory()
       );
 
-      HashMap<String, ExecutionEngine> engines =
+      HashMap<String, ExecutionEngineConfig> engines =
         portalConfig.executionConfig.getEngines();
-      ExecutionEngine pengine = engines.get(domain.getPlanEngine());
-      ExecutionEngine sengine = engines.get(domain.getStepEngine());
+      ExecutionEngineConfig pengine = engines.get(domain.getPlanEngine());
+      ExecutionEngineConfig sengine = engines.get(domain.getStepEngine());
       props.putAll(pengine.getProperties());
       props.putAll(sengine.getProperties());
     } else {
@@ -392,10 +392,10 @@ public class ConfigLoader {
   }
 
   public PlanExecutionEngine getDomainExecutionEngine() {
-    ExecutionEngine planEngine = portalConfig.executionConfig.engines.get(
+    ExecutionEngineConfig planEngine = portalConfig.executionConfig.engines.get(
       domain.getPlanEngine()
     );
-    ExecutionEngine stepEngine = portalConfig.executionConfig.engines.get(
+    ExecutionEngineConfig stepEngine = portalConfig.executionConfig.engines.get(
       domain.getStepEngine()
     );
     try {

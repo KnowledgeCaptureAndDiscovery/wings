@@ -12,30 +12,30 @@ import org.apache.commons.configuration.plist.PropertyListConfiguration;
 
 public class ExecutionConfig {
 
-  public HashMap<String, ExecutionEngine> engines;
+  public HashMap<String, ExecutionEngineConfig> engines;
 
   public ExecutionConfig(PropertyListConfiguration serverConfig) {
-    this.engines = new HashMap<String, ExecutionEngine>();
+    this.engines = new HashMap<String, ExecutionEngineConfig>();
     List<HierarchicalConfiguration> engineNodes = serverConfig.configurationsAt(
       "execution.engine"
     );
     for (HierarchicalConfiguration engineNode : engineNodes) {
-      ExecutionEngine engine = this.getExeEngine(engineNode);
+      ExecutionEngineConfig engine = this.getExeEngine(engineNode);
       this.engines.put(engine.getName(), engine);
     }
   }
 
   public ExecutionConfig() {
-    this.engines = new HashMap<String, ExecutionEngine>();
-    ExecutionEngine defaultLocal = new ExecutionEngine(
+    this.engines = new HashMap<String, ExecutionEngineConfig>();
+    ExecutionEngineConfig defaultLocal = new ExecutionEngineConfig(
       "Local",
       LocalExecutionEngine.class.getCanonicalName(),
-      ExecutionEngine.Type.BOTH
+      ExecutionEngineConfig.Type.BOTH
     );
-    ExecutionEngine defaultDistrubited = new ExecutionEngine(
+    ExecutionEngineConfig defaultDistrubited = new ExecutionEngineConfig(
       "Distributed",
       DistributedExecutionEngine.class.getCanonicalName(),
-      ExecutionEngine.Type.BOTH
+      ExecutionEngineConfig.Type.BOTH
     );
 
     this.engines.put(defaultLocal.getName(), defaultLocal);
@@ -43,13 +43,13 @@ public class ExecutionConfig {
   }
 
   @SuppressWarnings("rawtypes")
-  private ExecutionEngine getExeEngine(HierarchicalConfiguration node) {
+  private ExecutionEngineConfig getExeEngine(HierarchicalConfiguration node) {
     String name = node.getString("name");
     String impl = node.getString("implementation");
-    ExecutionEngine.Type type = ExecutionEngine.Type.valueOf(
+    ExecutionEngineConfig.Type type = ExecutionEngineConfig.Type.valueOf(
       node.getString("type")
     );
-    ExecutionEngine engine = new ExecutionEngine(name, impl, type);
+    ExecutionEngineConfig engine = new ExecutionEngineConfig(name, impl, type);
     for (Iterator it = node.getKeys("properties"); it.hasNext();) {
       String key = (String) it.next();
       String value = node.getString(key);
@@ -60,8 +60,8 @@ public class ExecutionConfig {
 
   public void addDefaultEngineConfig(PropertyListConfiguration config) {
     // loop engines and add them to config
-    for (Entry<String, ExecutionEngine> entryEngine : this.engines.entrySet()) {
-      ExecutionEngine engine = entryEngine.getValue();
+    for (Entry<String, ExecutionEngineConfig> entryEngine : this.engines.entrySet()) {
+      ExecutionEngineConfig engine = entryEngine.getValue();
       config.addProperty("execution.engine(-1).name", engine.getName());
       config.addProperty(
         "execution.engine.implementation",
@@ -79,7 +79,7 @@ public class ExecutionConfig {
     }
   }
 
-  public HashMap<String, ExecutionEngine> getEngines() {
+  public HashMap<String, ExecutionEngineConfig> getEngines() {
     return engines;
   }
 

@@ -41,7 +41,7 @@ import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
 import edu.isi.wings.portal.classes.config.FileUploadServerConfig;
-import edu.isi.wings.portal.classes.config.Publisher;
+import edu.isi.wings.portal.classes.config.PublisherConfig;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
 import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
 import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
@@ -272,7 +272,7 @@ public class RunController {
   }
 
   private String getPublishedURL(String runid) {
-    Publisher publisher = config.portalConfig.getPublisher();
+    PublisherConfig publisher = config.portalConfig.getPublisher();
     if (publisher == null) return null;
 
     /* TODO: Return already published url for the run id if possible */
@@ -638,7 +638,7 @@ public class RunController {
     } else try {
       // Mapper opmm = new Mapper();
 
-      Publisher publisher = config.portalConfig.getPublisher();
+      PublisherConfig publisher = config.portalConfig.getPublisher();
 
       FileUploadServerConfig publishUrl = publisher.getUploadServer();
       String tstoreurl = publisher.getTstorePublishUrl();

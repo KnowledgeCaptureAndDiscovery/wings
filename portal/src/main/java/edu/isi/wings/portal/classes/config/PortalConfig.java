@@ -14,7 +14,7 @@ public class PortalConfig {
   public PlannerConfig plannerConfig;
   public ExecutionConfig executionConfig;
 
-  public Publisher publisher;
+  public PublisherConfig publisher;
   public boolean sandboxed;
 
   public void initializePortalConfig(HttpServletRequest request) {
@@ -61,7 +61,7 @@ public class PortalConfig {
   private void getPublisherConfiguration(
     PropertyListConfiguration serverConfig
   ) {
-    this.publisher = new Publisher(serverConfig);
+    this.publisher = new PublisherConfig(serverConfig);
   }
 
   private void getOntologyConfiguration(
@@ -165,7 +165,7 @@ public class PortalConfig {
     return portalConfigurationFile;
   }
 
-  public Publisher getPublisher() {
+  public PublisherConfig getPublisher() {
     return publisher;
   }
 
