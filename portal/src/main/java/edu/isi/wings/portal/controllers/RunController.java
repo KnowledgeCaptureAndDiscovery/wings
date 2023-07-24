@@ -40,8 +40,8 @@ import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
-import edu.isi.wings.portal.classes.config.Publisher;
-import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.config.FileUploadServerConfig;
+import edu.isi.wings.portal.classes.config.PublisherConfig;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
 import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
 import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
@@ -272,7 +272,7 @@ public class RunController {
   }
 
   private String getPublishedURL(String runid) {
-    Publisher publisher = config.portalConfig.getPublisher();
+    PublisherConfig publisher = config.portalConfig.getPublisher();
     if (publisher == null) return null;
 
     /* TODO: Return already published url for the run id if possible */
@@ -326,7 +326,10 @@ public class RunController {
     for (int i = 0; i < list.size(); i++) {
       JsonElement el = list.get(i);
       String runid = el.getAsJsonObject().get("id").getAsString();
-      monitor.deleteRun(runid, config.portalConfig.isDeleteRunOutputs());
+      monitor.deleteRun(
+        runid,
+        config.portalConfig.storageConfig.isDeleteRunOutputs()
+      );
     }
 
     ret.put("success", true);
@@ -342,7 +345,10 @@ public class RunController {
     String runid = el.getAsJsonObject().get("id").getAsString();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     if (
-      !monitor.deleteRun(runid, config.portalConfig.isDeleteRunOutputs())
+      !monitor.deleteRun(
+        runid,
+        config.portalConfig.storageConfig.isDeleteRunOutputs()
+      )
     ) return json.toJson(ret);
     /*
      * if (monitor.runExists(runid)) {
@@ -632,9 +638,9 @@ public class RunController {
     } else try {
       // Mapper opmm = new Mapper();
 
-      Publisher publisher = config.portalConfig.getPublisher();
+      PublisherConfig publisher = config.portalConfig.getPublisher();
 
-      ServerDetails publishUrl = publisher.getUploadServer();
+      FileUploadServerConfig publishUrl = publisher.getUploadServer();
       String tstoreurl = publisher.getTstorePublishUrl();
       String tstorequery = publisher.getTstoreQueryUrl();
       String exportName = publisher.getExportName();

@@ -94,7 +94,7 @@ public class SparqlEndpoint extends HttpServlet {
     HttpServletResponse response
   ) throws IOException {
     ConfigLoader config = new ConfigLoader(request, null, null);
-    String tdbdir = config.portalConfig.getTripleStoreDir();
+    String tdbdir = config.portalConfig.storageConfig.getTdbDirectory();
     String format = request.getParameter("format");
 
     this.api = new SparqlAPI(tdbdir);
@@ -109,7 +109,7 @@ public class SparqlEndpoint extends HttpServlet {
     ConfigLoader config = new ConfigLoader(request, null, null);
     if (!config.checkDomain(request, response)) return;
 
-    String tdbdir = config.portalConfig.getTripleStoreDir();
+    String tdbdir = config.portalConfig.storageConfig.getTdbDirectory();
     this.api = new SparqlAPI(tdbdir);
 
     if (updateString.startsWith("__SERVER_RENAME:")) {
@@ -121,7 +121,7 @@ public class SparqlEndpoint extends HttpServlet {
   }
 
   private void updateServerURL(String newurl, ConfigLoader config) {
-    String cururl = config.portalConfig.getServerUrl();
+    String cururl = config.portalConfig.mainConfig.getServerUrl();
 
     // Update all graphs in the triple store
     this.api.updateGraphURLs(cururl, newurl, out);

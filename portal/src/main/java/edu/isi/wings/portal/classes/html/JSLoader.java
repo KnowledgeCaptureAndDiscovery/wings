@@ -99,7 +99,7 @@ public class JSLoader {
     jsvars.put("VIEWER_ID", config.getViewerId());
 
     jsvars.put("CONTEXT_ROOT", config.getContextRootPath());
-    jsvars.put("COM_ROOT", config.portalConfig.getCommunityPath());
+    jsvars.put("COM_ROOT", config.portalConfig.mainConfig.getCommunityPath());
     jsvars.put("USER_ROOT", config.getUserPath());
     jsvars.put("USERDOM_ROOT", config.getUserDomainUrl());
     jsvars.put("SCRIPT_PATH", config.getScriptPath());
@@ -107,7 +107,10 @@ public class JSLoader {
     jsvars.put("DOMAINS", config.getDomainsList());
     jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
-    jsvars.put("METAWORKFLOWS", config.portalConfig.hasMetaWorkflows());
+    jsvars.put(
+      "METAWORKFLOWS",
+      config.portalConfig.mainConfig.hasMetaWorkflows()
+    );
 
     JSLoader.showScriptKeyVals(out, jsvars);
   }
@@ -197,7 +200,7 @@ public class JSLoader {
     jsvars.put("VIEWER_ID", config.getViewerId());
 
     jsvars.put("CONTEXT_ROOT", config.getContextRootPath());
-    jsvars.put("COM_ROOT", config.portalConfig.getCommunityPath());
+    jsvars.put("COM_ROOT", config.portalConfig.mainConfig.getCommunityPath());
     jsvars.put("USER_ROOT", config.getUserPath());
     jsvars.put("USERDOM_ROOT", config.getUserDomainUrl());
     jsvars.put("SCRIPT_PATH", config.getScriptPath());
@@ -205,7 +208,10 @@ public class JSLoader {
     jsvars.put("DOMAINS", config.getDomainsList());
     jsvars.put("USERS", config.getUsersList());
     jsvars.put("ISADMIN", config.isAdminViewer());
-    jsvars.put("METAWORKFLOWS", config.portalConfig.hasMetaWorkflows());
+    jsvars.put(
+      "METAWORKFLOWS",
+      config.portalConfig.mainConfig.hasMetaWorkflows()
+    );
 
     return JSLoader.getScriptKeyVals(jsvars);
   }

@@ -5,7 +5,7 @@ import java.util.Properties;
 /**
  * Created by varun on 13/07/2015.
  */
-public class ExeEngine {
+public class ExecutionEngineConfig {
 
   public static enum Type {
     PLAN,
@@ -13,12 +13,16 @@ public class ExeEngine {
     BOTH,
   }
 
-  ExeEngine.Type type;
+  ExecutionEngineConfig.Type type;
   String name;
   String implementation;
   Properties props;
 
-  public ExeEngine(String name, String implementation, ExeEngine.Type type) {
+  public ExecutionEngineConfig(
+    String name,
+    String implementation,
+    ExecutionEngineConfig.Type type
+  ) {
     this.type = type;
     this.name = name;
     this.implementation = implementation;
@@ -33,11 +37,11 @@ public class ExeEngine {
     this.name = name;
   }
 
-  public ExeEngine.Type getType() {
+  public ExecutionEngineConfig.Type getType() {
     return type;
   }
 
-  public void setType(ExeEngine.Type type) {
+  public void setType(ExecutionEngineConfig.Type type) {
     this.type = type;
   }
 

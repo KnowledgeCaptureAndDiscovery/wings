@@ -12,7 +12,7 @@
       UserController uc = (UserController) request.getAttribute("controller");
       int guid = 1;
       String thisApi = uc.config.getScriptPath();
-      String provApi = uc.config.portalConfig.getCommunityPath() + "/provenance";
+      String provApi = uc.config.portalConfig.mainConfig.getCommunityPath() + "/provenance";
       String users = uc.json.toJson(uc.api.getUsers());
     %>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />

@@ -13,7 +13,7 @@
       DataController dc = (DataController) request.getAttribute("controller");
       boolean isSandboxed = dc.config.portalConfig.isSandboxed();
       String uploadApi = dc.config.getUserDomainUrl() + "/upload";
-      String provApi = dc.config.portalConfig.getCommunityPath() + "/provenance";
+      String provApi = dc.config.portalConfig.mainConfig.getCommunityPath() + "/provenance";
       String runApi = dc.config.getUserDomainUrl() + "/executions";
       String thisApi = dc.config.getScriptPath();
       int guid = 1;
