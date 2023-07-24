@@ -17,6 +17,7 @@
 
 package edu.isi.wings.portal.servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
@@ -54,19 +55,19 @@ public class ViewConfig extends HttpServlet {
   ) throws ServletException, IOException {
     PrintWriter out = response.getWriter();
     ConfigLoader config = new ConfigLoader(request, null, null);
-    Gson json = JsonHandler.createPrettyGson();
-    HashMap<String, Object> props = new HashMap<String, Object>();
     PortalConfig portalConfig = config.portalConfig;
-    MainConfig mainConfig = portalConfig.mainConfig;
-    props.put("internal_server", mainConfig.getServerUrl());
-    props.put("storage", portalConfig.storageConfig.getStorageDirectory());
-    props.put("dotpath", mainConfig.getDotFile());
-    props.put(
-      "ontology",
-      config.portalConfig.getOntologyConfig().getWorkflowOntologyUrl()
-    );
-    props.put("planner", config.portalConfig.getPlannerConfig());
-    out.println(json.toJson(props));
+    out.println(getJsonString(portalConfig));
     out.close();
+  }
+
+  private String getJsonString(Object obj) {
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonString = "";
+    try {
+      jsonString = mapper.writeValueAsString(obj);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return jsonString;
   }
 }

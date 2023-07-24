@@ -1,5 +1,6 @@
 package edu.isi.wings.portal.classes.config;
 
+import edu.isi.kcap.wings.opmm_deprecated.Main;
 import java.io.File;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
@@ -20,8 +21,17 @@ public class MainConfig {
   public String clients;
   public String contextRootPath;
   public String exportCommunityUrl;
-
   public String communityPath;
+
+  public MainConfig(MainConfig source) {
+    this.dotFile = source.getDotFile();
+    this.serverUrl = source.getServerUrl();
+    this.hasMetaWorkflows = source.isHasMetaWorkflows();
+    this.clients = source.getClients();
+    this.contextRootPath = source.getContextRootPath();
+    this.exportCommunityUrl = source.getExportCommunityUrl();
+    this.communityPath = source.getCommunityPath();
+  }
 
   public MainConfig(
     PropertyListConfiguration serverConfig,

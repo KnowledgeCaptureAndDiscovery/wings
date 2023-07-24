@@ -1,5 +1,6 @@
 package edu.isi.wings.portal.classes.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
@@ -64,10 +65,12 @@ public class FileUploadServerConfig {
     return host;
   }
 
+  @JsonIgnore
   public String getPrivateKey() {
     return privateKey;
   }
 
+  @JsonIgnore
   public String getHostUserId() {
     return hostUserId;
   }
@@ -76,10 +79,12 @@ public class FileUploadServerConfig {
     return maxUploadSize;
   }
 
+  @JsonIgnore
   public String getUsername() {
     return username;
   }
 
+  @JsonIgnore
   public String getPassword() {
     return password;
   }
