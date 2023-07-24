@@ -830,7 +830,7 @@ public class DataController {
 
       TemplateBindings tbindings = new TemplateBindings();
       tbindings.setCallbackUrl(
-        this.config.portalConfig.getServerUrl() +
+        this.config.portalConfig.mainConfig.getServerUrl() +
         this.config.getUserDomainUrl() +
         "/data/setMetadataFromSensorOutput?data_id=" +
         URLEncoder.encode(dataid, "UTF-8")

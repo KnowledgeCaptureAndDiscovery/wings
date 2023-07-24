@@ -74,14 +74,9 @@ public class ConfigLoader {
     String userid,
     String domain
   ) {
-    // Initialize UserDatabase
     this.contextRootPath = request.getContextPath();
     this.initializeUserDatabase();
-
-    // Initialize portal config
     portalConfig.initializePortalConfig(request);
-
-    // Initialize user config
     this.initializeUserConfig(request, userid, domain);
   }
 
@@ -104,7 +99,7 @@ public class ConfigLoader {
     if (this.domainId != null) this.userDomainUrl =
       this.contextRootPath +
       "/" +
-      PortalConfig.USERS_RELATIVE_DIR +
+      MainConfig.USERS_RELATIVE_DIR +
       "/" +
       this.getUserId() +
       "/" +
@@ -120,28 +115,25 @@ public class ConfigLoader {
     if (!this.checkUser(null)) return;
 
     this.exportUserUrl =
-      portalConfig.serverUrl +
+      portalConfig.mainConfig.serverUrl +
       contextRootPath +
-      PortalConfig.EXPORT_SERVLET_PATH +
+      MainConfig.EXPORT_SERVLET_PATH +
       "/" +
-      PortalConfig.USERS_RELATIVE_DIR +
+      MainConfig.USERS_RELATIVE_DIR +
       "/" +
       userId;
     this.userDir =
-      portalConfig.storageDirectory +
+      portalConfig.storageConfig.storageDirectory +
       File.separator +
-      PortalConfig.USERS_RELATIVE_DIR +
+      MainConfig.USERS_RELATIVE_DIR +
       File.separator +
       userId;
 
     this.userPath =
-      contextRootPath + "/" + PortalConfig.USERS_RELATIVE_DIR + "/" + userId;
+      contextRootPath + "/" + MainConfig.USERS_RELATIVE_DIR + "/" + userId;
 
     // Create userDir (if it doesn't exist)
-    File uf = new File(this.userDir);
-    if (!uf.exists() && !uf.mkdirs()) System.err.println(
-      "Cannot create user directory : " + uf.getAbsolutePath()
-    );
+    StorageConfig.createStorageDirectory(this.userDir);
 
     // Get domain and user list
     DomainController dc = new DomainController(this);
@@ -165,7 +157,7 @@ public class ConfigLoader {
       this.userDomainUrl =
         this.contextRootPath +
         "/" +
-        PortalConfig.USERS_RELATIVE_DIR +
+        MainConfig.USERS_RELATIVE_DIR +
         "/" +
         this.getUserId() +
         "/" +
@@ -318,52 +310,57 @@ public class ConfigLoader {
   // Return Properties that are currently used by catalogs & planners
   public Properties getProperties(Domain domain) {
     Properties props = new Properties();
+    StorageConfig storageConfig = portalConfig.storageConfig;
+    OntologyConfig ontologyConfig = portalConfig.getOntologyConfig();
+    MainConfig mainConfig = portalConfig.mainConfig;
     if (domain != null) {
       props = domain.getProperties();
       if (domain.isLegacy()) return props;
-      props.setProperty(ONT_DIR_URL, PortalConfig.ONT_DIR_URL);
+      props.setProperty(ONT_DIR_URL, OntologyConfig.ONT_DIR_URL);
       if (!domain.getUseSharedTripleStore()) props.setProperty(
         ONT_DIR_MAP,
         "file:" + domain.getDomainDirectory() + File.separator + "ontology"
       );
 
-      props.setProperty("ont.data.url", portalConfig.getDataOntologyUrl());
+      props.setProperty("ont.data.url", ontologyConfig.getDataOntologyUrl());
       props.setProperty(
         "ont.component.url",
-        portalConfig.getComponentOntologyUrl()
+        ontologyConfig.getComponentOntologyUrl()
       );
       props.setProperty(
         "ont.workflow.url",
-        portalConfig.getWorkflowOntologyUrl()
+        ontologyConfig.getWorkflowOntologyUrl()
       );
       props.setProperty(
         "ont.execution.url",
-        portalConfig.getExecutionOntologyUrl()
+        ontologyConfig.getExecutionOntologyUrl()
+      );
+      props.setProperty(
+        "ont.resource.url",
+        ontologyConfig.getResourceOntologyUrl()
       );
 
       if (domain.getUseSharedTripleStore()) props.setProperty(
         "tdb.repository.dir",
-        portalConfig.getTdbDirectory()
+        storageConfig.getTdbDirectory()
       );
 
-      HashMap<String, ExeEngine> engines = portalConfig.getEngines();
-      ExeEngine pengine = engines.get(domain.getPlanEngine());
-      ExeEngine sengine = engines.get(domain.getStepEngine());
+      HashMap<String, ExecutionEngine> engines =
+        portalConfig.executionConfig.getEngines();
+      ExecutionEngine pengine = engines.get(domain.getPlanEngine());
+      ExecutionEngine sengine = engines.get(domain.getStepEngine());
       props.putAll(pengine.getProperties());
       props.putAll(sengine.getProperties());
     } else {
-      props.setProperty("tdb.repository.dir", portalConfig.getTdbDirectory());
+      props.setProperty("tdb.repository.dir", storageConfig.getTdbDirectory());
     }
-    props.setProperty("logs.dir", portalConfig.getLogsDirectory());
-    props.setProperty("dot.path", portalConfig.getDotFile());
-    props.setProperty(
-      "ont.resource.url",
-      portalConfig.getResourceOntologyUrl()
-    );
+    props.setProperty("logs.dir", storageConfig.getLogsDirectory());
+    props.setProperty("dot.path", mainConfig.getDotFile());
 
     props.setProperty(
       "lib.resource.url",
-      this.portalConfig.getExportCommunityUrl() + "/resource/library.owl"
+      this.portalConfig.mainConfig.getExportCommunityUrl() +
+      "/resource/library.owl"
     );
 
     if (domain != null && !domain.getUseSharedTripleStore()) props.setProperty(
@@ -380,7 +377,8 @@ public class ConfigLoader {
 
     props.setProperty(
       "lib.provenance.url",
-      this.portalConfig.getExportCommunityUrl() + "/provenance/library.owl"
+      this.portalConfig.mainConfig.getExportCommunityUrl() +
+      "/provenance/library.owl"
     );
 
     if (this.viewerId != null) props.setProperty("viewer.id", this.viewerId);
@@ -394,20 +392,24 @@ public class ConfigLoader {
   }
 
   public PlanExecutionEngine getDomainExecutionEngine() {
-    ExeEngine pengine = portalConfig.engines.get(domain.getPlanEngine());
-    ExeEngine sengine = portalConfig.engines.get(domain.getStepEngine());
+    ExecutionEngine planEngine = portalConfig.executionConfig.engines.get(
+      domain.getPlanEngine()
+    );
+    ExecutionEngine stepEngine = portalConfig.executionConfig.engines.get(
+      domain.getStepEngine()
+    );
     try {
-      pengine.getProperties().putAll(this.getProperties());
-      sengine.getProperties().putAll(this.getProperties());
+      planEngine.getProperties().putAll(this.getProperties());
+      stepEngine.getProperties().putAll(this.getProperties());
       // TODO: Check if the selected engines are compatible
       // and can be used as plan and step engines respectively
       PlanExecutionEngine pee = ExecutionFactory.createPlanExecutionEngine(
-        pengine.getImplementation(),
-        pengine.getProperties()
+        planEngine.getImplementation(),
+        planEngine.getProperties()
       );
       StepExecutionEngine see = ExecutionFactory.createStepExecutionEngine(
-        sengine.getImplementation(),
-        sengine.getProperties()
+        stepEngine.getImplementation(),
+        stepEngine.getProperties()
       );
       ExecutionLoggerAPI logger = ExecutionToolsFactory.createLogger(
         this.getProperties()
@@ -418,7 +420,9 @@ public class ConfigLoader {
       ExecutionResourceAPI resource = ExecutionToolsFactory.getResourceAPI(
         this.getProperties()
       );
-      resource.setLocalStorageFolder(portalConfig.getStorageDirectory());
+      resource.setLocalStorageFolder(
+        portalConfig.storageConfig.getStorageDirectory()
+      );
       pee.setStepExecutionEngine(see);
       pee.setExecutionLogger(logger);
       pee.setExecutionMonitor(monitor);

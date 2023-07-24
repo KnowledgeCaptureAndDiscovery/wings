@@ -13,8 +13,8 @@
       String title = "Manage Components";
       boolean isSandboxed = cc.config.portalConfig.isSandboxed();
       String uploadApi = cc.config.getUserDomainUrl() + "/upload";
-      String resourceApi = cc.config.portalConfig.getCommunityPath() + "/resources";
-      String provApi = cc.config.portalConfig.getCommunityPath() + "/provenance";
+      String resourceApi = cc.config.portalConfig.mainConfig.getCommunityPath() + "/resources";
+      String provApi = cc.config.portalConfig.mainConfig.getCommunityPath() + "/provenance";
       String thisApi = cc.config.getScriptPath();
       int guid = 1;
       String tree = cc.getComponentHierarchyJSON();

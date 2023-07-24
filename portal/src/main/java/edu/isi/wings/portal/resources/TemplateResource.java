@@ -142,7 +142,7 @@ public class TemplateResource extends WingsResource {
   @Path("layoutTemplate")
   @Produces(MediaType.APPLICATION_JSON)
   public String layoutTemplate(@JsonProperty("json") String json) {
-    String dotexe = config.portalConfig.getDotFile();
+    String dotexe = config.portalConfig.mainConfig.getDotFile();
     if (this.tc != null) try {
       return this.tc.layoutTemplate(json, dotexe);
     } catch (IOException e) {

@@ -24,7 +24,7 @@
       String wflowns = (String) tc.props.get("ont.workflow.url") + "#";
       String planApi = tc.config.getUserDomainUrl() + "/plan";
       String runApi = tc.config.getUserDomainUrl() + "/executions";
-      String provApi = tc.config.portalConfig.getCommunityPath() + "/provenance";
+      String provApi = tc.config.portalConfig.mainConfig.getCommunityPath() + "/provenance";
       String thisApi = tc.config.getScriptPath();
       String components = tc.json.toJson(tc.cc.getComponentHierarchy(editor).getRoot());
       String dataTree = editor ? tc.json.toJson(tc.dc.getDatatypeHierarchy().getRoot()) : null;
