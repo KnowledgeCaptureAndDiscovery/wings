@@ -5,7 +5,7 @@ import org.apache.commons.configuration.plist.PropertyListConfiguration;
 /**
  * Created by varun on 13/07/2015.
  */
-public class Publisher {
+public class PublisherConfig {
 
   private static final String PUBLISHER_SPARQL_DOMAINS_DIRECTORY_KEY =
     "publisher.triple-store.domains-directory";
@@ -18,19 +18,19 @@ public class Publisher {
   String url;
   String tstorePublishUrl;
   String tstoreQueryUrl;
-  ServerDetails uploadServer;
+  FileUploadServerConfig uploadServer;
 
   String domainsDir;
   String exportName;
 
-  public Publisher(PropertyListConfiguration serverConfig) {
+  public PublisherConfig(PropertyListConfiguration serverConfig) {
     this.url = serverConfig.getString(PUBLISHER_URL_KEY);
     this.exportName = serverConfig.getString(PUBLISHER_NAME_KEY);
     this.tstorePublishUrl = serverConfig.getString(PUBLISHER_ENDPOINT_POST_KEY);
     this.tstoreQueryUrl = serverConfig.getString(PUBLISHER_ENDPOINT_QUERY_KEY);
     this.domainsDir =
       serverConfig.getString(PUBLISHER_SPARQL_DOMAINS_DIRECTORY_KEY);
-    ServerDetails upserver = new ServerDetails(serverConfig);
+    FileUploadServerConfig upserver = new FileUploadServerConfig(serverConfig);
     this.setUploadServer(upserver);
   }
 
@@ -50,7 +50,7 @@ public class Publisher {
     return tstoreQueryUrl;
   }
 
-  public ServerDetails getUploadServer() {
+  public FileUploadServerConfig getUploadServer() {
     return uploadServer;
   }
 
@@ -58,7 +58,7 @@ public class Publisher {
     return domainsDir;
   }
 
-  public void setUploadServer(ServerDetails uploadServer) {
+  public void setUploadServer(FileUploadServerConfig uploadServer) {
     this.uploadServer = uploadServer;
   }
 }

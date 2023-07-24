@@ -40,8 +40,8 @@ import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
+import edu.isi.wings.portal.classes.config.FileUploadServerConfig;
 import edu.isi.wings.portal.classes.config.Publisher;
-import edu.isi.wings.portal.classes.config.ServerDetails;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
 import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
 import edu.isi.wings.portal.classes.util.PlanningAndExecutingThread;
@@ -640,7 +640,7 @@ public class RunController {
 
       Publisher publisher = config.portalConfig.getPublisher();
 
-      ServerDetails publishUrl = publisher.getUploadServer();
+      FileUploadServerConfig publishUrl = publisher.getUploadServer();
       String tstoreurl = publisher.getTstorePublishUrl();
       String tstorequery = publisher.getTstoreQueryUrl();
       String exportName = publisher.getExportName();

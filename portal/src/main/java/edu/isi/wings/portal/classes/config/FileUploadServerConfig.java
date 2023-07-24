@@ -7,7 +7,7 @@ import org.apache.commons.configuration.plist.PropertyListConfiguration;
 /**
  * Created by varun on 13/07/2015.
  */
-public class ServerDetails {
+public class FileUploadServerConfig {
 
   private static final String PUBLISHER_UPLOAD_SERVER_MAX_UPLOAD_SIZE =
     "publisher.upload-server.max-upload-size";
@@ -34,7 +34,7 @@ public class ServerDetails {
   String password;
   long maxUploadSize = 0; // Defaults to No limit
 
-  public ServerDetails(PropertyListConfiguration serverConfig) {
+  public FileUploadServerConfig(PropertyListConfiguration serverConfig) {
     this.url = serverConfig.getString(PUBLISHER_UPLOAD_SERVER_URL);
     this.username = serverConfig.getString(PUBLISHER_UPLOAD_SERVER_USERNAME);
     this.password = serverConfig.getString(PUBLISHER_UPLOAD_SERVER_PASSWORD);

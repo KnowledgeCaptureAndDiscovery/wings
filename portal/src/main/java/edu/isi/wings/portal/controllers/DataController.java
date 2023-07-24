@@ -45,7 +45,7 @@ import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
-import edu.isi.wings.portal.classes.config.ServerDetails;
+import edu.isi.wings.portal.classes.config.FileUploadServerConfig;
 import edu.isi.wings.portal.classes.util.CookieHandler;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
@@ -278,7 +278,7 @@ public class DataController {
     return null;
   }
 
-  private String uploadFile(ServerDetails server, File datafile) {
+  private String uploadFile(FileUploadServerConfig server, File datafile) {
     String upUrl = server.getUrl();
     String username = server.getUsername();
     String password = server.getPassword();
