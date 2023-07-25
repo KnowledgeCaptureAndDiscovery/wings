@@ -10,6 +10,8 @@ The wings configuration file is located at `/etc/wings/portal.properties`. It co
 
 Be sure to modify the configuration file carefully, as changes may affect the functionality of the Wings system.
 
+To inspect the configuration file, open a browser and go to [http://localhost:8080/wings-portal/config](http://localhost:8080/wings-portal/config). The sensitive information is hidden.
+
 ### Main
 
 The **main** section of the configuration file allows you to modify the main properties of the Wings system.
