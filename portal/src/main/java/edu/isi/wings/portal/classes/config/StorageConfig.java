@@ -27,7 +27,7 @@ public class StorageConfig {
     }
     this.logsDirectory =
       this.storageDirectory + File.separator + LOGS_DIRECTORY;
-    this.logsDirectory = this.storageDirectory + File.separator + TDB_DIRECTORY;
+    this.tdbDirectory = this.storageDirectory + File.separator + TDB_DIRECTORY;
     this.communityDirectory =
       this.storageDirectory + File.separator + COMMUNITY_RELATIVE_DIR;
 
