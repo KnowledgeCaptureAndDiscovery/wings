@@ -15,55 +15,39 @@ public class MainConfig {
   public static final String USERS_RELATIVE_DIR = "users";
   public static final String EXPORT_SERVLET_PATH = "/export";
 
-  public String dotFile;
+  public String dotFile = "/usr/bin/dot";
   public String serverUrl;
-  public boolean hasMetaWorkflows;
-  public String clients;
+  public boolean hasMetaWorkflows = false;
+  public String clients = null;
   public String contextRootPath;
   public String exportCommunityUrl;
   public String communityPath;
-
-  public MainConfig(MainConfig source) {
-    this.dotFile = source.getDotFile();
-    this.serverUrl = source.getServerUrl();
-    this.hasMetaWorkflows = source.isHasMetaWorkflows();
-    this.clients = source.getClients();
-    this.contextRootPath = source.getContextRootPath();
-    this.exportCommunityUrl = source.getExportCommunityUrl();
-    this.communityPath = source.getCommunityPath();
-  }
 
   public MainConfig(
     PropertyListConfiguration serverConfig,
     HttpServletRequest request
   ) {
-    this.serverUrl = serverConfig.getString(MAIN_SERVER_KEY);
-    this.dotFile = serverConfig.getString(MAIN_GRAPHVIZ_KEY);
-    this.clients = serverConfig.getString(MAIN_CLIENTS_KEY);
     this.contextRootPath = request.getContextPath();
+    if (serverConfig.containsKey(MAIN_GRAPHVIZ_KEY)) {
+      this.dotFile = serverConfig.getString(MAIN_GRAPHVIZ_KEY);
+    }
+    if (serverConfig.containsKey(MAIN_SERVER_KEY)) {
+      this.serverUrl = serverConfig.getString(MAIN_SERVER_KEY);
+    } else {
+      this.serverUrl =
+        request.getScheme() +
+        "://" +
+        request.getServerName() +
+        ":" +
+        request.getServerPort();
+    }
+    if (serverConfig.containsKey(MAIN_CLIENTS_KEY)) {
+      this.clients = serverConfig.getString(MAIN_CLIENTS_KEY);
+    }
+
     if (
       serverConfig.containsKey(MAIN_METAWORKFLOWS_KEY)
     ) this.hasMetaWorkflows = serverConfig.getBoolean(MAIN_METAWORKFLOWS_KEY);
-    this.exportCommunityUrl =
-      this.serverUrl +
-      contextRootPath +
-      EXPORT_SERVLET_PATH +
-      "/" +
-      StorageConfig.COMMUNITY_RELATIVE_DIR;
-    this.communityPath =
-      contextRootPath +
-      "/" +
-      USERS_RELATIVE_DIR +
-      "/" +
-      StorageConfig.COMMUNITY_RELATIVE_DIR;
-  }
-
-  public MainConfig(String defaultServer, HttpServletRequest request) {
-    this.serverUrl = defaultServer;
-    File loc1 = new File("/usr/bin/dot");
-    File loc2 = new File("/usr/local/bin/dot");
-    dotFile = loc2.exists() ? loc2.getAbsolutePath() : loc1.getAbsolutePath();
-    this.contextRootPath = request.getContextPath();
     this.exportCommunityUrl =
       this.serverUrl +
       contextRootPath +

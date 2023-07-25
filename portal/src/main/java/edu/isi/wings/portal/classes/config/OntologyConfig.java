@@ -37,8 +37,6 @@ public class OntologyConfig {
     }
   }
 
-  public OntologyConfig() {}
-
   public String getComponentOntologyUrl() {
     return componentOntologyUrl;
   }

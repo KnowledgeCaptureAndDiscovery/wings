@@ -11,6 +11,7 @@ services:
       - wings_data:/opt/wings
       - /var/run/docker.sock:/var/run/docker.sock
       - ./portal.properties:/etc/wings/portal.properties
+
     ports:
       - 8080:8080
 volumes:

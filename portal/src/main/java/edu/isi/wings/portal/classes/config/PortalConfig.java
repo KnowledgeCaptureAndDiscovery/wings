@@ -32,10 +32,13 @@ public class PortalConfig {
   ) {
     ServletContext app = request.getSession().getServletContext();
     this.portalConfigurationFile = obtainConfigPath(app, request);
-    if (this.portalConfigurationFile == null) createDefaultConfigurationFile(
-      request
-    );
-    checkIfFileExists(this.portalConfigurationFile);
+    try {
+      checkIfFileExists(portalConfigurationFile);
+    } catch (Exception e) {
+      throw new RuntimeException(
+        "Could not find config file: " + portalConfigurationFile
+      );
+    }
     return loadConfigurationOnProps();
   }
 
@@ -83,76 +86,6 @@ public class PortalConfig {
 
   private void getPlannerConfiguration(PropertyListConfiguration serverConfig) {
     this.plannerConfig = new PlannerConfig(serverConfig);
-  }
-
-  private void createDefaultConfigurationFile(HttpServletRequest request) {
-    String configFileName = "portal.properties";
-    String configDirectory = createDefaultConfigurationDirectory();
-    this.portalConfigurationFile =
-      configDirectory + File.separator + configFileName;
-    File cfile = new File(this.portalConfigurationFile);
-    File configDir = cfile.getParentFile();
-    StorageConfig.createStorageDirectory(configDir.getAbsolutePath());
-    if (request != null) createDefaultPortalConfig(request);
-  }
-
-  private String createDefaultConfigurationDirectory() {
-    String defaultDirectory = ".wings";
-    String home = System.getProperty("user.home");
-    if (home != null && !home.equals("")) {
-      return home + File.separator + defaultDirectory;
-    }
-    return "/etc/wings/portal.properties";
-  }
-
-  private void createDefaultPortalConfig(HttpServletRequest request) {
-    String server =
-      request.getScheme() +
-      "://" +
-      request.getServerName() +
-      ":" +
-      request.getServerPort();
-
-    PropertyListConfiguration config = new PropertyListConfiguration();
-    StorageConfig storageConfig = new StorageConfig(config);
-    OntologyConfig ontologyDefaultConfig = new OntologyConfig();
-    MainConfig mainDefaultConfig = new MainConfig(server, request);
-    ExecutionConfig executionConfig = new ExecutionConfig();
-
-    config.addProperty(MainConfig.MAIN_SERVER_KEY, server);
-    config.addProperty(MainConfig.MAIN_GRAPHVIZ_KEY, mainDefaultConfig.dotFile);
-    config.addProperty(
-      StorageConfig.STORAGE_LOCAL,
-      storageConfig.storageDirectory
-    );
-    config.addProperty(StorageConfig.STORAGE_TDB, storageConfig.tdbDirectory);
-    config.addProperty(
-      OntologyConfig.ONTOLOGY_COMPONENT_KEY,
-      ontologyDefaultConfig.componentOntologyUrl
-    );
-    config.addProperty(
-      OntologyConfig.ONTOLOGY_DATA_KEY,
-      ontologyDefaultConfig.dataOntologyUrl
-    );
-    config.addProperty(
-      OntologyConfig.ONTOLOGY_EXECUTION_KEY,
-      ontologyDefaultConfig.executionOntologyUrl
-    );
-    config.addProperty(
-      OntologyConfig.ONTOLOGY_RESOURCE_KEY,
-      ontologyDefaultConfig.resourceOntologyUrl
-    );
-    config.addProperty(
-      OntologyConfig.ONTOLOGY_WORKFLOW_KEY,
-      ontologyDefaultConfig.workflowOntologyUrl
-    );
-    executionConfig.addDefaultEngineConfig(config);
-
-    try {
-      config.save(this.portalConfigurationFile);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 
   private void getEngineNodeConfiguration(

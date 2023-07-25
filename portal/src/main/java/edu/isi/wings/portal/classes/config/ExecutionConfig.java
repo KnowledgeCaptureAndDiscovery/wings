@@ -16,30 +16,22 @@ public class ExecutionConfig {
 
   public ExecutionConfig(PropertyListConfiguration serverConfig) {
     this.engines = new HashMap<String, ExecutionEngineConfig>();
-    List<HierarchicalConfiguration> engineNodes = serverConfig.configurationsAt(
-      "execution.engine"
-    );
-    for (HierarchicalConfiguration engineNode : engineNodes) {
-      ExecutionEngineConfig engine = this.getExeEngine(engineNode);
-      this.engines.put(engine.getName(), engine);
+    if (serverConfig.containsKey("execution.engine")) {
+      List<HierarchicalConfiguration> engineNodes =
+        serverConfig.configurationsAt("execution.engine");
+      for (HierarchicalConfiguration engineNode : engineNodes) {
+        ExecutionEngineConfig engine = this.getExeEngine(engineNode);
+        this.engines.put(engine.getName(), engine);
+      }
+    } else {
+      ExecutionEngineConfig defaultLocal = new ExecutionEngineConfig(
+        "Local",
+        LocalExecutionEngine.class.getCanonicalName(),
+        ExecutionEngineConfig.Type.BOTH
+      );
+
+      this.engines.put(defaultLocal.getName(), defaultLocal);
     }
-  }
-
-  public ExecutionConfig() {
-    this.engines = new HashMap<String, ExecutionEngineConfig>();
-    ExecutionEngineConfig defaultLocal = new ExecutionEngineConfig(
-      "Local",
-      LocalExecutionEngine.class.getCanonicalName(),
-      ExecutionEngineConfig.Type.BOTH
-    );
-    ExecutionEngineConfig defaultDistrubited = new ExecutionEngineConfig(
-      "Distributed",
-      DistributedExecutionEngine.class.getCanonicalName(),
-      ExecutionEngineConfig.Type.BOTH
-    );
-
-    this.engines.put(defaultLocal.getName(), defaultLocal);
-    this.engines.put(defaultDistrubited.getName(), defaultDistrubited);
   }
 
   @SuppressWarnings("rawtypes")

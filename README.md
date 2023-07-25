@@ -4,28 +4,42 @@
 
 ## Installation
 
-### Docker 
+### Docker
 
 You must install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/).
 
 Clone the repository
 
-```bash
+```console
 $ git clone https://github.com/KnowledgeCaptureAndDiscovery/wings.git
 ```
 
 Deploy the container with the following command:
 
-```bash
+```console
 $ docker-compose up -d
 ```
 
-
 Open the browser [http://localhost:8080/wings-portal](http://localhost:8080/wings-portal) to access the Wings portal.
 
+To stop the container, run the following command:
 
-Go to [README Docker](wings-docker/) for additional instructions on running the Docker image.
+```bash
+$ docker-compose down
+```
 
+#### Users
+
+The default user is `admin` and the password is `4dm1n!23`. You can change the password in the `./wings-docker/config/tomcat/tomcat-users.xml` and rebuild the container.
+
+```
+$ docker-compose build
+$ docker-compose up -d
+```
+
+#### Configuration
+
+Please follow the instructions in [README Configuration](docs/configuration.md) to configure the Wings project.
 
 #### Images
 
