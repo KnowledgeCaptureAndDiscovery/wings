@@ -17,118 +17,121 @@
 
 package edu.isi.wings.execution.engine.classes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import edu.isi.wings.execution.engine.classes.RuntimeInfo.Status;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
 import edu.isi.wings.workflow.plan.api.ExecutionStep;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ExecutionQueue {
-	ExecutionPlan plan;
-	
-	ArrayList<RuntimeStep> steps;
-	
-	public ExecutionQueue() { 
+
+  ExecutionPlan plan;
+
+  ArrayList<RuntimeStep> steps;
+
+  public ExecutionQueue() {
     this.steps = new ArrayList<RuntimeStep>();
-	}
-	
-	public ExecutionQueue(ExecutionPlan plan) {
-		this.plan = plan;
+  }
+
+  public ExecutionQueue(ExecutionPlan plan) {
+    this.plan = plan;
     this.steps = new ArrayList<RuntimeStep>();
-		this.initialize();
-	}
-	
-	private void initialize() {
-    HashMap<String, RuntimeStep> stepmap = 
-        new HashMap<String, RuntimeStep>();
-		for(ExecutionStep step : plan.getAllExecutionSteps()) {
-			RuntimeStep exestep = new RuntimeStep(step);
-			steps.add(exestep);
-			stepmap.put(step.getID(), exestep);
-		}
-		for(ExecutionStep step : plan.getAllExecutionSteps()) {
+    this.initialize();
+  }
+
+  private void initialize() {
+    HashMap<String, RuntimeStep> stepmap = new HashMap<String, RuntimeStep>();
+    for (ExecutionStep step : plan.getAllExecutionSteps()) {
+      RuntimeStep exestep = new RuntimeStep(step);
+      steps.add(exestep);
+      stepmap.put(step.getID(), exestep);
+    }
+    for (ExecutionStep step : plan.getAllExecutionSteps()) {
       RuntimeStep exestep = stepmap.get(step.getID());
       for (ExecutionStep pstep : step.getParentSteps()) {
-        if(pstep != null) {
+        if (pstep != null) {
           RuntimeStep exepstep = stepmap.get(pstep.getID());
-          if (exepstep != null)
-            exestep.addParent(exepstep);
+          if (exepstep != null) exestep.addParent(exepstep);
         }
       }
-		}
-	}
+    }
+  }
 
-	public ArrayList<RuntimeStep> getNextStepsToExecute() {
-		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
-		for(RuntimeStep step : this.steps) {
-			if(step.getRuntimeInfo().getStatus() == Status.WAITING) {
-				boolean ok = true;
-				for(RuntimeStep parentStep : step.getParents()) {
-					if(parentStep != null &&
-							parentStep.getRuntimeInfo().getStatus() != RuntimeInfo.Status.SUCCESS)
-						ok = false;
-				}
-				if(ok)
-					steps.add(step);
-			}
-		}
-		return steps;
-	}
-	
-	public ArrayList<RuntimeStep> getAllSteps() {
+  public ArrayList<RuntimeStep> getNextStepsToExecute() {
+    ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
+    for (RuntimeStep step : this.steps) {
+      if (step.getRuntimeInfo().getStatus() == Status.WAITING) {
+        boolean ok = true;
+        for (RuntimeStep parentStep : step.getParents()) {
+          if (
+            parentStep != null &&
+            parentStep.getRuntimeInfo().getStatus() !=
+            RuntimeInfo.Status.SUCCESS
+          ) ok = false;
+        }
+        if (ok) steps.add(step);
+      }
+    }
+    return steps;
+  }
+
+  public ArrayList<RuntimeStep> getAllSteps() {
     return this.steps;
-	}
-	
-	public ArrayList<RuntimeStep> getFinishedSteps() {
-		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
-		for(RuntimeStep step : this.steps) {
-			if(step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.SUCCESS)
-				steps.add(step);
-		}
-		return steps;
   }
-	
-	public ArrayList<RuntimeStep> getFailedSteps() {
-		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
-		for(RuntimeStep step : this.steps) {
-			if(step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.FAILURE)
-				steps.add(step);
-		}
-		return steps;
+
+  public ArrayList<RuntimeStep> getFinishedSteps() {
+    ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
+    for (RuntimeStep step : this.steps) {
+      if (
+        step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.SUCCESS
+      ) steps.add(step);
+    }
+    return steps;
   }
-	
-	public ArrayList<RuntimeStep> getRunningSteps() {
-		ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
-		for(RuntimeStep step : this.steps) {
-			if(step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.RUNNING)
-				steps.add(step);
-		}
-		return steps;
-	}
-	
-	public ArrayList<RuntimeStep> getQueuedSteps() {
-	  ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
-	  for(RuntimeStep step : this.steps) {
-	    if(step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.QUEUED)
-	      steps.add(step);
-	  }
-	  return steps;
-	}
 
-	public ExecutionPlan getPlan() {
-		return plan;
-	}
+  public ArrayList<RuntimeStep> getFailedSteps() {
+    ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
+    for (RuntimeStep step : this.steps) {
+      if (
+        step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.FAILURE
+      ) steps.add(step);
+    }
+    return steps;
+  }
 
-	public void setPlan(ExecutionPlan plan) {
-		this.plan = plan;
-	}
-	
-	public void addStep(RuntimeStep step) {
+  public ArrayList<RuntimeStep> getRunningSteps() {
+    ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
+    for (RuntimeStep step : this.steps) {
+      if (
+        step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.RUNNING
+      ) steps.add(step);
+    }
+    return steps;
+  }
+
+  public ArrayList<RuntimeStep> getQueuedSteps() {
+    ArrayList<RuntimeStep> steps = new ArrayList<RuntimeStep>();
+    for (RuntimeStep step : this.steps) {
+      if (
+        step.getRuntimeInfo().getStatus() == RuntimeInfo.Status.QUEUED
+      ) steps.add(step);
+    }
+    return steps;
+  }
+
+  public ExecutionPlan getPlan() {
+    return plan;
+  }
+
+  public void setPlan(ExecutionPlan plan) {
+    this.plan = plan;
+  }
+
+  public void addStep(RuntimeStep step) {
     this.steps.add(step);
-	}
-	
-	public void removeStep(RuntimeStep step) {
+  }
+
+  public void removeStep(RuntimeStep step) {
     this.steps.remove(step);
-	}
+  }
 }

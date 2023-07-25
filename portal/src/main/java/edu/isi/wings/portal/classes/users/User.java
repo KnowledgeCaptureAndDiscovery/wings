@@ -18,15 +18,15 @@
 package edu.isi.wings.portal.classes.users;
 
 import java.util.Iterator;
-
 import org.apache.catalina.Role;
 
 public class User {
+
   String id;
   String password;
   String fullname;
   boolean isAdmin;
-  
+
   public User(String id, String password, String fullname) {
     super();
     this.id = id;
@@ -34,16 +34,15 @@ public class User {
     this.fullname = fullname;
     this.isAdmin = false;
   }
-  
+
   public User(org.apache.catalina.User user) {
     this.id = user.getUsername();
     this.fullname = user.getFullName();
     this.password = user.getPassword();
     this.isAdmin = false;
-    for(Iterator<Role> roleiter = user.getRoles(); roleiter.hasNext(); ) {
+    for (Iterator<Role> roleiter = user.getRoles(); roleiter.hasNext();) {
       String rolename = roleiter.next().getRolename();
-      if(rolename.equals(UsersDB.WINGS_ADMIN_ROLE))
-        this.isAdmin = true;
+      if (rolename.equals(UsersDB.WINGS_ADMIN_ROLE)) this.isAdmin = true;
     }
   }
 
@@ -78,5 +77,4 @@ public class User {
   public void setAdmin(boolean isAdmin) {
     this.isAdmin = isAdmin;
   }
-
 }

@@ -1,12 +1,11 @@
 package edu.isi.wings.portal.filters.servlets;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 /**
  * GZIPResponseWrapper
@@ -58,7 +57,6 @@ public class GZIPResponseWrapper extends HttpServletResponseWrapper {
         stream.close();
       }
     }
-
   }
 
   /**
@@ -81,8 +79,7 @@ public class GZIPResponseWrapper extends HttpServletResponseWrapper {
       throw new IllegalStateException("getWriter() has already been called.");
     }
 
-    if (stream == null)
-      stream = createOutputStream();
+    if (stream == null) stream = createOutputStream();
 
     return (stream);
   }
@@ -98,7 +95,9 @@ public class GZIPResponseWrapper extends HttpServletResponseWrapper {
       return (writer);
     }
     if (stream != null) {
-      throw new IllegalStateException("getOutputStream() has already been called.");
+      throw new IllegalStateException(
+        "getOutputStream() has already been called."
+      );
     }
     stream = createOutputStream();
     writer = new PrintWriter(new OutputStreamWriter(stream, "UTF-8"));
@@ -110,6 +109,5 @@ public class GZIPResponseWrapper extends HttpServletResponseWrapper {
    *
    * @param length Content length
    */
-  public void setContentLength(int length) {
-  }
+  public void setContentLength(int length) {}
 }

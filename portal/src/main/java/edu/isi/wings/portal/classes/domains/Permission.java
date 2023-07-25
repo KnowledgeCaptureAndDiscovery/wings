@@ -18,13 +18,18 @@
 package edu.isi.wings.portal.classes.domains;
 
 public class Permission {
+
   String userid;
   boolean canRead;
   boolean canWrite;
   boolean canExecute;
-  
-  public Permission(String userid, boolean canRead, boolean canWrite,
-      boolean canExecute) {
+
+  public Permission(
+    String userid,
+    boolean canRead,
+    boolean canWrite,
+    boolean canExecute
+  ) {
     super();
     this.userid = userid;
     this.canRead = canRead;

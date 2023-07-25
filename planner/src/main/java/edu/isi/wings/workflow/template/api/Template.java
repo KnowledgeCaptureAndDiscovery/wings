@@ -17,9 +17,6 @@
 
 package edu.isi.wings.workflow.template.api;
 
-import java.io.Serializable;
-import java.util.HashMap;
-
 import edu.isi.wings.workflow.template.classes.Link;
 import edu.isi.wings.workflow.template.classes.Metadata;
 import edu.isi.wings.workflow.template.classes.Node;
@@ -30,141 +27,143 @@ import edu.isi.wings.workflow.template.classes.sets.Binding;
 import edu.isi.wings.workflow.template.classes.sets.ValueBinding;
 import edu.isi.wings.workflow.template.classes.variables.ComponentVariable;
 import edu.isi.wings.workflow.template.classes.variables.Variable;
+import java.io.Serializable;
+import java.util.HashMap;
 
 public interface Template extends Serializable {
-	// Link Queries
-	Link[] getLinks();
+  // Link Queries
+  Link[] getLinks();
 
-	Link[] getInputLinks();
+  Link[] getInputLinks();
 
-	Link[] getOutputLinks();
+  Link[] getOutputLinks();
 
-	Link[] getIntermediateLinks();
+  Link[] getIntermediateLinks();
 
-	Link getLink(Node fromN, Node toN, Port fromPort, Port toPort);
+  Link getLink(Node fromN, Node toN, Port fromPort, Port toPort);
 
-	Link[] getLinks(Node fromN, Node toN);
+  Link[] getLinks(Node fromN, Node toN);
 
-	Link[] getLinks(Variable v);
+  Link[] getLinks(Variable v);
 
-	Link[] getInputLinks(Node n);
+  Link[] getInputLinks(Node n);
 
-	Link[] getOutputLinks(Node n);
+  Link[] getOutputLinks(Node n);
 
-	Link getLink(String id);
+  Link getLink(String id);
 
-	// Node Queries
-	Node[] getNodes();
+  // Node Queries
+  Node[] getNodes();
 
-	Node getNode(String id);
+  Node getNode(String id);
 
-	// Variable Queries
-	Variable[] getVariables();
+  // Variable Queries
+  Variable[] getVariables();
 
-	Variable[] getInputVariables();
-	
-	Variable[] getInputDataVariables();	
+  Variable[] getInputVariables();
 
-	Variable[] getOutputVariables();
+  Variable[] getInputDataVariables();
 
-	Variable[] getIntermediateVariables();
+  Variable[] getOutputVariables();
 
-	Variable[] getInputVariables(Node n);
+  Variable[] getIntermediateVariables();
 
-	Variable[] getOutputVariables(Node n);
+  Variable[] getInputVariables(Node n);
 
-	Variable getVariable(String id);
+  Variable[] getOutputVariables(Node n);
 
-	void deleteVariable(Variable v);
+  Variable getVariable(String id);
 
-	Role getInputRoleForVariable(Variable v);
+  void deleteVariable(Variable v);
 
-	Role getOutputRoleForVariable(Variable v);
+  Role getInputRoleForVariable(Variable v);
 
-	ComponentVariable getComponentVariable(String variableid);
-	
-	// Input Output roles of the template itself
-	HashMap<String, Role> getInputRoles();
+  Role getOutputRoleForVariable(Variable v);
 
-	HashMap<String, Role> getOutputRoles();
+  ComponentVariable getComponentVariable(String variableid);
 
-	void addInputRole(String vid, Role r);
+  // Input Output roles of the template itself
+  HashMap<String, Role> getInputRoles();
 
-	void addOutputRole(String vid, Role r);
+  HashMap<String, Role> getOutputRoles();
 
-	void deleteInputRoleForVariable(String vid);
+  void addInputRole(String vid, Role r);
 
-	void deleteOutputRoleForVariable(String vid);
+  void addOutputRole(String vid, Role r);
 
-	// Automatically add roles based on input/output variables
-	void autoUpdateTemplateRoles();
+  void deleteInputRoleForVariable(String vid);
 
-	// Automatically add set creation rules
-	// (component/port set rules for expanding components during bw/fw sweeping)
-	void fillInDefaultSetCreationRules();
+  void deleteOutputRoleForVariable(String vid);
 
-	// Constraint Queries
-	ConstraintEngine getConstraintEngine();
+  // Automatically add roles based on input/output variables
+  void autoUpdateTemplateRoles();
 
-	// Template Editing Functions
-	Node addNode(ComponentVariable c);
+  // Automatically add set creation rules
+  // (component/port set rules for expanding components during bw/fw sweeping)
+  void fillInDefaultSetCreationRules();
 
-	Variable addVariable(String varid, short type); // type comes from VariableType
-	
-	Variable addVariable(String varid, short type, boolean isCollectionItem);
-	
-	void deleteNode(Node n);
+  // Constraint Queries
+  ConstraintEngine getConstraintEngine();
 
-	Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var);
-	
-	void updateLinkDetails(Link l);
-	
-	void deleteLink(Link l);
+  // Template Editing Functions
+  Node addNode(ComponentVariable c);
 
-	void setVariableBinding(Variable v, Binding b);
-	
-	void setVariableBinding(Variable v, ValueBinding b);
+  Variable addVariable(String varid, short type); // type comes from VariableType
 
-	Template createCopy();
+  Variable addVariable(String varid, short type, boolean isCollectionItem);
 
-	String getInternalRepresentation();
+  void deleteNode(Node n);
 
-	String serialize();
-	
-	void resetInternalRepresentation();
+  Link addLink(Node fromN, Node toN, Port fromPort, Port toPort, Variable var);
 
-	String getID();
+  void updateLinkDetails(Link l);
 
-	void setID(String templateId);
+  void deleteLink(Link l);
 
-	void setCreatedFrom(Template createdFrom);
+  void setVariableBinding(Variable v, Binding b);
 
-	Template getCreatedFrom();
+  void setVariableBinding(Variable v, ValueBinding b);
 
-	void setParent(Template parent);
+  Template createCopy();
 
-	Template getParent();
+  String getInternalRepresentation();
 
-	String getName();
+  String serialize();
 
-	String getNamespace();
+  void resetInternalRepresentation();
 
-	String getURL();
+  String getID();
 
-	Metadata getMetadata();
+  void setID(String templateId);
 
-	Rules getRules();
+  void setCreatedFrom(Template createdFrom);
 
-	Template applyRules();
-	
-	void autoLayout();
-	
-	void clearProvenance();
-	
-	// Save/Delete
-	boolean save();
-	
-	boolean saveAs(String newid);
-	
-	boolean delete();
+  Template getCreatedFrom();
+
+  void setParent(Template parent);
+
+  Template getParent();
+
+  String getName();
+
+  String getNamespace();
+
+  String getURL();
+
+  Metadata getMetadata();
+
+  Rules getRules();
+
+  Template applyRules();
+
+  void autoLayout();
+
+  void clearProvenance();
+
+  // Save/Delete
+  boolean save();
+
+  boolean saveAs(String newid);
+
+  boolean delete();
 }

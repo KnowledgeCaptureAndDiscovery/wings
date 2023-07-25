@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 public class Machine extends Resource {
+
   private static final long serialVersionUID = 5211295601774494163L;
 
   private String hostIP;
@@ -35,14 +36,14 @@ public class Machine extends Resource {
   private float storageGB;
   private boolean is64Bit;
   private boolean isHealthy;
-  
+
   private String storageFolder;
   private String executionFolder;
-  
+
   private ArrayList<EnvironmentValue> environmentValues;
   private ArrayList<String> softwareIds;
   private String osid;
-  
+
   public Machine(String id) {
     super(id);
     environmentValues = new ArrayList<EnvironmentValue>();
@@ -67,9 +68,10 @@ public class Machine extends Resource {
 
   public String getHostString() {
     return (this.hostIP != null && !this.hostIP.equals(""))
-        ? this.hostIP : this.hostName;
+      ? this.hostIP
+      : this.hostName;
   }
-  
+
   public String getUserId() {
     return userId;
   }
@@ -138,18 +140,19 @@ public class Machine extends Resource {
     return environmentValues;
   }
 
-  public void setEnvironmentValues(ArrayList<EnvironmentValue> environmentValues) {
+  public void setEnvironmentValues(
+    ArrayList<EnvironmentValue> environmentValues
+  ) {
     this.environmentValues = environmentValues;
   }
-  
+
   public void addEnvironmentValues(EnvironmentValue environmentValue) {
     this.environmentValues.add(environmentValue);
   }
-  
+
   public String getEnvironmentValue(String variable) {
-    for(EnvironmentValue evalue : this.environmentValues) {
-      if(evalue.getVariable().equals(variable))
-        return evalue.getValue();
+    for (EnvironmentValue evalue : this.environmentValues) {
+      if (evalue.getVariable().equals(variable)) return evalue.getValue();
     }
     return null;
   }
@@ -165,7 +168,7 @@ public class Machine extends Resource {
   public void addSoftware(String softwareId) {
     this.softwareIds.add(softwareId);
   }
-  
+
   public String getOSid() {
     return osid;
   }
@@ -176,17 +179,15 @@ public class Machine extends Resource {
 
   public MachineDetails getMachineDetails() {
     MachineDetails details = new MachineDetails();
-    try {      
+    try {
       MachineDetailsGrabber mdg = new MachineDetailsGrabber(this);
       Future<MachineDetails> job = GridkitCloud.getNode(this).submit(mdg);
       details = job.get();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       details.setCanConnect(false);
       details.addError(e.getMessage());
       e.printStackTrace();
-    }
-    finally {
+    } finally {
       //GridkitCloud.resetNode(this);
     }
     return details;
@@ -194,6 +195,7 @@ public class Machine extends Resource {
 }
 
 class MachineDetailsGrabber implements Callable<MachineDetails>, Serializable {
+
   private static final long serialVersionUID = 5960512182954001309L;
   private final Machine machine;
 
@@ -202,33 +204,37 @@ class MachineDetailsGrabber implements Callable<MachineDetails>, Serializable {
   }
 
   @SuppressWarnings("restriction")
-@Override
+  @Override
   public MachineDetails call() {
     MachineDetails details = new MachineDetails();
-    details.setCanConnect(true);;
+    details.setCanConnect(true);
     File f = new File(machine.getStorageFolder());
-    if (!f.exists())
-      details.addError("Cannot find Wings Storage Folder: "
-          + machine.getStorageFolder());
-    if (!f.canWrite())
-      details.addError("Cannot write to Wings Storage Folder: "
-          + machine.getStorageFolder());
-
+    if (!f.exists()) details.addError(
+      "Cannot find Wings Storage Folder: " + machine.getStorageFolder()
+    );
+    if (!f.canWrite()) details.addError(
+      "Cannot write to Wings Storage Folder: " + machine.getStorageFolder()
+    );
     f = new File(machine.getExecutionFolder());
-    if (!f.exists())
-      details.addError("Cannot find Wings Execution Folder: "
-          + machine.getExecutionFolder());
-    if (!f.canWrite())
-      details.addError("Cannot write to Wings Execution Folder: "
-          + machine.getExecutionFolder());
-    
+
+    if (!f.exists()) details.addError(
+      "Cannot find Wings Execution Folder: " + machine.getExecutionFolder()
+    );
+    if (!f.canWrite()) details.addError(
+      "Cannot write to Wings Execution Folder: " + machine.getExecutionFolder()
+    );
     details.setNumCores(Runtime.getRuntime().availableProcessors());
-    details.setMaxMemory(((com.sun.management.OperatingSystemMXBean) 
-        ManagementFactory.getOperatingSystemMXBean())
-          .getTotalPhysicalMemorySize());
-    details.setFreeMemory(((com.sun.management.OperatingSystemMXBean) 
-        ManagementFactory.getOperatingSystemMXBean())
-          .getFreePhysicalMemorySize());
+
+    details.setMaxMemory(
+      (
+        (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()
+      ).getTotalPhysicalMemorySize()
+    );
+    details.setFreeMemory(
+      (
+        (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()
+      ).getFreePhysicalMemorySize()
+    );
     File[] roots = File.listRoots();
     for (File root : roots) {
       details.setStorageRoot(root.getAbsolutePath());
@@ -236,17 +242,21 @@ class MachineDetailsGrabber implements Callable<MachineDetails>, Serializable {
       details.setFreeStorage(root.getFreeSpace());
       break;
     }
-
     details.setArchitecture(
-        ManagementFactory.getOperatingSystemMXBean().getName() + " - "+
-        ManagementFactory.getOperatingSystemMXBean().getArch());
+      ManagementFactory.getOperatingSystemMXBean().getName() +
+      " - " +
+      ManagementFactory.getOperatingSystemMXBean().getArch()
+    );
+
     details.setSystemLoad(
-        ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage());
+      ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage()
+    );
     return details;
   }
 }
 
 class MachineDetails implements Serializable {
+
   private static final long serialVersionUID = -2690736677192673940L;
   private boolean connect;
   private float memoryMax;
@@ -262,7 +272,7 @@ class MachineDetails implements Serializable {
   public MachineDetails() {
     errors = new ArrayList<String>();
   }
-  
+
   public boolean isCanConnect() {
     return connect;
   }

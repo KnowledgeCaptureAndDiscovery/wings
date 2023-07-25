@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-
 import org.gridkit.internal.com.jcraft.jsch.ChannelSftp;
 import org.gridkit.internal.com.jcraft.jsch.JSch;
 import org.gridkit.internal.com.jcraft.jsch.JSchException;
@@ -35,21 +34,18 @@ import org.gridkit.vicluster.ViManager;
 import org.gridkit.vicluster.ViNode;
 
 public class GridkitCloud {
-  
-  private static Cloud cloud = 
-      SimpleCloudFactory.createSimpleSshCloud();
-  
+
+  private static Cloud cloud = SimpleCloudFactory.createSimpleSshCloud();
+
   public static ViNode getNode(Machine m) throws Exception {
     String host = m.getHostString();
-    for(ViNode node : cloud.listNodes(host))
-      return node;
+    for (ViNode node : cloud.listNodes(host)) return node;
 
     ViNode node = cloud.node(host);
     String jhome = m.getEnvironmentValue("JAVA_HOME");
     String javaexec = "java";
-    if(jhome != null && !jhome.equals(""))
-      javaexec = jhome + "/bin/java";
-    
+    if (jhome != null && !jhome.equals("")) javaexec = jhome + "/bin/java";
+
     node.setProp(ViConf.REMOTE_HOST, host);
     node.setProp(ViConf.REMOTE_ACCOUNT, m.getUserId());
     node.setProp(SshSpiConf.SPI_SSH_PRIVATE_KEY_FILE, m.getUserKey());
@@ -58,24 +54,21 @@ public class GridkitCloud {
     node.touch();
     return node;
   }
-  
+
   public static void shutdown() {
     cloud.shutdown();
   }
-  
+
   public static void resetNode(Machine m) {
-    if(m.getHostString() != null ) {
-      for(ViNode node : cloud.listNodes(m.getHostString()))
-        node.shutdown();
+    if (m.getHostString() != null) {
+      for (ViNode node : cloud.listNodes(m.getHostString())) node.shutdown();
     }
-    ((ViManager)cloud).resetDeadNode();
+    ((ViManager) cloud).resetDeadNode();
   }
-  
-  private static Session getSSHSession(Machine m) 
-      throws JSchException {
+
+  private static Session getSSHSession(Machine m) throws JSchException {
     JSch ssh = new JSch();
-    if (m.getUserKey() != null)
-      ssh.addIdentity(m.getUserKey());
+    if (m.getUserKey() != null) ssh.addIdentity(m.getUserKey());
     Session ssh_session = ssh.getSession(m.getUserId(), m.getHostString());
     java.util.Properties config = new java.util.Properties();
     config.put("StrictHostKeyChecking", "no");
@@ -83,54 +76,58 @@ public class GridkitCloud {
     ssh_session.connect();
     return ssh_session;
   }
-  
-  public static boolean uploadFiles(Machine m, 
-      HashMap<String, String> localRemoteMap) {
+
+  public static boolean uploadFiles(
+    Machine m,
+    HashMap<String, String> localRemoteMap
+  ) {
     try {
       Session ssh_session = getSSHSession(m);
-      if(ssh_session.isConnected()) {
+      if (ssh_session.isConnected()) {
         ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
         sftpChannel.connect();
-        
+
         // Get list of all required remote directories
         ArrayList<String> dirList = new ArrayList<String>();
-        for(String local: localRemoteMap.keySet()) {
+        for (String local : localRemoteMap.keySet()) {
           String remote = localRemoteMap.get(local);
           File f = new File(remote);
           File dir = f.getParentFile();
-          while(dir != null) {
-            if(!dirList.contains(dir.getAbsolutePath())) {
+          while (dir != null) {
+            if (!dirList.contains(dir.getAbsolutePath())) {
               dirList.add(dir.getAbsolutePath());
             }
             dir = dir.getParentFile();
           }
         }
         // Sort the directories by size
-        Collections.sort(dirList, new Comparator<String>() {
-          @Override
-          public int compare(String o1, String o2) {
-            return o1.length() - o2.length();
+        Collections.sort(
+          dirList,
+          new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+              return o1.length() - o2.length();
+            }
           }
-        });
+        );
         //System.out.println(dirList);
-        
+
         // Make sure all remote directories are created
-        for(String dir : dirList) {
+        for (String dir : dirList) {
           File f = new File(dir);
           try {
             sftpChannel.stat(f.getAbsolutePath());
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             sftpChannel.mkdir(f.getAbsolutePath());
           }
         }
-        
+
         // Finally upload the files
-        for(String local: localRemoteMap.keySet()) {
+        for (String local : localRemoteMap.keySet()) {
           String remote = localRemoteMap.get(local);
           sftpChannel.put(local, remote);
         }
-        
+
         sftpChannel.disconnect();
         ssh_session.disconnect();
         return true;
@@ -140,20 +137,21 @@ public class GridkitCloud {
     }
     return false;
   }
-  
-  public static boolean downloadFiles(Machine m,
-      HashMap<String, String> localRemoteMap) {
+
+  public static boolean downloadFiles(
+    Machine m,
+    HashMap<String, String> localRemoteMap
+  ) {
     try {
       Session ssh_session = getSSHSession(m);
-      if(ssh_session.isConnected()) {
+      if (ssh_session.isConnected()) {
         ChannelSftp sftpChannel = (ChannelSftp) ssh_session.openChannel("sftp");
         sftpChannel.connect();
-        for(String local: localRemoteMap.keySet()) {
+        for (String local : localRemoteMap.keySet()) {
           String remote = localRemoteMap.get(local);
           try {
             sftpChannel.get(remote, local);
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             // Ignore
           }
         }
@@ -166,5 +164,4 @@ public class GridkitCloud {
     }
     return false;
   }
-  
 }

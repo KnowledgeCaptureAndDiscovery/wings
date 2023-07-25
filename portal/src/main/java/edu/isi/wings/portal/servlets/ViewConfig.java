@@ -17,26 +17,27 @@
 
 package edu.isi.wings.portal.servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import edu.isi.wings.portal.classes.JsonHandler;
+import edu.isi.wings.portal.classes.config.ConfigLoader;
+import edu.isi.wings.portal.classes.config.MainConfig;
+import edu.isi.wings.portal.classes.config.PortalConfig;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-
-import edu.isi.wings.portal.classes.JsonHandler;
-import edu.isi.wings.portal.classes.config.Config;
-
 /**
  * Servlet exports graph in TDB
  */
 public class ViewConfig extends HttpServlet {
+
   private static final long serialVersionUID = 1L;
-  
+
   /**
    * @see HttpServlet#HttpServlet()
    */
@@ -48,19 +49,25 @@ public class ViewConfig extends HttpServlet {
    * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
    *      response)
    */
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(
+    HttpServletRequest request,
+    HttpServletResponse response
+  ) throws ServletException, IOException {
     PrintWriter out = response.getWriter();
-    Config config = new Config(request, null, null);
-    Gson json = JsonHandler.createPrettyGson();
-    HashMap<String, Object> props = new HashMap<String, Object>();
-    props.put("internal_server", config.getServerUrl());
-    props.put("storage", config.getStorageDirectory());
-    props.put("dotpath", config.getDotFile());
-    props.put("ontology", config.getWorkflowOntologyUrl());
-    props.put("planner", config.getPlannerConfig());
-    out.println(json.toJson(props));
+    ConfigLoader config = new ConfigLoader(request, null, null);
+    PortalConfig portalConfig = config.portalConfig;
+    out.println(getJsonString(portalConfig));
     out.close();
   }
 
+  private String getJsonString(Object obj) {
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonString = "";
+    try {
+      jsonString = mapper.writeValueAsString(obj);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return jsonString;
+  }
 }

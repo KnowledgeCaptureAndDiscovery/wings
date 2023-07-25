@@ -18,13 +18,14 @@
 package edu.isi.wings.catalog.provenance.classes;
 
 public class ProvActivity {
+
   private String id;
   private String userId;
   private long time;
   private String log;
   private String type;
   private String objectId;
-  
+
   public static String CREATE = "Create";
   public static String UPDATE = "Update";
   public static String UPLOAD = "Upload";
@@ -86,5 +87,4 @@ public class ProvActivity {
   public void setObjectId(String objectId) {
     this.objectId = objectId;
   }
-
 }

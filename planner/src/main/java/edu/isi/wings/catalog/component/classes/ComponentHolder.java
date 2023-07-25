@@ -24,21 +24,21 @@ import edu.isi.wings.common.URIEntity;
  * - Provides a hierarchical structure to the components
  */
 public class ComponentHolder extends URIEntity {
-	private static final long serialVersionUID = 1L;
 
-	// NOTE: Only 1 component (or none) per component class
-	Component component;
+  private static final long serialVersionUID = 1L;
 
-	public ComponentHolder(String id) {
-		super(id);
-	}
+  // NOTE: Only 1 component (or none) per component class
+  Component component;
 
-	public Component getComponent() {
-		return component;
-	}
+  public ComponentHolder(String id) {
+    super(id);
+  }
 
-	public void setComponent(Component component) {
-		this.component = component;
-	}
+  public Component getComponent() {
+    return component;
+  }
 
+  public void setComponent(Component component) {
+    this.component = component;
+  }
 }

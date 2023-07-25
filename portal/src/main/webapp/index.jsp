@@ -15,19 +15,19 @@
 // the License.
 %>
 
-<%@page import="java.io.PrintWriter"
-%><%@page import="edu.isi.wings.portal.classes.html.CSSLoader"
-%><%@page import="edu.isi.wings.portal.classes.config.Config"
-%><%@page import="edu.isi.wings.portal.classes.html.JSLoader"
-%><%@page language="java" contentType="text/html; charset=US-ASCII"
-    pageEncoding="US-ASCII"
-%><!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%@page import="java.io.PrintWriter"%>
+<%@page import="edu.isi.wings.portal.classes.html.CSSLoader"%>
+<%@page import="edu.isi.wings.portal.classes.config.ConfigLoader"%>
+<%@page import="edu.isi.wings.portal.classes.html.JSLoader"%>
+<%@page language="java" contentType="text/html; charset=US-ASCII" pageEncoding="US-ASCII"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <title>Wings Portal</title>
 <%
-Config configx = new Config(request, null, null);
+ConfigLoader configx = new ConfigLoader(request, null, null);
 %>
 
 <!-- Load Viewer Javascript -->
@@ -57,7 +57,7 @@ Ext.onReady(function() {
 				border: false,
 				autoScroll: true,
 	            loader: {
-	            	url: CONTEXT_ROOT + "/html/home.html", 
+	            	url: CONTEXT_ROOT + "/html/home.html",
 	                autoLoad: (nohome == "null") ? true : null
 	            },
 				listeners: {
@@ -66,7 +66,7 @@ Ext.onReady(function() {
 							comp.update(message);
 						}
 					}
-				}	            
+				}
 			}
 		]
 	});

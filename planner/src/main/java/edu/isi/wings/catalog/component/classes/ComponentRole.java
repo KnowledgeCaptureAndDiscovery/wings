@@ -20,64 +20,65 @@ package edu.isi.wings.catalog.component.classes;
 import edu.isi.wings.common.URIEntity;
 
 public class ComponentRole extends URIEntity {
-	private static final long serialVersionUID = 1L;
 
-	String role;
-	String prefix;
-	boolean isParam;
-	String type;
-	int dimensionality = 0;
-	Object paramDefaultValue;
+  private static final long serialVersionUID = 1L;
 
-	public ComponentRole(String id) {
-		super(id);
-	}
+  String role;
+  String prefix;
+  boolean isParam;
+  String type;
+  int dimensionality = 0;
+  Object paramDefaultValue;
 
-	public String getRoleName() {
-		return role;
-	}
+  public ComponentRole(String id) {
+    super(id);
+  }
 
-	public void setRoleName(String role) {
-		this.role = role;
-	}
+  public String getRoleName() {
+    return role;
+  }
 
-	public String getType() {
-		return type;
-	}
+  public void setRoleName(String role) {
+    this.role = role;
+  }
 
-	public void setType(String typeid) {
-		this.type = typeid;
-	}
+  public String getType() {
+    return type;
+  }
 
-	public String getPrefix() {
-		return prefix;
-	}
+  public void setType(String typeid) {
+    this.type = typeid;
+  }
 
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
-	}
+  public String getPrefix() {
+    return prefix;
+  }
 
-	public int getDimensionality() {
-		return dimensionality;
-	}
+  public void setPrefix(String prefix) {
+    this.prefix = prefix;
+  }
 
-	public void setDimensionality(int dimensionality) {
-		this.dimensionality = dimensionality;
-	}
+  public int getDimensionality() {
+    return dimensionality;
+  }
 
-	public boolean isParam() {
-		return isParam;
-	}
+  public void setDimensionality(int dimensionality) {
+    this.dimensionality = dimensionality;
+  }
 
-	public void setParam(boolean isParam) {
-		this.isParam = isParam;
-	}
+  public boolean isParam() {
+    return isParam;
+  }
 
-	public Object getParamDefaultalue() {
-		return paramDefaultValue;
-	}
+  public void setParam(boolean isParam) {
+    this.isParam = isParam;
+  }
 
-	public void setParamDefaultalue(Object paramDefaultalue) {
-		this.paramDefaultValue = paramDefaultalue;
-	}
+  public Object getParamDefaultalue() {
+    return paramDefaultValue;
+  }
+
+  public void setParamDefaultalue(Object paramDefaultalue) {
+    this.paramDefaultValue = paramDefaultalue;
+  }
 }

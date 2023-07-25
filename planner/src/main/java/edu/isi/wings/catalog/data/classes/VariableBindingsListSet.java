@@ -19,7 +19,8 @@ package edu.isi.wings.catalog.data.classes;
 
 import java.util.ArrayList;
 
-public class VariableBindingsListSet extends 
-    ArrayList<ArrayList<VariableBindingsList>> {
-	private static final long serialVersionUID = 1L;
+public class VariableBindingsListSet
+  extends ArrayList<ArrayList<VariableBindingsList>> {
+
+  private static final long serialVersionUID = 1L;
 }

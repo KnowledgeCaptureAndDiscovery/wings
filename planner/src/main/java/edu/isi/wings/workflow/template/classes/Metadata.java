@@ -22,56 +22,56 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Metadata implements Serializable {
-	private static final long serialVersionUID = 1L;
-	public Date lastUpdateTime;
-	public String tellme;
-	public String documentation;
-	public ArrayList<String> contributors = new ArrayList<String>();
-	public ArrayList<String> createdFrom = new ArrayList<String>();
 
-	public Metadata() {
-	}
+  private static final long serialVersionUID = 1L;
+  public Date lastUpdateTime;
+  public String tellme;
+  public String documentation;
+  public ArrayList<String> contributors = new ArrayList<String>();
+  public ArrayList<String> createdFrom = new ArrayList<String>();
 
-	/*
-	 * Metadata Properties
-	 */
-	public void addContributor(String username) {
-		if (username != null && !this.contributors.contains(username))
-			this.contributors.add(username);
-	}
+  public Metadata() {}
 
-	public ArrayList<String> getContributors() {
-		return this.contributors;
-	}
+  /*
+   * Metadata Properties
+   */
+  public void addContributor(String username) {
+    if (
+      username != null && !this.contributors.contains(username)
+    ) this.contributors.add(username);
+  }
 
-	public void setLastUpdateTime() {
-		this.lastUpdateTime = new Date();
-	}
+  public ArrayList<String> getContributors() {
+    return this.contributors;
+  }
 
-	public void setLastUpdateTime(Date datetime) {
-		this.lastUpdateTime = datetime;
-	}
-	
-	public Date getLastUpdateTime() {
-		return this.lastUpdateTime;
-	}
+  public void setLastUpdateTime() {
+    this.lastUpdateTime = new Date();
+  }
 
-	public void setDocumentation(String doc) {
-		this.documentation = doc;
-	}
+  public void setLastUpdateTime(Date datetime) {
+    this.lastUpdateTime = datetime;
+  }
 
-	public String getDocumentation() {
-		return this.documentation;
-	}
+  public Date getLastUpdateTime() {
+    return this.lastUpdateTime;
+  }
 
-	public void addCreationSource(String name) {
-		if (!this.createdFrom.contains(name))
-			this.createdFrom.add(name);
-	}
+  public void setDocumentation(String doc) {
+    this.documentation = doc;
+  }
 
-	public ArrayList<String> getCreationSources() {
-		return this.createdFrom;
-	}
+  public String getDocumentation() {
+    return this.documentation;
+  }
+
+  public void addCreationSource(String name) {
+    if (!this.createdFrom.contains(name)) this.createdFrom.add(name);
+  }
+
+  public ArrayList<String> getCreationSources() {
+    return this.createdFrom;
+  }
 
   public String getTellme() {
     return tellme;

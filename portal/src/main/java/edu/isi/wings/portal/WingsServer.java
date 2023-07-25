@@ -1,11 +1,5 @@
 package edu.isi.wings.portal;
 
-import javax.annotation.PreDestroy;
-import javax.ws.rs.ApplicationPath;
-
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-
 import edu.isi.kcap.ontapi.OntFactory;
 import edu.isi.wings.portal.filters.resources.CORSResponseFilter;
 import edu.isi.wings.portal.filters.resources.GZIPReaderInterceptor;
@@ -21,6 +15,10 @@ import edu.isi.wings.portal.resources.SoftwareResource;
 import edu.isi.wings.portal.resources.TemplateResource;
 import edu.isi.wings.portal.resources.UploadResource;
 import edu.isi.wings.portal.resources.UserResource;
+import javax.annotation.PreDestroy;
+import javax.ws.rs.ApplicationPath;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
 
 @ApplicationPath("users")
 class WingsServer extends ResourceConfig {
@@ -54,5 +52,4 @@ class WingsServer extends ResourceConfig {
     System.out.println("Wings server going down");
     OntFactory.shutdown();
   }
-
 }

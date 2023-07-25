@@ -17,8 +17,6 @@
 
 package edu.isi.wings.catalog.resource.api;
 
-import java.util.ArrayList;
-
 import edu.isi.kcap.ontapi.transactions.TransactionsAPI;
 import edu.isi.wings.catalog.component.api.ComponentCreationAPI;
 import edu.isi.wings.catalog.component.classes.requirements.ComponentRequirement;
@@ -26,6 +24,7 @@ import edu.isi.wings.catalog.resource.classes.Machine;
 import edu.isi.wings.catalog.resource.classes.Software;
 import edu.isi.wings.catalog.resource.classes.SoftwareEnvironment;
 import edu.isi.wings.catalog.resource.classes.SoftwareVersion;
+import java.util.ArrayList;
 
 public interface ResourceAPI extends TransactionsAPI {
   // Query functions
@@ -36,9 +35,9 @@ public interface ResourceAPI extends TransactionsAPI {
   ArrayList<String> getSoftwareVersionIds(String softwareid);
 
   ArrayList<SoftwareVersion> getAllSoftwareVersions();
-  
+
   ArrayList<SoftwareEnvironment> getAllSoftwareEnvironment();
-  
+
   Machine getMachine(String machineid);
 
   Software getSoftware(String softwareid);
@@ -46,33 +45,33 @@ public interface ResourceAPI extends TransactionsAPI {
   SoftwareVersion getSoftwareVersion(String versionid);
 
   ArrayList<String> getMatchingMachineIds(ComponentRequirement req);
-  
+
   // Write functions
   boolean addMachine(String machineid);
-  
+
   boolean addSoftware(String softwareid);
-  
+
   boolean addSoftwareVersion(String versionid, String softwareid);
 
   boolean removeMachine(String machineid);
-  
+
   boolean removeSoftware(String softwareid);
-  
+
   boolean removeSoftwareVersion(String versionid);
-  
+
   boolean saveMachine(Machine machine);
-  
+
   boolean saveSoftware(Software machine);
-  
+
   boolean saveSoftwareVersion(SoftwareVersion machine);
-  
+
   void setMachineWhitelist(ArrayList<String> whitelist);
-  
+
   // Save/ Delete
-  
+
   boolean save();
 
   boolean delete();
-  
+
   void copyFrom(ResourceAPI rc, ComponentCreationAPI dc);
 }

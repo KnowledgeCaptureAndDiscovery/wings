@@ -37,12 +37,10 @@ package org.apache.oodt.cas.wmservices.resources;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-
 import org.apache.oodt.cas.wmservices.repository.PackagedWorkflowManager;
 import org.apache.oodt.cas.workflow.structs.Workflow;
 
@@ -52,14 +50,15 @@ import org.apache.oodt.cas.workflow.structs.Workflow;
  * @author vratnakar
  */
 public class WorkflowResource extends Resource {
-  private static final Logger LOGGER = Logger.getLogger(WorkflowResource.class
-      .getName());
+
+  private static final Logger LOGGER = Logger.getLogger(
+    WorkflowResource.class.getName()
+  );
 
   /**
    * Default constructor.
    */
-  public WorkflowResource() {
-  }
+  public WorkflowResource() {}
 
   /**
    * Add Packaged Repository Workflow
@@ -73,13 +72,16 @@ public class WorkflowResource extends Resource {
   @POST
   @Path("/addPackagedRepositoryWorkflow")
   public boolean addPackagedRepositoryWorkflow(
-      @FormParam("workflowID") String workflowID,
-      @FormParam("workflowXML") String workflowXML) throws Exception {
+    @FormParam("workflowID") String workflowID,
+    @FormParam("workflowXML") String workflowXML
+  ) throws Exception {
     try {
       PackagedWorkflowManager pwmanager = new PackagedWorkflowManager();
-      Workflow workflow = pwmanager.parsePackagedWorkflow(workflowID, workflowXML);
-      if(workflow == null)
-        return false;
+      Workflow workflow = pwmanager.parsePackagedWorkflow(
+        workflowID,
+        workflowXML
+      );
+      if (workflow == null) return false;
       String workflowDir = this.getContextPkgReposDir().getAbsolutePath();
       pwmanager.addWorkflow(workflow, workflowDir);
       return getContextClient().refreshRepository();
@@ -101,13 +103,12 @@ public class WorkflowResource extends Resource {
   @DELETE
   @Path("/deletePackagedRepositoryWorkflow")
   public boolean deletePackagedRepositoryWorkflow(
-      @FormParam("workflowID") String workflowID) throws Exception {
+    @FormParam("workflowID") String workflowID
+  ) throws Exception {
     try {
       File wflowFile = getPackagedRepositoryWorkflowFile(workflowID);
-      if (wflowFile.delete())
-        return getContextClient().refreshRepository();
-      else
-        return false;
+      if (wflowFile.delete()) return getContextClient()
+        .refreshRepository(); else return false;
     } catch (Exception e) {
       String message = "Unable to delete workflow. ";
       message += e.getMessage();
@@ -118,8 +119,12 @@ public class WorkflowResource extends Resource {
 
   // Private functions
   private File getPackagedRepositoryWorkflowFile(String workflowID)
-      throws Exception {
-    return new File(this.getContextPkgReposDir().getAbsolutePath()
-        + File.separator + workflowID + ".xml");
+    throws Exception {
+    return new File(
+      this.getContextPkgReposDir().getAbsolutePath() +
+      File.separator +
+      workflowID +
+      ".xml"
+    );
   }
 }

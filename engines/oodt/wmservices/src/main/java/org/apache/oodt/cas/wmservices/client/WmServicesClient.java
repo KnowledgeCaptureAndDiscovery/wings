@@ -21,7 +21,6 @@ import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.oodt.cas.wmservices.repository.PackagedWorkflowManager;
 import org.apache.oodt.cas.workflow.structs.Workflow;
@@ -29,16 +28,17 @@ import org.apache.oodt.cas.workflow.structs.exceptions.RepositoryException;
 
 /**
  * Client class to connect to wmservices
- * 
+ *
  * @author vratnakar
  */
 public class WmServicesClient {
+
   String serverurl;
   String service = "/service/";
 
   /**
    * Constructor
-   * 
+   *
    * @param workflowDir
    *          the directory where workflow files exist
    */
@@ -48,7 +48,7 @@ public class WmServicesClient {
 
   /**
    * Add a Packaged workflow
-   * 
+   *
    * @param workflowId
    *          id of the workflow
    * @param workflow
@@ -57,43 +57,56 @@ public class WmServicesClient {
    * @throws RepositoryException
    */
   public boolean addPackagedWorkflow(String workflowId, Workflow workflow)
-      throws RepositoryException {
-
+    throws RepositoryException {
     try {
       PackagedWorkflowManager editor = new PackagedWorkflowManager();
       String xml = editor.serializeWorkflow(workflow);
 
       // Now Make a POST call to the servlet with this xml
-      String result = this.query("POST", "addPackagedRepositoryWorkflow", "workflowID",
-          workflowId, "workflowXML", xml);
+      String result =
+        this.query(
+            "POST",
+            "addPackagedRepositoryWorkflow",
+            "workflowID",
+            workflowId,
+            "workflowXML",
+            xml
+          );
       return Boolean.parseBoolean(result);
     } catch (Exception e) {
-      throw new RepositoryException("Could not add packaged workflow: "
-          + e.getMessage());
+      throw new RepositoryException(
+        "Could not add packaged workflow: " + e.getMessage()
+      );
     }
   }
 
   /**
    * Delete a Packaged workflow
-   * 
+   *
    * @param workflowId
    *          id of the workflow to be deleted
    * @return true if operation successful
    * @throws RepositoryException
    */
   public boolean deletePackagedWorkflow(String workflowId)
-      throws RepositoryException {
+    throws RepositoryException {
     try {
       // Now Make a POST call to the servlet with this xml
-      String result = this.query("POST", "deletePackagedRepositoryWorkflow", "workflowID",
-          workflowId);
+      String result =
+        this.query(
+            "POST",
+            "deletePackagedRepositoryWorkflow",
+            "workflowID",
+            workflowId
+          );
       return Boolean.parseBoolean(result);
     } catch (Exception e) {
-      throw new RepositoryException("Could not delete packaged workflow: "
-          + e.getMessage());
+      throw new RepositoryException(
+        "Could not delete packaged workflow: " + e.getMessage()
+      );
     }
   }
-  
+
   // Private functions
 
   private String query(String method, String op, Object... args) {
@@ -101,10 +114,9 @@ public class WmServicesClient {
     try {
       String params = "";
       for (int i = 0; i < args.length; i += 2) {
-        if (i > 0)
-          params += "&";
-        params += args[i] + "="
-            + URLEncoder.encode(args[i + 1].toString(), "UTF-8");
+        if (i > 0) params += "&";
+        params +=
+          args[i] + "=" + URLEncoder.encode(args[i + 1].toString(), "UTF-8");
       }
       if ("GET".equals(method)) {
         URL urlobj = new URL(url + "?" + params);
@@ -123,7 +135,6 @@ public class WmServicesClient {
         con.disconnect();
         return result;
       }
-
     } catch (Exception e) {
       e.printStackTrace();
     }
