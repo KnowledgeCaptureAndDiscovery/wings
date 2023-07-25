@@ -49,7 +49,6 @@ public class PortalConfig {
     return app.getInitParameter("config.file");
   }
 
-
   private PropertyListConfiguration loadConfigurationOnProps() {
     PropertyListConfiguration props = new PropertyListConfiguration();
     try {
@@ -92,7 +91,6 @@ public class PortalConfig {
   private void getEngineNodeConfiguration(
     PropertyListConfiguration serverConfig
   ) {
-
     this.executionConfig = new ExecutionConfig(serverConfig);
   }
 

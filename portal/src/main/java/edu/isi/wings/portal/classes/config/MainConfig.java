@@ -23,7 +23,6 @@ public class MainConfig {
   public String exportCommunityUrl;
   public String communityPath;
 
-
   public MainConfig(
     PropertyListConfiguration serverConfig,
     HttpServletRequest request
@@ -62,7 +61,6 @@ public class MainConfig {
       "/" +
       StorageConfig.COMMUNITY_RELATIVE_DIR;
   }
-
 
   public static String getMainLightReasonerKey() {
     return MAIN_LIGHT_REASONER_KEY;

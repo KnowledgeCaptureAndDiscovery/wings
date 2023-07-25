@@ -34,7 +34,6 @@ public class ExecutionConfig {
     }
   }
 
-
   @SuppressWarnings("rawtypes")
   private ExecutionEngineConfig getExeEngine(HierarchicalConfiguration node) {
     String name = node.getString("name");
