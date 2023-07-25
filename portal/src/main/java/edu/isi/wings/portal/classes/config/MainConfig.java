@@ -23,6 +23,7 @@ public class MainConfig {
   public String exportCommunityUrl;
   public String communityPath;
 
+
   public MainConfig(
     PropertyListConfiguration serverConfig,
     HttpServletRequest request
@@ -44,6 +45,7 @@ public class MainConfig {
     if (serverConfig.containsKey(MAIN_CLIENTS_KEY)) {
       this.clients = serverConfig.getString(MAIN_CLIENTS_KEY);
     }
+
     if (
       serverConfig.containsKey(MAIN_METAWORKFLOWS_KEY)
     ) this.hasMetaWorkflows = serverConfig.getBoolean(MAIN_METAWORKFLOWS_KEY);
@@ -60,6 +62,7 @@ public class MainConfig {
       "/" +
       StorageConfig.COMMUNITY_RELATIVE_DIR;
   }
+
 
   public static String getMainLightReasonerKey() {
     return MAIN_LIGHT_REASONER_KEY;
