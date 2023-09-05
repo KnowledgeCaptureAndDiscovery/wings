@@ -89,8 +89,10 @@ public class RunController {
   private Properties props;
 
   public static ExecutorService executor;
-  public static HashMap<String, PlanningAPIBindings> apiBindings =
-    new HashMap<String, PlanningAPIBindings>();
+  public static HashMap<String, PlanningAPIBindings> apiBindings = new HashMap<
+    String,
+    PlanningAPIBindings
+  >();
 
   public RunController(ConfigLoader config) {
     this.config = config;
@@ -163,8 +165,9 @@ public class RunController {
     Date started_after
   ) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    ArrayList<HashMap<String, Object>> list =
-      new ArrayList<HashMap<String, Object>>();
+    ArrayList<HashMap<String, Object>> list = new ArrayList<
+      HashMap<String, Object>
+    >();
     for (RuntimePlan exe : monitor.getRunListSimple(
       pattern,
       status,
@@ -189,8 +192,9 @@ public class RunController {
     boolean fasterQuery
   ) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    ArrayList<HashMap<String, Object>> list =
-      new ArrayList<HashMap<String, Object>>();
+    ArrayList<HashMap<String, Object>> list = new ArrayList<
+      HashMap<String, Object>
+    >();
     for (RuntimePlan exe : monitor.getRunList(
       pattern,
       status,
@@ -212,9 +216,9 @@ public class RunController {
         map.put("running_jobs", this.getStepIds(running_steps));
         map.put("failed_jobs", this.getStepIds(failed_steps));
         if (numtotal > 0) {
-          map.put("percent_done", numdone * 100.0 / numtotal);
-          map.put("percent_running", running_steps.size() * 100.0 / numtotal);
-          map.put("percent_failed", failed_steps.size() * 100.0 / numtotal);
+          map.put("percent_done", (numdone * 100.0) / numtotal);
+          map.put("percent_running", (running_steps.size() * 100.0) / numtotal);
+          map.put("percent_failed", (failed_steps.size() * 100.0) / numtotal);
         }
       }
       list.add(map);

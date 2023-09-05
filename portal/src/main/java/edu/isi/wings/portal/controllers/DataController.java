@@ -210,19 +210,15 @@ public class DataController {
     treeNode.put("isClass", (item.getType() == 1 ? true : false));
     treeNode.put(
       "iconCls",
-      (
-        item.getType() == 1
+      (item.getType() == 1
           ? "icon-folder fa fa-yellow"
-          : "icon-file-alt fa fa-blue"
-      )
+          : "icon-file-alt fa fa-blue")
     );
     treeNode.put(
       "expIconCls",
-      (
-        item.getType() == 1
+      (item.getType() == 1
           ? "icon-folder-open fa fa-yellow"
-          : "icon-file-alt fa fa-blue"
-      )
+          : "icon-file-alt fa fa-blue")
     );
     treeNode.put("expanded", false);
     treeNode.put("leaf", (item.getType() == 1 ? false : true));
@@ -237,8 +233,9 @@ public class DataController {
       HashMap<String, Object> treeNode = new HashMap<String, Object>();
       ArrayList<DataTreeNode> children = tree.getRoot().getChildren();
       if (children != null && children.size() > 0) {
-        ArrayList<HashMap<String, Object>> uichildren =
-          new ArrayList<HashMap<String, Object>>();
+        ArrayList<HashMap<String, Object>> uichildren = new ArrayList<
+          HashMap<String, Object>
+        >();
         for (DataTreeNode childnode : children) {
           uichildren.add(this.convertNodeToUINode(childnode));
         }
@@ -370,8 +367,10 @@ public class DataController {
       );
 
       ArrayList<String> propids = new ArrayList<String>();
-      HashMap<String, MetadataProperty> pinfos =
-        new HashMap<String, MetadataProperty>();
+      HashMap<String, MetadataProperty> pinfos = new HashMap<
+        String,
+        MetadataProperty
+      >();
       for (MetadataProperty prop : props) {
         propids.add(prop.getID());
         pinfos.put(prop.getID(), prop);
@@ -467,8 +466,10 @@ public class DataController {
         dtypeid,
         false
       );
-      HashMap<String, MetadataProperty> pinfos =
-        new HashMap<String, MetadataProperty>();
+      HashMap<String, MetadataProperty> pinfos = new HashMap<
+        String,
+        MetadataProperty
+      >();
       for (MetadataProperty prop : props) {
         pinfos.put(prop.getName(), prop);
       }
@@ -822,8 +823,10 @@ public class DataController {
         );
         return null;
       }
-      HashMap<String, ArrayList<String>> dataBindings =
-        new HashMap<String, ArrayList<String>>();
+      HashMap<String, ArrayList<String>> dataBindings = new HashMap<
+        String,
+        ArrayList<String>
+      >();
       ArrayList<String> inputfiles = new ArrayList<String>();
       inputfiles.add(dataid);
       dataBindings.put(invars[0].getID(), inputfiles);

@@ -49,10 +49,10 @@ public class CurationServiceAPI {
       String params = "policy=" + URLEncoder.encode(this.policy, "UTF-8");
       for (int i = 0; i < args.length; i += 2) {
         params +=
-          "&" +
-          args[i] +
-          "=" +
-          URLEncoder.encode(args[i + 1].toString(), "UTF-8");
+        "&" +
+        args[i] +
+        "=" +
+        URLEncoder.encode(args[i + 1].toString(), "UTF-8");
       }
 
       URL urlobj = new URL(url);
@@ -117,7 +117,7 @@ public class CurationServiceAPI {
   ) {
     String elementIds = "";
     for (Element element : elementList) elementIds +=
-      (elementIds != "" ? "," : "") + element.getElementId();
+    (elementIds != "" ? "," : "") + element.getElementId();
     String result =
       this.query(
           "POST",
@@ -169,7 +169,7 @@ public class CurationServiceAPI {
   ) {
     String elementIds = "";
     for (Element element : elementList) elementIds +=
-      (elementIds != "" ? "," : "") + element.getElementId();
+    (elementIds != "" ? "," : "") + element.getElementId();
     String result =
       this.query(
           "DELETE",

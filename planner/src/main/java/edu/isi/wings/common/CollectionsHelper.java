@@ -12,16 +12,18 @@ public class CollectionsHelper {
    *
    * @return the combined list of variable object bindings
    */
-  public static ArrayList<VariableBindingsList> combineVariableDataObjectMappings(
-    VariableBindingsListSet listset
-  ) {
-    ArrayList<VariableBindingsList> combinedList =
-      new ArrayList<VariableBindingsList>();
+  public static ArrayList<
+    VariableBindingsList
+  > combineVariableDataObjectMappings(VariableBindingsListSet listset) {
+    ArrayList<VariableBindingsList> combinedList = new ArrayList<
+      VariableBindingsList
+    >();
 
     for (ArrayList<VariableBindingsList> list : listset) {
       if (combinedList.isEmpty()) combinedList = list; else {
-        ArrayList<VariableBindingsList> templist =
-          new ArrayList<VariableBindingsList>();
+        ArrayList<VariableBindingsList> templist = new ArrayList<
+          VariableBindingsList
+        >();
         for (VariableBindingsList map1 : combinedList) {
           for (VariableBindingsList map2 : list) {
             VariableBindingsList cmap = new VariableBindingsList();

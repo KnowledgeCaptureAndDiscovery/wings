@@ -309,8 +309,9 @@ public class Wings {
     ArrayList<Template> boundWorkflows,
     String file
   ) {
-    ArrayList<HashMap<String, String>> dataBindings =
-      new ArrayList<HashMap<String, String>>();
+    ArrayList<HashMap<String, String>> dataBindings = new ArrayList<
+      HashMap<String, String>
+    >();
     for (Template boundWorkflow : boundWorkflows) {
       HashMap<String, String> dataBinding = new HashMap<String, String>();
       for (Variable iv : boundWorkflow.getInputVariables()) {
@@ -387,10 +388,12 @@ public class Wings {
     ArrayList<Template> configuredWorkflows,
     String file
   ) {
-    ArrayList<HashMap<String, String>> paramBindings =
-      new ArrayList<HashMap<String, String>>();
-    ArrayList<HashMap<String, Binding>> paramBindings_b =
-      new ArrayList<HashMap<String, Binding>>();
+    ArrayList<HashMap<String, String>> paramBindings = new ArrayList<
+      HashMap<String, String>
+    >();
+    ArrayList<HashMap<String, Binding>> paramBindings_b = new ArrayList<
+      HashMap<String, Binding>
+    >();
 
     for (Template configuredWorkflow : configuredWorkflows) {
       HashMap<String, Binding> paramBinding_b = new HashMap<String, Binding>();
@@ -410,8 +413,10 @@ public class Wings {
         Binding b = paramBinding_b.get(varid);
         if (b.isSet()) {
           for (WingsSet s : b) {
-            HashMap<String, Binding> paramBinding_x =
-              new HashMap<String, Binding>(paramBinding_b);
+            HashMap<String, Binding> paramBinding_x = new HashMap<
+              String,
+              Binding
+            >(paramBinding_b);
             paramBinding_x.put(varid, (Binding) s);
             paramBindings_b.add(paramBinding_x);
           }

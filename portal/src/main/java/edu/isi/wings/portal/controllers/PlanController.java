@@ -376,13 +376,15 @@ public class PlanController {
   private ArrayList<ArrayList<TreeMap<String, Binding>>> getDataBindings(
     VariableBindingsListSet bindingsets
   ) {
-    ArrayList<ArrayList<TreeMap<String, Binding>>> blistsets =
-      new ArrayList<ArrayList<TreeMap<String, Binding>>>();
+    ArrayList<ArrayList<TreeMap<String, Binding>>> blistsets = new ArrayList<
+      ArrayList<TreeMap<String, Binding>>
+    >();
 
     for (ArrayList<VariableBindingsList> bindings : bindingsets) {
       HashMap<String, Boolean> bindingstrs = new HashMap<String, Boolean>();
-      ArrayList<TreeMap<String, Binding>> blist =
-        new ArrayList<TreeMap<String, Binding>>();
+      ArrayList<TreeMap<String, Binding>> blist = new ArrayList<
+        TreeMap<String, Binding>
+      >();
       for (VariableBindingsList binding : bindings) {
         TreeMap<String, Binding> xbindings = new TreeMap<String, Binding>();
 
@@ -412,8 +414,9 @@ public class PlanController {
   private ArrayList<TreeMap<String, Binding>> getParameterBindings(
     ArrayList<Template> cts
   ) {
-    ArrayList<TreeMap<String, Binding>> bindings_b =
-      new ArrayList<TreeMap<String, Binding>>();
+    ArrayList<TreeMap<String, Binding>> bindings_b = new ArrayList<
+      TreeMap<String, Binding>
+    >();
     for (Template bt : cts) {
       TreeMap<String, Binding> binding_b = new TreeMap<String, Binding>();
       for (Variable v : bt.getInputVariables()) {
@@ -426,8 +429,9 @@ public class PlanController {
 
     // Expanding collections into multiple configurations
     // FIXME: Cannot handle parameter collections right now
-    ArrayList<TreeMap<String, Binding>> bindings =
-      new ArrayList<TreeMap<String, Binding>>();
+    ArrayList<TreeMap<String, Binding>> bindings = new ArrayList<
+      TreeMap<String, Binding>
+    >();
     HashMap<String, Boolean> bstrs = new HashMap<String, Boolean>();
     while (!bindings_b.isEmpty()) {
       boolean hasSets = false;
@@ -538,8 +542,10 @@ public class PlanController {
     usermetrics.add(nl);
 
     //FIXME: Hardcoding the coefficients as well for now
-    HashMap<String, HashMap<String, Double>> tcoeffs =
-      new HashMap<String, HashMap<String, Double>>();
+    HashMap<String, HashMap<String, Double>> tcoeffs = new HashMap<
+      String,
+      HashMap<String, Double>
+    >();
     HashMap<String, Double> onlineLDA = new HashMap<String, Double>();
     HashMap<String, Double> parallelLDA = new HashMap<String, Double>();
     HashMap<String, Double> malletLDA = new HashMap<String, Double>();
@@ -578,8 +584,10 @@ public class PlanController {
     ArrayList<String> userparams
   ) {
     // FIXME: Assuming value is Integer
-    HashMap<String, Integer> regressionVariables =
-      new HashMap<String, Integer>();
+    HashMap<String, Integer> regressionVariables = new HashMap<
+      String,
+      Integer
+    >();
     for (Variable v : t.getInputVariables()) {
       if (v.isDataVariable() && v.getBinding() != null) {
         Metrics metrics = v.getBinding().getMetrics();

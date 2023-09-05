@@ -52,7 +52,10 @@ public class ExecutionConfig {
 
   public void addDefaultEngineConfig(PropertyListConfiguration config) {
     // loop engines and add them to config
-    for (Entry<String, ExecutionEngineConfig> entryEngine : this.engines.entrySet()) {
+    for (Entry<
+      String,
+      ExecutionEngineConfig
+    > entryEngine : this.engines.entrySet()) {
       ExecutionEngineConfig engine = entryEngine.getValue();
       config.addProperty("execution.engine(-1).name", engine.getName());
       config.addProperty(

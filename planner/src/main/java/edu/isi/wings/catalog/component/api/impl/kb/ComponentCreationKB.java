@@ -306,9 +306,9 @@ public class ComponentCreationKB
       KBObject compobj = kb.getIndividual(cid);
       KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
       KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
-      int currentVersion = (Integer) (
-        versionVal.getValue() != null ? versionVal.getValue() : 0
-      );
+      int currentVersion = (Integer) (versionVal.getValue() != null
+          ? versionVal.getValue()
+          : 0);
 
       int newVersion = currentVersion + 1;
       KBObject cobj = writerkb.getResource(cid);

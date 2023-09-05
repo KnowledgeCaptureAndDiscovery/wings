@@ -39,8 +39,10 @@ public class PropertiesHelper {
   private static HashMap<String, String> pcnsmap = null;
   private static HashMap<String, String> dcnsmap = null;
 
-  private static HashMap<String, Logger> classLoggers =
-    new HashMap<String, Logger>();
+  private static HashMap<String, Logger> classLoggers = new HashMap<
+    String,
+    Logger
+  >();
 
   private static String ontdir, logdir, resdir, opdir;
 

@@ -91,27 +91,21 @@ public class SetExpression extends ArrayList<SetExpression> {
     int i = 0;
     String str = (op == SetOperator.SHIFT ? "Shift" : "");
     str +=
-      (
-        op == SetOperator.INCREASEDIM
-          ? " ["
-          : (op == SetOperator.REDUCEDIM ? "/" : " (")
-      );
+    (op == SetOperator.INCREASEDIM
+        ? " ["
+        : (op == SetOperator.REDUCEDIM ? "/" : " ("));
     for (SetExpression s : this) {
       if (i > 0) str +=
-        (
-          op == SetOperator.XPRODUCT
-            ? " x "
-            : (op == SetOperator.NWISE ? " || " : " ")
-        );
+      (op == SetOperator.XPRODUCT
+          ? " x "
+          : (op == SetOperator.NWISE ? " || " : " "));
       str += s.toString();
       i++;
     }
     str +=
-      (
-        op == SetOperator.INCREASEDIM
-          ? "]"
-          : (op == SetOperator.REDUCEDIM ? "/" : ")")
-      );
+    (op == SetOperator.INCREASEDIM
+        ? "]"
+        : (op == SetOperator.REDUCEDIM ? "/" : ")"));
     return str;
   }
 }

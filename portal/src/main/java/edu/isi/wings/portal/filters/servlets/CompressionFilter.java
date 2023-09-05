@@ -35,13 +35,9 @@ public class CompressionFilter implements Filter {
           String ctype = request.getHeader("content-type");
           if (
             (ctype != null) &&
-            (
-              (
-                ctype.contains("zip") ||
+            ((ctype.contains("zip") ||
                 ctype.contains("compress") ||
-                ctype.contains("image")
-              )
-            )
+                ctype.contains("image")))
           ) compress = false;
         }
         if (compress) {
