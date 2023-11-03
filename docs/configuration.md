@@ -82,3 +82,11 @@ execution =
         }
     }
 ```
+
+## Publisher
+
+The publisher section of the configuration file describes how the Wings system shares data, execution, and provenance. The following properties are available:
+
+| Name           | Description                                      | Default Value |
+| -------------- | ------------------------------------------------ | ------------- |
+| publisher.data | Location and URI of the WINGS ontology data file | /data         |

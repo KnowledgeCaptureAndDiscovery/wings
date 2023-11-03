@@ -44,7 +44,6 @@ import edu.isi.wings.planner.api.WorkflowGenerationAPI;
 import edu.isi.wings.planner.api.impl.kb.WorkflowGenerationKB;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
-import edu.isi.wings.portal.classes.config.FileUploadServerConfig;
 import edu.isi.wings.portal.classes.config.PublisherConfig;
 import edu.isi.wings.portal.classes.util.ComponentExecutingThread;
 import edu.isi.wings.portal.classes.util.PlanningAPIBindings;
@@ -89,10 +88,7 @@ public class RunController {
   private Properties props;
 
   public static ExecutorService executor;
-  public static HashMap<String, PlanningAPIBindings> apiBindings = new HashMap<
-    String,
-    PlanningAPIBindings
-  >();
+  public static HashMap<String, PlanningAPIBindings> apiBindings = new HashMap<String, PlanningAPIBindings>();
 
   public RunController(ConfigLoader config) {
     this.config = config;
@@ -103,14 +99,13 @@ public class RunController {
 
     if (executor == null) {
       // System.out.println("Parallel:" + config.getPlannerConfig().getParallelism());
-      executor =
-        Executors.newFixedThreadPool(
-          config.portalConfig.getPlannerConfig().getParallelism()
-        );
+      executor = Executors.newFixedThreadPool(
+          config.portalConfig.getPlannerConfig().getParallelism());
     }
   }
 
-  public void end() {}
+  public void end() {
+  }
 
   /**
    * Get the run list json.
@@ -123,58 +118,50 @@ public class RunController {
    * @return
    */
   public String getRunListJSON(
-    String pattern,
-    String status,
-    int start,
-    int limit
-  ) {
+      String pattern,
+      String status,
+      int start,
+      int limit) {
     HashMap<String, Object> result = new HashMap<String, Object>();
     int numberOfRuns = this.getNumberOfRuns(pattern, status, null);
     boolean fasterQuery = numberOfRuns > 1000;
     result.put("success", true);
     result.put("results", numberOfRuns);
     result.put(
-      "rows",
-      this.getRunList(pattern, status, start, limit, fasterQuery)
-    );
+        "rows",
+        this.getRunList(pattern, status, start, limit, fasterQuery));
     return json.toJson(result);
   }
 
   public String getRunListSimpleJSON(
-    String pattern,
-    String status,
-    int start,
-    int limit,
-    Date started_after
-  ) {
+      String pattern,
+      String status,
+      int start,
+      int limit,
+      Date started_after) {
     HashMap<String, Object> result = new HashMap<String, Object>();
     result.put("success", true);
     result.put("results", this.getNumberOfRuns(pattern, status, started_after));
     result.put(
-      "rows",
-      this.getRunListSimple(pattern, status, start, limit, started_after)
-    );
+        "rows",
+        this.getRunListSimple(pattern, status, start, limit, started_after));
     return json.toJson(result);
   }
 
   public ArrayList<HashMap<String, Object>> getRunListSimple(
-    String pattern,
-    String status,
-    int start,
-    int limit,
-    Date started_after
-  ) {
+      String pattern,
+      String status,
+      int start,
+      int limit,
+      Date started_after) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    ArrayList<HashMap<String, Object>> list = new ArrayList<
-      HashMap<String, Object>
-    >();
+    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunListSimple(
-      pattern,
-      status,
-      start,
-      limit,
-      started_after
-    )) {
+        pattern,
+        status,
+        start,
+        limit,
+        started_after)) {
       HashMap<String, Object> map = new HashMap<String, Object>();
       map.put("runtimeInfo", exe.getRuntimeInfo());
       map.put("template_id", exe.getOriginalTemplateID());
@@ -185,23 +172,19 @@ public class RunController {
   }
 
   public ArrayList<HashMap<String, Object>> getRunList(
-    String pattern,
-    String status,
-    int start,
-    int limit,
-    boolean fasterQuery
-  ) {
+      String pattern,
+      String status,
+      int start,
+      int limit,
+      boolean fasterQuery) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    ArrayList<HashMap<String, Object>> list = new ArrayList<
-      HashMap<String, Object>
-    >();
+    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
     for (RuntimePlan exe : monitor.getRunList(
-      pattern,
-      status,
-      start,
-      limit,
-      fasterQuery
-    )) {
+        pattern,
+        status,
+        start,
+        limit,
+        fasterQuery)) {
       HashMap<String, Object> map = new HashMap<String, Object>();
 
       map.put("runtimeInfo", exe.getRuntimeInfo());
@@ -227,10 +210,9 @@ public class RunController {
   }
 
   public int getNumberOfRuns(
-    String pattern,
-    String status,
-    Date started_after
-  ) {
+      String pattern,
+      String status,
+      Date started_after) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
     return monitor.getNumberOfRuns(pattern, status, started_after);
   }
@@ -282,7 +264,8 @@ public class RunController {
 
   private String getPublishedURL(String runid) {
     PublisherConfig publisher = config.portalConfig.getPublisher();
-    if (publisher == null) return null;
+    if (publisher == null)
+      return null;
 
     /* TODO: Return already published url for the run id if possible */
     /*
@@ -306,10 +289,12 @@ public class RunController {
     Map<String, Object> varbindings = new HashMap<String, Object>();
     for (Variable v : tpl.getVariables()) {
       List<Object> constraints = new ArrayList<Object>();
-      if (v.isParameterVariable()) continue;
+      if (v.isParameterVariable())
+        continue;
       for (KBTriple t : tpl.getConstraintEngine().getConstraints(v.getID())) {
         Map<String, Object> cons = new HashMap<String, Object>();
-        if (t.getPredicate().getName().equals("hasDataBinding")) continue;
+        if (t.getPredicate().getName().equals("hasDataBinding"))
+          continue;
         cons.put("p", t.getPredicate().getName());
         cons.put("o", t.getObject());
         constraints.add(cons);
@@ -323,7 +308,8 @@ public class RunController {
     HashMap<String, Object> ret = new HashMap<String, Object>();
     ret.put("success", false);
     JsonElement listel = new JsonParser().parse(rjson);
-    if (listel == null) return json.toJson(ret);
+    if (listel == null)
+      return json.toJson(ret);
 
     if (listel.isJsonObject()) {
       return this.deleteRun(rjson, context);
@@ -336,9 +322,8 @@ public class RunController {
       JsonElement el = list.get(i);
       String runid = el.getAsJsonObject().get("id").getAsString();
       monitor.deleteRun(
-        runid,
-        config.portalConfig.storageConfig.isDeleteRunOutputs()
-      );
+          runid,
+          config.portalConfig.storageConfig.isDeleteRunOutputs());
     }
 
     ret.put("success", true);
@@ -349,16 +334,15 @@ public class RunController {
     HashMap<String, Object> ret = new HashMap<String, Object>();
     ret.put("success", false);
     JsonElement el = new JsonParser().parse(rjson);
-    if (el == null) return json.toJson(ret);
+    if (el == null)
+      return json.toJson(ret);
 
     String runid = el.getAsJsonObject().get("id").getAsString();
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    if (
-      !monitor.deleteRun(
+    if (!monitor.deleteRun(
         runid,
-        config.portalConfig.storageConfig.isDeleteRunOutputs()
-      )
-    ) return json.toJson(ret);
+        config.portalConfig.storageConfig.isDeleteRunOutputs()))
+      return json.toJson(ret);
     /*
      * if (monitor.runExists(runid)) {
      * this.stopRun(runid, context);
@@ -373,13 +357,9 @@ public class RunController {
 
   public boolean stopRun(String runid, ServletContext context) {
     ExecutionMonitorAPI monitor = config.getDomainExecutionMonitor();
-    if (
-      monitor.getRunDetails(runid).getRuntimeInfo().getStatus() ==
-      RuntimeInfo.Status.RUNNING
-    ) {
+    if (monitor.getRunDetails(runid).getRuntimeInfo().getStatus() == RuntimeInfo.Status.RUNNING) {
       PlanExecutionEngine engine = (PlanExecutionEngine) context.getAttribute(
-        "engine_" + runid
-      );
+          "engine_" + runid);
       RuntimePlan rplan = (RuntimePlan) context.getAttribute("plan_" + runid);
       if (engine != null && rplan != null) {
         engine.abort(rplan);
@@ -395,9 +375,8 @@ public class RunController {
    * - Puts the rest of the processing in a Queue to be processed sequentially
    */
   public ArrayList<String> expandAndRunTemplate(
-    TemplateBindings template_bindings,
-    ServletContext context
-  ) {
+      TemplateBindings template_bindings,
+      ServletContext context) {
     // Create a runid
     String ex_prefix = props.getProperty("domain.executions.dir.url");
     String template_id = template_bindings.getTemplateId();
@@ -413,15 +392,14 @@ public class RunController {
     // Submit the planning and execution thread
     try {
       PlanningAndExecutingThread thread = new PlanningAndExecutingThread(
-        ex_prefix,
-        template_id,
-        this.config,
-        config.portalConfig.getPlannerConfig().getMaxQueueSize(),
-        template_bindings,
-        apis,
-        executor,
-        context
-      );
+          ex_prefix,
+          template_id,
+          this.config,
+          config.portalConfig.getPlannerConfig().getMaxQueueSize(),
+          template_bindings,
+          apis,
+          executor,
+          context);
       executor.submit(thread).get();
 
       // Return the runids
@@ -433,12 +411,11 @@ public class RunController {
   }
 
   public Future<?> runComponent(
-    String cid,
-    HashMap<String, Binding> role_bindings,
-    String callbackUrl,
-    Cookie[] callbackCookies,
-    ServletContext context
-  ) {
+      String cid,
+      HashMap<String, Binding> role_bindings,
+      String callbackUrl,
+      Cookie[] callbackCookies,
+      ServletContext context) {
     PlanningAPIBindings apis = null;
     String exPrefix = props.getProperty("domain.executions.dir.url");
     if (apiBindings.containsKey(exPrefix)) {
@@ -450,15 +427,13 @@ public class RunController {
 
     // Submit the planning and execution thread
     return executor.submit(
-      new ComponentExecutingThread(
-        cid,
-        this.config,
-        role_bindings,
-        apis,
-        callbackUrl,
-        callbackCookies
-      )
-    );
+        new ComponentExecutingThread(
+            cid,
+            this.config,
+            role_bindings,
+            apis,
+            callbackUrl,
+            callbackCookies));
   }
 
   public static void invalidateCachedAPIs() {
@@ -466,56 +441,53 @@ public class RunController {
   }
 
   public String runExpandedTemplate(
-    String origtplid,
-    String templatejson,
-    String consjson,
-    String seedjson,
-    String seedconsjson,
-    String callbackUrl,
-    ServletContext context
-  ) {
+      String origtplid,
+      String templatejson,
+      String consjson,
+      String seedjson,
+      String seedconsjson,
+      String callbackUrl,
+      ServletContext context) {
     Gson json = JsonHandler.createTemplateGson();
     Template xtpl = JsonHandler.getTemplateFromJSON(
-      json,
-      templatejson,
-      consjson
-    );
+        json,
+        templatejson,
+        consjson);
     xtpl.autoLayout();
     Template seedtpl = JsonHandler.getTemplateFromJSON(
-      json,
-      seedjson,
-      seedconsjson
-    );
+        json,
+        seedjson,
+        seedconsjson);
 
     return createPlan(origtplid, context, xtpl, seedtpl, callbackUrl);
   }
 
   private String createPlan(
-    String origtplid,
-    ServletContext context,
-    Template xtpl,
-    Template seedtpl,
-    String callbackUrl
-  ) {
+      String origtplid,
+      ServletContext context,
+      Template xtpl,
+      Template seedtpl,
+      String callbackUrl) {
     String requestid = UuidGen.generateAUuid("");
     WorkflowGenerationAPI wg = new WorkflowGenerationKB(
-      props,
-      DataFactory.getReasoningAPI(props),
-      DataFactory.getCreationAPI(props),
-      ComponentFactory.getReasoningAPI(props),
-      ComponentFactory.getCreationAPI(props),
-      ResourceFactory.getAPI(props),
-      requestid
-    );
+        props,
+        DataFactory.getReasoningAPI(props),
+        DataFactory.getCreationAPI(props),
+        ComponentFactory.getReasoningAPI(props),
+        ComponentFactory.getCreationAPI(props),
+        ResourceFactory.getAPI(props),
+        requestid);
 
     ExecutionPlan plan = wg.getExecutionPlan(xtpl);
 
     String seedid = UuidGen.generateURIUuid((URIEntity) seedtpl);
     if (plan != null) {
       // Save the expanded template, seeded template and plan
-      if (!xtpl.save()) return "";
+      if (!xtpl.save())
+        return "";
 
-      if (!seedtpl.saveAs(seedid)) return "";
+      if (!seedtpl.saveAs(seedid))
+        return "";
 
       if (plan.save()) {
         RuntimePlan rplan = new RuntimePlan(plan);
@@ -541,12 +513,11 @@ public class RunController {
     String callbackUrl = plan.getCallbackUrl();
     tc.end();
 
-    if (
-      createPlan(orig_tp_id, context, xtpl, seedtpl, callbackUrl) == ""
-    ) return Response
-      .status(Response.Status.INTERNAL_SERVER_ERROR)
-      .entity("Internal error")
-      .build();
+    if (createPlan(orig_tp_id, context, xtpl, seedtpl, callbackUrl) == "")
+      return Response
+          .status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Internal error")
+          .build();
     return Response.status(Response.Status.CREATED).entity("CREATED").build();
   }
 
@@ -606,11 +577,10 @@ public class RunController {
       // normally, 3xx is redirect
       int status = conn.getResponseCode();
       if (status != HttpURLConnection.HTTP_OK) {
-        if (
-          status == HttpURLConnection.HTTP_MOVED_TEMP ||
-          status == HttpURLConnection.HTTP_MOVED_PERM ||
-          status == HttpURLConnection.HTTP_SEE_OTHER
-        ) redirect = true;
+        if (status == HttpURLConnection.HTTP_MOVED_TEMP ||
+            status == HttpURLConnection.HTTP_MOVED_PERM ||
+            status == HttpURLConnection.HTTP_SEE_OTHER)
+          redirect = true;
       }
 
       if (redirect) {
@@ -622,8 +592,7 @@ public class RunController {
       }
 
       BufferedReader in = new BufferedReader(
-        new InputStreamReader(conn.getInputStream())
-      );
+          new InputStreamReader(conn.getInputStream()));
       String inputLine;
       StringBuffer html = new StringBuffer();
 
@@ -650,157 +619,148 @@ public class RunController {
     ProvenanceResponseSchema response = null;
     if (plan.getRuntimeInfo().getStatus() != Status.SUCCESS) {
       throw new Exception("Can only publish successfully completed runs");
-    } else try {
-      // Mapper opmm = new Mapper();
-      String webServerDirectory = "tmp/";
-      String webServerDomain = "http://localhost";
-      FilePublisher filePublisher = new FilePublisher(
-        webServerDirectory,
-        webServerDomain
-      );
-      String domain = config.getDomainId();
-      String catalogRepositoryDirectory = "domains";
-      String endpointQueryURI =
-        "https://endpoint.mint.isi.edu/provenance/query";
-      String endpointPostURI = "https://endpoint.mint.isi.edu/provenance/query";
-      Publisher publisher = config.getPublisher();
-      ServerDetails publishUrl = publisher.getUploadServer();
-      String tstoreurl = publisher.getTstorePublishUrl();
-      String endpointStoreUri = publisher.getTstoreQueryUrl();
-      String exportPrefix = publisher.getExportName();
-      String exportUrl = publisher.getUrl();
-      String uploadURL = publishUrl.getUrl();
-      String uploadUsername = publishUrl.getUsername();
-      String uploadDirectory = publishUrl.getDirectory();
-      String uploadPassword = publishUrl.getPassword();
-      long uploadMaxSize = publishUrl.getMaxUploadSize();
-
-      String rname = runid.substring(runid.indexOf('#') + 1);
-      // String runurl = opmm.getRunUrl(rname);
-
-      // Fetch expanded template (to get data binding ids)
-      TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
-      Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
-      tc.end();
-
-      HashMap<String, String> varBindings = new HashMap<String, String>();
-      for (Variable var : xtpl.getVariables()) {
-        varBindings.put(var.getID(), var.getBinding().getID());
-      }
-
-      // Create a temporary directory to upload/move
-      File _tmpdir = File.createTempFile("temp", "");
-      File tempdir = new File(_tmpdir.getParent() + "/" + rname);
-      FileUtils.deleteQuietly(tempdir);
-      if (!_tmpdir.delete() || !tempdir.mkdirs()) throw new Exception(
-        "Cannot create temp directory"
-      );
-
-      File datadir = new File(tempdir.getAbsolutePath() + "/data");
-      File codedir = new File(tempdir.getAbsolutePath() + "/code");
-      datadir.mkdirs();
-      codedir.mkdirs();
-
-      /*
-       * String tupurl = upurl + "/" + tempdir.getName();
-       * String dataurl = tupurl + "/data";
-       * String codeurl = tupurl + "/code";
-       * String cdir = props.getProperty("lib.domain.code.storage");
-       * String ddir = props.getProperty("lib.domain.data.storage");
-       */
-
-      FileUtils.deleteQuietly(tempdir);
-
-      // Create the temporal directory to store data, components, workflow and
-      // exection
-      tempdir.mkdirs();
-      File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
-      File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
-      File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
-      File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
-
-      File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
-      File tpl_exportdir = new File(
-        tempdir.getAbsolutePath() + "/export/template"
-      );
-      dcontdir.mkdirs();
-      acontdir.mkdirs();
-      wflowdir.mkdirs();
-      execsdir.mkdirs();
-      run_exportdir.mkdirs();
-      tpl_exportdir.mkdirs();
-
-      // Merge both concrete and abstract component libraries from WINGS
-      String aclib = props.getProperty("lib.concrete.url");
-      String abslib = props.getProperty("lib.abstract.url");
-      // String workflow_lib = props.getProperty("lib.domain.workflow.url");
-
-      String aclibdata = urlToString(new URL(aclib));
-      String abslibdata = urlToString(new URL(abslib));
-      // String workflow_lib_data = urlToString(new URL(workflow_lib));
-
-      abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
-      abslibdata =
-        Pattern
-          .compile("<rdf:RDF.+?>", Pattern.DOTALL)
-          .matcher(abslibdata)
-          .replaceFirst("");
-      abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
-      aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
-
-      String rplandata = urlToString(new URL(runid));
-
-      // write aclibfie and rplanfile
-      aclibdata += abslibdata + "</rdf:RDF>\n";
-      File componentLibraryFilePath = new File(
-        acontdir.getAbsolutePath() + "/library.owl"
-      );
-      File planFilePath = new File(
-        execsdir.getAbsolutePath() + "/" + plan.getName() + ".owl"
-      );
-      FileUtils.write(componentLibraryFilePath, aclibdata);
-      FileUtils.write(planFilePath, rplandata);
-
-      // workflow file?
-      URL otplurl = new URL(plan.getOriginalTemplateID());
-      File otplfile = new File(
-        wflowdir.getAbsolutePath() + "/" + otplurl.getRef() + ".owl"
-      );
-      String otpldata = urlToString(otplurl);
-      FileUtils.write(otplfile, otpldata);
-
-      String executionFilePath = run_exportdir + File.separator + "execution";
-      String expandedTemplateFilePath =
-        run_exportdir + File.separator + "expandedTemplate";
-      String abstractFilePath = run_exportdir + File.separator + "abstract";
-      String serialization = "turtle";
-      File file = new File("tmp/" + serialization);
-      if (!file.exists()) {
-        file.mkdir();
-      }
+    } else
       try {
-        response =
-          Mapper.main(
-            domain,
-            exportPrefix,
-            exportUrl,
-            catalogRepositoryDirectory,
-            componentLibraryFilePath.getAbsolutePath(),
-            planFilePath.getAbsolutePath(),
-            endpointQueryURI,
-            endpointPostURI,
-            executionFilePath,
-            expandedTemplateFilePath,
-            abstractFilePath,
-            filePublisher,
-            serialization
-          );
+        // Mapper opmm = new Mapper();
+        String webServerDirectory = "tmp/";
+        String webServerDomain = "http://localhost";
+        FilePublisher filePublisher = new FilePublisher(
+            webServerDirectory,
+            webServerDomain);
+        String domain = config.getDomainId();
+        String catalogRepositoryDirectory = "domains";
+        String endpointQueryURI = "https://endpoint.mint.isi.edu/provenance/query";
+        String endpointPostURI = "https://endpoint.mint.isi.edu/provenance/query";
+        Publisher publisher = config.getPublisher();
+        ServerDetails publishUrl = publisher.getUploadServer();
+        String tstoreurl = publisher.getTstorePublishUrl();
+        String endpointStoreUri = publisher.getTstoreQueryUrl();
+        String exportPrefix = publisher.getExportName();
+        String exportUrl = publisher.getUrl();
+        String uploadURL = publishUrl.getUrl();
+        String uploadUsername = publishUrl.getUsername();
+        String uploadDirectory = publishUrl.getDirectory();
+        String uploadPassword = publishUrl.getPassword();
+        long uploadMaxSize = publishUrl.getMaxUploadSize();
+
+        String rname = runid.substring(runid.indexOf('#') + 1);
+        // String runurl = opmm.getRunUrl(rname);
+
+        // Fetch expanded template (to get data binding ids)
+        TemplateCreationAPI tc = TemplateFactory.getCreationAPI(props);
+        Template xtpl = tc.getTemplate(plan.getExpandedTemplateID());
+        tc.end();
+
+        HashMap<String, String> varBindings = new HashMap<String, String>();
+        for (Variable var : xtpl.getVariables()) {
+          varBindings.put(var.getID(), var.getBinding().getID());
+        }
+
+        // Create a temporary directory to upload/move
+        File _tmpdir = File.createTempFile("temp", "");
+        File tempdir = new File(_tmpdir.getParent() + "/" + rname);
+        FileUtils.deleteQuietly(tempdir);
+        if (!_tmpdir.delete() || !tempdir.mkdirs())
+          throw new Exception(
+              "Cannot create temp directory");
+
+        File datadir = new File(tempdir.getAbsolutePath() + "/data");
+        File codedir = new File(tempdir.getAbsolutePath() + "/code");
+        datadir.mkdirs();
+        codedir.mkdirs();
+
+        /*
+         * String tupurl = upurl + "/" + tempdir.getName();
+         * String dataurl = tupurl + "/data";
+         * String codeurl = tupurl + "/code";
+         * String cdir = props.getProperty("lib.domain.code.storage");
+         * String ddir = props.getProperty("lib.domain.data.storage");
+         */
+
+        FileUtils.deleteQuietly(tempdir);
+
+        // Create the temporal directory to store data, components, workflow and
+        // exection
+        tempdir.mkdirs();
+        File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
+        File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
+        File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
+        File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
+
+        File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
+        File tpl_exportdir = new File(
+            tempdir.getAbsolutePath() + "/export/template");
+        dcontdir.mkdirs();
+        acontdir.mkdirs();
+        wflowdir.mkdirs();
+        execsdir.mkdirs();
+        run_exportdir.mkdirs();
+        tpl_exportdir.mkdirs();
+
+        // Merge both concrete and abstract component libraries from WINGS
+        String aclib = props.getProperty("lib.concrete.url");
+        String abslib = props.getProperty("lib.abstract.url");
+        // String workflow_lib = props.getProperty("lib.domain.workflow.url");
+
+        String aclibdata = urlToString(new URL(aclib));
+        String abslibdata = urlToString(new URL(abslib));
+        // String workflow_lib_data = urlToString(new URL(workflow_lib));
+
+        abslibdata = abslibdata.replaceFirst("<\\?xml.+?>", "");
+        abslibdata = Pattern
+            .compile("<rdf:RDF.+?>", Pattern.DOTALL)
+            .matcher(abslibdata)
+            .replaceFirst("");
+        abslibdata = abslibdata.replaceFirst("<\\/rdf:RDF>", "");
+        aclibdata = aclibdata.replaceFirst("<\\/rdf:RDF>", "");
+
+        String rplandata = urlToString(new URL(runid));
+
+        // write aclibfie and rplanfile
+        aclibdata += abslibdata + "</rdf:RDF>\n";
+        File componentLibraryFilePath = new File(
+            acontdir.getAbsolutePath() + "/library.owl");
+        File planFilePath = new File(
+            execsdir.getAbsolutePath() + "/" + plan.getName() + ".owl");
+        FileUtils.write(componentLibraryFilePath, aclibdata);
+        FileUtils.write(planFilePath, rplandata);
+
+        // workflow file?
+        URL otplurl = new URL(plan.getOriginalTemplateID());
+        File otplfile = new File(
+            wflowdir.getAbsolutePath() + "/" + otplurl.getRef() + ".owl");
+        String otpldata = urlToString(otplurl);
+        FileUtils.write(otplfile, otpldata);
+
+        String executionFilePath = run_exportdir + File.separator + "execution";
+        String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
+        String abstractFilePath = run_exportdir + File.separator + "abstract";
+        String serialization = "turtle";
+        File file = new File("tmp/" + serialization);
+        if (!file.exists()) {
+          file.mkdir();
+        }
+        try {
+          response = Mapper.main(
+              domain,
+              exportPrefix,
+              exportUrl,
+              catalogRepositoryDirectory,
+              componentLibraryFilePath.getAbsolutePath(),
+              planFilePath.getAbsolutePath(),
+              endpointQueryURI,
+              endpointPostURI,
+              executionFilePath,
+              expandedTemplateFilePath,
+              abstractFilePath,
+              filePublisher,
+              serialization);
+        } catch (Exception e) {
+          throw new Exception("Error publishing run: " + e.getMessage());
+        }
       } catch (Exception e) {
         throw new Exception("Error publishing run: " + e.getMessage());
       }
-    } catch (Exception e) {
-      throw new Exception("Error publishing run: " + e.getMessage());
-    }
     return response;
   }
 
@@ -840,8 +800,7 @@ public class RunController {
    */
   private void publishFile(String tstoreurl, String graphurl, String filepath) {
     System.out.println(
-      "Publishing the filepath " + filepath + " on graph " + graphurl
-    );
+        "Publishing the filepath " + filepath + " on graph " + graphurl);
     try {
       CloseableHttpClient httpClient = HttpClients.createDefault();
       HttpPut putRequest = new HttpPut(tstoreurl + "?graph=" + graphurl);
@@ -850,11 +809,11 @@ public class RunController {
       int timeoutSeconds = 10;
       int CONNECTION_TIMEOUT_MS = timeoutSeconds * 1000;
       RequestConfig requestConfig = RequestConfig
-        .custom()
-        .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
-        .setConnectTimeout(CONNECTION_TIMEOUT_MS)
-        .setSocketTimeout(CONNECTION_TIMEOUT_MS)
-        .build();
+          .custom()
+          .setConnectionRequestTimeout(CONNECTION_TIMEOUT_MS)
+          .setConnectTimeout(CONNECTION_TIMEOUT_MS)
+          .setSocketTimeout(CONNECTION_TIMEOUT_MS)
+          .build();
       putRequest.setConfig(requestConfig);
 
       File file = new File(filepath);
