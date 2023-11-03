@@ -23,8 +23,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import edu.isi.kcap.ontapi.KBTriple;
 import edu.isi.kcap.wings.opmm.Catalog;
+import edu.isi.kcap.wings.opmm.Constants;
 import edu.isi.kcap.wings.opmm.DataTypes.Links;
 import edu.isi.kcap.wings.opmm.DataTypes.ProvenanceResponseSchema;
+import edu.isi.kcap.wings.opmm.Publisher.TriplesPublisher;
 import edu.isi.kcap.wings.opmm.FilePublisher;
 import edu.isi.kcap.wings.opmm.Mapper;
 import edu.isi.kcap.wings.opmm.WorkflowExecutionExport;
@@ -622,28 +624,18 @@ public class RunController {
     } else
       try {
         // Mapper opmm = new Mapper();
-        String webServerDirectory = "tmp/";
+        String webServerDirectory = "/tmp/";
         String webServerDomain = "http://localhost";
-        FilePublisher filePublisher = new FilePublisher(
-            webServerDirectory,
+        FilePublisher.Type type = FilePublisher.Type.FILE_SYSTEM;
+        FilePublisher filePublisher = new FilePublisher(type, webServerDirectory,
             webServerDomain);
         String domain = config.getDomainId();
         String catalogRepositoryDirectory = "domains";
         String endpointQueryURI = "https://endpoint.mint.isi.edu/provenance/query";
         String endpointPostURI = "https://endpoint.mint.isi.edu/provenance/query";
-        Publisher publisher = config.getPublisher();
-        ServerDetails publishUrl = publisher.getUploadServer();
-        String tstoreurl = publisher.getTstorePublishUrl();
-        String endpointStoreUri = publisher.getTstoreQueryUrl();
-        String exportPrefix = publisher.getExportName();
-        String exportUrl = publisher.getUrl();
-        String uploadURL = publishUrl.getUrl();
-        String uploadUsername = publishUrl.getUsername();
-        String uploadDirectory = publishUrl.getDirectory();
-        String uploadPassword = publishUrl.getPassword();
-        long uploadMaxSize = publishUrl.getMaxUploadSize();
+        PublisherConfig publisher = config.portalConfig.getPublisher();
 
-        String rname = runid.substring(runid.indexOf('#') + 1);
+        String runName = runid.substring(runid.indexOf('#') + 1);
         // String runurl = opmm.getRunUrl(rname);
 
         // Fetch expanded template (to get data binding ids)
@@ -658,14 +650,14 @@ public class RunController {
 
         // Create a temporary directory to upload/move
         File _tmpdir = File.createTempFile("temp", "");
-        File tempdir = new File(_tmpdir.getParent() + "/" + rname);
-        FileUtils.deleteQuietly(tempdir);
-        if (!_tmpdir.delete() || !tempdir.mkdirs())
+        File runTmpDirectory = new File(_tmpdir.getParent() + "/" + runName);
+        FileUtils.deleteQuietly(runTmpDirectory);
+        if (!_tmpdir.delete() || !runTmpDirectory.mkdirs())
           throw new Exception(
               "Cannot create temp directory");
 
-        File datadir = new File(tempdir.getAbsolutePath() + "/data");
-        File codedir = new File(tempdir.getAbsolutePath() + "/code");
+        File datadir = new File(runTmpDirectory.getAbsolutePath() + "/data");
+        File codedir = new File(runTmpDirectory.getAbsolutePath() + "/code");
         datadir.mkdirs();
         codedir.mkdirs();
 
@@ -677,19 +669,19 @@ public class RunController {
          * String ddir = props.getProperty("lib.domain.data.storage");
          */
 
-        FileUtils.deleteQuietly(tempdir);
+        FileUtils.deleteQuietly(runTmpDirectory);
 
         // Create the temporal directory to store data, components, workflow and
         // exection
-        tempdir.mkdirs();
-        File dcontdir = new File(tempdir.getAbsolutePath() + "/ont/data");
-        File acontdir = new File(tempdir.getAbsolutePath() + "/ont/components");
-        File wflowdir = new File(tempdir.getAbsolutePath() + "/ont/workflows");
-        File execsdir = new File(tempdir.getAbsolutePath() + "/ont/executions");
+        runTmpDirectory.mkdirs();
+        File dcontdir = new File(runTmpDirectory.getAbsolutePath() + "/ont/data");
+        File acontdir = new File(runTmpDirectory.getAbsolutePath() + "/ont/components");
+        File wflowdir = new File(runTmpDirectory.getAbsolutePath() + "/ont/workflows");
+        File execsdir = new File(runTmpDirectory.getAbsolutePath() + "/ont/executions");
 
-        File run_exportdir = new File(tempdir.getAbsolutePath() + "/export/run");
+        File run_exportdir = new File(runTmpDirectory.getAbsolutePath() + "/export/run");
         File tpl_exportdir = new File(
-            tempdir.getAbsolutePath() + "/export/template");
+            runTmpDirectory.getAbsolutePath() + "/export/template");
         dcontdir.mkdirs();
         acontdir.mkdirs();
         wflowdir.mkdirs();
@@ -735,26 +727,39 @@ public class RunController {
         String executionFilePath = run_exportdir + File.separator + "execution";
         String expandedTemplateFilePath = run_exportdir + File.separator + "expandedTemplate";
         String abstractFilePath = run_exportdir + File.separator + "abstract";
+
+        /**
+         * Publisher configuration
+         */
         String serialization = "turtle";
-        File file = new File("tmp/" + serialization);
-        if (!file.exists()) {
-          file.mkdir();
-        }
+        String exportUrl = "https://opmw.org/";
+        String exportPath = "exportTest";
+        TriplesPublisher executionPublisher = new TriplesPublisher(
+            endpointQueryURI,
+            endpointPostURI,
+            exportUrl,
+            exportPath,
+            serialization);
+
+        TriplesPublisher catalogPublisher = new TriplesPublisher(
+            endpointQueryURI,
+            endpointPostURI,
+            Constants.CATALOG_URI,
+            exportPath,
+            serialization);
+
         try {
           response = Mapper.main(
               domain,
-              exportPrefix,
-              exportUrl,
               catalogRepositoryDirectory,
               componentLibraryFilePath.getAbsolutePath(),
               planFilePath.getAbsolutePath(),
-              endpointQueryURI,
-              endpointPostURI,
               executionFilePath,
               expandedTemplateFilePath,
               abstractFilePath,
               filePublisher,
-              serialization);
+              executionPublisher,
+              catalogPublisher);
         } catch (Exception e) {
           throw new Exception("Error publishing run: " + e.getMessage());
         }

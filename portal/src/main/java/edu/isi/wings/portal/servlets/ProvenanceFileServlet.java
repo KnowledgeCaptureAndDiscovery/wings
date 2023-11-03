@@ -10,15 +10,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import edu.isi.wings.portal.classes.config.ConfigLoader;
+
 public class ProvenanceFileServlet extends HttpServlet {
 
   @Override
-  protected void doGet(
-    HttpServletRequest request,
-    HttpServletResponse response
-  ) throws ServletException, IOException {
-    Config config = new Config(request, null, null);
-    String provenanceDirectoryPath = config.getProvenanceDirectory();
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    ConfigLoader configLoader = new ConfigLoader(request, null, null);
+    // TODO: replace the following with
+    // configLoader.portalConfig.getProvenanceDirectory();
+    String provenanceDirectoryPath = "/tmp" + File.separator + "wings" + File.separator + "provenance";
     File provenanceDirectory = new File(provenanceDirectoryPath);
 
     String requestFile = request.getPathInfo();
@@ -38,15 +40,13 @@ public class ProvenanceFileServlet extends HttpServlet {
     // Set content type and headers for the response
     response.setContentType("application/octet-stream");
     response.setHeader(
-      "Content-Disposition",
-      "attachment; filename=\"" + file.getName() + "\""
-    );
+        "Content-Disposition",
+        "attachment; filename=\"" + file.getName() + "\"");
 
     // Read the file and write its contents to the response output stream
     try (
-      FileInputStream fis = new FileInputStream(filePath);
-      OutputStream out = response.getOutputStream()
-    ) {
+        FileInputStream fis = new FileInputStream(filePath);
+        OutputStream out = response.getOutputStream()) {
       byte[] buffer = new byte[4096];
       int bytesRead;
       while ((bytesRead = fis.read(buffer)) != -1) {
