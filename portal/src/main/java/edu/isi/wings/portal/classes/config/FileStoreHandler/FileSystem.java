@@ -12,6 +12,14 @@ public class FileSystem {
   private static final String PUBLISHER_FILE_STORE_FILE_SYSTEM_DIRECTORY = "publisher.file-store.file-system.directory";
   private String directory;
 
+  public static String getPublisherFileStoreFileSystemDirectory() {
+    return PUBLISHER_FILE_STORE_FILE_SYSTEM_DIRECTORY;
+  }
+
+  public String getDirectory() {
+    return directory;
+  }
+
   public FileSystem(PropertyListConfiguration serverConfig) {
     this.directory = serverConfig.getString(PUBLISHER_FILE_STORE_FILE_SYSTEM_DIRECTORY);
   }

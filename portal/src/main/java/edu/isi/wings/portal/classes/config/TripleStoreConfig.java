@@ -15,17 +15,21 @@ public class TripleStoreConfig {
   private static final String PUBLISHER_SPARQL_DOMAINS_DIRECTORY_KEY = "publisher.triple-store.domains-directory";
   private static final String PUBLISHER_ENDPOINT_QUERY_KEY = "publisher.triple-store.query";
   private static final String PUBLISHER_ENDPOINT_POST_KEY = "publisher.triple-store.publish";
-  private static final String PUBLISHER_GRAPH_NAME = "publisher.triple-store.graph-name";
+  private static final String PUBLISHER_EXPORT_URL = "publisher.triple-store.export-url";
+  private static final String PUBLISHER_EXPORT_NAME = "publisher.triple-store.export-name";
 
   String publishUrl;
   String queryUrl;
-  String graphName;
+  String exportName;
+  String exportUrl;
+
   String domainsDir;
 
   public TripleStoreConfig(PropertyListConfiguration serverConfig) {
     this.publishUrl = serverConfig.getString(PUBLISHER_ENDPOINT_POST_KEY);
     this.queryUrl = serverConfig.getString(PUBLISHER_ENDPOINT_QUERY_KEY);
-    this.graphName = serverConfig.getString(PUBLISHER_GRAPH_NAME);
+    this.exportName = serverConfig.getString(PUBLISHER_EXPORT_NAME);
+    this.exportUrl = serverConfig.getString(PUBLISHER_EXPORT_URL);
     this.domainsDir = serverConfig.getString(PUBLISHER_SPARQL_DOMAINS_DIRECTORY_KEY);
   }
 
@@ -37,11 +41,16 @@ public class TripleStoreConfig {
     return queryUrl;
   }
 
-  public String getGraphName() {
-    return graphName;
+  public String getExportPath() {
+    return exportName;
   }
 
   public String getDomainsDir() {
     return domainsDir;
   }
+
+  public String getExportUrl() {
+    return exportUrl;
+  }
+
 }

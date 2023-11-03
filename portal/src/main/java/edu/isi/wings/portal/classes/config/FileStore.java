@@ -24,6 +24,22 @@ public class FileStore {
   SecureShell ssh;
   Http http;
 
+  public FileStore.Type getType() {
+    return type;
+  }
+
+  public FileSystem getFileSystem() {
+    return fileSystem;
+  }
+
+  public SecureShell getSsh() {
+    return ssh;
+  }
+
+  public Http getHttp() {
+    return http;
+  }
+
   public FileStore(PropertyListConfiguration serverConfig) {
     this.type = FileStore.Type.valueOf(serverConfig.getString(PUBLISHER_FILE_STORE_TYPE));
     switch (this.type) {

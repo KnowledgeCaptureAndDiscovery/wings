@@ -87,6 +87,41 @@ execution =
 
 The publisher section of the configuration file describes how the Wings system shares data, execution, and provenance. The following properties are available:
 
-| Name           | Description                                      | Default Value |
-| -------------- | ------------------------------------------------ | ------------- |
-| publisher.data | Location and URI of the WINGS ontology data file | /data         |
+```
+    publisher =
+    {
+        file-store=
+        {
+            url = "https://publisher.mint.isi.edu";
+            type = "FILE_SYSTEM";
+        }
+        triple-store = {
+            export-name = "exportTest";
+            export-url = "https://opmw.org/";
+            publish = https://endpoint.mint.isi.edu/provenance/data;
+            query = https://endpoint.mint.isi.edu/provenance/query;
+            domains-directory = /opt/wings/storage/default;
+        }
+    }
+```
+
+### File store
+
+The file store section of the configuration file describes how the Wings system shares data. The following properties are available:
+
+| Name                      | Description                       | Default Value |
+| ------------------------- | --------------------------------- | ------------- |
+| publisher.file-store.url  | URI where the files are published |               |
+| publisher.file-store.type | Type of file store (FILE_SYSTEM)  | FILE_SYSTEM   |
+
+### Triple store
+
+The triple store section of the configuration file describes how the Wings system shares execution and provenance. The following properties are available:
+
+| Name                                     | Description                            | Default Value                                  |
+| ---------------------------------------- | -------------------------------------- | ---------------------------------------------- |
+| publisher.triple-store.export-name       | Name of the export (exportTest)        | exportTest                                     |
+| publisher.triple-store.export-url        | URI where the files are published      | https://opmw.org/                              |
+| publisher.triple-store.publish           | URI where the provenance is published  | https://endpoint.mint.isi.edu/provenance/data  |
+| publisher.triple-store.query             | URI where the provenance is queried    | https://endpoint.mint.isi.edu/provenance/query |
+| publisher.triple-store.domains-directory | Directory where the domains are stored | /opt/wings/storage/default                     |

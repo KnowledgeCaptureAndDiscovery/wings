@@ -78,6 +78,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.jena.base.Sys;
+import org.apache.jena.riot.Lang;
 
 public class RunController {
 
@@ -631,8 +632,6 @@ public class RunController {
             webServerDomain);
         String domain = config.getDomainId();
         String catalogRepositoryDirectory = "domains";
-        String endpointQueryURI = "https://endpoint.mint.isi.edu/provenance/query";
-        String endpointPostURI = "https://endpoint.mint.isi.edu/provenance/query";
         PublisherConfig publisher = config.portalConfig.getPublisher();
 
         String runName = runid.substring(runid.indexOf('#') + 1);
@@ -731,9 +730,11 @@ public class RunController {
         /**
          * Publisher configuration
          */
-        String serialization = "turtle";
-        String exportUrl = "https://opmw.org/";
-        String exportPath = "exportTest";
+        Lang serialization = Lang.TURTLE;
+        String exportUrl = config.portalConfig.getPublisher().getTripleStore().getExportUrl();
+        String exportPath = config.portalConfig.getPublisher().getTripleStore().getExportPath();
+        String endpointQueryURI = config.portalConfig.getPublisher().getTripleStore().getQueryUrl();
+        String endpointPostURI = config.portalConfig.getPublisher().getTripleStore().getPublishUrl();
         TriplesPublisher executionPublisher = new TriplesPublisher(
             endpointQueryURI,
             endpointPostURI,
