@@ -1,10 +1,14 @@
 package edu.isi.wings.portal.resources;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
+import edu.isi.kcap.wings.opmm.DataTypes.Links;
+import edu.isi.kcap.wings.opmm.DataTypes.ProvenanceResponseSchema;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.portal.controllers.RunController;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.FormParam;
@@ -182,7 +186,17 @@ public class RunResource extends WingsResource {
   @Path("publishRun")
   @Produces(MediaType.TEXT_PLAIN)
   public String publishRun(@FormParam("run_id") String run_id) {
-    if (this.rc != null) return this.rc.publishRun(run_id);
+    if (this.rc != null) {
+      try {
+        ProvenanceResponseSchema responseQuery = this.rc.publishRun(run_id);
+        Gson gson = new Gson();
+        String json = gson.toJson(responseQuery);
+        return json;
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
     return null;
   }
 }

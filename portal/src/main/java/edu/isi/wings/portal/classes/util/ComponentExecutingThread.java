@@ -98,8 +98,10 @@ public class ComponentExecutingThread implements Runnable {
     code.setCodeDirectory(invocation.getComponentDirectory());
     step.setCodeBinding(code);
 
-    HashMap<String, ArrayList<Object>> argMaps =
-      new HashMap<String, ArrayList<Object>>();
+    HashMap<String, ArrayList<Object>> argMaps = new HashMap<
+      String,
+      ArrayList<Object>
+    >();
     for (ComponentInvocation.Argument arg : invocation.getArguments()) {
       ArrayList<Object> cur = argMaps.get(arg.getName());
       if (cur == null) cur = new ArrayList<Object>();

@@ -80,8 +80,10 @@ public class OODTWorkflowAdapter {
   public Workflow runWorkflow(RuntimePlan planexe, Metadata meta)
     throws Exception {
     // Get List of all Jobs
-    HashMap<String, WorkflowTask> tasksById =
-      new HashMap<String, WorkflowTask>();
+    HashMap<String, WorkflowTask> tasksById = new HashMap<
+      String,
+      WorkflowTask
+    >();
     HashMap<String, String> opProducers = new HashMap<String, String>();
     HashMap<String, String> taskJobs = new HashMap<String, String>();
     for (RuntimeStep stepexe : planexe.getQueue().getAllSteps()) {
@@ -117,8 +119,10 @@ public class OODTWorkflowAdapter {
     }
 
     // Get Parent Child Relationship between jobs
-    HashMap<String, ArrayList<String>> parents =
-      new HashMap<String, ArrayList<String>>();
+    HashMap<String, ArrayList<String>> parents = new HashMap<
+      String,
+      ArrayList<String>
+    >();
     for (RuntimeStep stepexe : planexe.getQueue().getAllSteps()) {
       ExecutionStep step = stepexe.getStep();
       ArrayList<String> chparents = parents.get(stepexe.getName());
@@ -132,8 +136,10 @@ public class OODTWorkflowAdapter {
     }
 
     // Arrange Jobs into Job Levels
-    TreeMap<Integer, ArrayList<String>> jobLevels =
-      new TreeMap<Integer, ArrayList<String>>();
+    TreeMap<Integer, ArrayList<String>> jobLevels = new TreeMap<
+      Integer,
+      ArrayList<String>
+    >();
     for (String jobid : tasksById.keySet()) {
       Integer lvl = new Integer(getJobLevel(jobid, 0, parents));
       ArrayList<String> lvljobs;

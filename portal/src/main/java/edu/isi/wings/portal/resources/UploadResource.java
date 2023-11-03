@@ -53,7 +53,7 @@ public class UploadResource extends WingsResource {
     boolean isComponent = false;
     String storageDir = dom.getDomainDirectory() + "/";
     if ("data".equals(type)) storageDir +=
-      dom.getDataLibrary().getStorageDirectory(); else if (
+    dom.getDataLibrary().getStorageDirectory(); else if (
       "component".equals(type)
     ) {
       storageDir += dom.getConcreteComponentLibrary().getStorageDirectory();

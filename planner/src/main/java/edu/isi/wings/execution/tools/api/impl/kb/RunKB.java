@@ -228,25 +228,19 @@ public class RunKB
       "?run exec:hasExecutionStatus ?status .\n" +
       "?run exec:hasTemplate ?template .\n" +
       "?run exec:hasStartTime ?start .\n" +
-      (
-        status != null
+      (status != null
           ? "?run exec:hasExecutionStatus '" + status + "') .\n"
-          : ""
-      ) +
-      (
-        starttime != null
+          : "") +
+      (starttime != null
           ? "FILTER(?start > '" + starttime + "'^^xsd:dateTime) .\n"
-          : ""
-      ) +
-      (
-        pattern != null
+          : "") +
+      (pattern != null
           ? "FILTER REGEX(str(?template), '" +
           newtplurl +
           ".*" +
           pattern +
           ".*') .\n"
-          : ""
-      ) +
+          : "") +
       "FILTER REGEX(str(?run), '" +
       newrunurl +
       "') .\n" +
@@ -289,25 +283,19 @@ public class RunKB
       "?run exec:hasExecutionStatus ?status .\n" +
       "?run exec:hasTemplate ?template .\n" +
       "?run exec:hasStartTime ?start .\n" +
-      (
-        status != null
+      (status != null
           ? "?run exec:hasExecutionStatus '" + status + "') .\n"
-          : ""
-      ) +
-      (
-        starttime != null
+          : "") +
+      (starttime != null
           ? "FILTER(?start > '" + starttime + "'^^xsd:dateTime) .\n"
-          : ""
-      ) +
-      (
-        pattern != null
+          : "") +
+      (pattern != null
           ? "FILTER REGEX(str(?template), '" +
           newtplurl +
           ".*" +
           pattern +
           ".*') .\n"
-          : ""
-      ) +
+          : "") +
       "FILTER REGEX(str(?run), '" +
       newrunurl +
       "') .\n";
@@ -385,41 +373,40 @@ public class RunKB
 
     if (status == null || status.equals("SUCCESS")) {
       query +=
-        // Query for Successful runs
-        "{\n" +
-        " ?run exec:hasExecutionStatus 'SUCCESS' .\n" +
-        " ?run exec:hasEndTime ?end .\n" +
-        "}\n";
+      // Query for Successful runs
+      "{\n" +
+      " ?run exec:hasExecutionStatus 'SUCCESS' .\n" +
+      " ?run exec:hasEndTime ?end .\n" +
+      "}\n";
     }
     if (status == null || status.equals("FAILURE")) {
       if (status == null) query += "UNION\n";
       query +=
-        // Query for Failures
-        "{\n" +
-        " ?run exec:hasExecutionStatus 'FAILURE' .\n" +
-        " ?run exec:hasEndTime ?end .\n" +
-        // FIXME: Removing this as we could have failures without any steps
-        /*" ?run exec:hasStep ?step .\n" + 
+      // Query for Failures
+      "{\n" +
+      " ?run exec:hasExecutionStatus 'FAILURE' .\n" +
+      " ?run exec:hasEndTime ?end .\n" +
+      // FIXME: Removing this as we could have failures without any steps
+      /*" ?run exec:hasStep ?step .\n" + 
           (fasterQuery ? " ?step exec:hasExecutionStatus 'FAILURE' .\n": "") + 
           " ?step exec:hasExecutionStatus ?stepstatus .\n" +*/
-        "}\n";
+      "}\n";
     }
     if (status == null || status.equals("RUNNING")) {
       if (status == null) query += "UNION\n";
       query +=
-        // Query for Failures
-        "{\n" +
-        " ?run exec:hasExecutionStatus 'RUNNING' .\n" +
-        " ?run exec:hasStep ?step .\n" +
-        (fasterQuery ? " ?step exec:hasExecutionStatus 'RUNNING' .\n" : "") +
-        " ?step exec:hasExecutionStatus ?stepstatus .\n" +
-        "}\n";
+      // Query for Failures
+      "{\n" +
+      " ?run exec:hasExecutionStatus 'RUNNING' .\n" +
+      " ?run exec:hasStep ?step .\n" +
+      (fasterQuery ? " ?step exec:hasExecutionStatus 'RUNNING' .\n" : "") +
+      " ?step exec:hasExecutionStatus ?stepstatus .\n" +
+      "}\n";
     }
     query += "}\n";
 
     query +=
-      "GROUP BY ?run ?status ?template ?start ?end \n" +
-      "ORDER BY DESC(?start)";
+    "GROUP BY ?run ?status ?template ?start ?end \n" + "ORDER BY DESC(?start)";
 
     if (limit >= 0 && start >= 0) {
       query += " LIMIT " + limit + " OFFSET " + start;
@@ -582,10 +569,8 @@ public class RunKB
     RuntimeInfo.Status status = rplan.getRuntimeInfo().getStatus();
     if (
       details ||
-      (
-        status == RuntimeInfo.Status.FAILURE ||
-        status == RuntimeInfo.Status.RUNNING
-      )
+      (status == RuntimeInfo.Status.FAILURE ||
+        status == RuntimeInfo.Status.RUNNING)
     ) {
       try {
         KBAPI tkb = this.ontologyFactory.getKB(rplan.getURL(), OntSpec.PLAIN);
@@ -1042,8 +1027,10 @@ public class RunKB
         planexe.setPlan(newplan);
 
         // Hash steps from current queue
-        HashMap<String, RuntimeStep> stepMap =
-          new HashMap<String, RuntimeStep>();
+        HashMap<String, RuntimeStep> stepMap = new HashMap<
+          String,
+          RuntimeStep
+        >();
         for (RuntimeStep step : planexe.getQueue().getAllSteps()) stepMap.put(
           step.getID(),
           step

@@ -53,14 +53,22 @@ public class ComponentReasoningKB
   private boolean useRules = true;
 
   private HashMap<String, Component> ccache = new HashMap<String, Component>();
-  private HashMap<String, KBRuleList> rulescache =
-    new HashMap<String, KBRuleList>();
-  private HashMap<String, ArrayList<String>> abscache =
-    new HashMap<String, ArrayList<String>>();
-  private HashMap<String, ArrayList<KBObject>> classcache =
-    new HashMap<String, ArrayList<KBObject>>();
-  private HashMap<String, ArrayList<KBTriple>> kbcache =
-    new HashMap<String, ArrayList<KBTriple>>();
+  private HashMap<String, KBRuleList> rulescache = new HashMap<
+    String,
+    KBRuleList
+  >();
+  private HashMap<String, ArrayList<String>> abscache = new HashMap<
+    String,
+    ArrayList<String>
+  >();
+  private HashMap<String, ArrayList<KBObject>> classcache = new HashMap<
+    String,
+    ArrayList<KBObject>
+  >();
+  private HashMap<String, ArrayList<KBTriple>> kbcache = new HashMap<
+    String,
+    ArrayList<KBTriple>
+  >();
 
   private ArrayList<KBTriple> metricTriples;
   private ArrayList<KBObject> metricProps;
@@ -897,8 +905,10 @@ public class ComponentReasoningKB
           );
 
       // Keep a map of variable object to variable name
-      HashMap<Variable, String> variableNameMap =
-        new HashMap<Variable, String>();
+      HashMap<Variable, String> variableNameMap = new HashMap<
+        Variable,
+        String
+      >();
 
       for (String rolestr : sRoleMap.keySet()) {
         Variable var = sRoleMap.get(rolestr);
@@ -926,8 +936,10 @@ public class ComponentReasoningKB
 
       // Get a mapping of ArgID's to arg for the Component
       // Also note which roles are inputs
-      HashMap<String, ComponentRole> argMaps =
-        new HashMap<String, ComponentRole>();
+      HashMap<String, ComponentRole> argMaps = new HashMap<
+        String,
+        ComponentRole
+      >();
       HashMap<String, Boolean> sInputRoles = new HashMap<String, Boolean>();
       for (ComponentRole role : comp.getInputs()) {
         argMaps.put(role.getRoleName(), role);
@@ -1199,8 +1211,9 @@ public class ComponentReasoningKB
 
           // Marking all compatible inputs to be passed through to the output.
           // Note: If not all outputs have a matching input, then component is still run and not skipped
-          ArrayList<ComponentRole> matchingInputs =
-            new ArrayList<ComponentRole>();
+          ArrayList<ComponentRole> matchingInputs = new ArrayList<
+            ComponentRole
+          >();
           for (ComponentRole inrole : comp.getInputs()) {
             if (!inrole.isParam()) {
               if (checkTypeCompatibility(varclasses, inrole.getID())) {
@@ -1261,11 +1274,9 @@ public class ComponentReasoningKB
       for (Variable var : sRoleMap.values()) {
         if (
           var.isParameterVariable() &&
-          (
-            noParamBindings.containsKey(var.getID()) ||
+          (noParamBindings.containsKey(var.getID()) ||
             var.getBinding() == null ||
-            var.getBinding().getValue() == null
-          )
+            var.getBinding().getValue() == null)
         ) {
           KBObject varobj = tkb.getResource(variableNameMap.get(var));
           KBObject origvarobj = tkb.getResource(var.getID());

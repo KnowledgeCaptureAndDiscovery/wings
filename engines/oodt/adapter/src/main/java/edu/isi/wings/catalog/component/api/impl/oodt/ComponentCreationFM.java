@@ -68,10 +68,14 @@ public class ComponentCreationFM implements ComponentCreationAPI {
 
   OntFactory ontologyFactory;
 
-  private static HashMap<String, String> compHolders =
-    new HashMap<String, String>();
-  private static HashMap<String, Metadata> compMeta =
-    new HashMap<String, Metadata>();
+  private static HashMap<String, String> compHolders = new HashMap<
+    String,
+    String
+  >();
+  private static HashMap<String, Metadata> compMeta = new HashMap<
+    String,
+    Metadata
+  >();
 
   public ComponentCreationFM(Properties props) {
     this.fmurl = props.getProperty("oodt.fmurl");
@@ -102,8 +106,10 @@ public class ComponentCreationFM implements ComponentCreationAPI {
     String rootid = this.absurl + "#Component";
     ComponentHolder rootholder = new ComponentHolder(rootid);
     ComponentTreeNode rootnode = new ComponentTreeNode(rootholder);
-    HashMap<String, ComponentTreeNode> tnmap =
-      new HashMap<String, ComponentTreeNode>();
+    HashMap<String, ComponentTreeNode> tnmap = new HashMap<
+      String,
+      ComponentTreeNode
+    >();
     HashMap<String, String> pmap = this.curatorApi.getParentTypeMap();
     try {
       for (ProductType ptype : this.fmclient.getProductTypes()) {

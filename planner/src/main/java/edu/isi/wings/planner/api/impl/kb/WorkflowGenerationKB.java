@@ -208,8 +208,10 @@ public class WorkflowGenerationKB
     ArrayList<Template> processedTemplates = new ArrayList<Template>();
     // ArrayList<Template> rejectedTemplates = new ArrayList<Template>();
 
-    HashMap<Template, ArrayList<String>> done =
-      new HashMap<Template, ArrayList<String>>();
+    HashMap<Template, ArrayList<String>> done = new HashMap<
+      Template,
+      ArrayList<String>
+    >();
 
     if (template == null) return templates;
 
@@ -329,8 +331,9 @@ public class WorkflowGenerationKB
           sentMapsComponentDetails
         );
 
-        ArrayList<ComponentPacket> componentDetailsList =
-          new ArrayList<ComponentPacket>();
+        ArrayList<ComponentPacket> componentDetailsList = new ArrayList<
+          ComponentPacket
+        >();
         for (ComponentPacket cmr : allcmrs) {
           this.addExplanations(cmr.getExplanations());
           if (!cmr.getInvalidFlag()) componentDetailsList.add(cmr); else {
@@ -351,8 +354,9 @@ public class WorkflowGenerationKB
           break;
         } else {
           if (logger.isInfoEnabled()) {
-            ArrayList<ComponentVariable> components =
-              new ArrayList<ComponentVariable>();
+            ArrayList<ComponentVariable> components = new ArrayList<
+              ComponentVariable
+            >();
             for (ComponentPacket componentMapsAndRequirement : componentDetailsList) {
               components.add(componentMapsAndRequirement.getComponent());
             }
@@ -466,12 +470,18 @@ public class WorkflowGenerationKB
     ArrayList<String> inputVariableIds = new ArrayList<String>();
     ArrayList<String> nonCollectionIds = new ArrayList<String>();
 
-    HashMap<String, HashSet<String>> varUserBindings =
-      new HashMap<String, HashSet<String>>();
-    HashMap<String, ArrayList<String>> varEquality =
-      new HashMap<String, ArrayList<String>>();
-    HashMap<String, ArrayList<String>> varInequality =
-      new HashMap<String, ArrayList<String>>();
+    HashMap<String, HashSet<String>> varUserBindings = new HashMap<
+      String,
+      HashSet<String>
+    >();
+    HashMap<String, ArrayList<String>> varEquality = new HashMap<
+      String,
+      ArrayList<String>
+    >();
+    HashMap<String, ArrayList<String>> varInequality = new HashMap<
+      String,
+      ArrayList<String>
+    >();
 
     for (Variable inputVariable : inputVariables) {
       if (inputVariable.isDataVariable()) {
@@ -648,12 +658,18 @@ public class WorkflowGenerationKB
     );
 
     // Extract dependent variables
-    HashMap<String, HashSet<String>> varGroups =
-      new HashMap<String, HashSet<String>>();
-    HashMap<String, HashSet<String>> varDeps =
-      new HashMap<String, HashSet<String>>();
-    HashMap<String, HashSet<String>> depVars =
-      new HashMap<String, HashSet<String>>();
+    HashMap<String, HashSet<String>> varGroups = new HashMap<
+      String,
+      HashSet<String>
+    >();
+    HashMap<String, HashSet<String>> varDeps = new HashMap<
+      String,
+      HashSet<String>
+    >();
+    HashMap<String, HashSet<String>> depVars = new HashMap<
+      String,
+      HashSet<String>
+    >();
     ArrayList<String> inputVariableIds = new ArrayList<String>();
 
     for (Variable variable : specializedTemplate.getInputVariables()) {
@@ -759,8 +775,10 @@ public class WorkflowGenerationKB
     Template specializedTemplate,
     VariableBindingsList bindings
   ) {
-    HashMap<String, ArrayList<String>> variableBindings =
-      new HashMap<String, ArrayList<String>>();
+    HashMap<String, ArrayList<String>> variableBindings = new HashMap<
+      String,
+      ArrayList<String>
+    >();
 
     Template t = specializedTemplate.createCopy();
     t.setID(UuidGen.generateURIUuid((URIEntity) t));
@@ -853,8 +871,10 @@ public class WorkflowGenerationKB
   public void setDataMetricsForInputDataObjects(
     ArrayList<Template> partialCandidateInstances
   ) {
-    HashMap<String, Metrics> dataObjectNameToDataMetricsMap =
-      new HashMap<String, Metrics>();
+    HashMap<String, Metrics> dataObjectNameToDataMetricsMap = new HashMap<
+      String,
+      Metrics
+    >();
     LogEvent event = curLogEvent;
 
     for (Template partialCandidateInstance : partialCandidateInstances) {
@@ -888,8 +908,10 @@ public class WorkflowGenerationKB
     ArrayList<Template> templates = new ArrayList<Template>();
     ArrayList<Template> processedTemplates = new ArrayList<Template>();
 
-    HashMap<Template, ArrayList<String>> done =
-      new HashMap<Template, ArrayList<String>>();
+    HashMap<Template, ArrayList<String>> done = new HashMap<
+      Template,
+      ArrayList<String>
+    >();
 
     Template t = template.createCopy();
     t.setID(UuidGen.generateURIUuid((URIEntity) t));
@@ -952,12 +974,18 @@ public class WorkflowGenerationKB
               continue;
             }
 
-            HashMap<String, String> prospectiveIds =
-              new HashMap<String, String>();
-            HashMap<String, String> portVariableIds =
-              new HashMap<String, String>();
-            HashMap<String, String> opPortVariableIds =
-              new HashMap<String, String>();
+            HashMap<String, String> prospectiveIds = new HashMap<
+              String,
+              String
+            >();
+            HashMap<String, String> portVariableIds = new HashMap<
+              String,
+              String
+            >();
+            HashMap<String, String> opPortVariableIds = new HashMap<
+              String,
+              String
+            >();
 
             // Add all output links to queue
             // Set temporary output dataset id
@@ -1242,8 +1270,10 @@ public class WorkflowGenerationKB
         "INFO: --------- Getting an inferred template ---------"
       );
 
-    HashMap<Template, ArrayList<String>> done =
-      new HashMap<Template, ArrayList<String>>();
+    HashMap<Template, ArrayList<String>> done = new HashMap<
+      Template,
+      ArrayList<String>
+    >();
 
     Template currentTemplate = template.createCopy();
     currentTemplate.setID(UuidGen.generateURIUuid((URIEntity) template));
@@ -1532,8 +1562,10 @@ public class WorkflowGenerationKB
       HashMap<String, String> dparents = dtree.getParents();
 
       HashMap<Node, ExecutionStep> nodeMap = new HashMap<Node, ExecutionStep>();
-      HashMap<ExecutionStep, Node> sensorNodeMap =
-        new HashMap<ExecutionStep, Node>();
+      HashMap<ExecutionStep, Node> sensorNodeMap = new HashMap<
+        ExecutionStep,
+        Node
+      >();
 
       for (Node n : template.getNodes()) {
         // If this is an inactive node
@@ -1590,8 +1622,10 @@ public class WorkflowGenerationKB
                   bin.getLocation() + ExecutionFile.metaExtension
                 );
 
-                LinkedHashMap<Role, Variable> roleMap =
-                  new LinkedHashMap<Role, Variable>();
+                LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<
+                  Role,
+                  Variable
+                >();
                 ArrayList<ComponentRole> inroles = c.getInputs();
                 ArrayList<ComponentRole> outroles = c.getOutputs();
                 if (inroles.size() == 1 && outroles.size() == 1) {
@@ -1630,8 +1664,10 @@ public class WorkflowGenerationKB
           continue;
         }
 
-        LinkedHashMap<Role, Variable> roleMap =
-          new LinkedHashMap<Role, Variable>();
+        LinkedHashMap<Role, Variable> roleMap = new LinkedHashMap<
+          Role,
+          Variable
+        >();
         for (Link outputLink : template.getOutputLinks(n)) {
           Role or = outputLink.getOriginPort().getRole();
           Role r = new Role(or.getID());
@@ -1732,8 +1768,10 @@ public class WorkflowGenerationKB
     code.setCodeDirectory(invocation.getComponentDirectory());
     step.setCodeBinding(code);
 
-    HashMap<String, ArrayList<Object>> argMaps =
-      new HashMap<String, ArrayList<Object>>();
+    HashMap<String, ArrayList<Object>> argMaps = new HashMap<
+      String,
+      ArrayList<Object>
+    >();
     for (ComponentInvocation.Argument arg : invocation.getArguments()) {
       ArrayList<Object> cur = argMaps.get(arg.getName());
       if (cur == null) cur = new ArrayList<Object>();
@@ -2352,12 +2390,16 @@ public class WorkflowGenerationKB
     ArrayList<String> groupByVarIds,
     ArrayList<String> variableIds
   ) {
-    HashMap<String, VariableBindingsList> bindingsByGroupByVarIds =
-      new HashMap<String, VariableBindingsList>();
+    HashMap<String, VariableBindingsList> bindingsByGroupByVarIds = new HashMap<
+      String,
+      VariableBindingsList
+    >();
 
     for (VariableBindingsList mapping : listsOfVariableDataObjectMappings) {
-      HashMap<String, ArrayList<KBObject>> varBindings =
-        new HashMap<String, ArrayList<KBObject>>();
+      HashMap<String, ArrayList<KBObject>> varBindings = new HashMap<
+        String,
+        ArrayList<KBObject>
+      >();
       for (VariableBindings dvobinding : mapping) {
         KBObject dv = dvobinding.getDataVariable();
         ArrayList<KBObject> objs = new ArrayList<KBObject>(
@@ -2391,8 +2433,9 @@ public class WorkflowGenerationKB
       }
       bindingsByGroupByVarIds.put(groupKey, om);
     }
-    ArrayList<VariableBindingsList> groupedList =
-      new ArrayList<VariableBindingsList>();
+    ArrayList<VariableBindingsList> groupedList = new ArrayList<
+      VariableBindingsList
+    >();
     for (VariableBindingsList vals : bindingsByGroupByVarIds.values()) {
       groupedList.add(vals);
     }
@@ -2414,8 +2457,9 @@ public class WorkflowGenerationKB
     ArrayList<VariableBindingsList> listsOfVariableDataObjectMappings,
     ArrayList<String> variableIds
   ) {
-    ArrayList<VariableBindingsList> newlist =
-      new ArrayList<VariableBindingsList>();
+    ArrayList<VariableBindingsList> newlist = new ArrayList<
+      VariableBindingsList
+    >();
 
     for (VariableBindingsList mapping : listsOfVariableDataObjectMappings) {
       VariableBindingsList newmap = new VariableBindingsList();
@@ -2447,8 +2491,9 @@ public class WorkflowGenerationKB
     HashMap<String, ArrayList<String>> varEquality,
     HashMap<String, ArrayList<String>> varInequality
   ) {
-    ArrayList<VariableBindingsList> filteredList =
-      new ArrayList<VariableBindingsList>();
+    ArrayList<VariableBindingsList> filteredList = new ArrayList<
+      VariableBindingsList
+    >();
 
     for (VariableBindingsList mapping : fullList) {
       HashMap<String, String> varBindings = new HashMap<String, String>();

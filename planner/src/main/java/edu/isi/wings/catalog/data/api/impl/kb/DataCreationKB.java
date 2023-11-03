@@ -137,8 +137,10 @@ public class DataCreationKB extends DataKB implements DataCreationAPI {
 
   @Override
   public HashMap<String, ArrayList<String>> getAllDatatypeDatasets() {
-    HashMap<String, ArrayList<String>> typedata =
-      new HashMap<String, ArrayList<String>>();
+    HashMap<String, ArrayList<String>> typedata = new HashMap<
+      String,
+      ArrayList<String>
+    >();
     String query =
       "SELECT ?s ?type\n" +
       "WHERE {\n" +

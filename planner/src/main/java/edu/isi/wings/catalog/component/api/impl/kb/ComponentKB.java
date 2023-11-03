@@ -820,11 +820,9 @@ public class ComponentKB extends TransactionsJena {
   protected int getComponentVersion(KBObject compobj) {
     KBObject versionProp = kb.getProperty(this.pcns + "hasVersion");
     KBObject versionVal = kb.getPropertyValue(compobj, versionProp);
-    return (Integer) (
-      (versionVal != null && versionVal.getValue() != null)
+    return (Integer) ((versionVal != null && versionVal.getValue() != null)
         ? versionVal.getValue()
-        : 0
-    );
+        : 0);
   }
 
   protected ArrayList<KBObject> getComponentInputs(KBObject compobj) {
