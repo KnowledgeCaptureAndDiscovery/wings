@@ -1,7 +1,5 @@
 package edu.isi.wings.portal.classes.config;
 
-import edu.isi.kcap.wings.opmm_deprecated.Main;
-import java.io.File;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.configuration.plist.PropertyListConfiguration;
 

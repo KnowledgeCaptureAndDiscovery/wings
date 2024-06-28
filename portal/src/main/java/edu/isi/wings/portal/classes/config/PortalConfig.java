@@ -13,7 +13,6 @@ public class PortalConfig {
   public StorageConfig storageConfig;
   public PlannerConfig plannerConfig;
   public ExecutionConfig executionConfig;
-
   public PublisherConfig publisher;
   public boolean sandboxed;
 
@@ -28,24 +27,21 @@ public class PortalConfig {
   }
 
   public PropertyListConfiguration getPortalConfiguration(
-    HttpServletRequest request
-  ) {
+      HttpServletRequest request) {
     ServletContext app = request.getSession().getServletContext();
     this.portalConfigurationFile = obtainConfigPath(app, request);
     try {
       checkIfFileExists(portalConfigurationFile);
     } catch (Exception e) {
       throw new RuntimeException(
-        "Could not find config file: " + portalConfigurationFile
-      );
+          "Could not find config file: " + portalConfigurationFile);
     }
     return loadConfigurationOnProps();
   }
 
   private String obtainConfigPath(
-    ServletContext app,
-    HttpServletRequest request
-  ) {
+      ServletContext app,
+      HttpServletRequest request) {
     return app.getInitParameter("config.file");
   }
 
@@ -55,28 +51,24 @@ public class PortalConfig {
       props.load(this.portalConfigurationFile);
     } catch (Exception e) {
       throw new RuntimeException(
-        "Could not load config file: " + this.portalConfigurationFile
-      );
+          "Could not load config file: " + this.portalConfigurationFile);
     }
     return props;
   }
 
   private void getPublisherConfiguration(
-    PropertyListConfiguration serverConfig
-  ) {
+      PropertyListConfiguration serverConfig) {
     this.publisher = new PublisherConfig(serverConfig);
   }
 
   private void getOntologyConfiguration(
-    PropertyListConfiguration serverConfig
-  ) {
+      PropertyListConfiguration serverConfig) {
     this.ontologyConfig = new OntologyConfig(serverConfig);
   }
 
   private void getMainConfiguration(
-    PropertyListConfiguration serverConfig,
-    HttpServletRequest request
-  ) {
+      PropertyListConfiguration serverConfig,
+      HttpServletRequest request) {
     this.mainConfig = new MainConfig(serverConfig, request);
   }
 
@@ -89,8 +81,7 @@ public class PortalConfig {
   }
 
   private void getEngineNodeConfiguration(
-    PropertyListConfiguration serverConfig
-  ) {
+      PropertyListConfiguration serverConfig) {
     this.executionConfig = new ExecutionConfig(serverConfig);
   }
 

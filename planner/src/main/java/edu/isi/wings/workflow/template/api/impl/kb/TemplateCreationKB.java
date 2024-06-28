@@ -203,8 +203,10 @@ public class TemplateCreationKB
   public HashMap<String, ArrayList<String>> getTemplatesContainingComponents(
     String[] cids
   ) {
-    HashMap<String, ArrayList<String>> componentTemplates =
-      new HashMap<String, ArrayList<String>>();
+    HashMap<String, ArrayList<String>> componentTemplates = new HashMap<
+      String,
+      ArrayList<String>
+    >();
     ArrayList<String> templateIds = this.getTemplateList();
 
     String cidstr = "";

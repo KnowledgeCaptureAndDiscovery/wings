@@ -45,8 +45,10 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
   public String onturl, liburl;
   private String tdbRepository;
 
-  private static HashMap<String, Boolean> initializedLibrary =
-    new HashMap<String, Boolean>();
+  private static HashMap<String, Boolean> initializedLibrary = new HashMap<
+    String,
+    Boolean
+  >();
 
   private KBAPI ontkb, libkb;
 
@@ -398,8 +400,9 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
     this.start_read();
     boolean batched = this.start_batch_operation();
 
-    ArrayList<SoftwareEnvironment> environment =
-      new ArrayList<SoftwareEnvironment>();
+    ArrayList<SoftwareEnvironment> environment = new ArrayList<
+      SoftwareEnvironment
+    >();
     for (KBObject swobj : this.getInstancesOfClass(
         this.cmap.get("SoftwareGroup"),
         this.libkb
@@ -703,8 +706,10 @@ public class ResourceKB extends TransactionsJena implements ResourceAPI {
   }
 
   public void copyFrom(ResourceAPI rc, ComponentCreationAPI cc) {
-    HashMap<String, SoftwareVersion> sws =
-      new HashMap<String, SoftwareVersion>();
+    HashMap<String, SoftwareVersion> sws = new HashMap<
+      String,
+      SoftwareVersion
+    >();
 
     this.start_write();
     boolean batched = this.start_batch_operation();

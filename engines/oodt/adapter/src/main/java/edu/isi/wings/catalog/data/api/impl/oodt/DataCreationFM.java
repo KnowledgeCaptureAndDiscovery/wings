@@ -59,8 +59,10 @@ public class DataCreationFM implements DataCreationAPI {
   String liburl;
   String onturl;
 
-  private static HashMap<String, String> prodTypes =
-    new HashMap<String, String>();
+  private static HashMap<String, String> prodTypes = new HashMap<
+    String,
+    String
+  >();
 
   public DataCreationFM(Properties props) {
     this.fmurl = props.getProperty("oodt.fmurl");

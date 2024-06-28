@@ -218,8 +218,9 @@ public class TemplateController {
       varDims.put(varid, r.getDimensionality());
     }
 
-    ArrayList<HashMap<String, Object>> returnList =
-      new ArrayList<HashMap<String, Object>>();
+    ArrayList<HashMap<String, Object>> returnList = new ArrayList<
+      HashMap<String, Object>
+    >();
 
     // Some caches
     HashMap<String, Boolean> varsDone = new HashMap<String, Boolean>();

@@ -45,7 +45,7 @@ import edu.isi.wings.common.kb.KBUtils;
 import edu.isi.wings.portal.classes.JsonHandler;
 import edu.isi.wings.portal.classes.StorageHandler;
 import edu.isi.wings.portal.classes.config.ConfigLoader;
-import edu.isi.wings.portal.classes.config.FileUploadServerConfig;
+import edu.isi.wings.portal.classes.config.FileStore;
 import edu.isi.wings.portal.classes.util.CookieHandler;
 import edu.isi.wings.portal.classes.util.TemplateBindings;
 import edu.isi.wings.workflow.plan.api.ExecutionPlan;
@@ -103,7 +103,8 @@ public class DataController {
     this.props = config.getProperties();
 
     dc = DataFactory.getCreationAPI(props);
-    if (this.loadExternal) dc = dc.getExternalCatalog();
+    if (this.loadExternal)
+      dc = dc.getExternalCatalog();
 
     cc = ComponentFactory.getCreationAPI(props);
     tc = TemplateFactory.getCreationAPI(props);
@@ -123,16 +124,18 @@ public class DataController {
    * Querying Methods
    */
   public String getDataJSON(String dataid) {
-    if (this.dc == null) return "{}";
+    if (this.dc == null)
+      return "{}";
 
     String location = this.dc.getDataLocation(dataid);
     DataItem dtype = this.dc.getDatatypeForData(dataid);
-    if (dtype == null) return null;
+    if (dtype == null)
+      return null;
 
-    ArrayList<MetadataProperty> props =
-      this.dc.getMetadataProperties(dtype.getID(), false);
+    ArrayList<MetadataProperty> props = this.dc.getMetadataProperties(dtype.getID(), false);
     ArrayList<String> propids = new ArrayList<String>();
-    for (MetadataProperty prop : props) propids.add(prop.getID());
+    for (MetadataProperty prop : props)
+      propids.add(prop.getID());
     ArrayList<MetadataValue> vals = this.dc.getMetadataValues(dataid, propids);
     String sensor = this.dc.getTypeSensor(dtype.getID());
 
@@ -146,10 +149,10 @@ public class DataController {
   }
 
   public String getDatatypeJSON(String dtype) {
-    if (this.dc == null) return "{}";
+    if (this.dc == null)
+      return "{}";
 
-    ArrayList<MetadataProperty> props =
-      this.dc.getMetadataProperties(dtype, false);
+    ArrayList<MetadataProperty> props = this.dc.getMetadataProperties(dtype, false);
     String format = this.dc.getTypeNameFormat(dtype);
     String sensor = this.dc.getTypeSensor(dtype);
 
@@ -163,7 +166,8 @@ public class DataController {
   public String getDataHierarchyJSON() {
     DataTree tree = dc.getDataHierarchy();
     String dtree = null;
-    if (tree != null) dtree = json.toJson(tree.getRoot());
+    if (tree != null)
+      dtree = json.toJson(tree.getRoot());
     return dtree;
   }
 
@@ -200,7 +204,8 @@ public class DataController {
   }
 
   private HashMap<String, Object> convertNodeToUINode(DataTreeNode node) {
-    if (node == null) return null;
+    if (node == null)
+      return null;
 
     DataItem item = node.getItem();
     HashMap<String, Object> treeNode = new HashMap<String, Object>();
@@ -209,21 +214,15 @@ public class DataController {
     treeNode.put("id", item.getID());
     treeNode.put("isClass", (item.getType() == 1 ? true : false));
     treeNode.put(
-      "iconCls",
-      (
-        item.getType() == 1
-          ? "icon-folder fa fa-yellow"
-          : "icon-file-alt fa fa-blue"
-      )
-    );
+        "iconCls",
+        (item.getType() == 1
+            ? "icon-folder fa fa-yellow"
+            : "icon-file-alt fa fa-blue"));
     treeNode.put(
-      "expIconCls",
-      (
-        item.getType() == 1
-          ? "icon-folder-open fa fa-yellow"
-          : "icon-file-alt fa fa-blue"
-      )
-    );
+        "expIconCls",
+        (item.getType() == 1
+            ? "icon-folder-open fa fa-yellow"
+            : "icon-file-alt fa fa-blue"));
     treeNode.put("expanded", false);
     treeNode.put("leaf", (item.getType() == 1 ? false : true));
     treeNode.put("draggable", (item.getType() == 1));
@@ -237,8 +236,7 @@ public class DataController {
       HashMap<String, Object> treeNode = new HashMap<String, Object>();
       ArrayList<DataTreeNode> children = tree.getRoot().getChildren();
       if (children != null && children.size() > 0) {
-        ArrayList<HashMap<String, Object>> uichildren =
-          new ArrayList<HashMap<String, Object>>();
+        ArrayList<HashMap<String, Object>> uichildren = new ArrayList<HashMap<String, Object>>();
         for (DataTreeNode childnode : children) {
           uichildren.add(this.convertNodeToUINode(childnode));
         }
@@ -250,80 +248,26 @@ public class DataController {
   }
 
   public String getDataListJSON() {
-    HashMap<String, ArrayList<String>> typeInstances =
-      dc.getAllDatatypeDatasets();
+    HashMap<String, ArrayList<String>> typeInstances = dc.getAllDatatypeDatasets();
     return json.toJson(typeInstances);
   }
 
   public String getMetricsHierarchyJSON() {
     DataTree tree = dc.getMetricsHierarchy();
     String mtree = null;
-    if (tree != null) mtree = json.toJson(tree.getRoot());
+    if (tree != null)
+      mtree = json.toJson(tree.getRoot());
     return mtree;
   }
 
-  public String publishData(String dataid) {
+  public String publishData(String dataid) throws Exception {
     String location = dc.getDataLocation(dataid);
+    FileStore fileStore = config.portalConfig.getPublisher().getFileStore();
     if (location != null) {
       File datafile = new File(location);
       if (config.portalConfig.getPublisher() != null) {
-        return this.uploadFile(
-            config.portalConfig.getPublisher().getUploadServer(),
-            datafile
-          );
+        return fileStore.publishFile(datafile);
       } else {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  private String uploadFile(FileUploadServerConfig server, File datafile) {
-    String upUrl = server.getUrl();
-    String username = server.getUsername();
-    String password = server.getPassword();
-
-    if (username == null || password == null) {
-      return (
-        "missing username or password " +
-        upUrl +
-        " " +
-        username +
-        " " +
-        password
-      );
-    }
-    if (datafile.exists()) {
-      AsyncHttpClient client = Dsl.asyncHttpClient();
-      InputStream inputStream;
-
-      try {
-        inputStream = new BufferedInputStream(new FileInputStream(datafile));
-        try {
-          org.asynchttpclient.Response response = client
-            .preparePost(upUrl)
-            .setRealm(
-              basicAuthRealm(username, password).setUsePreemptiveAuth(true)
-            )
-            .addBodyPart(
-              new InputStreamPart(
-                datafile.getName(),
-                inputStream,
-                datafile.getName(),
-                -1,
-                "application/octet-stream",
-                UTF_8
-              )
-            )
-            .execute()
-            .get();
-          return response.getResponseBody();
-        } catch (InterruptedException e) {
-          return null;
-        } catch (ExecutionException e) {
-          return null;
-        }
-      } catch (FileNotFoundException e) {
         return null;
       }
     }
@@ -343,7 +287,8 @@ public class DataController {
         // Do nothing
       }
       // Else assume it's a file path
-      if (f == null) f = new File(location);
+      if (f == null)
+        f = new File(location);
 
       return StorageHandler.streamFile(f.getAbsolutePath(), context);
     }
@@ -354,10 +299,10 @@ public class DataController {
    * Writing Methods
    */
   public synchronized boolean saveDataJSON(
-    String dataid,
-    String propvals_json
-  ) {
-    if (dc == null) return false;
+      String dataid,
+      String propvals_json) {
+    if (dc == null)
+      return false;
 
     try {
       JsonParser parser = new JsonParser();
@@ -365,13 +310,11 @@ public class DataController {
 
       DataItem dtype = dc.getDatatypeForData(dataid);
       ArrayList<MetadataProperty> props = dc.getMetadataProperties(
-        dtype.getID(),
-        false
-      );
+          dtype.getID(),
+          false);
 
       ArrayList<String> propids = new ArrayList<String>();
-      HashMap<String, MetadataProperty> pinfos =
-        new HashMap<String, MetadataProperty>();
+      HashMap<String, MetadataProperty> pinfos = new HashMap<String, MetadataProperty>();
       for (MetadataProperty prop : props) {
         propids.add(prop.getID());
         pinfos.put(prop.getID(), prop);
@@ -388,21 +331,18 @@ public class DataController {
         MetadataProperty pinfo = pinfos.get(propid);
         if (pinfo != null) {
           if (pinfo.isDatatypeProperty()) {
-            if (
-              value.equals("") && !pinfo.getRange().contains("string")
-            ) continue;
+            if (value.equals("") && !pinfo.getRange().contains("string"))
+              continue;
             dc.addDatatypePropertyValue(
-              dataid,
-              propid,
-              value,
-              pinfo.getRange()
-            );
+                dataid,
+                propid,
+                value,
+                pinfo.getRange());
           } else {
             dc.addObjectPropertyValue(
-              dataid,
-              propid,
-              this.domns + value.toString()
-            );
+                dataid,
+                propid,
+                this.domns + value.toString());
           }
         }
       }
@@ -421,54 +361,57 @@ public class DataController {
   }
 
   public synchronized String registerData(
-    String dataid,
-    String newname,
-    String metadata_json
-  ) {
+      String dataid,
+      String newname,
+      String metadata_json) {
     try {
       JsonParser parser = new JsonParser();
       JsonElement propvals = parser.parse(metadata_json);
       JsonObject pvals = propvals.getAsJsonObject();
-      if (pvals.get("type") == null) return "Datatype not known";
+      if (pvals.get("type") == null)
+        return "Datatype not known";
 
       // Choose the most specific type
       DataTree tree = dc.getDatatypeHierarchy();
       String dtypeid = null;
       for (JsonElement el : pvals.get("type").getAsJsonArray()) {
         String tmpid = el.getAsString();
-        if (dtypeid == null) dtypeid = tmpid; else {
+        if (dtypeid == null)
+          dtypeid = tmpid;
+        else {
           DataTreeNode dnode = tree.findNode(dtypeid);
-          if (dnode.hasChild(tree.findNode(tmpid), false)) dtypeid = tmpid;
+          if (dnode.hasChild(tree.findNode(tmpid), false))
+            dtypeid = tmpid;
         }
       }
 
       String dloc = dc.getDataLocation(dataid);
-      if (dloc == null) return "Existing data not found on server";
+      if (dloc == null)
+        return "Existing data not found on server";
 
       String newid = this.libns + newname;
       String newloc = dc.getDataLocation(newid);
-      if (!dc.addData(newid, dtypeid)) return "Could not add data";
+      if (!dc.addData(newid, dtypeid))
+        return "Could not add data";
 
       if (!dataid.equals(newid)) {
         File origf = new File(dloc);
         File newf = new File(
-          origf.getParentFile().getAbsolutePath() + File.separator + newname
-        );
+            origf.getParentFile().getAbsolutePath() + File.separator + newname);
         newloc = newf.getAbsolutePath();
-        if (origf.exists() && !newf.exists()) FileUtils.copyFile(origf, newf);
+        if (origf.exists() && !newf.exists())
+          FileUtils.copyFile(origf, newf);
       }
-      if (newloc == null) return "Cannot find location for new data";
+      if (newloc == null)
+        return "Cannot find location for new data";
 
-      if (
-        !dc.setDataLocation(newid, newloc)
-      ) return "Could not set data location";
+      if (!dc.setDataLocation(newid, newloc))
+        return "Could not set data location";
 
       ArrayList<MetadataProperty> props = dc.getMetadataProperties(
-        dtypeid,
-        false
-      );
-      HashMap<String, MetadataProperty> pinfos =
-        new HashMap<String, MetadataProperty>();
+          dtypeid,
+          false);
+      HashMap<String, MetadataProperty> pinfos = new HashMap<String, MetadataProperty>();
       for (MetadataProperty prop : props) {
         pinfos.put(prop.getName(), prop);
       }
@@ -480,21 +423,18 @@ public class DataController {
           MetadataProperty pinfo = pinfos.get(pname);
           if (pinfo != null) {
             if (pinfo.isDatatypeProperty()) {
-              if (
-                value.equals("") && !pinfo.getRange().contains("string")
-              ) continue;
+              if (value.equals("") && !pinfo.getRange().contains("string"))
+                continue;
               dc.addDatatypePropertyValue(
-                newid,
-                pinfo.getID(),
-                value,
-                pinfo.getRange()
-              );
+                  newid,
+                  pinfo.getID(),
+                  value,
+                  pinfo.getRange());
             } else {
               dc.addObjectPropertyValue(
-                newid,
-                pinfo.getID(),
-                this.domns + value.toString()
-              );
+                  newid,
+                  pinfo.getID(),
+                  this.domns + value.toString());
             }
           }
         }
@@ -502,8 +442,7 @@ public class DataController {
 
       Provenance p = new Provenance(newid);
       p.addActivity(
-        new ProvActivity(ProvActivity.CREATE, "Saving data from a run")
-      );
+          new ProvActivity(ProvActivity.CREATE, "Saving data from a run"));
 
       if (prov.addProvenance(p)) {
         return "OK";
@@ -516,13 +455,13 @@ public class DataController {
   }
 
   public synchronized String saveDatatypeJSON(
-    String dtypeid,
-    String props_json
-  ) {
+      String dtypeid,
+      String props_json) {
     ArrayList<String> errors = new ArrayList<String>();
     ArrayList<String> warnings = new ArrayList<String>();
 
-    if (dtypeid == null || props_json == null) return "[\"Null inputs\"]";
+    if (dtypeid == null || props_json == null)
+      return "[\"Null inputs\"]";
 
     try {
       JsonParser parser = new JsonParser();
@@ -565,9 +504,9 @@ public class DataController {
       }
 
       /*
-      dc.removeMetadataPropertyInLibrary(String propid);
-      dc.renameMetadataPropertyInLibrary(String oldid, String newid);
-      */
+       * dc.removeMetadataPropertyInLibrary(String propid);
+       * dc.renameMetadataPropertyInLibrary(String oldid, String newid);
+       */
 
       // Check all properties being deleted
       JsonObject delops = ops.get("del").getAsJsonObject();
@@ -580,10 +519,9 @@ public class DataController {
           this.dc.removeMetadataPropertyDomain(propid, dtypeid);
           eprop.getDomains().remove(dtypeid);
           warnings.add(
-            "Note that the property you deleted currently also " +
-            "exists for other datatypes: " +
-            eprop.getDomains()
-          );
+              "Note that the property you deleted currently also " +
+                  "exists for other datatypes: " +
+                  eprop.getDomains());
         } else {
           this.dc.removeMetadataProperty(propid);
           this.dc.removeMetadataPropertyInLibrary(propid);
@@ -603,17 +541,14 @@ public class DataController {
         String npropid = prop.get("pid").getAsString();
         MetadataProperty eprop = this.dc.getMetadataProperty(propid);
         MetadataProperty enprop = this.dc.getMetadataProperty(npropid);
-        if (
-          enprop != null &&
-          !propid.equals(npropid) &&
-          !range.equals(enprop.getRange())
-        ) {
+        if (enprop != null &&
+            !propid.equals(npropid) &&
+            !range.equals(enprop.getRange())) {
           errors.add(
-            "Property " +
-            enprop.getName() +
-            " already exists with a different range: " +
-            enprop.getRange()
-          );
+              "Property " +
+                  enprop.getName() +
+                  " already exists with a different range: " +
+                  enprop.getRange());
           continue;
         }
         if (!eprop.getRange().equals(range)) {
@@ -621,10 +556,10 @@ public class DataController {
           this.dc.addMetadataProperty(npropid, dtypeid, range);
           // Re-add any other domains that the property might have had
           for (String domid : eprop.getDomains()) {
-            if (!domid.equals(dtypeid)) this.dc.addMetadataPropertyDomain(
-                npropid,
-                domid
-              );
+            if (!domid.equals(dtypeid))
+              this.dc.addMetadataPropertyDomain(
+                  npropid,
+                  domid);
           }
         } else if (!propid.equals(npropid)) {
           this.dc.renameMetadataProperty(propid, npropid);
@@ -633,10 +568,9 @@ public class DataController {
         if (eprop.getDomains().size() > 1) {
           eprop.getDomains().remove(dtypeid);
           warnings.add(
-            "Note that the property you modified also " +
-            "exists for other datatypes, and would have been modified for them as well : " +
-            eprop.getDomains()
-          );
+              "Note that the property you modified also " +
+                  "exists for other datatypes, and would have been modified for them as well : " +
+                  eprop.getDomains());
         }
       }
       this.dc.stop_batch_operation();
@@ -671,10 +605,10 @@ public class DataController {
   }
 
   public synchronized boolean addDatatype(String ptype, String dtype) {
-    if (ptype == null || dtype == null) return false;
+    if (ptype == null || dtype == null)
+      return false;
 
-    String provlog =
-      "Creating datatype with parent " + KBUtils.getLocalName(ptype);
+    String provlog = "Creating datatype with parent " + KBUtils.getLocalName(ptype);
     Provenance p = new Provenance(dtype);
     p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
 
@@ -682,39 +616,35 @@ public class DataController {
   }
 
   public synchronized boolean moveDatatypeTo(
-    String dtypeid,
-    String fromtype,
-    String totype
-  ) {
-    if (dtypeid == null || fromtype == null || totype == null) return false;
+      String dtypeid,
+      String fromtype,
+      String totype) {
+    if (dtypeid == null || fromtype == null || totype == null)
+      return false;
 
-    String provlog =
-      "Moving Datatype from " +
-      KBUtils.getLocalName(fromtype) +
-      " to " +
-      KBUtils.getLocalName(totype);
+    String provlog = "Moving Datatype from " +
+        KBUtils.getLocalName(fromtype) +
+        " to " +
+        KBUtils.getLocalName(totype);
     Provenance p = new Provenance(dtypeid);
     p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
 
-    return (
-      dc.moveDatatypeParent(dtypeid, fromtype, totype) &&
-      dc.moveDatatypeParentInLibrary(dtypeid, fromtype, totype) &&
-      prov.addProvenance(p)
-    );
+    return (dc.moveDatatypeParent(dtypeid, fromtype, totype) &&
+        dc.moveDatatypeParentInLibrary(dtypeid, fromtype, totype) &&
+        prov.addProvenance(p));
   }
 
   public synchronized boolean moveDataTo(
-    String dataid,
-    String fromtype,
-    String totype
-  ) {
-    if (dataid == null || fromtype == null || totype == null) return false;
+      String dataid,
+      String fromtype,
+      String totype) {
+    if (dataid == null || fromtype == null || totype == null)
+      return false;
 
-    String provlog =
-      "Moving Data from " +
-      KBUtils.getLocalName(fromtype) +
-      " to " +
-      KBUtils.getLocalName(totype);
+    String provlog = "Moving Data from " +
+        KBUtils.getLocalName(fromtype) +
+        " to " +
+        KBUtils.getLocalName(totype);
     Provenance p = new Provenance(dataid);
     p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
 
@@ -731,9 +661,8 @@ public class DataController {
   }
 
   public synchronized boolean addDataForDatatype(
-    String dataid,
-    String dtypeid
-  ) {
+      String dataid,
+      String dtypeid) {
     String provlog = "Creating data of type " + KBUtils.getLocalName(dtypeid);
     Provenance p = new Provenance(dataid);
     p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
@@ -742,21 +671,19 @@ public class DataController {
   }
 
   public synchronized String addRemoteDataForType(
-    String dataLocationUrl,
-    String dtypeid
-  ) {
+      String dataLocationUrl,
+      String dtypeid) {
     try {
-      String provlog =
-        "Downloading from " +
-        dataLocationUrl +
-        " and creating data of type " +
-        KBUtils.getLocalName(dtypeid);
+      String provlog = "Downloading from " +
+          dataLocationUrl +
+          " and creating data of type " +
+          KBUtils.getLocalName(dtypeid);
 
       // Check if it doesn't already exist
       URL url = new URL(dataLocationUrl);
       String filename = KBUtils.sanitizeID(new File(url.getFile()).getName());
       String dataid = this.libns + filename;
-      //System.out.println("Check if data exists");
+      // System.out.println("Check if data exists");
       if (dc.getDataLocation(dataid) != null) {
         // Dataset already exists, so do not overwrite (FIXME : Make it configurable)
         return dataid;
@@ -764,14 +691,14 @@ public class DataController {
 
       Provenance p = new Provenance(dataid);
       p.addActivity(new ProvActivity(ProvActivity.CREATE, provlog));
-      //System.out.println("Adding new data");
+      // System.out.println("Adding new data");
 
       String location = dc.getDefaultDataLocation(dataid);
-      //System.out.println("Copying "+ url + " to " + location);
+      // System.out.println("Copying "+ url + " to " + location);
       FileUtils.copyURLToFile(url, new File(location));
-      //System.out.println("Add data id: " + dataid);
+      // System.out.println("Add data id: " + dataid);
       dc.addData(dataid, dtypeid);
-      //System.out.println("Set data location of " + dataid);
+      // System.out.println("Set data location of " + dataid);
       if (dc.setDataLocation(dataid, location) && prov.addProvenance(p)) {
         return dataid;
       }
@@ -782,27 +709,26 @@ public class DataController {
   }
 
   public synchronized boolean addBatchData(
-    String dtypeid,
-    String[] dids,
-    String[] locations,
-    HttpServletRequest request,
-    ServletContext context
-  ) {
+      String dtypeid,
+      String[] dids,
+      String[] locations,
+      HttpServletRequest request,
+      ServletContext context) {
     for (int i = 0; i < dids.length; i++) {
-      if (!dc.addData(dids[i], dtypeid)) return false;
-      if (locations.length > i && locations[i] != null) if (
-        !dc.setDataLocation(dids[i], locations[i])
-      ) return false;
+      if (!dc.addData(dids[i], dtypeid))
+        return false;
+      if (locations.length > i && locations[i] != null)
+        if (!dc.setDataLocation(dids[i], locations[i]))
+          return false;
       this.runSensorWorkflow(dids[i], request, context);
     }
     return true;
   }
 
   public String runSensorWorkflow(
-    String dataid,
-    HttpServletRequest request,
-    ServletContext context
-  ) {
+      String dataid,
+      HttpServletRequest request,
+      ServletContext context) {
     try {
       DataItem dtype = this.dc.getDatatypeForData(dataid);
       if (dtype == null) {
@@ -818,34 +744,29 @@ public class DataController {
       Variable[] invars = this.tc.getTemplate(tplid).getInputVariables();
       if (invars.length != 1) {
         System.err.println(
-          "Template should have exactly 1 input variable. Has " + invars.length
-        );
+            "Template should have exactly 1 input variable. Has " + invars.length);
         return null;
       }
-      HashMap<String, ArrayList<String>> dataBindings =
-        new HashMap<String, ArrayList<String>>();
+      HashMap<String, ArrayList<String>> dataBindings = new HashMap<String, ArrayList<String>>();
       ArrayList<String> inputfiles = new ArrayList<String>();
       inputfiles.add(dataid);
       dataBindings.put(invars[0].getID(), inputfiles);
 
       TemplateBindings tbindings = new TemplateBindings();
       tbindings.setCallbackUrl(
-        this.config.portalConfig.mainConfig.getServerUrl() +
-        this.config.getUserDomainUrl() +
-        "/data/setMetadataFromSensorOutput?data_id=" +
-        URLEncoder.encode(dataid, "UTF-8")
-      );
+          this.config.portalConfig.mainConfig.getServerUrl() +
+              this.config.getUserDomainUrl() +
+              "/data/setMetadataFromSensorOutput?data_id=" +
+              URLEncoder.encode(dataid, "UTF-8"));
       tbindings.setCallbackCookies(
-        CookieHandler.httpCookiesFromServlet(request)
-      );
+          CookieHandler.httpCookiesFromServlet(request));
       tbindings.setDataBindings(dataBindings);
       tbindings.setParameterBindings(new HashMap<String, ArrayList<Object>>());
       tbindings.setParameterTypes(new HashMap<String, String>());
       tbindings.setComponentBindings(new HashMap<String, String>());
       tbindings.setTemplateId(tplid);
 
-      ArrayList<String> runids =
-        this.rc.expandAndRunTemplate(tbindings, context);
+      ArrayList<String> runids = this.rc.expandAndRunTemplate(tbindings, context);
       if (runids != null && runids.size() > 0) {
         return runids.get(0);
       }
@@ -859,10 +780,9 @@ public class DataController {
   }
 
   public String runSensorComponent(
-    String dataid,
-    HttpServletRequest request,
-    ServletContext context
-  ) {
+      String dataid,
+      HttpServletRequest request,
+      ServletContext context) {
     try {
       DataItem dtype = this.dc.getDatatypeForData(dataid);
       if (dtype == null) {
@@ -879,15 +799,13 @@ public class DataController {
       ArrayList<ComponentRole> outroles = c.getOutputs();
       if (inroles.size() != 1) {
         System.err.println(
-          "Sensor component should have exactly 1 input. Has " + inroles.size()
-        );
+            "Sensor component should have exactly 1 input. Has " + inroles.size());
         return null;
       }
       if (outroles.size() != 1) {
         System.err.println(
-          "Sensor component should have exactly 1 output. Has " +
-          outroles.size()
-        );
+            "Sensor component should have exactly 1 output. Has " +
+                outroles.size());
         return null;
       }
 
@@ -901,23 +819,21 @@ public class DataController {
       role_bindings.put(inroles.get(0).getRoleName(), b);
       role_bindings.put(outroles.get(0).getRoleName(), bout);
 
-      String callbackUrl =
-        request.getScheme() +
-        "://" +
-        request.getServerName() +
-        ":" +
-        request.getServerPort() +
-        this.config.getUserDomainUrl() +
-        "/data/setMetadataFromSensorOutput?data_id=" +
-        URLEncoder.encode(dataid, "UTF-8");
+      String callbackUrl = request.getScheme() +
+          "://" +
+          request.getServerName() +
+          ":" +
+          request.getServerPort() +
+          this.config.getUserDomainUrl() +
+          "/data/setMetadataFromSensorOutput?data_id=" +
+          URLEncoder.encode(dataid, "UTF-8");
 
       this.rc.runComponent(
           cid,
           role_bindings,
           callbackUrl,
           CookieHandler.httpCookiesFromServlet(request),
-          context
-        );
+          context);
     } catch (Exception e) {
       e.printStackTrace();
       this.rc.end();
@@ -928,10 +844,9 @@ public class DataController {
   }
 
   public String setMetadataFromSensorOutput(
-    String data_id,
-    ExecutionPlan plan
-  ) {
-    //System.out.println(plan);
+      String data_id,
+      ExecutionPlan plan) {
+    // System.out.println(plan);
     for (ExecutionStep step : plan.getAllExecutionSteps()) {
       for (ExecutionFile file : step.getOutputFiles()) {
         file.loadMetadataFromFileContents();
@@ -946,11 +861,10 @@ public class DataController {
   }
 
   public synchronized boolean renameData(String dataid, String newid) {
-    String provlog =
-      "Renaming " +
-      KBUtils.getLocalName(dataid) +
-      " to " +
-      KBUtils.getLocalName(newid);
+    String provlog = "Renaming " +
+        KBUtils.getLocalName(dataid) +
+        " to " +
+        KBUtils.getLocalName(newid);
     Provenance p = new Provenance(dataid);
     p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
 
@@ -966,19 +880,16 @@ public class DataController {
   }
 
   public synchronized boolean renameDataType(String dtypeid, String newid) {
-    String provlog =
-      "Renaming " +
-      KBUtils.getLocalName(dtypeid) +
-      " to " +
-      KBUtils.getLocalName(newid);
+    String provlog = "Renaming " +
+        KBUtils.getLocalName(dtypeid) +
+        " to " +
+        KBUtils.getLocalName(newid);
     Provenance p = new Provenance(dtypeid);
     p.addActivity(new ProvActivity(ProvActivity.UPDATE, provlog));
 
-    return (
-      dc.renameDatatype(newid, dtypeid) &&
-      dc.renameDatatypeInLibrary(newid, dtypeid) &&
-      prov.addProvenance(p)
-    );
+    return (dc.renameDatatype(newid, dtypeid) &&
+        dc.renameDatatypeInLibrary(newid, dtypeid) &&
+        prov.addProvenance(p));
   }
 
   public void end() {
@@ -991,12 +902,12 @@ public class DataController {
   }
 
   public synchronized boolean importFromExternalCatalog(
-    String dataid,
-    String dtypeid,
-    String propvals_json,
-    String location
-  ) {
-    if (dc == null) return false;
+      String dataid,
+      String dtypeid,
+      String propvals_json,
+      String location) {
+    if (dc == null)
+      return false;
 
     try {
       JsonParser parser = new JsonParser();
@@ -1007,8 +918,8 @@ public class DataController {
         dc.addData(dataid, dtypeid);
       }
       for (Map.Entry<String, JsonElement> entry : propvals
-        .getAsJsonObject()
-        .entrySet()) {
+          .getAsJsonObject()
+          .entrySet()) {
         String propid = entry.getKey();
         String value = entry.getValue().getAsString();
 
@@ -1039,21 +950,21 @@ public class DataController {
   private void trustAllCertificates() {
     // Create a new trust manager that trust all certificates
     TrustManager[] trustAllCerts = new TrustManager[] {
-      new X509TrustManager() {
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-          return null;
-        }
+        new X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return null;
+          }
 
-        public void checkClientTrusted(
-          java.security.cert.X509Certificate[] certs,
-          String authType
-        ) {}
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] certs,
+              String authType) {
+          }
 
-        public void checkServerTrusted(
-          java.security.cert.X509Certificate[] certs,
-          String authType
-        ) {}
-      },
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] certs,
+              String authType) {
+          }
+        },
     };
 
     // Activate the new trust manager
@@ -1061,6 +972,7 @@ public class DataController {
       SSLContext sc = SSLContext.getInstance("SSL");
       sc.init(null, trustAllCerts, new java.security.SecureRandom());
       HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
   }
 }

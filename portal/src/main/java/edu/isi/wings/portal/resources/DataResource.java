@@ -32,8 +32,8 @@ public class DataResource extends WingsResource {
   public void init() {
     super.init();
     this.loadExternal = ("/external".equals(external));
-    if (this.hasPermissions() && !this.isPage("intro")) this.dc =
-      new DataController(config, this.loadExternal);
+    if (this.hasPermissions() && !this.isPage("intro"))
+      this.dc = new DataController(config, this.loadExternal);
   }
 
   @PreDestroy
@@ -64,7 +64,8 @@ public class DataResource extends WingsResource {
   @Path("getDataJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataJSON(@QueryParam("data_id") String data_id) {
-    if (this.dc != null) return this.dc.getDataJSON(data_id);
+    if (this.dc != null)
+      return this.dc.getDataJSON(data_id);
     return null;
   }
 
@@ -92,7 +93,8 @@ public class DataResource extends WingsResource {
   @Path("getDataTypeJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataTypeJSON(@QueryParam("data_type") String data_type) {
-    if (this.dc != null) return this.dc.getDatatypeJSON(data_type);
+    if (this.dc != null)
+      return this.dc.getDatatypeJSON(data_type);
     return null;
   }
 
@@ -100,7 +102,8 @@ public class DataResource extends WingsResource {
   @Path("getDataHierarchyJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataHierarchyJSON() {
-    if (this.dc != null) return this.dc.getDataHierarchyJSON();
+    if (this.dc != null)
+      return this.dc.getDataHierarchyJSON();
     return null;
   }
 
@@ -108,7 +111,8 @@ public class DataResource extends WingsResource {
   @Path("getNodeDataHierarchyJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getNodeDataHierarchyJSON(@QueryParam("node") String nodeid) {
-    if (this.dc != null) return this.dc.getNodeDataHierarchyJSON(nodeid);
+    if (this.dc != null)
+      return this.dc.getNodeDataHierarchyJSON(nodeid);
     return null;
   }
 
@@ -116,7 +120,8 @@ public class DataResource extends WingsResource {
   @Path("getDataListJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String getDataListJSON() {
-    if (this.dc != null) return this.dc.getDataListJSON();
+    if (this.dc != null)
+      return this.dc.getDataListJSON();
     return null;
   }
 
@@ -124,7 +129,8 @@ public class DataResource extends WingsResource {
   @Path("fetch")
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   public Response fetchData(@QueryParam("data_id") String data_id) {
-    if (this.dc != null) return this.dc.streamData(data_id, this.context);
+    if (this.dc != null)
+      return this.dc.streamData(data_id, this.context);
     return Response.status(Status.FORBIDDEN).build();
   }
 
@@ -132,21 +138,21 @@ public class DataResource extends WingsResource {
   @Path("setMetadataFromSensorOutput")
   @Produces(MediaType.TEXT_PLAIN)
   public String setMetadataFromSensorOutput(
-    @QueryParam("data_id") String data_id,
-    @JsonProperty("plan") ExecutionPlan plan
-  ) {
-    if (this.dc != null) return this.dc.setMetadataFromSensorOutput(
-        data_id,
-        plan
-      );
+      @QueryParam("data_id") String data_id,
+      @JsonProperty("plan") ExecutionPlan plan) {
+    if (this.dc != null)
+      return this.dc.setMetadataFromSensorOutput(
+          data_id,
+          plan);
     return null;
   }
 
   @POST
   @Path("publish")
   @Produces(MediaType.TEXT_PLAIN)
-  public String publishData(@FormParam("data_id") String data_id) {
-    if (this.dc != null) return this.dc.publishData(data_id);
+  public String publishData(@FormParam("data_id") String data_id) throws Exception {
+    if (this.dc != null)
+      return this.dc.publishData(data_id);
     return null;
   }
 
@@ -154,12 +160,9 @@ public class DataResource extends WingsResource {
   @Path("saveDataJSON")
   @Produces(MediaType.TEXT_PLAIN)
   public String saveDataJSON(
-    @FormParam("data_id") String data_id,
-    @FormParam("propvals_json") String json
-  ) {
-    if (
-      this.dc != null && this.isOwner() && this.dc.saveDataJSON(data_id, json)
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("propvals_json") String json) {
+    if (this.dc != null && this.isOwner() && this.dc.saveDataJSON(data_id, json)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -170,12 +173,9 @@ public class DataResource extends WingsResource {
   @Path("saveDataTypeJSON")
   @Produces(MediaType.APPLICATION_JSON)
   public String saveDataTypeJSON(
-    @FormParam("data_type") String data_type,
-    @FormParam("props_json") String json
-  ) {
-    if (
-      this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()
-    ) {
+      @FormParam("data_type") String data_type,
+      @FormParam("props_json") String json) {
+    if (this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()) {
       RunController.invalidateCachedAPIs();
       return this.dc.saveDatatypeJSON(data_type, json);
     }
@@ -186,15 +186,12 @@ public class DataResource extends WingsResource {
   @Path("newDataType")
   @Produces(MediaType.TEXT_PLAIN)
   public String newDataType(
-    @FormParam("data_type") String data_type,
-    @FormParam("parent_type") String parent_type
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.addDatatype(parent_type, data_type)
-    ) {
+      @FormParam("data_type") String data_type,
+      @FormParam("parent_type") String parent_type) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.addDatatype(parent_type, data_type)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -207,12 +204,10 @@ public class DataResource extends WingsResource {
   public String delDataTypes(@FormParam("data_type") String dtypes) {
     Gson gson = new Gson();
     String[] data_types = gson.fromJson(dtypes, String[].class);
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.delDatatypes(data_types)
-    ) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.delDatatypes(data_types)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -223,16 +218,13 @@ public class DataResource extends WingsResource {
   @Path("moveDatatypeTo")
   @Produces(MediaType.TEXT_PLAIN)
   public String moveDatatypeTo(
-    @FormParam("data_type") String data_type,
-    @FormParam("from_parent_type") String from_parent_type,
-    @FormParam("to_parent_type") String to_parent_type
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.moveDatatypeTo(data_type, from_parent_type, to_parent_type)
-    ) {
+      @FormParam("data_type") String data_type,
+      @FormParam("from_parent_type") String from_parent_type,
+      @FormParam("to_parent_type") String to_parent_type) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.moveDatatypeTo(data_type, from_parent_type, to_parent_type)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -243,16 +235,13 @@ public class DataResource extends WingsResource {
   @Path("moveDataTo")
   @Produces(MediaType.TEXT_PLAIN)
   public String moveDataTo(
-    @FormParam("data_id") String data_id,
-    @FormParam("from_parent_type") String from_parent_type,
-    @FormParam("to_parent_type") String to_parent_type
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.moveDataTo(data_id, from_parent_type, to_parent_type)
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("from_parent_type") String from_parent_type,
+      @FormParam("to_parent_type") String to_parent_type) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.moveDataTo(data_id, from_parent_type, to_parent_type)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -263,15 +252,12 @@ public class DataResource extends WingsResource {
   @Path("addDataForType")
   @Produces(MediaType.TEXT_PLAIN)
   public String addDataForType(
-    @FormParam("data_id") String data_id,
-    @FormParam("data_type") String data_type
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.addDataForDatatype(data_id, data_type)
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("data_type") String data_type) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.addDataForDatatype(data_id, data_type)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -282,12 +268,9 @@ public class DataResource extends WingsResource {
   @Path("addRemoteDataForType")
   @Produces(MediaType.TEXT_PLAIN)
   public String addRemoteDataForType(
-    @FormParam("data_url") String data_url,
-    @FormParam("data_type") String data_type
-  ) {
-    if (
-      this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()
-    ) {
+      @FormParam("data_url") String data_url,
+      @FormParam("data_type") String data_type) {
+    if (this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()) {
       RunController.invalidateCachedAPIs();
       return this.dc.addRemoteDataForType(data_url, data_type);
     }
@@ -298,12 +281,10 @@ public class DataResource extends WingsResource {
   @Path("delData")
   @Produces(MediaType.TEXT_PLAIN)
   public String delData(@FormParam("data_id") String data_id) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.delData(data_id)
-    ) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.delData(data_id)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -314,15 +295,12 @@ public class DataResource extends WingsResource {
   @Path("renameData")
   @Produces(MediaType.TEXT_PLAIN)
   public String renameData(
-    @FormParam("data_id") String data_id,
-    @FormParam("newid") String newid
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.renameData(data_id, newid)
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("newid") String newid) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.renameData(data_id, newid)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -333,15 +311,12 @@ public class DataResource extends WingsResource {
   @Path("renameDataType")
   @Produces(MediaType.TEXT_PLAIN)
   public String renameDataType(
-    @FormParam("data_type") String data_type,
-    @FormParam("newid") String newid
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.renameDataType(data_type, newid)
-    ) {
+      @FormParam("data_type") String data_type,
+      @FormParam("newid") String newid) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.renameDataType(data_type, newid)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -352,15 +327,12 @@ public class DataResource extends WingsResource {
   @Path("setDataLocation")
   @Produces(MediaType.TEXT_PLAIN)
   public String setDataLocation(
-    @FormParam("data_id") String data_id,
-    @FormParam("location") String location
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.setDataLocation(data_id, location)
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("location") String location) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.setDataLocation(data_id, location)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -371,25 +343,21 @@ public class DataResource extends WingsResource {
   @Path("addBatchData")
   @Produces(MediaType.TEXT_PLAIN)
   public String addBatchData(
-    @FormParam("data_type") String data_type,
-    @FormParam("data_ids") String dids,
-    @FormParam("data_locations") String locs
-  ) {
+      @FormParam("data_type") String data_type,
+      @FormParam("data_ids") String dids,
+      @FormParam("data_locations") String locs) {
     Gson gson = new Gson();
     String[] data_ids = gson.fromJson(dids, String[].class);
     String[] data_locations = gson.fromJson(locs, String[].class);
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.addBatchData(
-          data_type,
-          data_ids,
-          data_locations,
-          this.request,
-          this.context
-        )
-    ) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.addBatchData(
+            data_type,
+            data_ids,
+            data_locations,
+            this.request,
+            this.context)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
@@ -400,13 +368,10 @@ public class DataResource extends WingsResource {
   @Path("registerData")
   @Produces(MediaType.TEXT_PLAIN)
   public String registerData(
-    @FormParam("data_id") String data_id,
-    @FormParam("newname") String newname,
-    @FormParam("metadata_json") String json
-  ) {
-    if (
-      this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("newname") String newname,
+      @FormParam("metadata_json") String json) {
+    if (this.dc != null && this.isOwner() && !config.portalConfig.isSandboxed()) {
       RunController.invalidateCachedAPIs();
       return this.dc.registerData(data_id, newname, json);
     }
@@ -417,17 +382,14 @@ public class DataResource extends WingsResource {
   @Path("importFromExternalCatalog")
   @Produces(MediaType.TEXT_PLAIN)
   public String importFromExternalCatalog(
-    @FormParam("data_id") String data_id,
-    @FormParam("data_type") String data_type,
-    @FormParam("propvals_json") String json,
-    @FormParam("location") String location
-  ) {
-    if (
-      this.dc != null &&
-      this.isOwner() &&
-      !config.portalConfig.isSandboxed() &&
-      this.dc.importFromExternalCatalog(data_id, data_type, json, location)
-    ) {
+      @FormParam("data_id") String data_id,
+      @FormParam("data_type") String data_type,
+      @FormParam("propvals_json") String json,
+      @FormParam("location") String location) {
+    if (this.dc != null &&
+        this.isOwner() &&
+        !config.portalConfig.isSandboxed() &&
+        this.dc.importFromExternalCatalog(data_id, data_type, json, location)) {
       RunController.invalidateCachedAPIs();
       return "OK";
     }
