@@ -6,7 +6,7 @@
 
 ### Docker
 
-You must install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/).
+You must install [Docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/install/). 
 
 Clone the repository
 
