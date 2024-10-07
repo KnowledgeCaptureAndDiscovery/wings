@@ -70,12 +70,12 @@ public class Dependency {
       if (
         this.operator == Operator.GREATER_THAN &&
         Double.parseDouble(obj.getValueAsString()) >
-        Double.parseDouble(this.desiredValue.toString())
+          Double.parseDouble(this.desiredValue.toString())
       ) return true;
       if (
         this.operator == Operator.LESS_THAN &&
         Double.parseDouble(obj.getValueAsString()) <
-        Double.parseDouble(this.desiredValue.toString())
+          Double.parseDouble(this.desiredValue.toString())
       ) return true;
     }
     return false;

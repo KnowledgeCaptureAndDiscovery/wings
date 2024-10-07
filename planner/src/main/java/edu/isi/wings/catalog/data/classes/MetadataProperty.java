@@ -74,15 +74,15 @@ public class MetadataProperty extends URIEntity {
   public String toString() {
     String str = "";
     str +=
-      "\n" +
-      getName() +
-      "(" +
-      type +
-      ")\nDomains:" +
-      domains +
-      "\nRange:" +
-      range +
-      "\n";
+    "\n" +
+    getName() +
+    "(" +
+    type +
+    ")\nDomains:" +
+    domains +
+    "\nRange:" +
+    range +
+    "\n";
     return str;
   }
 }

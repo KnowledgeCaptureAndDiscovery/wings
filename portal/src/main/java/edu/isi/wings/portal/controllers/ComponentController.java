@@ -158,9 +158,10 @@ public class ComponentController {
     return true;
   }
 
-  public synchronized HashMap<String, ArrayList<String>> getWorkflowsContainingComponent(
-    String cid
-  ) {
+  public synchronized HashMap<
+    String,
+    ArrayList<String>
+  > getWorkflowsContainingComponent(String cid) {
     if (this.tc == null) return null;
     try {
       ArrayList<String> types = this.cc.getParentComponentTypes(cid);

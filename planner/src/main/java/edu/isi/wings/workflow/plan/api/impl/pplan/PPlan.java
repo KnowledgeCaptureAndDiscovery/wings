@@ -129,8 +129,10 @@ public class PPlan extends URIEntity implements ExecutionPlan, TransactionsAPI {
     for (KBObject pobj : kb.getInstancesOfClass(plancls, true)) {
       this.setID(pobj.getID());
     }
-    HashMap<String, ExecutionFile> varmaps =
-      new HashMap<String, ExecutionFile>();
+    HashMap<String, ExecutionFile> varmaps = new HashMap<
+      String,
+      ExecutionFile
+    >();
     for (KBObject vobj : kb.getInstancesOfClass(varcls, true)) {
       KBObject pobj = kb.getPropertyValue(vobj, isvarofplanprop);
       if (pobj.getID().equals(this.getID())) {

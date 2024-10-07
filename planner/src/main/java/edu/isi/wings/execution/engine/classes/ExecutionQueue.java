@@ -66,7 +66,7 @@ public class ExecutionQueue {
           if (
             parentStep != null &&
             parentStep.getRuntimeInfo().getStatus() !=
-            RuntimeInfo.Status.SUCCESS
+              RuntimeInfo.Status.SUCCESS
           ) ok = false;
         }
         if (ok) steps.add(step);

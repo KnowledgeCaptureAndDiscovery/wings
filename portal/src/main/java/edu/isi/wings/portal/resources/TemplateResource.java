@@ -67,7 +67,7 @@ public class TemplateResource extends WingsResource {
   public void getIntroduction() {
     String intropage = "Template";
     if (!editor) intropage += "Browser"; else intropage +=
-      "Editor" + (tellme ? "Tellme" : "");
+    "Editor" + (tellme ? "Tellme" : "");
     this.loadIntroduction(intropage);
   }
 

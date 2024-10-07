@@ -40,6 +40,6 @@ public class Rules implements Serializable {
 
   public void addRules(Rules ruleset) {
     if (this.rules != null && ruleset.getRulesText() != null) this.rules +=
-      "\n" + ruleset.getRulesText();
+    "\n" + ruleset.getRulesText();
   }
 }

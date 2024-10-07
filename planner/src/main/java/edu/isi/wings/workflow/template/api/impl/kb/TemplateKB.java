@@ -94,8 +94,10 @@ public class TemplateKB extends URIEntity implements Template, TransactionsAPI {
   private transient HashMap<String, KBObject> conceptObjMap;
   private transient ConstraintEngine constraintEngine;
 
-  private HashMap<String, Template> subtemplates =
-    new HashMap<String, Template>();
+  private HashMap<String, Template> subtemplates = new HashMap<
+    String,
+    Template
+  >();
 
   private transient Template createdFrom;
   private transient Template parent;
@@ -1543,10 +1545,12 @@ public class TemplateKB extends URIEntity implements Template, TransactionsAPI {
 
     StringBuilder dataVariables = new StringBuilder();
     StringBuilder parameters = new StringBuilder();
-    ArrayList<Variable> parameterVariablesWithBindings =
-      new ArrayList<Variable>();
-    ArrayList<Variable> dataVariablesWithDataBindings =
-      new ArrayList<Variable>();
+    ArrayList<Variable> parameterVariablesWithBindings = new ArrayList<
+      Variable
+    >();
+    ArrayList<Variable> dataVariablesWithDataBindings = new ArrayList<
+      Variable
+    >();
     Variable[] inputVariables = this.getInputVariables();
     for (Variable inputVariable : inputVariables) {
       if (inputVariable.isDataVariable()) {
@@ -2452,8 +2456,8 @@ public class TemplateKB extends URIEntity implements Template, TransactionsAPI {
       if (n.getMachineIds() != null && n.getMachineIds().size() > 0) {
         ntext += "\\n[Run on ";
         if (n.getMachineIds().size() > 1) ntext +=
-          "1 of " + n.getMachineIds().size() + " machines]"; else ntext +=
-          n.getMachineIds().get(0).replaceAll(".*#", "") + "]";
+        "1 of " + n.getMachineIds().size() + " machines]"; else ntext +=
+        n.getMachineIds().get(0).replaceAll(".*#", "") + "]";
       }
       ArrayList<String> ips = new ArrayList<String>();
       ArrayList<String> ops = new ArrayList<String>();
@@ -2476,24 +2480,24 @@ public class TemplateKB extends URIEntity implements Template, TransactionsAPI {
       String vtext = v.getName();
       if (v.getBinding() != null) {
         vtext +=
-          " =\\n" +
-          v
-            .getBinding()
-            .toString()
-            .replaceAll("\"", Matcher.quoteReplacement("\\\""))
-            .replaceAll("\\s", "\\\\n");
+        " =\\n" +
+        v
+          .getBinding()
+          .toString()
+          .replaceAll("\"", Matcher.quoteReplacement("\\\""))
+          .replaceAll("\\s", "\\\\n");
       }
       int fsize = 13;
       dotstr +=
-        nl +
-        tab +
-        vid +
-        "[label=\"{{|<ip>|}|{" +
-        vtext +
-        "}|{|<op>|}}\", " +
-        "fontname=\"Tahoma normal\" fontsize=\"" +
-        fsize +
-        "\"];";
+      nl +
+      tab +
+      vid +
+      "[label=\"{{|<ip>|}|{" +
+      vtext +
+      "}|{|<op>|}}\", " +
+      "fontname=\"Tahoma normal\" fontsize=\"" +
+      fsize +
+      "\"];";
 
       varidmap.put(vid, v);
     }

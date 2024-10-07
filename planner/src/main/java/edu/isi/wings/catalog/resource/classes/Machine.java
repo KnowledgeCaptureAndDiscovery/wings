@@ -226,14 +226,10 @@ class MachineDetailsGrabber implements Callable<MachineDetails>, Serializable {
     details.setNumCores(Runtime.getRuntime().availableProcessors());
 
     details.setMaxMemory(
-      (
-        (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()
-      ).getTotalPhysicalMemorySize()
+      ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize()
     );
     details.setFreeMemory(
-      (
-        (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()
-      ).getFreePhysicalMemorySize()
+      ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getFreePhysicalMemorySize()
     );
     File[] roots = File.listRoots();
     for (File root : roots) {

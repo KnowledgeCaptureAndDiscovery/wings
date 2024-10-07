@@ -242,8 +242,10 @@ public class OODTExecutionEngine
     public void run() {
       planexe.onStart(this.logger);
       try {
-        HashMap<String, RuntimeInfo.Status> jobstatus =
-          new HashMap<String, RuntimeInfo.Status>();
+        HashMap<String, RuntimeInfo.Status> jobstatus = new HashMap<
+          String,
+          RuntimeInfo.Status
+        >();
 
         int osleeptime = 1000;
         int maxsleeptime = 4 * osleeptime;

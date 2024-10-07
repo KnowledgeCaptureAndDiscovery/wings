@@ -108,7 +108,7 @@ public class PPlanStep extends URIEntity implements ExecutionStep {
         ) {
           ExecutionFile f = (ExecutionFile) val;
           if (f.getLocation() != null) str += f.getLocation(); else str +=
-            f.getBinding();
+          f.getBinding();
         }
         str += " ";
       }

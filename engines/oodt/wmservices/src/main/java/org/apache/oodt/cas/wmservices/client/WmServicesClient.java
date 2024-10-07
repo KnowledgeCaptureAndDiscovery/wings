@@ -116,7 +116,7 @@ public class WmServicesClient {
       for (int i = 0; i < args.length; i += 2) {
         if (i > 0) params += "&";
         params +=
-          args[i] + "=" + URLEncoder.encode(args[i + 1].toString(), "UTF-8");
+        args[i] + "=" + URLEncoder.encode(args[i + 1].toString(), "UTF-8");
       }
       if ("GET".equals(method)) {
         URL urlobj = new URL(url + "?" + params);
